@@ -29,39 +29,39 @@ export const Sidebar = () => {
               </a>
             </Link>
             
-            <div className="space-y-1">
+            <div className="space-y-1 pl-5 mt-1">
               <Link href="/usd-portfolio">
                 <a className={cn(
-                  "flex items-center w-full px-2 py-2 text-sm font-medium rounded-md group",
+                  "flex items-center w-full px-2 py-1.5 text-sm font-medium rounded-md group",
                   isActive("/usd-portfolio") 
                     ? "bg-primary-50 text-white" 
                     : "text-gray-300 hover:bg-primary-50 hover:text-white"
                 )}>
-                  <TrendingUp className="mr-3 h-5 w-5" />
+                  <TrendingUp className="mr-2 h-4 w-4" />
                   USD Portfolio
                 </a>
               </Link>
               
               <Link href="/cad-portfolio">
                 <a className={cn(
-                  "flex items-center w-full px-2 py-2 text-sm font-medium rounded-md group",
+                  "flex items-center w-full px-2 py-1.5 text-sm font-medium rounded-md group",
                   isActive("/cad-portfolio") 
                     ? "bg-primary-50 text-white" 
                     : "text-gray-300 hover:bg-primary-50 hover:text-white"
                 )}>
-                  <TrendingUp className="mr-3 h-5 w-5" />
+                  <TrendingUp className="mr-2 h-4 w-4" />
                   CAD Portfolio
                 </a>
               </Link>
               
               <Link href="/intl-portfolio">
                 <a className={cn(
-                  "flex items-center w-full px-2 py-2 text-sm font-medium rounded-md group",
+                  "flex items-center w-full px-2 py-1.5 text-sm font-medium rounded-md group",
                   isActive("/intl-portfolio") 
                     ? "bg-primary-50 text-white" 
                     : "text-gray-300 hover:bg-primary-50 hover:text-white"
                 )}>
-                  <TrendingUp className="mr-3 h-5 w-5" />
+                  <TrendingUp className="mr-2 h-4 w-4" />
                   INTL Portfolio
                 </a>
               </Link>
