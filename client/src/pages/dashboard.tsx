@@ -8,6 +8,7 @@ import { AllocationChart } from "@/components/dashboard/allocation-chart";
 import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { AlertsList } from "@/components/dashboard/alerts-list";
 import { PortfolioTable } from "@/components/dashboard/portfolio-table";
+import { EtfComparison } from "@/components/dashboard/etf-comparison";
 import { Upload, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { calculateAllocationByType, calculateAllocationByRating, calculatePortfolioStats } from "@/lib/financial";
@@ -52,6 +53,12 @@ export default function Dashboard() {
   
   const { data: alerts, isLoading: alertsLoading } = useQuery({
     queryKey: ['/api/alerts'],
+    staleTime: 60000,
+  });
+  
+  // Fetch ETF holdings for comparison
+  const { data: spyHoldings, isLoading: spyLoading } = useQuery({
+    queryKey: ['/api/etfs/SPY/holdings/top/10'],
     staleTime: 60000,
   });
   
@@ -187,6 +194,13 @@ export default function Dashboard() {
             
             <h2 className="text-xl mb-4 mt-8">Portfolio Holdings</h2>
             <PortfolioTable stocks={usdStocks || []} region="USD" />
+            
+            <h2 className="text-xl mb-4 mt-8">ETF Benchmark Comparison</h2>
+            {spyLoading ? (
+              <div className="text-center p-8">Loading ETF benchmark data...</div>
+            ) : (
+              <EtfComparison holdings={spyHoldings || []} etfSymbol="SPY" region="USD" />
+            )}
           </>
         )}
       </div>
