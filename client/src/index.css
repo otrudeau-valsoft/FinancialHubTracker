@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    
+    --card: 222.2 84% 9.8%;
+    --card-foreground: 210 40% 98%;
+    
+    --popover: 222.2 84% 9.8%;
+    --popover-foreground: 210 40% 98%;
+    
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    
+    --secondary: 210 80% 50%;
+    --secondary-foreground: 210 40% 98%;
+    
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    
+    --radius: 0.5rem;
+
+    --chart-1: 210 80% 50%;
+    --chart-2: 48 96% 53%;
+    --chart-3: 291 64% 42%;
+    --chart-4: 199 89% 48%;
+    --chart-5: 25 95% 53%;
+  }
+
+  .text-profit {
+    color: #00C853;
+  }
+
+  .text-loss {
+    color: #FF3D00;
+  }
+
+  .bg-profit-subtle {
+    background-color: rgba(0, 200, 83, 0.1);
+  }
+
+  .bg-loss-subtle {
+    background-color: rgba(255, 61, 0, 0.1);
+  }
+
+  .mono {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-card;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted;
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground;
+  }
+
+  .data-table th, .data-table td {
+    padding: 0.5rem 0.75rem;
+    white-space: nowrap;
+  }
+
+  .data-table th {
+    font-weight: 500;
+    text-align: left;
+    @apply text-muted-foreground;
+    font-size: 0.8125rem;
+  }
+
+  .data-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .card-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #2D3748;
+    font-weight: 600;
+  }
+
+  .rating {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .rating-1 {
+    background-color: #00C853;
+    color: white;
+  }
+
+  .rating-2 {
+    background-color: #66BB6A;
+    color: white;
+  }
+
+  .rating-3 {
+    background-color: #FFC107;
+    color: black;
+  }
+
+  .rating-4 {
+    background-color: #FF3D00;
+    color: white;
+  }
+}

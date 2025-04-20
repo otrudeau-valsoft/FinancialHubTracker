@@ -1,0 +1,47 @@
+import { Switch, Route } from "wouter";
+import { queryClient } from "./lib/queryClient";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import NotFound from "@/pages/not-found";
+import Dashboard from "@/pages/dashboard";
+import UsdPortfolio from "@/pages/usd-portfolio";
+import CadPortfolio from "@/pages/cad-portfolio";
+import IntlPortfolio from "@/pages/intl-portfolio";
+import MatrixRulesPage from "@/pages/matrix-rules";
+import EtfHoldings from "@/pages/etf-holdings";
+import { Sidebar } from "@/components/layout/sidebar";
+
+function Router() {
+  return (
+    <div className="flex h-screen overflow-hidden">
+      <Sidebar />
+      <div className="flex flex-col w-0 flex-1 overflow-hidden">
+        <main className="flex-1 relative overflow-y-auto focus:outline-none bg-background">
+          <Switch>
+            <Route path="/" component={Dashboard} />
+            <Route path="/usd-portfolio" component={UsdPortfolio} />
+            <Route path="/cad-portfolio" component={CadPortfolio} />
+            <Route path="/intl-portfolio" component={IntlPortfolio} />
+            <Route path="/matrix-rules" component={MatrixRulesPage} />
+            <Route path="/etf-holdings" component={EtfHoldings} />
+            <Route component={NotFound} />
+          </Switch>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Router />
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
+
+export default App;
