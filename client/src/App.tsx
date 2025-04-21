@@ -10,6 +10,7 @@ import CadPortfolio from "@/pages/cad-portfolio";
 import IntlPortfolio from "@/pages/intl-portfolio";
 import MatrixRulesPage from "@/pages/matrix-rules";
 import EtfHoldings from "@/pages/etf-holdings";
+import DataManagement from "@/pages/data-management";
 import { Header } from "@/components/layout/header";
 
 function Router() {

@@ -284,3 +284,22 @@ export const insertCurrentPriceSchema = createInsertSchema(currentPrices).omit({
 
 export type InsertCurrentPrice = z.infer<typeof insertCurrentPriceSchema>;
 export type CurrentPrice = typeof currentPrices.$inferSelect;
+
+// Data Update Logs
+export const dataUpdateLogs = pgTable("data_update_logs", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), // 'current_price' or 'historical_price'
+  region: text("region").notNull(), // 'USD', 'CAD', 'INTL'
+  symbol: text("symbol"), // Optional symbol for individual updates
+  status: text("status").notNull(), // 'success', 'failed', 'pending'
+  message: text("message"), // Optional message
+  affectedRows: integer("affected_rows"), // Number of rows affected
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+export const insertDataUpdateLogSchema = createInsertSchema(dataUpdateLogs).omit({
+  id: true,
+});
+
+export type InsertDataUpdateLog = z.infer<typeof insertDataUpdateLogSchema>;
+export type DataUpdateLog = typeof dataUpdateLogs.$inferSelect;
