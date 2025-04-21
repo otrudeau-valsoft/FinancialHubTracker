@@ -50,7 +50,7 @@ type SchedulerConfig = {
 type DataUpdateLog = {
   id: number;
   type: string;
-  status: 'Success' | 'Error';
+  status: 'Success' | 'Error' | 'In Progress';
   details: string;
   timestamp: string;
 };
@@ -102,39 +102,106 @@ export default function DataManagement() {
   const updateHistoricalPricesMutation = useMutation({
     mutationFn: (region: string) => 
       apiRequest('POST', `/api/historical-prices/fetch/portfolio/${region}`),
-    onSuccess: (_, region) => {
-      toast({
-        title: "Historical prices updated",
-        description: `Successfully updated historical prices for ${region} portfolio`,
-      });
-      refetchLogs();
-      queryClient.invalidateQueries({ queryKey: ['/api/historical-prices/region'] });
+    onMutate: async () => {
+      // Set up auto-refresh for logs to show real-time progress
+      const intervalId = setInterval(() => {
+        refetchLogs();
+      }, 2000); // Refresh logs every 2 seconds
+      
+      // Store the interval ID so we can clear it later
+      return { intervalId };
     },
-    onError: (error) => {
+    onSuccess: (_, region, context) => {
+      toast({
+        title: "Historical prices update initiated",
+        description: `Check the System Logs for progress updates on ${region} portfolio`,
+      });
+      
+      // Immediately refresh logs to show the initial progress
+      refetchLogs();
+      
+      // Keep the automatic refresh going for 20 seconds to catch final updates
+      setTimeout(() => {
+        if (context?.intervalId) {
+          clearInterval(context.intervalId);
+        }
+        // Final refresh after stopping the interval
+        refetchLogs();
+        queryClient.invalidateQueries({ queryKey: ['/api/historical-prices/region'] });
+      }, 20000);
+    },
+    onError: (error, _, context) => {
+      // Clear the interval if there's an error
+      if (context?.intervalId) {
+        clearInterval(context.intervalId);
+      }
+      
       toast({
         title: "Failed to update historical prices",
         description: error.message,
         variant: "destructive",
       });
+    },
+    onSettled: (_, __, ___, context) => {
+      // Ensure interval is cleared in all cases after 45 seconds
+      setTimeout(() => {
+        if (context?.intervalId) {
+          clearInterval(context.intervalId);
+        }
+      }, 45000);
     }
   });
   
   const updateAllHistoricalPricesMutation = useMutation({
     mutationFn: () => apiRequest('POST', '/api/historical-prices/fetch/all'),
-    onSuccess: () => {
-      toast({
-        title: "All historical prices updated",
-        description: "Successfully updated historical prices for all portfolios",
-      });
-      refetchLogs();
-      queryClient.invalidateQueries({ queryKey: ['/api/historical-prices/region'] });
+    onMutate: async () => {
+      // Set up auto-refresh for logs to show real-time progress
+      const intervalId = setInterval(() => {
+        refetchLogs();
+      }, 2000); // Refresh logs every 2 seconds
+      
+      // Store the interval ID so we can clear it later
+      return { intervalId };
     },
-    onError: (error) => {
+    onSuccess: (_, __, context) => {
       toast({
-        title: "Failed to update all historical prices",
+        title: "Historical prices update initiated",
+        description: "Check the System Logs for real-time progress updates",
+      });
+      
+      // Immediately refresh logs to show the initial progress
+      refetchLogs();
+      
+      // Keep the automatic refresh going for 30 seconds to catch final updates
+      // We need a longer timeout since historical price updates take longer
+      setTimeout(() => {
+        if (context?.intervalId) {
+          clearInterval(context.intervalId);
+        }
+        // Final refresh after stopping the interval
+        refetchLogs();
+        queryClient.invalidateQueries({ queryKey: ['/api/historical-prices/region'] });
+      }, 30000);
+    },
+    onError: (error, _, context) => {
+      // Clear the interval if there's an error
+      if (context?.intervalId) {
+        clearInterval(context.intervalId);
+      }
+      
+      toast({
+        title: "Failed to update historical prices",
         description: error.message,
         variant: "destructive",
       });
+    },
+    onSettled: (_, __, ___, context) => {
+      // Ensure interval is cleared in all cases after a minute
+      setTimeout(() => {
+        if (context?.intervalId) {
+          clearInterval(context.intervalId);
+        }
+      }, 60000);
     }
   });
   
@@ -258,12 +325,21 @@ export default function DataManagement() {
                             {log.type === 'current_prices' ? 'Current Price Update' : 'Historical Price Update'}
                           </span>
                           <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                            log.status === 'Success' ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'
+                            log.status === 'Success' 
+                              ? 'bg-green-900/30 text-green-400' 
+                              : log.status === 'In Progress'
+                                ? 'bg-blue-900/30 text-blue-400'
+                                : 'bg-red-900/30 text-red-400'
                           }`}>
                             {log.status === 'Success' ? (
                               <span className="flex items-center">
                                 <CheckCircle2 className="h-3 w-3 mr-1" />
                                 Success
+                              </span>
+                            ) : log.status === 'In Progress' ? (
+                              <span className="flex items-center">
+                                <div className="h-3 w-3 mr-1 animate-spin rounded-full border-2 border-blue-400 border-t-transparent"></div>
+                                In Progress
                               </span>
                             ) : (
                               <span className="flex items-center">
@@ -407,17 +483,10 @@ export default function DataManagement() {
                 disabled={updateHistoricalPricesMutation.isPending || updateAllHistoricalPricesMutation.isPending}
                 className="bg-green-700 hover:bg-green-600 text-white"
               >
-                {updateAllHistoricalPricesMutation.isPending ? (
-                  <>
-                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                    Updating...
-                  </>
-                ) : (
-                  <>
-                    <RotateCw className="mr-2 h-4 w-4" />
-                    Update All Historical Prices
-                  </>
-                )}
+                <>
+                  <RotateCw className="mr-2 h-4 w-4" />
+                  Update All Historical Prices
+                </>
               </Button>
             </CardFooter>
           </Card>
