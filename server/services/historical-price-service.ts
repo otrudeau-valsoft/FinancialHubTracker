@@ -172,19 +172,27 @@ export class HistoricalPriceService {
       let tableName: string;
       
       if (region === 'USD') {
-        tableName = 'assets_US';
+        tableName = 'assets_us'; // lowercase to match schema.ts definition
       } else if (region === 'CAD') {
-        tableName = 'assets_CAD';
+        tableName = 'assets_cad'; // lowercase to match schema.ts definition
       } else if (region === 'INTL') {
-        tableName = 'assets_INTL';
+        tableName = 'assets_intl'; // lowercase to match schema.ts definition
       } else {
         throw new Error(`Invalid region: ${region}`);
       }
+      
+      console.log(`Querying ${tableName} table for symbols in ${region} region`);
       
       const result = await db.execute(sql`
         SELECT symbol FROM ${sql.raw(tableName)}
       `);
       
+      if (!result.rows || result.rows.length === 0) {
+        console.warn(`No symbols found in ${tableName} table`);
+        return [];
+      }
+      
+      console.log(`Found ${result.rows.length} symbols in ${region} region`);
       return result.rows.map(row => row.symbol as string);
     } catch (error) {
       console.error(`Error fetching symbols for region ${region}:`, error);
@@ -266,29 +274,44 @@ export class HistoricalPriceService {
     try {
       // Get symbols directly from regional assets table
       const symbols = await this.getSymbolsByRegionDirectSql(region);
+      
+      if (!symbols || symbols.length === 0) {
+        console.warn(`No symbols found for region ${region}`);
+        return 0;
+      }
+      
       let successCount = 0;
 
-      console.log(`Updating historical prices for ${symbols.length} symbols in ${region} portfolio`);
+      console.log(`Updating historical prices for ${symbols.length} symbols in ${region} portfolio: ${symbols.join(', ')}`);
 
       for (const symbol of symbols) {
-        console.log(`Processing ${symbol} (${region}) - ${successCount+1} of ${symbols.length}`);
-        
-        const success = await this.fetchAndStoreHistoricalPrices(
-          symbol, 
-          region, 
-          period, 
-          interval
-        );
-        
-        if (success) {
-          successCount++;
-          console.log(`✓ Successfully updated ${symbol} (${region})`);
-        } else {
-          console.log(`✗ Failed to update ${symbol} (${region})`);
+        try {
+          // Handle lowercased symbol in the database properly (e.g., "pwr" should be "PWR" for Yahoo Finance)
+          const yahooSymbol = symbol.toUpperCase();
+          
+          console.log(`Processing ${yahooSymbol} (${region}) - ${successCount+1} of ${symbols.length}`);
+          
+          const success = await this.fetchAndStoreHistoricalPrices(
+            yahooSymbol, // Use uppercase version for Yahoo Finance
+            region, 
+            period, 
+            interval
+          );
+          
+          if (success) {
+            successCount++;
+            console.log(`✓ Successfully updated ${yahooSymbol} (${region})`);
+          } else {
+            console.log(`✗ Failed to update ${yahooSymbol} (${region})`);
+          }
+          
+          // Add a delay to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (error) {
+          console.error(`Error processing symbol ${symbol}:`, error);
+          // Continue with next symbol
+          continue;
         }
-        
-        // Add a delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
       console.log(`Completed ${region} update: ${successCount}/${symbols.length} symbols updated`);
