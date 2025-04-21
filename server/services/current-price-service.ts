@@ -5,6 +5,15 @@ import { assetsUS, assetsCAD, assetsINTL, currentPrices, InsertCurrentPrice } fr
 import yahooFinance from 'yahoo-finance2';
 import { isWeekend } from '../util';
 
+// Rate limiting configuration for Yahoo Finance API
+const RATE_LIMIT = {
+  maxRequests: 2,      // Maximum requests per interval
+  interval: 1000,      // Interval in milliseconds (1 second)
+  requestQueue: [] as { resolve: Function, reject: Function, symbol: string }[],
+  inProgress: 0,       // Number of requests currently in progress
+  lastRequestTime: 0,  // Timestamp of the last request
+};
+
 class CurrentPriceService {
   /**
    * Get current prices for a region
@@ -28,6 +37,69 @@ class CurrentPriceService {
       console.error(`Error getting current price for ${symbol} (${region}):`, error);
       throw error;
     }
+  }
+
+  /**
+   * Make a rate-limited Yahoo Finance API call
+   * This function helps avoid hitting Yahoo Finance rate limits
+   */
+  private async rateLimitedApiCall<T>(fn: () => Promise<T>, symbol: string): Promise<T> {
+    return new Promise((resolve, reject) => {
+      const executeRequest = async () => {
+        // Check if we're under rate limit
+        const now = Date.now();
+        const timeSinceLastRequest = now - RATE_LIMIT.lastRequestTime;
+        
+        if (RATE_LIMIT.inProgress < RATE_LIMIT.maxRequests || 
+            timeSinceLastRequest > RATE_LIMIT.interval) {
+          
+          // We can make a request
+          RATE_LIMIT.inProgress++;
+          RATE_LIMIT.lastRequestTime = now;
+          
+          try {
+            const result = await fn();
+            resolve(result);
+          } catch (error) {
+            reject(error);
+          } finally {
+            RATE_LIMIT.inProgress--;
+            
+            // Process next request in queue if any
+            if (RATE_LIMIT.requestQueue.length > 0) {
+              const nextRequest = RATE_LIMIT.requestQueue.shift();
+              if (nextRequest) {
+                setTimeout(() => {
+                  nextRequest.resolve();
+                }, RATE_LIMIT.interval / 2); // Half interval delay between requests
+              }
+            }
+          }
+        } else {
+          // We need to queue the request
+          console.log(`Rate limiting request for ${symbol}, adding to queue...`);
+          RATE_LIMIT.requestQueue.push({
+            resolve: executeRequest,
+            reject,
+            symbol
+          });
+          
+          // If this is the first request in the queue, schedule it
+          if (RATE_LIMIT.requestQueue.length === 1) {
+            const delay = RATE_LIMIT.interval - timeSinceLastRequest + 100; // Add a little buffer
+            console.log(`Scheduling next request in ${delay}ms`);
+            setTimeout(() => {
+              const nextRequest = RATE_LIMIT.requestQueue.shift();
+              if (nextRequest) {
+                nextRequest.resolve();
+              }
+            }, delay);
+          }
+        }
+      };
+      
+      executeRequest();
+    });
   }
 
   /**
@@ -63,13 +135,14 @@ class CurrentPriceService {
         return value.toString();
       };
       
-      // Let's try using a more direct approach to get price data
+      // Try using the quote method first (with rate limiting)
       try {
-        console.log(`Using Yahoo Finance quote method for ${yahooSymbol}...`);
+        console.log(`Using Yahoo Finance quote method for ${yahooSymbol} with rate limiting...`);
         
-        // Use the quote method instead of quoteSummary which might be more reliable
-        const quoteResult = await yahooFinance.quote(yahooSymbol);
-        console.log(`Yahoo Finance quote result:`, quoteResult);
+        // Use the quote method with rate limiting
+        const quoteResult = await this.rateLimitedApiCall(() => {
+          return yahooFinance.quote(yahooSymbol);
+        }, yahooSymbol);
         
         if (quoteResult && typeof quoteResult === 'object') {
           // Extract key values
@@ -108,20 +181,46 @@ class CurrentPriceService {
         console.log('Falling back to quoteSummary method...');
       }
       
-      // If the quote method failed, try the original quoteSummary method
-      let result;
+      // If the quote method failed, try the original quoteSummary method (with rate limiting)
       try {
         // Fetch quote from Yahoo Finance
         console.log(`Attempting Yahoo Finance quoteSummary API call for ${yahooSymbol}...`);
-        result = await yahooFinance.quoteSummary(yahooSymbol, {
-          modules: ['price', 'summaryDetail', 'defaultKeyStatistics']
-        });
+        
+        const result = await this.rateLimitedApiCall(() => {
+          return yahooFinance.quoteSummary(yahooSymbol, {
+            modules: ['price', 'summaryDetail', 'defaultKeyStatistics']
+          });
+        }, yahooSymbol);
         
         console.log(`Yahoo Finance quoteSummary success for ${yahooSymbol}`);
         
         // Debug values
         if (result?.price?.regularMarketPrice?.raw !== undefined) {
           console.log(`Retrieved price: ${result.price.regularMarketPrice.raw} for ${yahooSymbol}`);
+          
+          // Extract price data safely
+          const price = result.price || {};
+          const summaryDetail = result.summaryDetail || {};
+          
+          // Extract relevant price data with safe handling of numeric values
+          const priceData = {
+            symbol,
+            region,
+            regularMarketPrice: safeNumericString(price.regularMarketPrice?.raw),
+            regularMarketChange: safeNumericString(price.regularMarketChange?.raw),
+            regularMarketChangePercent: safeNumericString(price.regularMarketChangePercent?.raw),
+            regularMarketVolume: safeNumericString(price.regularMarketVolume?.raw),
+            regularMarketDayHigh: safeNumericString(price.regularMarketDayHigh?.raw),
+            regularMarketDayLow: safeNumericString(price.regularMarketDayLow?.raw),
+            marketCap: safeNumericString(price.marketCap?.raw),
+            trailingPE: safeNumericString(summaryDetail.trailingPE?.raw),
+            forwardPE: safeNumericString(summaryDetail.forwardPE?.raw),
+            dividendYield: safeNumericString(summaryDetail.dividendYield?.raw),
+            fiftyTwoWeekHigh: safeNumericString(summaryDetail.fiftyTwoWeekHigh?.raw),
+            fiftyTwoWeekLow: safeNumericString(summaryDetail.fiftyTwoWeekLow?.raw)
+          };
+          
+          return priceData;
         } else {
           console.log(`Warning: No price data in response for ${yahooSymbol}`);
           
@@ -165,30 +264,23 @@ class CurrentPriceService {
           fiftyTwoWeekLow: '0'
         };
       }
-      
-      // Extract price data safely
-      const price = result?.price || {};
-      const summaryDetail = result?.summaryDetail || {};
-      
-      // Extract relevant price data with safe handling of numeric values
-      const priceData = {
+      // This code is unreachable as we've already returned in all possible paths above
+      return {
         symbol,
         region,
-        regularMarketPrice: safeNumericString(price?.regularMarketPrice?.raw),
-        regularMarketChange: safeNumericString(price?.regularMarketChange?.raw),
-        regularMarketChangePercent: safeNumericString(price?.regularMarketChangePercent?.raw),
-        regularMarketVolume: safeNumericString(price?.regularMarketVolume?.raw),
-        regularMarketDayHigh: safeNumericString(price?.regularMarketDayHigh?.raw),
-        regularMarketDayLow: safeNumericString(price?.regularMarketDayLow?.raw),
-        marketCap: safeNumericString(price?.marketCap?.raw),
-        trailingPE: safeNumericString(summaryDetail?.trailingPE?.raw),
-        forwardPE: safeNumericString(summaryDetail?.forwardPE?.raw),
-        dividendYield: safeNumericString(summaryDetail?.dividendYield?.raw),
-        fiftyTwoWeekHigh: safeNumericString(summaryDetail?.fiftyTwoWeekHigh?.raw),
-        fiftyTwoWeekLow: safeNumericString(summaryDetail?.fiftyTwoWeekLow?.raw)
+        regularMarketPrice: '0',
+        regularMarketChange: '0',
+        regularMarketChangePercent: '0',
+        regularMarketVolume: '0',
+        regularMarketDayHigh: '0',
+        regularMarketDayLow: '0',
+        marketCap: '0',
+        trailingPE: '0',
+        forwardPE: '0',
+        dividendYield: '0',
+        fiftyTwoWeekHigh: '0',
+        fiftyTwoWeekLow: '0'
       };
-      
-      return priceData;
     } catch (error) {
       console.error(`Error fetching current price for ${symbol} (${region}):`, error);
       
@@ -255,15 +347,36 @@ class CurrentPriceService {
       
       console.log(`Updating current prices for ${symbols.length} symbols in ${region} portfolio`);
       
-      // Process each symbol
+      // Process symbols in batches to improve throughput while still respecting rate limits
       const results = [];
-      for (const symbol of symbols) {
-        try {
-          const result = await this.fetchAndStoreCurrentPrice(symbol, region);
-          results.push({ symbol, success: true, result });
-        } catch (error) {
-          console.error(`Error updating current price for ${symbol} (${region}):`, error);
-          results.push({ symbol, success: false, error: error.message });
+      const batchSize = 5; // Process this many symbols concurrently
+      
+      // Process in batches
+      for (let i = 0; i < symbols.length; i += batchSize) {
+        const batch = symbols.slice(i, i + batchSize);
+        console.log(`Processing batch ${i/batchSize + 1} of ${Math.ceil(symbols.length/batchSize)} (${batch.join(', ')})`);
+        
+        // Process batch concurrently
+        const batchPromises = batch.map(symbol => {
+          return new Promise(async (resolve) => {
+            try {
+              const result = await this.fetchAndStoreCurrentPrice(symbol, region);
+              resolve({ symbol, success: true, result });
+            } catch (error) {
+              console.error(`Error updating current price for ${symbol} (${region}):`, error);
+              resolve({ symbol, success: false, error: error.message });
+            }
+          });
+        });
+        
+        // Wait for all in batch to complete before moving to next batch
+        const batchResults = await Promise.all(batchPromises);
+        results.push(...batchResults);
+        
+        // Brief pause between batches to avoid overwhelming the API
+        if (i + batchSize < symbols.length) {
+          console.log(`Pausing briefly between batches...`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
         }
       }
       
