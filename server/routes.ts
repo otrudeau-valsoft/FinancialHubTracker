@@ -766,7 +766,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // For the test, directly use the symbols without region-specific suffix
           // since these are ADRs that trade on US exchanges
           console.log(`Testing international symbol: ${symbol}`);
-          const success = await historicalPriceService.fetchAndStoreHistoricalPrices(symbol, 'INTL', '1mo');
+          const success = await historicalPriceService.fetchAndStoreHistoricalPrices(symbol, 'INTL', '5y');
           const data = await storage.getHistoricalPrices(symbol, 'INTL');
           results.INTL.push({ symbol, success, count: data.length });
         } catch (error) {
@@ -794,8 +794,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const success = await historicalPriceService.fetchAndStoreHistoricalPrices(
         symbol,
         region.toUpperCase(),
-        period || '1y',
-        interval || '1d'
+        period || '5y', // Default to 5 years of data as required
+        interval || '1d'  // Default to daily data
       );
       
       if (!success) {
