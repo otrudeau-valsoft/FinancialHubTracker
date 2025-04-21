@@ -56,7 +56,7 @@ export const EtfComparison = ({
                 <td className="px-3 py-2">{typeof holding.weight === 'string' ? parseFloat(holding.weight).toFixed(2) : holding.weight?.toFixed(2)}%</td>
                 <td className="px-3 py-2">{formatCurrency(typeof holding.price === 'string' ? parseFloat(holding.price) : holding.price, currencySymbol)}</td>
                 <td className="px-3 py-2">
-                  <Badge variant={holding.inPortfolio ? "secondary" : "outline"} className="font-normal">
+                  <Badge variant={holding.inPortfolio ? "secondary" : "outline"} className="font-normal px-2.5 py-1 whitespace-nowrap">
                     {holding.inPortfolio ? 'In Portfolio' : 'Not Held'}
                   </Badge>
                 </td>
