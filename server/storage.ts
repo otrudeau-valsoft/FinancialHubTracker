@@ -473,21 +473,40 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTopEtfHoldings(etfSymbol: string, limit: number): Promise<EtfHolding[]> {
-    return await db
-      .select()
-      .from(etfHoldings)
-      .where(eq(etfHoldings.etfSymbol, etfSymbol))
-      .orderBy(desc(etfHoldings.weight))
-      .limit(limit);
+    try {
+      const holdings = await db
+        .select()
+        .from(etfHoldings)
+        .where(eq(etfHoldings.etfSymbol, etfSymbol));
+        
+      // Sort manually by weight (descending) and limit
+      return holdings
+        .sort((a, b) => {
+          const weightA = Number(a.weight || 0);
+          const weightB = Number(b.weight || 0);
+          return weightB - weightA;
+        })
+        .slice(0, limit);
+    } catch (error) {
+      console.error("Error in getTopEtfHoldings:", error);
+      return [];
+    }
   }
 
   // Matrix rules methods
   async getMatrixRules(actionType: string): Promise<MatrixRule[]> {
-    return await db
-      .select()
-      .from(matrixRules)
-      .where(eq(matrixRules.actionType, actionType))
-      .orderBy(matrixRules.orderNumber);
+    try {
+      const results = await db
+        .select()
+        .from(matrixRules)
+        .where(eq(matrixRules.actionType, actionType));
+      
+      // Sort manually by orderNumber
+      return results.sort((a, b) => a.orderNumber - b.orderNumber);
+    } catch (error) {
+      console.error("Error in getMatrixRules:", error);
+      return [];
+    }
   }
 
   async getMatrixRule(id: number): Promise<MatrixRule | undefined> {
@@ -534,21 +553,29 @@ export class DatabaseStorage implements IStorage {
 
   // Alert methods
   async getAlerts(activeOnly: boolean = true): Promise<Alert[]> {
-    const query = db
-      .select()
-      .from(alerts);
-      
-    if (activeOnly) {
-      query.where(eq(alerts.active, true));
+    try {
+      const result = activeOnly
+        ? await db
+            .select()
+            .from(alerts)
+            .where(eq(alerts.isActive, true))
+        : await db
+            .select()
+            .from(alerts);
+            
+      // Sort manually in JS to avoid issues with the SQL ordering
+      return result.sort((a, b) => {
+        // Sort by severity (critical first)
+        if (a.severity === 'critical' && b.severity !== 'critical') return -1;
+        if (a.severity !== 'critical' && b.severity === 'critical') return 1;
+        
+        // Then by creation date (newest first)
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+    } catch (error) {
+      console.error("Error in getAlerts:", error);
+      return [];
     }
-    
-    const results = await query
-      .orderBy(
-        sql`CASE WHEN ${alerts.severity} = 'critical' THEN 1 ELSE 2 END`,
-        desc(alerts.createdAt)
-      );
-    
-    return results;
   }
 
   async getAlert(id: number): Promise<Alert | undefined> {
