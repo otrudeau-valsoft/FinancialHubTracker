@@ -119,22 +119,44 @@ export default function DataManagement() {
   const processedLogs = useMemo(() => {
     if (!updateLogs) return [];
     
-    // Group logs by type to handle consolidation
-    const logsByType = {};
+    // Further classify logs by type and detail content to better group related operations
+    const operationGroups = {};
     
-    // First pass: group logs by type
+    // First pass: classify logs into operation groups
     updateLogs.forEach(log => {
-      if (!logsByType[log.type]) {
-        logsByType[log.type] = [];
+      try {
+        // For historical price updates, we want to group by whether they're portfolio-specific
+        // or "all portfolios" operations
+        let groupKey = log.type;
+        
+        if (log.type === 'historical_prices') {
+          // Try to extract if this is for all portfolios or specific one
+          const details = JSON.parse(log.details || '{}');
+          if (details.portfolios) {
+            groupKey = `${log.type}_${details.portfolios.join('_')}`;
+          } else if (details.message && details.message.includes('all portfolios')) {
+            groupKey = `${log.type}_all`;
+          }
+        }
+        
+        if (!operationGroups[groupKey]) {
+          operationGroups[groupKey] = [];
+        }
+        operationGroups[groupKey].push(log);
+      } catch (e) {
+        // If parsing fails, use the log type as the key
+        const groupKey = log.type;
+        if (!operationGroups[groupKey]) {
+          operationGroups[groupKey] = [];
+        }
+        operationGroups[groupKey].push(log);
       }
-      logsByType[log.type].push(log);
     });
     
-    // For each type, if we have success/error entries and in-progress entries,
-    // filter out the in-progress entries for the same operation
+    // For each operation group, consolidate logs
     const consolidatedLogs = [];
     
-    Object.values(logsByType).forEach((logs: DataUpdateLog[]) => {
+    Object.values(operationGroups).forEach((logs: DataUpdateLog[]) => {
       // Sort logs by timestamp descending (newest first)
       logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       
@@ -142,12 +164,28 @@ export default function DataManagement() {
       const latestCompleted = logs.find(log => log.status === 'Success' || log.status === 'Error');
       
       if (latestCompleted) {
-        // If we have a completed log, remove in-progress logs that are older
-        const filteredLogs = logs.filter(log => 
-          log.id === latestCompleted.id || 
-          log.status !== 'In Progress' || 
-          new Date(log.timestamp).getTime() > new Date(latestCompleted.timestamp).getTime()
-        );
+        // If we have completed logs, filter out duplicates and in-progress logs
+        // Keep only the most recent Success/Error and any newer In Progress logs
+        const filteredLogs = logs.filter(log => {
+          // Always keep the latest completed log
+          if (log.id === latestCompleted.id) return true;
+          
+          // Keep in-progress logs newer than our latest completed log
+          if (log.status === 'In Progress' && 
+              new Date(log.timestamp).getTime() > new Date(latestCompleted.timestamp).getTime()) {
+            return true;
+          }
+          
+          // Filter out all other logs of the same status as our latest completed
+          if (log.status === latestCompleted.status) return false;
+          
+          // Keep other error logs (even if we have a success)
+          if (log.status === 'Error' && latestCompleted.status === 'Success') return true;
+          
+          // Default: filter out
+          return false;
+        });
+        
         consolidatedLogs.push(...filteredLogs);
       } else {
         // If no completed log, keep all logs
