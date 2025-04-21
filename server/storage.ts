@@ -387,12 +387,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePortfolioStock(id: number, stock: Partial<InsertPortfolioStock>): Promise<PortfolioStock | undefined> {
+    // Sanitize the update data to ensure undefined values are converted to null
+    const sanitizedData = sanitizeForDb({
+      ...stock,
+      updatedAt: new Date()
+    });
+    
     const [updatedStock] = await db
       .update(portfolioStocks)
-      .set({
-        ...stock,
-        updatedAt: new Date()
-      })
+      .set(sanitizedData)
       .where(eq(portfolioStocks.id, id))
       .returning();
     return updatedStock || undefined;
@@ -410,14 +413,15 @@ export class DatabaseStorage implements IStorage {
     if (stocks.length === 0) return [];
     
     const now = new Date();
-    const stocksWithDate = stocks.map(stock => ({
+    // Sanitize each stock object to prevent undefined values
+    const sanitizedStocks = stocks.map(stock => sanitizeForDb({
       ...stock,
       updatedAt: now
     }));
     
     return await db
       .insert(portfolioStocks)
-      .values(stocksWithDate)
+      .values(sanitizedStocks)
       .returning();
   }
 
@@ -446,23 +450,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createEtfHolding(holding: InsertEtfHolding): Promise<EtfHolding> {
+    // Sanitize the data to ensure undefined values are converted to null
+    const sanitizedHolding = sanitizeForDb({
+      ...holding,
+      updatedAt: new Date()
+    });
+    
     const [createdHolding] = await db
       .insert(etfHoldings)
-      .values({
-        ...holding,
-        updatedAt: new Date()
-      })
+      .values(sanitizedHolding)
       .returning();
     return createdHolding;
   }
 
   async updateEtfHolding(id: number, holding: Partial<InsertEtfHolding>): Promise<EtfHolding | undefined> {
+    // Sanitize the update data to ensure undefined values are converted to null
+    const sanitizedData = sanitizeForDb({
+      ...holding,
+      updatedAt: new Date()
+    });
+    
     const [updatedHolding] = await db
       .update(etfHoldings)
-      .set({
-        ...holding,
-        updatedAt: new Date()
-      })
+      .set(sanitizedData)
       .where(eq(etfHoldings.id, id))
       .returning();
     return updatedHolding || undefined;
@@ -480,14 +490,15 @@ export class DatabaseStorage implements IStorage {
     if (holdings.length === 0) return [];
     
     const now = new Date();
-    const holdingsWithDate = holdings.map(holding => ({
+    // Sanitize each holding object to prevent undefined values
+    const sanitizedHoldings = holdings.map(holding => sanitizeForDb({
       ...holding,
       updatedAt: now
     }));
     
     return await db
       .insert(etfHoldings)
-      .values(holdingsWithDate)
+      .values(sanitizedHoldings)
       .returning();
   }
 
@@ -537,9 +548,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMatrixRule(rule: InsertMatrixRule): Promise<MatrixRule> {
+    // Sanitize the data to ensure undefined values are converted to null
+    const sanitizedRule = sanitizeForDb(rule);
+    
     const [createdRule] = await db
       .insert(matrixRules)
-      .values(rule)
+      .values(sanitizedRule)
       .returning();
     return createdRule;
   }
@@ -564,9 +578,12 @@ export class DatabaseStorage implements IStorage {
   async bulkCreateMatrixRules(rules: InsertMatrixRule[]): Promise<MatrixRule[]> {
     if (rules.length === 0) return [];
     
+    // Sanitize each rule object to prevent undefined values
+    const sanitizedRules = rules.map(rule => sanitizeForDb(rule));
+    
     return await db
       .insert(matrixRules)
-      .values(rules)
+      .values(sanitizedRules)
       .returning();
   }
 
@@ -606,20 +623,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAlert(alert: InsertAlert): Promise<Alert> {
+    // Sanitize the data to ensure undefined values are converted to null
+    const sanitizedAlert = sanitizeForDb({
+      ...alert,
+      createdAt: new Date()
+    });
+    
     const [createdAlert] = await db
       .insert(alerts)
-      .values({
-        ...alert,
-        createdAt: new Date()
-      })
+      .values(sanitizedAlert)
       .returning();
     return createdAlert;
   }
 
   async updateAlert(id: number, alert: Partial<InsertAlert>): Promise<Alert | undefined> {
+    // Sanitize the update data to ensure undefined values are converted to null
+    const sanitizedData = sanitizeForDb(alert);
+    
     const [updatedAlert] = await db
       .update(alerts)
-      .set(alert)
+      .set(sanitizedData)
       .where(eq(alerts.id, id))
       .returning();
     return updatedAlert || undefined;
@@ -648,12 +671,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPortfolioSummary(summary: InsertPortfolioSummary): Promise<PortfolioSummary> {
+    // Sanitize the data to ensure undefined values are converted to null
+    const sanitizedSummary = sanitizeForDb({
+      ...summary,
+      updatedAt: new Date()
+    });
+    
     const [createdSummary] = await db
       .insert(portfolioSummaries)
-      .values({
-        ...summary,
-        updatedAt: new Date()
-      })
+      .values(sanitizedSummary)
       .returning();
     return createdSummary;
   }
