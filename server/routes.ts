@@ -471,21 +471,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/historical-prices/region/:region", async (req: Request, res: Response) => {
     try {
       const { region } = req.params;
+      console.log(`API Request - Fetching historical prices for region: ${region}`);
+      
       const startDateStr = req.query.startDate as string | undefined;
       const endDateStr = req.query.endDate as string | undefined;
+      
+      console.log(`Query parameters - startDate: ${startDateStr || 'none'}, endDate: ${endDateStr || 'none'}`);
       
       let startDate: Date | undefined;
       let endDate: Date | undefined;
       
       if (startDateStr) {
         startDate = new Date(startDateStr);
+        console.log(`Parsed startDate: ${startDate.toISOString()}`);
       }
       
       if (endDateStr) {
         endDate = new Date(endDateStr);
+        console.log(`Parsed endDate: ${endDate.toISOString()}`);
       }
       
-      const prices = await storage.getHistoricalPricesByRegion(region.toUpperCase(), startDate, endDate);
+      // First, let's directly query the database to confirm data exists
+      const directCheck = await import('./db-storage');
+      const dbStorage = new directCheck.DatabaseStorage();
+      const prices = await dbStorage.getHistoricalPricesByRegion(region.toUpperCase(), startDate, endDate);
+      
+      console.log(`API Response - Found ${prices.length} historical prices for region ${region}`);
       return res.json(prices);
     } catch (error) {
       console.error("Error fetching historical prices by region:", error);

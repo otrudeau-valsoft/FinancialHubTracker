@@ -967,40 +967,27 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`Fetching historical prices for region: ${region}`);
       
-      // First, check if we have data in this region
-      const countResult = await db
-        .select({ count: sql`count(*)` })
+      // Following the same pattern as getHistoricalPrices
+      let query = db
+        .select()
         .from(historicalPrices)
         .where(eq(historicalPrices.region, region));
-        
-      console.log(`Raw count for region ${region}:`, countResult[0]?.count || 0);
       
-      // Basic query without date filters
-      let whereConditions = [eq(historicalPrices.region, region)];
-      
-      // Add date filters if provided
       if (startDate) {
         const startDateStr = startDate.toISOString().split('T')[0];
         console.log(`Filtering by start date: ${startDateStr}`);
-        whereConditions.push(gte(historicalPrices.date, startDateStr));
+        query = query.where(gte(historicalPrices.date, startDateStr));
       }
       
       if (endDate) {
         const endDateStr = endDate.toISOString().split('T')[0];
         console.log(`Filtering by end date: ${endDateStr}`);
-        whereConditions.push(lte(historicalPrices.date, endDateStr));
+        query = query.where(lte(historicalPrices.date, endDateStr));
       }
       
-      // Execute the query with all conditions using and()
-      const prices = await db
-        .select()
-        .from(historicalPrices)
-        .where(and(...whereConditions))
-        .orderBy(historicalPrices.date);
-      
+      const prices = await query.orderBy(historicalPrices.date);
       console.log(`Found ${prices.length} historical prices for region ${region}`);
       
-      // Return the results
       return prices;
     } catch (error) {
       console.error("Error in getHistoricalPricesByRegion:", error);
