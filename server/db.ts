@@ -13,3 +13,17 @@ if (!process.env.DATABASE_URL) {
 
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle({ client: pool, schema });
+
+/**
+ * Utility function to sanitize object properties for database insertion
+ * Converts undefined values to null to avoid database errors
+ */
+export function sanitizeForDb<T extends Record<string, any>>(obj: T): T {
+  const result: Record<string, any> = {};
+  
+  for (const [key, value] of Object.entries(obj)) {
+    result[key] = value === undefined ? null : value;
+  }
+  
+  return result as T;
+}

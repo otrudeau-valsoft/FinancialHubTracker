@@ -7,7 +7,7 @@ import {
   portfolioSummaries, type PortfolioSummary, type InsertPortfolioSummary,
   PortfolioRegion
 } from "@shared/schema";
-import { db } from "./db";
+import { db, sanitizeForDb } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
 
 // modify the interface with any CRUD methods
@@ -373,12 +373,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPortfolioStock(stock: InsertPortfolioStock): Promise<PortfolioStock> {
+    // Sanitize the data to ensure undefined values are converted to null
+    const sanitizedStock = sanitizeForDb({
+      ...stock,
+      updatedAt: new Date()
+    });
+    
     const [createdStock] = await db
       .insert(portfolioStocks)
-      .values({
-        ...stock,
-        updatedAt: new Date()
-      })
+      .values(sanitizedStock)
       .returning();
     return createdStock;
   }
