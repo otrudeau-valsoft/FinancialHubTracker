@@ -48,7 +48,7 @@ export const PortfolioTable = ({ stocks, region }: PortfolioTableProps) => {
           <Button 
             variant="ghost" 
             size="sm" 
-            className={`text-xs ${filter === 'all' ? 'text-white' : 'text-gray-400'}`}
+            className={`text-xs px-3 py-1 rounded-full flex items-center ${filter === 'all' ? 'bg-gray-800/70 text-white' : 'text-gray-400'}`}
             onClick={() => setFilter('all')}
           >
             <List className="mr-1 h-4 w-4" />
@@ -75,7 +75,7 @@ export const PortfolioTable = ({ stocks, region }: PortfolioTableProps) => {
           <Button 
             variant="ghost" 
             size="sm" 
-            className={`text-xs ${filter === 'cycl' ? 'text-white' : 'text-gray-400'}`}
+            className={`text-xs px-3 py-1 rounded-full flex items-center ${filter === 'cycl' ? 'bg-purple-900/30 text-white' : 'text-gray-400'}`}
             onClick={() => setFilter('cycl')}
           >
             <div className="w-3 h-3 rounded-full bg-[#9C27B0] mr-1"></div>

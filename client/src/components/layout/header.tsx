@@ -21,12 +21,6 @@ export function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="bg-[#111E2E] border-gray-700 z-50">
               <DropdownMenuItem 
-                className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 ${location === '/' ? 'bg-blue-900/30' : ''}`}
-                onClick={() => navigate("/")}
-              >
-                Dashboard
-              </DropdownMenuItem>
-              <DropdownMenuItem 
                 className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 ${location === '/usd-portfolio' ? 'bg-blue-900/30' : ''}`}
                 onClick={() => navigate("/usd-portfolio")}
               >

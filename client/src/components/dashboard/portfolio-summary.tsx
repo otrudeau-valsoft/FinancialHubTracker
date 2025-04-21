@@ -34,7 +34,7 @@ export const PortfolioSummary = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       {/* Portfolio Value Card */}
-      <Card className="bg-card">
+      <Card className="border-0 shadow bg-[#0A1929]">
         <CardContent className="p-4">
           <div className="text-gray-400 text-xs">Portfolio Value</div>
           <div className="flex items-baseline">
@@ -50,7 +50,7 @@ export const PortfolioSummary = ({
       </Card>
       
       {/* Cash Position Card */}
-      <Card className="bg-card">
+      <Card className="border-0 shadow bg-[#0A1929]">
         <CardContent className="p-4">
           <div className="text-gray-400 text-xs">Cash Position</div>
           <div className="flex items-baseline">
@@ -64,7 +64,7 @@ export const PortfolioSummary = ({
       </Card>
       
       {/* Performance Card */}
-      <Card className="bg-card">
+      <Card className="border-0 shadow bg-[#0A1929]">
         <CardContent className="p-4">
           <div className="text-gray-400 text-xs">YTD Performance</div>
           <div className="flex items-baseline">
@@ -82,7 +82,7 @@ export const PortfolioSummary = ({
       </Card>
       
       {/* Alerts Card */}
-      <Card className="bg-card">
+      <Card className="border-0 shadow bg-[#0A1929]">
         <CardContent className="p-4">
           <div className="text-gray-400 text-xs">Active Alerts</div>
           <div className="flex items-baseline">
