@@ -63,15 +63,89 @@ class CurrentPriceService {
         return value.toString();
       };
       
+      // Let's try using a more direct approach to get price data
+      try {
+        console.log(`Using Yahoo Finance quote method for ${yahooSymbol}...`);
+        
+        // Use the quote method instead of quoteSummary which might be more reliable
+        const quoteResult = await yahooFinance.quote(yahooSymbol);
+        console.log(`Yahoo Finance quote result:`, quoteResult);
+        
+        if (quoteResult && typeof quoteResult === 'object') {
+          // Extract key values
+          const regularMarketPrice = quoteResult.regularMarketPrice;
+          const regularMarketChange = quoteResult.regularMarketChange;
+          const regularMarketChangePercent = quoteResult.regularMarketChangePercent;
+          const regularMarketVolume = quoteResult.regularMarketVolume;
+          const regularMarketDayHigh = quoteResult.regularMarketDayHigh;
+          const regularMarketDayLow = quoteResult.regularMarketDayLow;
+          
+          console.log(`Successfully retrieved price data for ${yahooSymbol}:`);
+          console.log(`Price: ${regularMarketPrice}, Change: ${regularMarketChange}, Change%: ${regularMarketChangePercent}`);
+          
+          // Return the basic data we need
+          return {
+            symbol,
+            region,
+            regularMarketPrice: safeNumericString(regularMarketPrice),
+            regularMarketChange: safeNumericString(regularMarketChange),
+            regularMarketChangePercent: safeNumericString(regularMarketChangePercent),
+            regularMarketVolume: safeNumericString(regularMarketVolume),
+            regularMarketDayHigh: safeNumericString(regularMarketDayHigh),
+            regularMarketDayLow: safeNumericString(regularMarketDayLow),
+            marketCap: safeNumericString(quoteResult.marketCap),
+            trailingPE: safeNumericString(quoteResult.trailingPE),
+            forwardPE: safeNumericString(quoteResult.forwardPE),
+            dividendYield: safeNumericString(quoteResult.dividendYield),
+            fiftyTwoWeekHigh: safeNumericString(quoteResult.fiftyTwoWeekHigh),
+            fiftyTwoWeekLow: safeNumericString(quoteResult.fiftyTwoWeekLow)
+          };
+        } else {
+          console.log(`Invalid quote response format for ${yahooSymbol}`);
+        }
+      } catch (quoteError) {
+        console.warn(`Warning: Yahoo Finance quote error for ${yahooSymbol}:`, quoteError.message);
+        console.log('Falling back to quoteSummary method...');
+      }
+      
+      // If the quote method failed, try the original quoteSummary method
       let result;
       try {
         // Fetch quote from Yahoo Finance
+        console.log(`Attempting Yahoo Finance quoteSummary API call for ${yahooSymbol}...`);
         result = await yahooFinance.quoteSummary(yahooSymbol, {
           modules: ['price', 'summaryDetail', 'defaultKeyStatistics']
         });
+        
+        console.log(`Yahoo Finance quoteSummary success for ${yahooSymbol}`);
+        
+        // Debug values
+        if (result?.price?.regularMarketPrice?.raw !== undefined) {
+          console.log(`Retrieved price: ${result.price.regularMarketPrice.raw} for ${yahooSymbol}`);
+        } else {
+          console.log(`Warning: No price data in response for ${yahooSymbol}`);
+          
+          // Return empty values when data is missing
+          return {
+            symbol,
+            region,
+            regularMarketPrice: '0',
+            regularMarketChange: '0',
+            regularMarketChangePercent: '0',
+            regularMarketVolume: '0',
+            regularMarketDayHigh: '0',
+            regularMarketDayLow: '0',
+            marketCap: '0',
+            trailingPE: '0',
+            forwardPE: '0',
+            dividendYield: '0',
+            fiftyTwoWeekHigh: '0',
+            fiftyTwoWeekLow: '0'
+          };
+        }
       } catch (yahooError) {
         // Handle Yahoo Finance API errors gracefully
-        console.warn(`Warning: Yahoo Finance API error for ${yahooSymbol}:`, yahooError.message);
+        console.warn(`Warning: Yahoo Finance quoteSummary error for ${yahooSymbol}:`, yahooError.message);
         
         // Create a minimal data structure with default values
         return {
