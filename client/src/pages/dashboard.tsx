@@ -103,6 +103,42 @@ export default function Dashboard() {
     });
   }, [spyHoldings, usdStocks]);
   
+  // Process XIC holdings to add portfolio comparison data
+  const processedXicHoldings = React.useMemo(() => {
+    if (!xicHoldings || !cadStocks) return [];
+    
+    return xicHoldings.map((holding: any) => {
+      // Check if this holding is in our portfolio
+      const inPortfolio = cadStocks.some((stock: any) => 
+        stock.symbol.toUpperCase() === holding.ticker.toUpperCase());
+      
+      // Calculate weight difference if in portfolio
+      let weightDifference = 0;
+      if (inPortfolio) {
+        const portfolioStock = cadStocks.find((stock: any) => 
+          stock.symbol.toUpperCase() === holding.ticker.toUpperCase());
+        
+        if (portfolioStock && portfolioStock.portfolioWeight) {
+          const portfolioWeight = typeof portfolioStock.portfolioWeight === 'string' 
+            ? parseFloat(portfolioStock.portfolioWeight) 
+            : portfolioStock.portfolioWeight;
+            
+          const etfWeight = typeof holding.weight === 'string' 
+            ? parseFloat(holding.weight) 
+            : holding.weight;
+            
+          weightDifference = portfolioWeight - etfWeight;
+        }
+      }
+      
+      return {
+        ...holding,
+        inPortfolio,
+        weightDifference
+      };
+    });
+  }, [xicHoldings, cadStocks]);
+  
   // Import portfolio data from CSV
   const handleImportData = async (region: string, file: File) => {
     try {

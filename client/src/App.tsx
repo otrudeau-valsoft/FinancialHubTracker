@@ -19,7 +19,8 @@ function Router() {
       <div className="flex-1 overflow-hidden">
         <main className="h-full overflow-y-auto focus:outline-none bg-background">
           <Switch>
-            <Route path="/" component={Dashboard} />
+            <Route path="/" component={UsdPortfolio} />
+            <Route path="/dashboard" component={Dashboard} />
             <Route path="/usd-portfolio" component={UsdPortfolio} />
             <Route path="/cad-portfolio" component={CadPortfolio} />
             <Route path="/intl-portfolio" component={IntlPortfolio} />

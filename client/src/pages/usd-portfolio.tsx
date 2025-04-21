@@ -187,7 +187,10 @@ export default function UsdPortfolio() {
               region="USD" 
             />
             
-            {!spyLoading && spyComparisonData.length > 0 && (
+            <h2 className="text-xl mb-4 mt-8">ETF Benchmark Comparison</h2>
+            {spyLoading ? (
+              <div className="text-center p-8 bg-[#0A1929] rounded-md">Loading ETF benchmark data...</div>
+            ) : (
               <EtfComparison 
                 holdings={spyComparisonData} 
                 etfSymbol="SPY" 
