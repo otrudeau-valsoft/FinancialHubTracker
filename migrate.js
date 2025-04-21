@@ -1,4 +1,4 @@
-import { db } from './server/db.js';
+import { db } from './server/db.ts';
 import { sql } from 'drizzle-orm';
 
 async function runMigration() {
@@ -131,6 +131,28 @@ async function runMigration() {
         volume NUMERIC,
         adjusted_close NUMERIC,
         region TEXT NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    
+    // Current Prices
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS current_prices (
+        id SERIAL PRIMARY KEY,
+        symbol TEXT NOT NULL,
+        region TEXT NOT NULL,
+        regular_market_price NUMERIC,
+        regular_market_change NUMERIC,
+        regular_market_change_percent NUMERIC,
+        regular_market_volume NUMERIC,
+        regular_market_day_high NUMERIC,
+        regular_market_day_low NUMERIC,
+        market_cap NUMERIC,
+        trailing_pe NUMERIC,
+        forward_pe NUMERIC,
+        dividend_yield NUMERIC,
+        fifty_two_week_high NUMERIC,
+        fifty_two_week_low NUMERIC,
         updated_at TIMESTAMP DEFAULT NOW()
       )
     `);

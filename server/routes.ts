@@ -5,6 +5,7 @@ import { insertMatrixRuleSchema, insertAlertSchema, insertPortfolioSummarySchema
 import { InsertPortfolioStock, InsertEtfHolding } from "./types";
 import { z } from "zod";
 import { historicalPriceService } from "./services/historical-price-service";
+import { currentPriceService } from "./services/current-price-service";
 import { db } from "./db";
 import { sql, eq } from "drizzle-orm";
 
@@ -808,6 +809,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching historical prices from Yahoo Finance:", error);
       return res.status(500).json({ message: "Failed to fetch historical prices" });
+    }
+  });
+
+  // ================== CURRENT PRICE ENDPOINTS ==================
+  
+  // Get current prices for a region
+  app.get("/api/current-prices/:region", async (req: Request, res: Response) => {
+    try {
+      const { region } = req.params;
+      const regionUpper = region.toUpperCase();
+      
+      const prices = await storage.getCurrentPrices(regionUpper);
+      return res.json(prices);
+    } catch (error) {
+      console.error("Error fetching current prices:", error);
+      return res.status(500).json({ message: "Failed to fetch current prices" });
+    }
+  });
+  
+  // Get current price for a specific symbol and region
+  app.get("/api/current-prices/:region/:symbol", async (req: Request, res: Response) => {
+    try {
+      const { region, symbol } = req.params;
+      const regionUpper = region.toUpperCase();
+      const symbolUpper = symbol.toUpperCase();
+      
+      const price = await storage.getCurrentPrice(symbolUpper, regionUpper);
+      
+      if (!price) {
+        return res.status(404).json({ message: `No current price found for ${symbolUpper} in ${regionUpper}` });
+      }
+      
+      return res.json(price);
+    } catch (error) {
+      console.error("Error fetching current price:", error);
+      return res.status(500).json({ message: "Failed to fetch current price" });
+    }
+  });
+  
+  // Fetch and store current price for a single symbol
+  app.post("/api/current-prices/fetch/:symbol/:region", async (req: Request, res: Response) => {
+    try {
+      const { symbol, region } = req.params;
+      const symbolUpper = symbol.toUpperCase();
+      const regionUpper = region.toUpperCase();
+      
+      console.log(`Fetching current price for ${symbolUpper} (${regionUpper})`);
+      
+      const success = await currentPriceService.fetchAndStoreCurrentPrice(symbolUpper, regionUpper);
+      
+      if (!success) {
+        return res.status(404).json({ message: `No current price data found for ${symbolUpper}` });
+      }
+      
+      // Get the updated price to return in the response
+      const currentPrice = await storage.getCurrentPrice(symbolUpper, regionUpper);
+      
+      return res.status(200).json({
+        message: `Successfully fetched and stored current price for ${symbolUpper} (${regionUpper})`,
+        data: currentPrice
+      });
+    } catch (error) {
+      console.error("Error fetching current price from Yahoo Finance:", error);
+      return res.status(500).json({ 
+        message: "Failed to fetch current price",
+        error: (error as Error).message
+      });
+    }
+  });
+  
+  // Fetch and store current prices for an entire portfolio
+  app.post("/api/current-prices/fetch/portfolio/:region", async (req: Request, res: Response) => {
+    try {
+      const { region } = req.params;
+      const regionUpper = region.toUpperCase();
+      
+      console.log(`Fetching current prices for portfolio: ${regionUpper}`);
+      
+      const result = await currentPriceService.updatePortfolioCurrentPrices(regionUpper);
+      
+      return res.status(200).json({
+        message: `Updated current prices for ${result.successCount}/${result.totalSymbols} symbols in ${regionUpper} portfolio`,
+        successCount: result.successCount,
+        totalSymbols: result.totalSymbols
+      });
+    } catch (error) {
+      console.error("Error updating current prices for portfolio:", error);
+      return res.status(500).json({
+        message: "Failed to update current prices for portfolio",
+        error: (error as Error).message
+      });
+    }
+  });
+  
+  // Fetch and store current prices for ALL portfolios (USD, CAD, INTL)
+  app.post("/api/current-prices/fetch/all", async (req: Request, res: Response) => {
+    try {
+      console.log("Starting current price update for all portfolios");
+      
+      const results = await currentPriceService.updateAllCurrentPrices();
+      
+      return res.status(200).json({
+        message: "Successfully updated current prices for all portfolios",
+        results
+      });
+    } catch (error) {
+      console.error("Error updating current prices for all portfolios:", error);
+      return res.status(500).json({
+        message: "Failed to update current prices for all portfolios",
+        error: (error as Error).message
+      });
     }
   });
 

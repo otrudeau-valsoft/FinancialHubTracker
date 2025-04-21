@@ -1,7 +1,7 @@
 import yahooFinance from 'yahoo-finance2';
 import { db } from '../db';
-import { InsertCurrentPrice, currentPrices, eq, sql } from '@shared/schema';
-import { SQL, SQLWrapper } from 'drizzle-orm';
+import { InsertCurrentPrice, currentPrices } from '@shared/schema';
+import { eq, sql, SQL, SQLWrapper } from 'drizzle-orm';
 
 /**
  * Service for fetching and managing current (real-time) stock prices

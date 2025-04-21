@@ -1110,4 +1110,124 @@ export class DatabaseStorage implements IStorage {
       return false;
     }
   }
+
+  // Current price methods
+  async getCurrentPrices(region: string): Promise<CurrentPrice[]> {
+    try {
+      const prices = await db
+        .select()
+        .from(currentPrices)
+        .where(eq(currentPrices.region, region))
+        .orderBy(desc(currentPrices.updatedAt));
+      
+      return prices;
+    } catch (error) {
+      console.error("Error in getCurrentPrices:", error);
+      return [];
+    }
+  }
+
+  async getCurrentPrice(symbol: string, region: string): Promise<CurrentPrice | undefined> {
+    try {
+      const [price] = await db
+        .select()
+        .from(currentPrices)
+        .where(and(
+          eq(currentPrices.symbol, symbol),
+          eq(currentPrices.region, region)
+        ));
+      
+      return price || undefined;
+    } catch (error) {
+      console.error("Error in getCurrentPrice:", error);
+      return undefined;
+    }
+  }
+
+  async createCurrentPrice(price: InsertCurrentPrice): Promise<CurrentPrice> {
+    try {
+      // First check if a record already exists for this symbol and region
+      const existingPrice = await this.getCurrentPrice(price.symbol, price.region);
+      
+      if (existingPrice) {
+        // Update the existing record
+        return await this.updateCurrentPrice(existingPrice.id, price);
+      }
+      
+      // Otherwise create a new record
+      const [createdPrice] = await db
+        .insert(currentPrices)
+        .values(price)
+        .returning();
+      
+      return createdPrice;
+    } catch (error) {
+      console.error("Error in createCurrentPrice:", error);
+      throw error;
+    }
+  }
+
+  async updateCurrentPrice(id: number, price: Partial<InsertCurrentPrice>): Promise<CurrentPrice> {
+    try {
+      const [updatedPrice] = await db
+        .update(currentPrices)
+        .set(price)
+        .where(eq(currentPrices.id, id))
+        .returning();
+      
+      if (!updatedPrice) {
+        throw new Error(`Failed to update current price with id ${id}`);
+      }
+      
+      return updatedPrice;
+    } catch (error) {
+      console.error("Error in updateCurrentPrice:", error);
+      throw error;
+    }
+  }
+
+  async deleteCurrentPrice(id: number): Promise<boolean> {
+    try {
+      await db
+        .delete(currentPrices)
+        .where(eq(currentPrices.id, id));
+      
+      return true;
+    } catch (error) {
+      console.error("Error in deleteCurrentPrice:", error);
+      return false;
+    }
+  }
+
+  async bulkCreateCurrentPrices(prices: InsertCurrentPrice[]): Promise<CurrentPrice[]> {
+    if (prices.length === 0) return [];
+    
+    try {
+      // For each price, check if it already exists and update if it does
+      const results: CurrentPrice[] = [];
+      
+      for (const price of prices) {
+        const existingPrice = await this.getCurrentPrice(price.symbol, price.region);
+        
+        if (existingPrice) {
+          // Update existing price
+          const updatedPrice = await this.updateCurrentPrice(existingPrice.id, price);
+          results.push(updatedPrice);
+        } else {
+          // Create new price
+          const [createdPrice] = await db
+            .insert(currentPrices)
+            .values(price)
+            .returning();
+          
+          results.push(createdPrice);
+        }
+      }
+      
+      return results;
+    } catch (error) {
+      console.error("Error in bulkCreateCurrentPrices:", error);
+      throw error;
+    }
+  }
 }
