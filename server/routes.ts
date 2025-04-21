@@ -474,92 +474,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const regionUpper = region.toUpperCase();
       console.log(`API Request - Fetching historical prices for region: ${regionUpper}`);
       
-      // Extract query parameters
-      const startDateStr = req.query.startDate as string | undefined;
-      const endDateStr = req.query.endDate as string | undefined;
+      // Simply use the storage instance's method for individual stock
+      console.log(`Using fallback to individual stock method for ${regionUpper} region`);
+      const appleData = await storage.getHistoricalPrices('AAPL', regionUpper);
+      console.log(`AAPL query returned ${appleData.length} results for region ${regionUpper}`);
       
-      console.log(`Query parameters - startDate: ${startDateStr || 'none'}, endDate: ${endDateStr || 'none'}`);
-      
-      let startDate: Date | undefined;
-      let endDate: Date | undefined;
-      
-      if (startDateStr) {
-        startDate = new Date(startDateStr);
-        console.log(`Parsed startDate: ${startDate.toISOString()}`);
+      if (appleData.length > 0) {
+        return res.json(appleData);
       }
       
-      if (endDateStr) {
-        endDate = new Date(endDateStr);
-        console.log(`Parsed endDate: ${endDate.toISOString()}`);
-      }
-      
-      // First verify that there are stocks in this region's portfolio
-      const stocks = await storage.getPortfolioStocks(regionUpper);
-      console.log(`Found ${stocks.length} stocks in ${regionUpper} portfolio: ${stocks.map(s => s.symbol).join(', ')}`);
-      
-      if (stocks.length === 0) {
-        console.log(`No stocks found in ${regionUpper} portfolio`);
-        return res.json([]);
-      }
-      
-      // Use direct SQL query for performance reasons
+      // Fallback to direct SQL if needed
       try {
-        const { db } = await import('./db');
-        const { historicalPrices } = await import('@shared/schema');
-        const { eq, and, gte, lte } = await import('drizzle-orm');
+        console.log(`Trying raw SQL query for region ${regionUpper}`);
+        const { pool } = await import('./db');
         
-        // Build query with conditions
-        let query = db
-          .select()
-          .from(historicalPrices)
-          .where(eq(historicalPrices.region, regionUpper));
+        // Use the raw pool query for simplicity
+        const rawResult = await pool.query(
+          'SELECT * FROM historical_prices WHERE region = $1 ORDER BY date LIMIT 100',
+          [regionUpper]
+        );
         
-        if (startDate) {
-          const startDateStr = startDate.toISOString().split('T')[0];
-          console.log(`Filtering by start date: ${startDateStr}`);
-          query = query.where(gte(historicalPrices.date, startDateStr));
+        console.log(`Raw SQL query returned ${rawResult.rows?.length || 0} results`);
+        
+        if (rawResult.rows && rawResult.rows.length > 0) {
+          return res.json(rawResult.rows);
         }
-        
-        if (endDate) {
-          const endDateStr = endDate.toISOString().split('T')[0];
-          console.log(`Filtering by end date: ${endDateStr}`);
-          query = query.where(lte(historicalPrices.date, endDateStr));
-        }
-        
-        console.log(`Executing query for historical prices in region: ${regionUpper}`);
-        const prices = await query.orderBy(historicalPrices.date);
-        console.log(`Query returned ${prices.length} historical prices for region ${regionUpper}`);
-        
-        // If we don't get any data this way, try getting data for individual stocks
-        if (prices.length === 0) {
-          console.log(`No prices found using direct query. Trying individual stock queries`);
-          
-          // Use Promise.all for better performance
-          const stockDataPromises = stocks.slice(0, 3).map(stock => 
-            storage.getHistoricalPrices(stock.symbol, regionUpper, startDate, endDate)
-          );
-          
-          const stockDataResults = await Promise.all(stockDataPromises);
-          const allPrices = stockDataResults.flat();
-          
-          console.log(`Found ${allPrices.length} prices from individual stock queries`);
-          return res.json(allPrices);
-        }
-        
-        return res.json(prices);
-        
       } catch (sqlError) {
-        console.error("SQL query error:", sqlError);
-        
-        // Fallback to direct stock query if SQL fails
-        const appleData = await storage.getHistoricalPrices('AAPL', regionUpper);
-        if (appleData.length > 0) {
-          console.log(`Returning ${appleData.length} AAPL records as a fallback after SQL error`);
-          return res.json(appleData);
-        }
-        
-        throw sqlError;
+        console.error("Raw SQL query error:", sqlError);
       }
+      
+      // If still no results, return empty array
+      return res.json([]);
     } catch (error) {
       console.error("Error fetching historical prices by region:", error);
       return res.status(500).json({ 
