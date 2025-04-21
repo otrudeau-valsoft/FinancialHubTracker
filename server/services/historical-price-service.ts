@@ -1,6 +1,7 @@
 import yahooFinance from 'yahoo-finance2';
 import { storage } from '../storage';
 import { InsertHistoricalPrice } from '@shared/schema';
+import { DateTime } from 'luxon';
 
 /**
  * Service to fetch and manage historical price data
@@ -48,17 +49,32 @@ export class HistoricalPriceService {
       await storage.deleteHistoricalPrices(symbol, region);
 
       // Map Yahoo Finance data to our database schema
-      const historicalPrices: InsertHistoricalPrice[] = result.quotes.map(quote => ({
-        symbol,
-        date: new Date(quote.timestamp),
-        open: quote.open,
-        high: quote.high,
-        low: quote.low,
-        close: quote.close,
-        volume: quote.volume,
-        adjustedClose: quote.adjclose,
-        region
-      }));
+      const historicalPrices: InsertHistoricalPrice[] = result.quotes.map(quote => {
+        // Yahoo Finance timestamps are in milliseconds
+        const timestamp = quote.timestamp;
+        let date: Date;
+        
+        if (timestamp) {
+          // If we have a valid timestamp, use it to create a date
+          date = new Date(timestamp);
+        } else {
+          // Fallback to current date if timestamp is invalid
+          date = new Date();
+          console.warn(`Invalid timestamp for ${symbol} (${region}), using current date`);
+        }
+        
+        return {
+          symbol,
+          date,
+          open: quote.open,
+          high: quote.high,
+          low: quote.low,
+          close: quote.close,
+          volume: quote.volume,
+          adjustedClose: quote.adjclose,
+          region
+        };
+      });
 
       // Store in database
       await storage.bulkCreateHistoricalPrices(historicalPrices);
