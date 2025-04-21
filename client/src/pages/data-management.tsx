@@ -77,6 +77,71 @@ export default function DataManagement() {
     staleTime: 30 * 1000 // 30 seconds
   });
   
+  // Clear logs mutation
+  const clearLogsMutation = useMutation({
+    mutationFn: () => apiRequest('DELETE', '/api/data-updates/logs'),
+    onSuccess: () => {
+      toast({
+        title: "Logs cleared",
+        description: "All system logs have been cleared",
+      });
+      refetchLogs();
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to clear logs",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Process and consolidate logs
+  const processedLogs = useMemo(() => {
+    if (!updateLogs) return [];
+    
+    // Group logs by type to handle consolidation
+    const logsByType = {};
+    
+    // First pass: group logs by type
+    updateLogs.forEach(log => {
+      if (!logsByType[log.type]) {
+        logsByType[log.type] = [];
+      }
+      logsByType[log.type].push(log);
+    });
+    
+    // For each type, if we have success/error entries and in-progress entries,
+    // filter out the in-progress entries for the same operation
+    const consolidatedLogs = [];
+    
+    Object.values(logsByType).forEach((logs: DataUpdateLog[]) => {
+      // Sort logs by timestamp descending (newest first)
+      logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      
+      // Find the latest success or error log
+      const latestCompleted = logs.find(log => log.status === 'Success' || log.status === 'Error');
+      
+      if (latestCompleted) {
+        // If we have a completed log, remove in-progress logs that are older
+        const filteredLogs = logs.filter(log => 
+          log.id === latestCompleted.id || 
+          log.status !== 'In Progress' || 
+          new Date(log.timestamp).getTime() > new Date(latestCompleted.timestamp).getTime()
+        );
+        consolidatedLogs.push(...filteredLogs);
+      } else {
+        // If no completed log, keep all logs
+        consolidatedLogs.push(...logs);
+      }
+    });
+    
+    // Sort all logs by timestamp descending
+    return consolidatedLogs.sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+  }, [updateLogs]);
+  
   // Mutations for triggering manual updates
   const updateCurrentPricesMutation = useMutation({
     mutationFn: () => apiRequest('POST', '/api/current-prices/fetch/all'),

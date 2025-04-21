@@ -1058,6 +1058,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // Clear all data update logs
+  app.delete("/api/data-updates/logs", async (_req: Request, res: Response) => {
+    try {
+      await db.delete(dataUpdateLogs);
+      return res.json({ 
+        success: true, 
+        message: "All logs cleared successfully" 
+      });
+    } catch (error) {
+      console.error("Error clearing update logs:", error);
+      return res.status(500).json({ 
+        message: "Failed to clear update logs",
+        error: (error as Error).message
+      });
+    }
+  });
 
   // Scheduler Configuration API
   app.get("/api/scheduler/config", async (_req: Request, res: Response) => {
