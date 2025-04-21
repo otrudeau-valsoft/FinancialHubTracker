@@ -911,12 +911,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const results = await currentPriceService.updateAllCurrentPrices();
       
+      // Log the update in the data_update_logs table
+      const successCount = Object.values(results).reduce((total, region: any) => total + (region.successCount || 0), 0);
+      const totalSymbols = Object.values(results).reduce((total, region: any) => total + (region.totalSymbols || 0), 0);
+      
+      await schedulerService.logUpdate('current_prices', 'Success', {
+        message: `Manual current price update completed - ${successCount}/${totalSymbols} symbols updated`,
+        timestamp: new Date().toISOString(),
+        results
+      });
+      
       return res.status(200).json({
         message: "Successfully updated current prices for all portfolios",
         results
       });
     } catch (error) {
       console.error("Error updating current prices for all portfolios:", error);
+      
+      // Log the error in the data_update_logs table
+      await schedulerService.logUpdate('current_prices', 'Error', {
+        error: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString()
+      });
+      
       return res.status(500).json({
         message: "Failed to update current prices for all portfolios",
         error: (error as Error).message

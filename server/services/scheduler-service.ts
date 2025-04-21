@@ -293,8 +293,9 @@ class SchedulerService {
 
   /**
    * Log an update to the database
+   * This is public so that route handlers can call it directly for manual updates
    */
-  private async logUpdate(type: string, status: 'Success' | 'Error', details: any): Promise<any> {
+  async logUpdate(type: string, status: 'Success' | 'Error', details: any): Promise<any> {
     try {
       const logEntry: InsertDataUpdateLog = {
         type,
