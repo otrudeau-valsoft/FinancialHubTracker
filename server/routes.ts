@@ -511,31 +511,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/historical-prices/fetch/:symbol/:region", async (req: Request, res: Response) => {
-    try {
-      const { symbol, region } = req.params;
-      const { period, interval } = req.body;
-      
-      const success = await historicalPriceService.fetchAndStoreHistoricalPrices(
-        symbol,
-        region.toUpperCase(),
-        period || '1y',
-        interval || '1d'
-      );
-      
-      if (!success) {
-        return res.status(404).json({ message: `No historical data found for ${symbol}` });
-      }
-      
-      return res.status(200).json({ 
-        message: `Successfully fetched and stored historical prices for ${symbol} (${region})`
-      });
-    } catch (error) {
-      console.error("Error fetching historical prices from Yahoo Finance:", error);
-      return res.status(500).json({ message: "Failed to fetch historical prices" });
-    }
-  });
-
   app.post("/api/historical-prices/fetch/portfolio/:region", async (req: Request, res: Response) => {
     try {
       const { region } = req.params;
@@ -553,43 +528,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      console.log(`Found ${symbols.length} symbols for ${region} portfolio`);
+      console.log(`Found ${symbols.length} symbols for ${region} portfolio: ${symbols.join(', ')}`);
       
-      // Test with a single symbol first to ensure connectivity works
-      const testSymbol = symbols[0].toUpperCase();
-      const singleSuccess = await historicalPriceService.fetchAndStoreHistoricalPrices(
-        testSymbol,
-        regionUpper,
-        period || '1mo', // Use shorter period for test
-        interval || '1d'
-      );
-      
-      if (!singleSuccess) {
-        return res.status(404).json({ 
-          message: `Test fetch failed for symbol ${testSymbol}. Cannot retrieve historical prices.`
-        });
+      // Process one symbol at a time to avoid Yahoo Finance API rate limiting
+      let successCount = 0;
+      for (const symbol of symbols) {
+        // Use uppercase for Yahoo Finance
+        const yahooSymbol = symbol.toUpperCase();
+        
+        try {
+          console.log(`Processing ${yahooSymbol} (${regionUpper}) - ${successCount+1}/${symbols.length}`);
+          
+          const success = await historicalPriceService.fetchAndStoreHistoricalPrices(
+            yahooSymbol,
+            regionUpper,
+            period || '1mo', // Use shorter period for testing
+            interval || '1d'
+          );
+          
+          if (success) {
+            successCount++;
+            console.log(`✓ Successfully updated ${yahooSymbol} (${regionUpper})`);
+          } else {
+            console.log(`✗ Failed to update ${yahooSymbol} (${regionUpper})`);
+          }
+          
+          // Add a delay to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (error) {
+          console.error(`Error processing ${yahooSymbol}:`, error);
+          // Continue to next symbol
+        }
       }
       
-      // Now proceed with the full portfolio
-      console.log(`Test fetch successful. Proceeding with full portfolio update...`);
-      
-      // Use 5y and 1d as defaults for our project requirements
-      const successCount = await historicalPriceService.updateHistoricalPricesForPortfolio(
-        regionUpper,
-        period || '5y',
-        interval || '1d'
-      );
-      
       if (successCount === 0) {
-        // No stocks were successfully updated beyond our test
         return res.status(404).json({ 
-          message: "Failed to update historical prices for portfolio (beyond test symbol)"
+          message: "Failed to update historical prices for any symbols in the portfolio"
         });
       }
       
       return res.status(200).json({ 
-        message: `Successfully updated historical prices for ${successCount} stocks in ${region} portfolio`,
-        stockCount: successCount,
+        message: `Successfully updated historical prices for ${successCount}/${symbols.length} stocks in ${region} portfolio`,
+        successCount,
         totalSymbols: symbols.length
       });
     } catch (error) {
@@ -738,6 +718,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in historical price test:", error);
       return res.status(500).json({ message: "Failed to run historical price test", error: (error as Error).message });
+    }
+  });
+  
+  // Individual stock historical price fetching endpoint
+  // IMPORTANT: This must be after other more specific endpoints with similar URL patterns
+  app.post("/api/historical-prices/fetch/:symbol/:region", async (req: Request, res: Response) => {
+    try {
+      const { symbol, region } = req.params;
+      const { period, interval } = req.body;
+      
+      const success = await historicalPriceService.fetchAndStoreHistoricalPrices(
+        symbol,
+        region.toUpperCase(),
+        period || '1y',
+        interval || '1d'
+      );
+      
+      if (!success) {
+        return res.status(404).json({ message: `No historical data found for ${symbol}` });
+      }
+      
+      return res.status(200).json({ 
+        message: `Successfully fetched and stored historical prices for ${symbol} (${region})`
+      });
+    } catch (error) {
+      console.error("Error fetching historical prices from Yahoo Finance:", error);
+      return res.status(500).json({ message: "Failed to fetch historical prices" });
     }
   });
 
