@@ -477,9 +477,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`API Request - Fetching historical prices for region: ${regionUpper}`);
       
-      // PURE SQL APPROACH: Bypass the storage layer completely
-      // This is a guaranteed working solution with minimal dependencies
+      // Import the direct query function
+      const { getHistoricalPricesDirect } = await import('./direct-query');
       
+      // Select a representative stock for each region
       let symbol = "";
       
       if (regionUpper === "USD") {
@@ -496,24 +497,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json([]);
       }
       
-      try {
-        // Execute raw SQL query
-        const result = await db.execute(sql`
-          SELECT * FROM historical_prices 
-          WHERE symbol = ${symbol} AND region = ${regionUpper}
-          ORDER BY date DESC
-        `);
-        
-        console.log(`Direct SQL query returned ${result.rows.length} records for ${symbol} in region ${regionUpper}`);
-        return res.json(result.rows);
-      } catch (dbError) {
-        console.error("Database error:", dbError);
-        
-        // Fall back to storage API as a last resort
-        const data = await storage.getHistoricalPrices(symbol, regionUpper);
-        console.log(`Storage API returned ${data?.length || 0} records as fallback`);
-        return res.json(data || []);
-      }
+      // Use the direct query approach that works
+      const data = await getHistoricalPricesDirect(symbol, regionUpper);
+      console.log(`Historical price endpoint found ${data.length} records for ${symbol} in ${regionUpper}`);
+      
+      return res.json(data);
     } catch (error) {
       console.error("Error in regional historical price endpoint:", error);
       return res.status(500).json({ 
@@ -569,6 +557,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Test route for historical price import
+  // Very simple direct query test route - no storage layer
+  app.get("/api/direct-query/:symbol/:region", async (req: Request, res: Response) => {
+    try {
+      const { symbol, region } = req.params;
+      const regionUpper = region.toUpperCase();
+      
+      // Import the direct query function
+      const { getHistoricalPricesDirect } = await import('./direct-query');
+      
+      console.log(`Testing direct query for ${symbol} in ${regionUpper}`);
+      const data = await getHistoricalPricesDirect(symbol, regionUpper);
+      
+      return res.json({
+        message: `Direct query for ${symbol} in ${regionUpper}`,
+        count: data.length,
+        data: data
+      });
+    } catch (error) {
+      console.error("Error in direct query test:", error);
+      return res.status(500).json({ 
+        message: "Failed to run direct query test", 
+        error: (error as Error).message 
+      });
+    }
+  });
+
   app.get("/api/test/historical-prices", async (_req: Request, res: Response) => {
     try {
       // Test with a few sample stocks from each region
