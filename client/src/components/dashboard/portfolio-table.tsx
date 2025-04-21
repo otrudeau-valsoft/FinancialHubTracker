@@ -1,10 +1,31 @@
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatCurrency, formatPercentage, getProfitLossClass } from "@/lib/financial";
 import { getStockTypeBackground, getRatingClass } from "@/lib/utils";
 import { useState } from "react";
-import { List, Filter } from "lucide-react";
+import { List, Filter, AlertTriangle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+
+interface CurrentPrice {
+  id: number;
+  symbol: string;
+  region: string;
+  regularMarketPrice: string;
+  regularMarketChange: string;
+  regularMarketChangePercent: string;
+  regularMarketVolume: string;
+  regularMarketDayHigh: string;
+  regularMarketDayLow: string;
+  marketCap: string;
+  trailingPE: string;
+  forwardPE: string;
+  dividendYield: string;
+  fiftyTwoWeekHigh: string;
+  fiftyTwoWeekLow: string;
+  updatedAt: string;
+}
 
 interface PortfolioStock {
   id: number;
@@ -29,6 +50,7 @@ interface PortfolioStock {
 interface PortfolioTableProps {
   stocks: PortfolioStock[];
   region: 'USD' | 'CAD' | 'INTL';
+  currentPrices?: CurrentPrice[];
 }
 
 export const PortfolioTable = ({ stocks, region }: PortfolioTableProps) => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PortfolioSummary } from "@/components/dashboard/portfolio-summary";
 import { AllocationChart } from "@/components/dashboard/allocation-chart";
 import { PerformanceChart } from "@/components/dashboard/performance-chart";
@@ -7,7 +7,8 @@ import { AlertsList } from "@/components/dashboard/alerts-list";
 import { PortfolioTable } from "@/components/dashboard/portfolio-table";
 import { EtfComparison } from "@/components/dashboard/etf-comparison";
 import { Button } from "@/components/ui/button";
-import { Upload, Download } from "lucide-react";
+import { Upload, Download, RefreshCw } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   calculateAllocationByType, 
   calculateAllocationByRating, 
@@ -37,11 +38,31 @@ const samplePerformanceData = Array.from({ length: 180 }, (_, i) => {
 
 export default function UsdPortfolio() {
   const fileInputRef = React.createRef<HTMLInputElement>();
+  const queryClient = useQueryClient();
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
   // Fetch USD portfolio data
   const { data: usdStocks, isLoading: usdLoading, refetch: refetchUsdStocks } = useQuery({
     queryKey: ['/api/portfolios/USD/stocks'],
     staleTime: 60000, // 1 minute
+  });
+  
+  // Fetch current prices
+  const { data: currentPrices, isLoading: pricesLoading, refetch: refetchPrices } = useQuery({
+    queryKey: ['/api/current-prices/USD'],
+    staleTime: 60000, // 1 minute
+  });
+  
+  // Mutation for refreshing prices
+  const { mutate: refreshPrices, isPending: isRefreshing } = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('POST', '/api/current-prices/fetch/portfolio/USD', {});
+    },
+    onSuccess: () => {
+      setLastUpdate(new Date());
+      refetchPrices();
+      refetchUsdStocks();
+    }
   });
   
   // Fetch alerts
@@ -122,8 +143,18 @@ export default function UsdPortfolio() {
           <div className="flex items-center space-x-2">
             <div className="flex items-center mr-4">
               <span className="text-xs text-gray-400">Last update:</span>
-              <span className="ml-1 text-xs text-gray-300 mono">{new Date().toLocaleString()}</span>
+              <span className="ml-1 text-xs text-gray-300 mono">{lastUpdate.toLocaleString()}</span>
             </div>
+            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => refreshPrices()}
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Updating...' : 'Refresh Prices'}
+            </Button>
             
             <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
               <Upload className="mr-2 h-4 w-4" />
