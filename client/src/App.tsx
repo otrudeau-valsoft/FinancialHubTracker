@@ -27,6 +27,7 @@ function Router() {
             <Route path="/intl-portfolio" component={IntlPortfolio} />
             <Route path="/matrix-rules" component={MatrixRulesPage} />
             <Route path="/etf-holdings" component={EtfHoldings} />
+            <Route path="/data-management" component={DataManagement} />
             <Route component={NotFound} />
           </Switch>
         </main>

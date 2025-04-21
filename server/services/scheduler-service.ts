@@ -1,528 +1,235 @@
-import { db } from '../db';
-import { currentPriceService } from './current-price-service';
 import { historicalPriceService } from './historical-price-service';
-import { eq, and, lt } from 'drizzle-orm';
-import { dataUpdateLogs, type InsertDataUpdateLog } from '@shared/schema';
+import { currentPriceService } from './current-price-service';
+import { db } from '../db';
+import { dataUpdateLogs, type DataUpdateLog, type InsertDataUpdateLog } from '@shared/schema';
+import { isWeekend, formatDateTime, isWithinMarketHours } from '../util';
 
-// In-memory storage for schedule config
-let scheduleConfig = {
+// Default config for schedulers
+type SchedulerConfig = {
   current_prices: {
-    enabled: true,
-    interval: 10, // minutes
-    startTime: "09:30",
-    endTime: "16:00",
-    daysOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-    lastRun: null as Date | null,
-    nextRun: null as Date | null
-  },
+    enabled: boolean;
+    intervalMinutes: number;
+    startTime: string; // HH:MM format (market open)
+    endTime: string;   // HH:MM format (market close)
+    skipWeekends: boolean;
+  };
   historical_prices: {
-    enabled: true,
-    interval: 1440, // once a day (in minutes)
-    startTime: "16:30",
-    endTime: "17:30",
-    daysOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-    lastRun: null as Date | null,
-    nextRun: null as Date | null
-  }
+    enabled: boolean;
+    timeOfDay: string; // HH:MM format
+    skipWeekends: boolean;
+  };
 };
 
-// Timers
-let currentPriceTimer: NodeJS.Timeout | null = null;
-let historicalPriceTimer: NodeJS.Timeout | null = null;
-
 class SchedulerService {
+  private config: SchedulerConfig;
+  private currentPriceTimer: NodeJS.Timeout | null = null;
+  private historicalPriceTimer: NodeJS.Timeout | null = null;
+  
+  constructor() {
+    // Initialize with default configuration
+    this.config = {
+      current_prices: {
+        enabled: true,
+        intervalMinutes: 10,
+        startTime: '09:30', // Market open (Eastern Time)
+        endTime: '16:00',   // Market close (Eastern Time)
+        skipWeekends: true,
+      },
+      historical_prices: {
+        enabled: true,
+        timeOfDay: '17:00', // Run after market close
+        skipWeekends: true,
+      }
+    };
+  }
+  
   /**
-   * Initialize scheduler service and restore previous state if available
+   * Initialize the scheduler service
    */
   async init() {
-    console.log("Initializing scheduler service...");
+    console.log('Initializing scheduler service...');
     
-    // TODO: Load state from database if we decide to persist scheduler config
+    // Start scheduled tasks
+    this.startCurrentPriceScheduler();
+    this.startHistoricalPriceScheduler();
     
-    // Calculate next run times
-    this.calculateNextRun('current_prices');
-    this.calculateNextRun('historical_prices');
-    
-    // Start timers if enabled
-    if (scheduleConfig.current_prices.enabled) {
-      this.startCurrentPriceScheduler();
-    }
-    
-    if (scheduleConfig.historical_prices.enabled) {
-      this.startHistoricalPriceScheduler();
-    }
+    console.log('Scheduler service initialized successfully');
   }
   
   /**
-   * Get scheduler configuration
+   * Get the current configuration
    */
-  getConfig() {
-    return scheduleConfig;
+  getConfig(): SchedulerConfig {
+    return this.config;
   }
   
   /**
-   * Update scheduler configuration
+   * Update the configuration
    */
-  updateConfig(type: 'current_prices' | 'historical_prices', config: Partial<typeof scheduleConfig.current_prices>) {
-    const oldConfig = {...scheduleConfig[type]};
-    
-    // Update config
-    scheduleConfig[type] = {
-      ...scheduleConfig[type],
+  updateConfig(type: 'current_prices' | 'historical_prices', config: any): any {
+    // Merge the new config with the old one
+    this.config[type] = {
+      ...this.config[type],
       ...config
     };
     
-    // If enabled state changed
-    if (oldConfig.enabled !== scheduleConfig[type].enabled) {
-      if (scheduleConfig[type].enabled) {
-        // Scheduler was enabled, start it
-        if (type === 'current_prices') {
-          this.startCurrentPriceScheduler();
-        } else {
-          this.startHistoricalPriceScheduler();
-        }
-      } else {
-        // Scheduler was disabled, stop it
-        if (type === 'current_prices' && currentPriceTimer) {
-          clearTimeout(currentPriceTimer);
-          currentPriceTimer = null;
-        } else if (type === 'historical_prices' && historicalPriceTimer) {
-          clearTimeout(historicalPriceTimer);
-          historicalPriceTimer = null;
-        }
-      }
-    } else if (scheduleConfig[type].enabled) {
-      // Scheduler is enabled and config changed, recalculate next run
-      this.calculateNextRun(type);
-      
-      // Restart timer with new config
-      if (type === 'current_prices') {
-        if (currentPriceTimer) {
-          clearTimeout(currentPriceTimer);
-        }
-        this.startCurrentPriceScheduler();
-      } else {
-        if (historicalPriceTimer) {
-          clearTimeout(historicalPriceTimer);
-        }
-        this.startHistoricalPriceScheduler();
-      }
-    }
-    
-    // TODO: Persist config to database if we decide to persist scheduler config
-    
-    return scheduleConfig[type];
-  }
-  
-  /**
-   * Calculate next run time based on schedule configuration
-   */
-  calculateNextRun(type: 'current_prices' | 'historical_prices') {
-    const config = scheduleConfig[type];
-    const now = new Date();
-    const today = now.toLocaleDateString('en-US', { weekday: 'long' });
-    
-    // Check if today is a scheduled day
-    if (!config.daysOfWeek.includes(today)) {
-      // Next run will be on the next scheduled day
-      let daysToAdd = 1;
-      let nextDay = new Date();
-      nextDay.setDate(now.getDate() + daysToAdd);
-      let nextDayName = nextDay.toLocaleDateString('en-US', { weekday: 'long' });
-      
-      while (!config.daysOfWeek.includes(nextDayName)) {
-        daysToAdd++;
-        nextDay = new Date();
-        nextDay.setDate(now.getDate() + daysToAdd);
-        nextDayName = nextDay.toLocaleDateString('en-US', { weekday: 'long' });
-      }
-      
-      // Set time to start time
-      const [startHour, startMinute] = config.startTime.split(':').map(Number);
-      nextDay.setHours(startHour, startMinute, 0, 0);
-      
-      config.nextRun = nextDay;
-      return;
-    }
-    
-    // Parse start and end times
-    const [startHour, startMinute] = config.startTime.split(':').map(Number);
-    const [endHour, endMinute] = config.endTime.split(':').map(Number);
-    
-    // Create Date objects for start and end times today
-    const startTime = new Date(now);
-    startTime.setHours(startHour, startMinute, 0, 0);
-    
-    const endTime = new Date(now);
-    endTime.setHours(endHour, endMinute, 0, 0);
-    
-    // Check if we're within the scheduled time window
-    if (now >= startTime && now <= endTime) {
-      // We're within the window, calculate next run based on interval
-      if (config.lastRun) {
-        const nextRun = new Date(config.lastRun);
-        nextRun.setMinutes(nextRun.getMinutes() + config.interval);
-        
-        // If next run would be after end time, schedule for tomorrow's start time
-        if (nextRun > endTime) {
-          const tomorrow = new Date();
-          tomorrow.setDate(now.getDate() + 1);
-          const tomorrowDay = tomorrow.toLocaleDateString('en-US', { weekday: 'long' });
-          
-          // Find next scheduled day
-          if (config.daysOfWeek.includes(tomorrowDay)) {
-            tomorrow.setHours(startHour, startMinute, 0, 0);
-            config.nextRun = tomorrow;
-          } else {
-            // Next run will be on the next scheduled day
-            let daysToAdd = 1;
-            let nextDay = new Date();
-            nextDay.setDate(now.getDate() + daysToAdd);
-            let nextDayName = nextDay.toLocaleDateString('en-US', { weekday: 'long' });
-            
-            while (!config.daysOfWeek.includes(nextDayName)) {
-              daysToAdd++;
-              nextDay = new Date();
-              nextDay.setDate(now.getDate() + daysToAdd);
-              nextDayName = nextDay.toLocaleDateString('en-US', { weekday: 'long' });
-            }
-            
-            // Set time to start time
-            nextDay.setHours(startHour, startMinute, 0, 0);
-            config.nextRun = nextDay;
-          }
-        } else {
-          config.nextRun = nextRun;
-        }
-      } else {
-        // No last run, schedule for now
-        config.nextRun = new Date(now);
-      }
-    } else if (now < startTime) {
-      // Before start time, schedule for today's start time
-      config.nextRun = new Date(startTime);
+    // Restart the appropriate scheduler
+    if (type === 'current_prices') {
+      this.restartCurrentPriceScheduler();
     } else {
-      // After end time, schedule for tomorrow's start time
-      const tomorrow = new Date();
-      tomorrow.setDate(now.getDate() + 1);
-      const tomorrowDay = tomorrow.toLocaleDateString('en-US', { weekday: 'long' });
-      
-      // Find next scheduled day
-      if (config.daysOfWeek.includes(tomorrowDay)) {
-        tomorrow.setHours(startHour, startMinute, 0, 0);
-        config.nextRun = tomorrow;
-      } else {
-        // Next run will be on the next scheduled day
-        let daysToAdd = 1;
-        let nextDay = new Date();
-        nextDay.setDate(now.getDate() + daysToAdd);
-        let nextDayName = nextDay.toLocaleDateString('en-US', { weekday: 'long' });
-        
-        while (!config.daysOfWeek.includes(nextDayName)) {
-          daysToAdd++;
-          nextDay = new Date();
-          nextDay.setDate(now.getDate() + daysToAdd);
-          nextDayName = nextDay.toLocaleDateString('en-US', { weekday: 'long' });
-        }
-        
-        // Set time to start time
-        nextDay.setHours(startHour, startMinute, 0, 0);
-        config.nextRun = nextDay;
-      }
+      this.restartHistoricalPriceScheduler();
     }
+    
+    return this.config[type];
   }
   
   /**
    * Start the current price scheduler
    */
-  startCurrentPriceScheduler() {
-    if (!scheduleConfig.current_prices.enabled || !scheduleConfig.current_prices.nextRun) {
+  private startCurrentPriceScheduler() {
+    if (this.currentPriceTimer) {
+      clearInterval(this.currentPriceTimer);
+    }
+    
+    if (!this.config.current_prices.enabled) {
+      console.log('Current price scheduler is disabled');
       return;
     }
     
-    const now = new Date();
-    const nextRun = scheduleConfig.current_prices.nextRun;
-    const timeUntilNextRun = Math.max(0, nextRun.getTime() - now.getTime());
+    const intervalMs = this.config.current_prices.intervalMinutes * 60 * 1000;
     
-    console.log(`Scheduling current price update in ${Math.round(timeUntilNextRun / 1000 / 60)} minutes`);
+    console.log(`Starting current price scheduler with interval of ${this.config.current_prices.intervalMinutes} minutes`);
     
-    // Set timeout for next run
-    currentPriceTimer = setTimeout(async () => {
-      await this.runCurrentPriceUpdate();
-      
-      // Schedule next run
-      scheduleConfig.current_prices.lastRun = new Date();
-      this.calculateNextRun('current_prices');
-      this.startCurrentPriceScheduler();
-    }, timeUntilNextRun);
+    this.currentPriceTimer = setInterval(async () => {
+      try {
+        const now = new Date();
+        
+        // Skip if it's a weekend and skipWeekends is enabled
+        if (this.config.current_prices.skipWeekends && isWeekend(now)) {
+          console.log('Skipping current price update on weekend');
+          return;
+        }
+        
+        // Skip if it's outside market hours
+        if (!isWithinMarketHours(now, 
+                               this.config.current_prices.startTime,
+                               this.config.current_prices.endTime)) {
+          console.log('Skipping current price update outside market hours');
+          return;
+        }
+        
+        console.log('Running scheduled current price update');
+        await this.updateCurrentPrices();
+        
+      } catch (error) {
+        console.error('Error in scheduled current price update:', error);
+      }
+    }, intervalMs);
+  }
+  
+  /**
+   * Restart the current price scheduler
+   */
+  private restartCurrentPriceScheduler() {
+    console.log('Restarting current price scheduler');
+    this.startCurrentPriceScheduler();
   }
   
   /**
    * Start the historical price scheduler
    */
-  startHistoricalPriceScheduler() {
-    if (!scheduleConfig.historical_prices.enabled || !scheduleConfig.historical_prices.nextRun) {
+  private startHistoricalPriceScheduler() {
+    if (this.historicalPriceTimer) {
+      clearInterval(this.historicalPriceTimer);
+    }
+    
+    if (!this.config.historical_prices.enabled) {
+      console.log('Historical price scheduler is disabled');
       return;
     }
     
-    const now = new Date();
-    const nextRun = scheduleConfig.historical_prices.nextRun;
-    const timeUntilNextRun = Math.max(0, nextRun.getTime() - now.getTime());
+    // Calculate time until next run
+    const nextRunTime = this.calculateNextHistoricalPriceRunTime();
+    const timeUntilNextRun = nextRunTime.getTime() - new Date().getTime();
     
-    console.log(`Scheduling historical price update in ${Math.round(timeUntilNextRun / 1000 / 60)} minutes`);
+    console.log(`Scheduling historical price update at ${formatDateTime(nextRunTime)}`);
     
-    // Set timeout for next run
-    historicalPriceTimer = setTimeout(async () => {
-      await this.runHistoricalPriceUpdate();
-      
-      // Schedule next run
-      scheduleConfig.historical_prices.lastRun = new Date();
-      this.calculateNextRun('historical_prices');
-      this.startHistoricalPriceScheduler();
+    // Schedule the first run
+    this.historicalPriceTimer = setTimeout(async () => {
+      try {
+        await this.updateHistoricalPrices();
+      } catch (error) {
+        console.error('Error in scheduled historical price update:', error);
+      } finally {
+        // Schedule the next run for tomorrow
+        this.startHistoricalPriceScheduler();
+      }
     }, timeUntilNextRun);
   }
   
   /**
-   * Run current price update for all portfolios
+   * Restart the historical price scheduler
    */
-  async runCurrentPriceUpdate() {
-    console.log("Running scheduled current price update for all portfolios...");
-    
-    try {
-      const regions = ['USD', 'CAD', 'INTL'];
-      
-      for (const region of regions) {
-        try {
-          console.log(`Updating current prices for ${region} portfolio...`);
-          const result = await currentPriceService.updatePortfolioCurrentPrices(region);
-          
-          // Log update
-          await this.logUpdate({
-            type: 'current_price',
-            region,
-            status: 'success',
-            message: `Updated ${result.length} current prices for ${region} portfolio`,
-            affectedRows: result.length,
-            timestamp: new Date()
-          });
-          
-          console.log(`Successfully updated ${result.length} current prices for ${region} portfolio`);
-        } catch (error) {
-          console.error(`Error updating current prices for ${region} portfolio:`, error);
-          
-          // Log error
-          await this.logUpdate({
-            type: 'current_price',
-            region,
-            status: 'failed',
-            message: `Error: ${error.message}`,
-            affectedRows: 0,
-            timestamp: new Date()
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error running scheduled current price update:", error);
-    }
+  private restartHistoricalPriceScheduler() {
+    console.log('Restarting historical price scheduler');
+    this.startHistoricalPriceScheduler();
   }
   
   /**
-   * Run historical price update for all portfolios
-   * 
-   * This version only fetches the latest historical prices since the last update
+   * Calculate the next time to run the historical price update
    */
-  async runHistoricalPriceUpdate() {
-    console.log("Running scheduled historical price update for all portfolios...");
+  private calculateNextHistoricalPriceRunTime(): Date {
+    const now = new Date();
+    const [hours, minutes] = this.config.historical_prices.timeOfDay.split(':').map(Number);
     
-    try {
-      const regions = ['USD', 'CAD', 'INTL'];
-      
-      for (const region of regions) {
-        try {
-          console.log(`Updating historical prices for ${region} portfolio...`);
-          
-          // Get portfolio symbols
-          const symbols = await currentPriceService.getPortfolioSymbols(region);
-          let totalUpdated = 0;
-          
-          // For each symbol, find most recent historical price and update from there
-          for (const symbol of symbols) {
-            // Find most recent historical price date
-            const latestPrices = await historicalPriceService.getLatestHistoricalPrice(symbol, region);
-            
-            let startDate: Date;
-            if (latestPrices && latestPrices.length > 0) {
-              // Use the day after the latest price as start date
-              startDate = new Date(latestPrices[0].date);
-              startDate.setDate(startDate.getDate() + 1);
-            } else {
-              // No existing data, default to 5 years ago
-              startDate = new Date();
-              startDate.setFullYear(startDate.getFullYear() - 5);
-            }
-            
-            // Only fetch if startDate is before today
-            const today = new Date();
-            if (startDate < today) {
-              console.log(`Fetching historical prices for ${symbol} (${region}) from ${startDate.toISOString().split('T')[0]}`);
-              
-              // Fetch and store historical prices
-              const result = await historicalPriceService.fetchAndStoreHistoricalPrices(
-                symbol, 
-                region, 
-                startDate, 
-                today
-              );
-              
-              totalUpdated += result.length;
-              console.log(`Added ${result.length} new historical prices for ${symbol} (${region})`);
-            } else {
-              console.log(`Historical prices for ${symbol} (${region}) are up to date`);
-            }
-          }
-          
-          // Log update
-          await this.logUpdate({
-            type: 'historical_price',
-            region,
-            status: 'success',
-            message: `Updated ${totalUpdated} historical prices for ${region} portfolio`,
-            affectedRows: totalUpdated,
-            timestamp: new Date()
-          });
-          
-          console.log(`Successfully updated ${totalUpdated} historical prices for ${region} portfolio`);
-        } catch (error) {
-          console.error(`Error updating historical prices for ${region} portfolio:`, error);
-          
-          // Log error
-          await this.logUpdate({
-            type: 'historical_price',
-            region,
-            status: 'failed',
-            message: `Error: ${error.message}`,
-            affectedRows: 0,
-            timestamp: new Date()
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error running scheduled historical price update:", error);
+    // Create a date for today at the specified time
+    const scheduledTime = new Date(now);
+    scheduledTime.setHours(hours, minutes, 0, 0);
+    
+    // If the time is in the past, schedule for tomorrow
+    if (scheduledTime <= now) {
+      scheduledTime.setDate(scheduledTime.getDate() + 1);
     }
+    
+    // If skipWeekends is enabled and the next run falls on a weekend, skip to Monday
+    if (this.config.historical_prices.skipWeekends && isWeekend(scheduledTime)) {
+      // If it's a Saturday, add 2 days to get to Monday
+      if (scheduledTime.getDay() === 6) {
+        scheduledTime.setDate(scheduledTime.getDate() + 2);
+      } 
+      // If it's a Sunday, add 1 day to get to Monday
+      else if (scheduledTime.getDay() === 0) {
+        scheduledTime.setDate(scheduledTime.getDate() + 1);
+      }
+    }
+    
+    return scheduledTime;
   }
   
   /**
-   * Manually trigger current price update for a specific region
+   * Update current prices for all portfolios
    */
-  async triggerCurrentPriceUpdate(region: string) {
-    console.log(`Manually triggering current price update for ${region} portfolio...`);
-    
+  private async updateCurrentPrices() {
     try {
-      const result = await currentPriceService.updatePortfolioCurrentPrices(region);
+      console.log('Starting scheduled current price update');
       
-      // Log update
-      await this.logUpdate({
-        type: 'current_price',
-        region,
-        status: 'success',
-        message: `Manually updated ${result.length} current prices for ${region} portfolio`,
-        affectedRows: result.length,
-        timestamp: new Date()
+      const results = await currentPriceService.updateAllCurrentPrices();
+      
+      // Log the update
+      await this.logUpdate('current_prices', 'Success', {
+        message: `Updated current prices for all portfolios`,
+        results
       });
       
-      console.log(`Successfully updated ${result.length} current prices for ${region} portfolio`);
-      return result;
-    } catch (error) {
-      console.error(`Error updating current prices for ${region} portfolio:`, error);
-      
-      // Log error
-      await this.logUpdate({
-        type: 'current_price',
-        region,
-        status: 'failed',
-        message: `Error: ${error.message}`,
-        affectedRows: 0,
-        timestamp: new Date()
-      });
-      
-      throw error;
-    }
-  }
-  
-  /**
-   * Manually trigger historical price update for a specific region
-   * This version only fetches the latest historical prices since the last update
-   */
-  async triggerHistoricalPriceUpdate(region: string) {
-    console.log(`Manually triggering historical price update for ${region} portfolio...`);
-    
-    try {
-      // Get portfolio symbols
-      const symbols = await currentPriceService.getPortfolioSymbols(region);
-      let totalUpdated = 0;
-      let results = [];
-      
-      // For each symbol, find most recent historical price and update from there
-      for (const symbol of symbols) {
-        // Find most recent historical price date
-        const latestPrices = await historicalPriceService.getLatestHistoricalPrice(symbol, region);
-        
-        let startDate: Date;
-        if (latestPrices && latestPrices.length > 0) {
-          // Use the day after the latest price as start date
-          startDate = new Date(latestPrices[0].date);
-          startDate.setDate(startDate.getDate() + 1);
-        } else {
-          // No existing data, default to 5 years ago
-          startDate = new Date();
-          startDate.setFullYear(startDate.getFullYear() - 5);
-        }
-        
-        // Only fetch if startDate is before today
-        const today = new Date();
-        if (startDate < today) {
-          console.log(`Fetching historical prices for ${symbol} (${region}) from ${startDate.toISOString().split('T')[0]}`);
-          
-          // Fetch and store historical prices
-          const result = await historicalPriceService.fetchAndStoreHistoricalPrices(
-            symbol, 
-            region, 
-            startDate, 
-            today
-          );
-          
-          results.push({ symbol, count: result.length });
-          totalUpdated += result.length;
-          console.log(`Added ${result.length} new historical prices for ${symbol} (${region})`);
-        } else {
-          console.log(`Historical prices for ${symbol} (${region}) are up to date`);
-          results.push({ symbol, count: 0 });
-        }
-      }
-      
-      // Log update
-      await this.logUpdate({
-        type: 'historical_price',
-        region,
-        status: 'success',
-        message: `Manually updated ${totalUpdated} historical prices for ${region} portfolio`,
-        affectedRows: totalUpdated,
-        timestamp: new Date()
-      });
-      
-      console.log(`Successfully updated ${totalUpdated} historical prices for ${region} portfolio`);
+      console.log('Successfully completed current price update');
       return results;
     } catch (error) {
-      console.error(`Error updating historical prices for ${region} portfolio:`, error);
+      console.error('Error updating current prices:', error);
       
-      // Log error
-      await this.logUpdate({
-        type: 'historical_price',
-        region,
-        status: 'failed',
-        message: `Error: ${error.message}`,
-        affectedRows: 0,
-        timestamp: new Date()
+      // Log the error
+      await this.logUpdate('current_prices', 'Error', {
+        message: 'Failed to update current prices',
+        error: (error as Error).message
       });
       
       throw error;
@@ -530,29 +237,61 @@ class SchedulerService {
   }
   
   /**
-   * Log update to database
+   * Update historical prices for all portfolios
    */
-  async logUpdate(log: InsertDataUpdateLog) {
+  private async updateHistoricalPrices() {
     try {
-      const [result] = await db.insert(dataUpdateLogs).values(log).returning();
-      return result;
+      console.log('Starting scheduled historical price update');
+      
+      // Update historical prices for all three regions
+      const usdResults = await historicalPriceService.updatePortfolioHistoricalPrices('USD');
+      const cadResults = await historicalPriceService.updatePortfolioHistoricalPrices('CAD');
+      const intlResults = await historicalPriceService.updatePortfolioHistoricalPrices('INTL');
+      
+      // Log the update
+      await this.logUpdate('historical_prices', 'Success', {
+        message: `Updated historical prices for all portfolios`,
+        usdResults,
+        cadResults,
+        intlResults
+      });
+      
+      console.log('Successfully completed historical price update');
+      return { usdResults, cadResults, intlResults };
     } catch (error) {
-      console.error("Error logging update:", error);
-      return null;
+      console.error('Error updating historical prices:', error);
+      
+      // Log the error
+      await this.logUpdate('historical_prices', 'Error', {
+        message: 'Failed to update historical prices',
+        error: (error as Error).message
+      });
+      
+      throw error;
     }
+  }
+  
+  /**
+   * Log an update to the database
+   */
+  private async logUpdate(type: string, status: 'Success' | 'Error', details: any): Promise<DataUpdateLog> {
+    const log: InsertDataUpdateLog = {
+      type,
+      status,
+      details: JSON.stringify(details),
+      timestamp: new Date()
+    };
+    
+    const [result] = await db.insert(dataUpdateLogs).values(log).returning();
+    return result;
   }
   
   /**
    * Get update logs
    */
-  async getLogs(limit: number = 100) {
-    try {
-      const logs = await db.select().from(dataUpdateLogs).orderBy(dataUpdateLogs.timestamp, 'desc').limit(limit);
-      return logs;
-    } catch (error) {
-      console.error("Error getting update logs:", error);
-      return [];
-    }
+  async getLogs(limit: number = 50): Promise<DataUpdateLog[]> {
+    const logs = await db.select().from(dataUpdateLogs).orderBy(dataUpdateLogs.timestamp, 'desc').limit(limit);
+    return logs;
   }
 }
 

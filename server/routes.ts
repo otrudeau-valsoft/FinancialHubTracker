@@ -6,6 +6,7 @@ import { InsertPortfolioStock, InsertEtfHolding } from "./types";
 import { z } from "zod";
 import { historicalPriceService } from "./services/historical-price-service";
 import { currentPriceService } from "./services/current-price-service";
+import { schedulerService } from "./services/scheduler-service";
 import { db } from "./db";
 import { sql, eq } from "drizzle-orm";
 
@@ -921,6 +922,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: (error as Error).message
       });
     }
+  });
+
+  // Data Update Logs API
+  app.get("/api/data-updates/logs", async (_req: Request, res: Response) => {
+    try {
+      const logs = await schedulerService.getLogs();
+      return res.json(logs);
+    } catch (error) {
+      console.error("Error fetching update logs:", error);
+      return res.status(500).json({ 
+        message: "Failed to fetch update logs",
+        error: (error as Error).message
+      });
+    }
+  });
+
+  // Scheduler Configuration API
+  app.get("/api/scheduler/config", async (_req: Request, res: Response) => {
+    try {
+      const config = schedulerService.getConfig();
+      return res.json(config);
+    } catch (error) {
+      console.error("Error fetching scheduler config:", error);
+      return res.status(500).json({ 
+        message: "Failed to fetch scheduler config",
+        error: (error as Error).message
+      });
+    }
+  });
+
+  app.post("/api/scheduler/config/:type", async (req: Request, res: Response) => {
+    try {
+      const type = req.params.type as 'current_prices' | 'historical_prices';
+      if (type !== 'current_prices' && type !== 'historical_prices') {
+        return res.status(400).json({ message: "Invalid scheduler type" });
+      }
+      
+      const config = req.body;
+      const updatedConfig = schedulerService.updateConfig(type, config);
+      
+      return res.json({
+        message: `Successfully updated ${type} scheduler configuration`,
+        config: updatedConfig
+      });
+    } catch (error) {
+      console.error("Error updating scheduler config:", error);
+      return res.status(500).json({ 
+        message: "Failed to update scheduler config",
+        error: (error as Error).message
+      });
+    }
+  });
+
+  // Initialize the scheduler service when the app starts
+  // This will automatically start any scheduled tasks
+  schedulerService.init().catch(error => {
+    console.error("Error initializing scheduler service:", error);
   });
 
   const httpServer = createServer(app);

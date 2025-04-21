@@ -55,6 +55,13 @@ export function Header() {
         >
           ETF Holdings
         </button>
+        
+        <button 
+          onClick={() => navigate("/data-management")} 
+          className={`text-gray-300 hover:text-white px-2 py-1 rounded ${location === '/data-management' ? 'bg-blue-900/30' : ''}`}
+        >
+          Data Management
+        </button>
       </nav>
     </header>
   );
