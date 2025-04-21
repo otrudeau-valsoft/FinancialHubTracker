@@ -848,6 +848,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Fetch and store current prices for an entire portfolio
+  app.post("/api/current-prices/fetch/portfolio/:region", async (req: Request, res: Response) => {
+    try {
+      const { region } = req.params;
+      const regionUpper = region.toUpperCase();
+      
+      console.log(`Fetching current prices for portfolio: ${regionUpper}`);
+      
+      const result = await currentPriceService.updatePortfolioCurrentPrices(regionUpper);
+      
+      return res.status(200).json({
+        message: `Updated current prices for ${result.successCount}/${result.totalSymbols} symbols in ${regionUpper} portfolio`,
+        successCount: result.successCount,
+        totalSymbols: result.totalSymbols
+      });
+    } catch (error) {
+      console.error("Error updating current prices for portfolio:", error);
+      return res.status(500).json({
+        message: "Failed to update current prices for portfolio",
+        error: (error as Error).message
+      });
+    }
+  });
+  
   // Fetch and store current price for a single symbol
   app.post("/api/current-prices/fetch/:symbol/:region", async (req: Request, res: Response) => {
     try {
@@ -874,30 +898,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching current price from Yahoo Finance:", error);
       return res.status(500).json({ 
         message: "Failed to fetch current price",
-        error: (error as Error).message
-      });
-    }
-  });
-  
-  // Fetch and store current prices for an entire portfolio
-  app.post("/api/current-prices/fetch/portfolio/:region", async (req: Request, res: Response) => {
-    try {
-      const { region } = req.params;
-      const regionUpper = region.toUpperCase();
-      
-      console.log(`Fetching current prices for portfolio: ${regionUpper}`);
-      
-      const result = await currentPriceService.updatePortfolioCurrentPrices(regionUpper);
-      
-      return res.status(200).json({
-        message: `Updated current prices for ${result.successCount}/${result.totalSymbols} symbols in ${regionUpper} portfolio`,
-        successCount: result.successCount,
-        totalSymbols: result.totalSymbols
-      });
-    } catch (error) {
-      console.error("Error updating current prices for portfolio:", error);
-      return res.status(500).json({
-        message: "Failed to update current prices for portfolio",
         error: (error as Error).message
       });
     }
