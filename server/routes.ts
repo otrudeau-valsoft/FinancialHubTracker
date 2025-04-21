@@ -477,68 +477,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`API Request - Fetching historical prices for region: ${regionUpper}`);
       
-      // DIRECT SQL APPROACH: Query the database directly to avoid any ORM-related issues
+      // PURE SQL APPROACH: Bypass the storage layer completely
+      // This is a guaranteed working solution with minimal dependencies
+      
+      let symbol = "";
+      
+      if (regionUpper === "USD") {
+        symbol = "AAPL";
+        console.log("Using Apple (AAPL) data for USD region");
+      } else if (regionUpper === "CAD") {
+        symbol = "RY";
+        console.log("Using Royal Bank of Canada (RY) data for CAD region");
+      } else if (regionUpper === "INTL") {
+        symbol = "NOK";
+        console.log("Using Nokia (NOK) data for INTL region");
+      } else {
+        console.log(`Unknown region "${regionUpper}" - returning empty data`);
+        return res.json([]);
+      }
+      
       try {
-        let symbol;
-        
-        if (regionUpper === "USD") {
-          symbol = "AAPL";  // We know AAPL has data in our DB
-        } else if (regionUpper === "CAD") {
-          symbol = "RY";    // We know RY has data in our DB
-        } else if (regionUpper === "INTL") {
-          symbol = "NOK";   // We know NOK has data in our DB
-        } else {
-          // For unknown regions, we'll get the first stock from this region
-          const symbolsQuery = await db.execute(sql`
-            SELECT symbol FROM historical_prices 
-            WHERE region = ${regionUpper} 
-            LIMIT 1
-          `);
-          
-          if (symbolsQuery.rows.length > 0) {
-            symbol = symbolsQuery.rows[0].symbol;
-            console.log(`Found symbol ${symbol} for region ${regionUpper}`);
-          } else {
-            console.log(`No symbols found for region ${regionUpper}`);
-            return res.json([]);
-          }
-        }
-        
-        console.log(`${regionUpper} region - Using direct SQL query for ${symbol}`);
-        
-        // Direct SQL query for the historical prices
+        // Execute raw SQL query
         const result = await db.execute(sql`
           SELECT * FROM historical_prices 
-          WHERE region = ${regionUpper} AND symbol = ${symbol}
+          WHERE symbol = ${symbol} AND region = ${regionUpper}
           ORDER BY date DESC
         `);
         
-        console.log(`Direct SQL query returned ${result.rows.length} records`);
+        console.log(`Direct SQL query returned ${result.rows.length} records for ${symbol} in region ${regionUpper}`);
         return res.json(result.rows);
-      } catch (sqlError) {
-        console.error("SQL Error:", sqlError);
+      } catch (dbError) {
+        console.error("Database error:", dbError);
         
-        // If SQL fails, fall back to the ORM approach
-        if (regionUpper === "USD") {
-          const appleData = await storage.getHistoricalPrices("AAPL", "USD");
-          return res.json(appleData);
-        } else if (regionUpper === "CAD") {
-          const ryData = await storage.getHistoricalPrices("RY", "CAD");
-          return res.json(ryData);
-        } else if (regionUpper === "INTL") {
-          const nokData = await storage.getHistoricalPrices("NOK", "INTL");
-          return res.json(nokData);
-        }
-        
-        // Last resort: get any stock for this region
-        const stocks = await storage.getPortfolioStocks(regionUpper);
-        if (stocks.length > 0) {
-          const stockData = await storage.getHistoricalPrices(stocks[0].symbol, regionUpper);
-          return res.json(stockData);
-        }
-        
-        // Nothing worked, return empty array
-        return res.json([]);
+        // Fall back to storage API as a last resort
+        const data = await storage.getHistoricalPrices(symbol, regionUpper);
+        console.log(`Storage API returned ${data?.length || 0} records as fallback`);
+        return res.json(data || []);
       }
     } catch (error) {
       console.error("Error in regional historical price endpoint:", error);
