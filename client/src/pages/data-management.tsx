@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { 
   Card, 
@@ -25,7 +25,8 @@ import {
   History,
   FileBarChart,
   LineChart,
-  Info as InfoIcon
+  Info as InfoIcon,
+  Trash2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient, apiRequest } from '@/lib/queryClient';
