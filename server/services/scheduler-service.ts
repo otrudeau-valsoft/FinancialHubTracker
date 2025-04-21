@@ -310,6 +310,15 @@ class SchedulerService {
    */
   async logUpdate(type: string, status: 'Success' | 'Error' | 'In Progress', details: any, logId?: number): Promise<any> {
     try {
+      // If a Success log is being created, clean up any In Progress logs of the same type
+      if (status === 'Success' && !logId) {
+        await db
+          .delete(dataUpdateLogs)
+          .where({ type, status: 'In Progress' });
+        
+        console.log(`Cleaned up In Progress logs for ${type}`);
+      }
+      
       // If logId is provided, update the existing log entry
       if (logId) {
         const [result] = await db
@@ -328,7 +337,7 @@ class SchedulerService {
       // Otherwise, create a new log entry
       const logEntry: InsertDataUpdateLog = {
         type,
-        status: status as 'Success' | 'Error', // TypeScript narrowing
+        status, // Now status can be 'Success', 'Error', or 'In Progress'
         details: JSON.stringify(details),
       };
       
