@@ -1,0 +1,227 @@
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+Fetching historical prices for GIB-A.TO from 2020-04-21 to 2025-04-20
+Stored 1254 historical prices for GIB-A.TO (CAD)
+✓ Successfully updated GIB-A.TO (CAD)
+Processing ATD.TO (CAD) - 11/20
+Fetching historical prices for ATD.TO from 2020-04-21 to 2025-04-20
+Stored 1254 historical prices for ATD.TO (CAD)
+✓ Successfully updated ATD.TO (CAD)
+Processing DOL.TO (CAD) - 12/20
+Fetching historical prices for DOL.TO from 2020-04-21 to 2025-04-20
+Stored 1254 historical prices for DOL.TO (CAD)
+✓ Successfully updated DOL.TO (CAD)
+Processing EMP-A.TO (CAD) - 13/20
+Fetching historical prices for EMP-A.TO from 2020-04-21 to 2025-04-20
+Stored 1254 historical prices for EMP-A.TO (CAD)
+✓ Successfully updated EMP-A.TO (CAD)
+Processing NA.TO (CAD) - 14/20
+Fetching historical prices for NA.TO from 2020-04-21 to 2025-04-20
+Stored 1254 historical prices for NA.TO (CAD)
+✓ Successfully updated NA.TO (CAD)
+Processing DFY.TO (CAD) - 15/20
+Error updating log entry: error: there is no parameter $3
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async SchedulerService.logUpdate (/home/runner/workspace/server/services/scheduler-service.ts:336:26)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:674:21) {
+  length: 94,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '74',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+Fetching historical prices for DFY.TO from 2020-04-21 to 2025-04-20
+Stored 857 historical prices for DFY.TO (CAD)
+✓ Successfully updated DFY.TO (CAD)
+Processing RCH.TO (CAD) - 16/20
+Fetching historical prices for RCH.TO from 2020-04-21 to 2025-04-20
+Stored 1254 historical prices for RCH.TO (CAD)
+✓ Successfully updated RCH.TO (CAD)
+Processing BMO.TO (CAD) - 17/20
+Fetching historical prices for BMO.TO from 2020-04-21 to 2025-04-20
+Stored 1254 historical prices for BMO.TO (CAD)
+✓ Successfully updated BMO.TO (CAD)
+Processing SHOP.TO (CAD) - 18/20
+Fetching historical prices for SHOP.TO from 2020-04-21 to 2025-04-20
+Stored 1254 historical prices for SHOP.TO (CAD)
+✓ Successfully updated SHOP.TO (CAD)
+Processing WSP.TO (CAD) - 19/20
+Fetching historical prices for WSP.TO from 2020-04-21 to 2025-04-20
+Stored 1254 historical prices for WSP.TO (CAD)
+✓ Successfully updated WSP.TO (CAD)
+Processing CCO.TO (CAD) - 20/20
+Error updating log entry: error: there is no parameter $3
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async SchedulerService.logUpdate (/home/runner/workspace/server/services/scheduler-service.ts:336:26)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:674:21) {
+  length: 94,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '74',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+Fetching historical prices for CCO.TO from 2020-04-21 to 2025-04-20
+Stored 1254 historical prices for CCO.TO (CAD)
+✓ Successfully updated CCO.TO (CAD)
+Error cleaning up In Progress logs: error: there is no parameter $1
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async SchedulerService.logUpdate (/home/runner/workspace/server/services/scheduler-service.ts:317:11)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:718:13) {
+  length: 94,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '47',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+Error updating log entry: error: there is no parameter $3
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async SchedulerService.logUpdate (/home/runner/workspace/server/services/scheduler-service.ts:336:26)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:649:15) {
+  length: 94,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '74',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+Processing ACN (INTL) - 1/15
+Error updating log entry: error: there is no parameter $3
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async SchedulerService.logUpdate (/home/runner/workspace/server/services/scheduler-service.ts:336:26)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:674:21) {
+  length: 94,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '74',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+Fetching historical prices for ACN from 2020-04-21 to 2025-04-20
+Stored 1256 historical prices for ACN (INTL)
+✓ Successfully updated ACN (INTL)
+Processing LNSTY (INTL) - 2/15
+Fetching historical prices for LNSTY from 2020-04-21 to 2025-04-20
+Stored 1256 historical prices for LNSTY (INTL)
+✓ Successfully updated LNSTY (INTL)
+Processing CB (INTL) - 3/15
+Fetching historical prices for CB from 2020-04-21 to 2025-04-20
+Stored 1256 historical prices for CB (INTL)
+✓ Successfully updated CB (INTL)
+Processing ETN (INTL) - 4/15
+Fetching historical prices for ETN from 2020-04-21 to 2025-04-20
+Stored 1256 historical prices for ETN (INTL)
+✓ Successfully updated ETN (INTL)
+Processing LVMHF (INTL) - 5/15
+Error updating log entry: error: there is no parameter $3
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async SchedulerService.logUpdate (/home/runner/workspace/server/services/scheduler-service.ts:336:26)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:674:21) {
+  length: 94,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '74',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+Fetching historical prices for LVMHF from 2020-04-21 to 2025-04-20
+Stored 1256 historical prices for LVMHF (INTL)
+✓ Successfully updated LVMHF (INTL)
+Processing HESAY (INTL) - 6/15
+Fetching historical prices for HESAY from 2020-04-21 to 2025-04-20
+Stored 1256 historical prices for HESAY (INTL)
+✓ Successfully updated HESAY (INTL)
+Processing KWEB (INTL) - 7/15
+Fetching historical prices for KWEB from 2020-04-21 to 2025-04-20
+Stored 1256 historical prices for KWEB (INTL)
+✓ Successfully updated KWEB (INTL)
+Processing SDZNY (INTL) - 8/15
+Fetching historical prices for SDZNY from 2020-04-21 to 2025-04-20
+Stored 386 historical prices for SDZNY (INTL)
+✓ Successfully updated SDZNY (INTL)
+Processing ESLOY (INTL) - 9/15
+Fetching historical prices for ESLOY from 2020-04-21 to 2025-04-20
+Stored 1256 historical prices for ESLOY (INTL)
+✓ Successfully updated ESLOY (INTL)

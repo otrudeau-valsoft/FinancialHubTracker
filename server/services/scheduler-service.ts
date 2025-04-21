@@ -1,6 +1,7 @@
 import { db } from "../db";
 import { dataUpdateLogs, insertDataUpdateLogSchema } from "@shared/schema";
 import { InsertDataUpdateLog } from "@shared/schema";
+import { sql } from "drizzle-orm";
 import { isWeekend, isWithinMarketHours, toESTTime } from "../util";
 import { currentPriceService } from "./current-price-service";
 import { historicalPriceService } from "./historical-price-service";
@@ -310,48 +311,68 @@ class SchedulerService {
    */
   async logUpdate(type: string, status: 'Success' | 'Error' | 'In Progress', details: any, logId?: number): Promise<any> {
     try {
-      // If a Success log is being created, clean up any In Progress logs of the same type
-      if (status === 'Success' && !logId) {
-        try {
-          // Must use explicit equality comparison for type and status to avoid PostgreSQL type conversion errors
-          await db.execute(
-            `DELETE FROM "data_update_logs" WHERE "type" = $1 AND "status" = $2`,
-            [type, 'In Progress']
-          );
-          
-          console.log(`Cleaned up In Progress logs for ${type}`);
-        } catch (deleteError) {
-          console.error('Error cleaning up In Progress logs:', deleteError);
-          // Continue with the log creation even if cleanup fails
-        }
-      }
-      
       // Make sure details is properly stringified
       const detailsJson = typeof details === 'string' ? details : JSON.stringify(details);
       
-      // If logId is provided, update the existing log entry
+      // First, try to find an existing "In Progress" log for this type to update
+      if (!logId && (status === 'Success' || status === 'Error')) {
+        try {
+          // Find the most recent "In Progress" log for this type
+          const [existingLog] = await db
+            .select()
+            .from(dataUpdateLogs)
+            .where(sql`${dataUpdateLogs.type} = ${type} AND ${dataUpdateLogs.status} = ${'In Progress'}`)
+            .orderBy(dataUpdateLogs.timestamp, 'desc')
+            .limit(1);
+          
+          if (existingLog) {
+            // Update the existing log instead of creating a new one
+            const updatedLog = await db
+              .update(dataUpdateLogs)
+              .set({
+                status: status,
+                details: detailsJson
+              })
+              .where(sql`${dataUpdateLogs.id} = ${existingLog.id}`)
+              .returning();
+            
+            console.log(`Updated existing log ${existingLog.id} from In Progress to ${status}`);
+            
+            if (updatedLog && updatedLog.length > 0) {
+              return updatedLog[0];
+            }
+          }
+        } catch (findError) {
+          console.error('Error finding/updating existing log:', findError);
+          // Continue with creating a new log
+        }
+      }
+      
+      // If specific logId is provided, update that entry
       if (logId && typeof logId === 'number') {
         try {
-          // Use raw SQL to avoid PostgreSQL type conversion issues
-          const result = await db.execute(
-            `UPDATE "data_update_logs" SET "status" = $1, "details" = $2 WHERE "id" = $3 RETURNING *`,
-            [status, detailsJson, logId]
-          );
+          const updatedLog = await db
+            .update(dataUpdateLogs)
+            .set({
+              status: status,
+              details: detailsJson
+            })
+            .where(sql`${dataUpdateLogs.id} = ${logId}`)
+            .returning();
           
-          if (result.rows && result.rows.length > 0) {
-            return result.rows[0];
+          if (updatedLog && updatedLog.length > 0) {
+            return updatedLog[0];
           }
         } catch (updateError) {
           console.error('Error updating log entry:', updateError);
           // If update fails, create a new log instead
-          logId = undefined;
         }
       }
       
-      // Otherwise, create a new log entry
+      // If we reach here, create a new log entry
       const logEntry: InsertDataUpdateLog = {
         type,
-        status, // Now status can be 'Success', 'Error', or 'In Progress'
+        status,
         details: detailsJson,
       };
       
