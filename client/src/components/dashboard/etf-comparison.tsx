@@ -52,9 +52,17 @@ export const EtfComparison = ({
               <tr key={holding.id}>
                 <td className="px-3 py-2 font-medium text-secondary">{holding.ticker}</td>
                 <td className="px-3 py-2">{holding.name}</td>
-                <td className="px-3 py-2 text-muted-foreground">{holding.sector}</td>
-                <td className="px-3 py-2">{typeof holding.weight === 'string' ? parseFloat(holding.weight).toFixed(2) : holding.weight?.toFixed(2)}%</td>
-                <td className="px-3 py-2">{formatCurrency(typeof holding.price === 'string' ? parseFloat(holding.price) : holding.price, currencySymbol)}</td>
+                <td className="px-3 py-2 text-muted-foreground">{holding.sector || 'N/A'}</td>
+                <td className="px-3 py-2">
+                  {holding.weight !== null && holding.weight !== undefined
+                    ? `${Number(holding.weight).toFixed(2)}%`
+                    : 'N/A'}
+                </td>
+                <td className="px-3 py-2">
+                  {holding.price 
+                    ? formatCurrency(holding.price, currencySymbol)
+                    : 'N/A'}
+                </td>
                 <td className="px-3 py-2">
                   <Badge 
                     variant={holding.inPortfolio ? "default" : "outline"} 
@@ -68,10 +76,8 @@ export const EtfComparison = ({
                   </Badge>
                 </td>
                 <td className={`px-3 py-2 ${holding.weightDifference !== undefined ? getProfitLossClass(holding.weightDifference) : ''}`}>
-                  {holding.weightDifference !== undefined 
-                    ? `${holding.weightDifference > 0 ? '+' : ''}${typeof holding.weightDifference === 'string' 
-                        ? parseFloat(holding.weightDifference).toFixed(2) 
-                        : holding.weightDifference.toFixed(2)}%` 
+                  {holding.weightDifference !== undefined && holding.weightDifference !== null
+                    ? `${holding.weightDifference > 0 ? '+' : ''}${Number(holding.weightDifference).toFixed(2)}%` 
                     : 'N/A'}
                 </td>
               </tr>

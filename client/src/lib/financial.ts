@@ -65,28 +65,45 @@ export const calculateAllocationByRating = (stocks: any[]) => {
 export const calculateEtfDifferences = (portfolioStocks: any[], etfHoldings: any[]) => {
   if (!portfolioStocks || !etfHoldings) return [];
   
+  // Calculate the total portfolio value using price * quantity
   const portfolioTotalValue = portfolioStocks.reduce(
-    (sum, stock) => sum + Number(stock.nav || 0), 
+    (sum, stock) => {
+      const price = Number(stock.price || 0);
+      const quantity = Number(stock.quantity || 0);
+      return sum + (price * quantity);
+    }, 
     0
   );
   
+  console.log("Portfolio total value:", portfolioTotalValue);
+  
   // Create map of portfolio weights
   const portfolioWeights = portfolioStocks.reduce((acc: Record<string, number>, stock) => {
-    acc[stock.symbol] = portfolioTotalValue > 0 
-      ? (Number(stock.nav || 0) / portfolioTotalValue) * 100
+    const price = Number(stock.price || 0);
+    const quantity = Number(stock.quantity || 0);
+    const stockValue = price * quantity;
+    
+    // Store both uppercase and original symbol to handle case-insensitive matching
+    acc[stock.symbol.toUpperCase()] = portfolioTotalValue > 0 
+      ? (stockValue / portfolioTotalValue) * 100
       : 0;
+    
     return acc;
   }, {});
+  
+  console.log("Portfolio weights:", portfolioWeights);
   
   // Create map of ETF weights
   const etfWeights = etfHoldings.reduce((acc: Record<string, number>, holding) => {
-    acc[holding.ticker] = Number(holding.weight || 0);
+    acc[holding.ticker.toUpperCase()] = Number(holding.weight || 0);
     return acc;
   }, {});
   
+  console.log("ETF weights:", etfWeights);
+  
   // For each ETF holding, calculate the difference
   return etfHoldings.map(holding => {
-    const symbol = holding.ticker;
+    const symbol = holding.ticker.toUpperCase();
     const etfWeight = Number(holding.weight || 0);
     const portfolioWeight = portfolioWeights[symbol] || 0;
     const weightDifference = portfolioWeight - etfWeight;
