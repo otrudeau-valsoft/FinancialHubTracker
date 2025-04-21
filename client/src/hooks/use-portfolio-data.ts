@@ -99,28 +99,42 @@ export async function importPortfolioData(
     const reader = new FileReader();
     
     reader.onload = async (e) => {
-      const csvData = e.target?.result as string;
-      
       try {
+        const csvData = e.target?.result as string;
+        
+        // Import parseCSV and convertPortfolioData functions
+        const { parseCSV, convertPortfolioData } = await import('@/lib/parse-csv');
+        
+        // Parse the CSV data
+        const parsedData = parseCSV(csvData);
+        
+        // Convert to the correct format for the API
+        const processedStocks = convertPortfolioData(parsedData.data, region);
+        
+        // Send to the API
         const response = await apiRequest('POST', `/api/import/portfolio/${region}`, {
-          csvData
+          stocks: processedStocks
         });
         
         if (response.ok) {
+          console.log(`Successfully imported ${processedStocks.length} stocks for ${region} portfolio`);
           onSuccess && onSuccess();
           resolve();
         } else {
-          const error = await response.text();
-          onError && onError(error);
-          reject(error);
+          const errorData = await response.json();
+          console.error('Import error:', errorData);
+          onError && onError(errorData);
+          reject(errorData);
         }
       } catch (error) {
+        console.error('Import processing error:', error);
         onError && onError(error);
         reject(error);
       }
     };
     
     reader.onerror = (error) => {
+      console.error('File reading error:', error);
       onError && onError(error);
       reject(error);
     };

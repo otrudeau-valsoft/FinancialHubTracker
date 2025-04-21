@@ -54,46 +54,59 @@ export default function EtfHoldings() {
     try {
       const reader = new FileReader();
       reader.onload = async (e) => {
-        const csvData = e.target?.result as string;
-        const parsed = parseCSV(csvData);
-        
-        if (parsed.data.length > 0) {
-          let formattedData;
-          let etfSymbol = '';
+        try {
+          const csvData = e.target?.result as string;
+          const parsed = parseCSV(csvData);
           
-          // Detect which ETF data is being imported based on file content or activeTab
-          if (csvData.includes('ACWX') || activeTab === 'acwx') {
-            formattedData = convertAcwxHoldings(parsed.data);
-            etfSymbol = 'ACWX';
-          } else if (csvData.includes('XIC') || activeTab === 'xic') {
-            formattedData = convertXicHoldings(parsed.data);
-            etfSymbol = 'XIC';
-          } else {
-            // Default to SPY or let user choose
-            const confirmation = confirm("ETF type not detected. Import as SPY holdings?");
-            if (confirmation) {
-              etfSymbol = 'SPY';
-              formattedData = parsed.data.map(row => ({
-                etfSymbol: 'SPY',
-                ...row
-              }));
+          if (parsed.data.length > 0) {
+            let formattedData;
+            let etfSymbol = '';
+            
+            // Detect which ETF data is being imported based on file content or activeTab
+            if (csvData.includes('ACWX') || activeTab === 'acwx') {
+              formattedData = convertAcwxHoldings(parsed.data);
+              etfSymbol = 'ACWX';
+            } else if (csvData.includes('XIC') || activeTab === 'xic') {
+              formattedData = convertXicHoldings(parsed.data);
+              etfSymbol = 'XIC';
             } else {
-              alert("Import cancelled.");
-              return;
+              // Default to SPY or let user choose
+              const confirmation = confirm("ETF type not detected. Import as SPY holdings?");
+              if (confirmation) {
+                etfSymbol = 'SPY';
+                formattedData = convertAcwxHoldings(parsed.data); // Use the same converter for SPY
+                // Update the etfSymbol for each holding
+                formattedData = formattedData.map(holding => ({
+                  ...holding,
+                  etfSymbol: 'SPY'
+                }));
+              } else {
+                alert("Import cancelled.");
+                return;
+              }
+            }
+            
+            // Send the formatted data to the server using the new import endpoint
+            const response = await apiRequest('POST', `/api/import/etf/${etfSymbol}`, {
+              holdings: formattedData
+            });
+            
+            if (response.ok) {
+              // Refetch data
+              if (etfSymbol === 'SPY') refetchSpyHoldings();
+              else if (etfSymbol === 'XIC') refetchXicHoldings();
+              else if (etfSymbol === 'ACWX') refetchAcwxHoldings();
+              
+              const result = await response.json();
+              alert(result.message || `Successfully imported holdings for ${etfSymbol} ETF`);
+            } else {
+              const error = await response.text();
+              throw new Error(error);
             }
           }
-          
-          // Send the formatted data to the server
-          await apiRequest('POST', `/api/etfs/${etfSymbol}/holdings/bulk`, {
-            holdings: formattedData
-          });
-          
-          // Refetch data
-          if (etfSymbol === 'SPY') refetchSpyHoldings();
-          else if (etfSymbol === 'XIC') refetchXicHoldings();
-          else if (etfSymbol === 'ACWX') refetchAcwxHoldings();
-          
-          alert(`Successfully imported ${formattedData.length} holdings for ${etfSymbol} ETF`);
+        } catch (error) {
+          console.error("Error processing import:", error);
+          alert("Failed to process the imported data. Please check the file format.");
         }
       };
       reader.readAsText(file);

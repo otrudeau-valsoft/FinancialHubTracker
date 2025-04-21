@@ -66,22 +66,40 @@ export default function MatrixRulesPage() {
     try {
       const reader = new FileReader();
       reader.onload = async (e) => {
-        const csvData = e.target?.result as string;
-        const parsed = parseCSV(csvData);
-        
-        if (parsed.data.length > 0) {
-          const formattedData = convertMatrixRulesData(parsed.data);
+        try {
+          const csvData = e.target?.result as string;
+          const parsed = parseCSV(csvData);
           
-          // Send the formatted data to the server
-          await apiRequest('POST', '/api/matrix-rules/bulk', {
-            rules: formattedData
-          });
-          
-          // Refetch data
-          refetchIncreaseRules();
-          refetchDecreaseRules();
-          
-          alert(`Successfully imported ${formattedData.length} matrix rules`);
+          if (parsed.data.length > 0) {
+            const formattedData = convertMatrixRulesData(parsed.data);
+            
+            if (formattedData.length === 0) {
+              alert("No valid rules found in the CSV file. Please check the format.");
+              return;
+            }
+            
+            // Send the formatted data to the server
+            const response = await apiRequest('POST', '/api/matrix-rules/bulk', {
+              rules: formattedData
+            });
+            
+            if (response.ok) {
+              // Refetch data
+              refetchIncreaseRules();
+              refetchDecreaseRules();
+              
+              const result = await response.json();
+              alert(result.message || `Successfully imported ${formattedData.length} matrix rules`);
+            } else {
+              const errorData = await response.json();
+              throw new Error(errorData.message || "Failed to import matrix rules");
+            }
+          } else {
+            alert("No data found in the CSV file. Please check the file content.");
+          }
+        } catch (error) {
+          console.error("Error processing import:", error);
+          alert("Failed to process the imported data. Please check the file format.");
         }
       };
       reader.readAsText(file);
