@@ -601,10 +601,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { period, interval } = req.body;
       console.log("Initiating historical price collection for all portfolios");
       
-      // Log the start of the operation immediately
-      await schedulerService.logUpdate('historical_prices', 'In Progress', {
+      // Create a single log entry that we'll update throughout the process
+      const initialLog = await schedulerService.logUpdate('historical_prices', 'In Progress', {
         message: `Starting historical price update for all portfolios...`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        progress: { current: 0, total: 0 } // We'll update this as we go
       });
       
       // Respond to the client immediately to avoid timeout
@@ -643,13 +644,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             let successCount = 0;
             totalSymbolCount += symbols.length;
             
-            // Begin processing for this region - log it
+            // Update the initial log with the new region we're processing
             await schedulerService.logUpdate('historical_prices', 'In Progress', {
               message: `Processing ${region} portfolio (0/${symbols.length} symbols)`,
               region,
-              progress: { current: 0, total: symbols.length },
+              progress: { current: 0, total: totalSymbolCount },
               timestamp: new Date().toISOString()
-            });
+            }, initialLog.id);
             
             // Process symbols with rate limiting
             for (const symbol of symbols) {
@@ -661,13 +662,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 
                 // Update the log with current progress
                 if ((successCount + 1) % 5 === 0 || successCount === 0) { // Log every 5 symbols to avoid too many logs
+                  // Calculate the overall progress across all portfolios
+                  const overallProgress = totalSuccessCount + 1; // +1 for the current symbol being processed
+                  
                   await schedulerService.logUpdate('historical_prices', 'In Progress', {
-                    message: `Processing ${region} portfolio (${successCount+1}/${symbols.length} symbols)`,
+                    message: `Processing ${region} portfolio: ${yahooSymbol} (${successCount+1}/${symbols.length} symbols)`,
                     region,
                     symbol: yahooSymbol,
-                    progress: { current: successCount + 1, total: symbols.length },
+                    progress: { current: overallProgress, total: totalSymbolCount },
                     timestamp: new Date().toISOString()
-                  });
+                  }, initialLog.id);
                 }
                 
                 const success = await historicalPriceService.fetchAndStoreHistoricalPrices(
