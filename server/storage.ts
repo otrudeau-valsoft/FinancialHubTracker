@@ -339,10 +339,18 @@ export class DatabaseStorage implements IStorage {
 
   // Portfolio stock methods
   async getPortfolioStocks(region: string): Promise<PortfolioStock[]> {
-    return await db
-      .select()
-      .from(portfolioStocks)
-      .where(eq(portfolioStocks.region, region));
+    try {
+      const stocks = await db
+        .select()
+        .from(portfolioStocks)
+        .where(eq(portfolioStocks.region, region));
+      
+      // Sort manually by symbol
+      return stocks.sort((a, b) => a.symbol.localeCompare(b.symbol));
+    } catch (error) {
+      console.error("Error in getPortfolioStocks:", error);
+      return [];
+    }
   }
 
   async getPortfolioStock(id: number): Promise<PortfolioStock | undefined> {
@@ -412,10 +420,18 @@ export class DatabaseStorage implements IStorage {
 
   // ETF holdings methods
   async getEtfHoldings(etfSymbol: string): Promise<EtfHolding[]> {
-    return await db
-      .select()
-      .from(etfHoldings)
-      .where(eq(etfHoldings.etfSymbol, etfSymbol));
+    try {
+      const holdings = await db
+        .select()
+        .from(etfHoldings)
+        .where(eq(etfHoldings.etfSymbol, etfSymbol));
+        
+      // Sort alphabetically by name
+      return holdings.sort((a, b) => a.name.localeCompare(b.name));
+    } catch (error) {
+      console.error("Error in getEtfHoldings:", error);
+      return [];
+    }
   }
 
   async getEtfHolding(id: number): Promise<EtfHolding | undefined> {
@@ -616,11 +632,16 @@ export class DatabaseStorage implements IStorage {
 
   // Portfolio summary methods
   async getPortfolioSummary(region: string): Promise<PortfolioSummary | undefined> {
-    const [summary] = await db
-      .select()
-      .from(portfolioSummaries)
-      .where(eq(portfolioSummaries.region, region));
-    return summary || undefined;
+    try {
+      const [summary] = await db
+        .select()
+        .from(portfolioSummaries)
+        .where(eq(portfolioSummaries.region, region));
+      return summary || undefined;
+    } catch (error) {
+      console.error("Error in getPortfolioSummary:", error);
+      return undefined;
+    }
   }
 
   async createPortfolioSummary(summary: InsertPortfolioSummary): Promise<PortfolioSummary> {
