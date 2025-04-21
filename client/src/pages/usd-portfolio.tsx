@@ -215,7 +215,8 @@ export default function UsdPortfolio() {
             
             <PortfolioTable 
               stocks={usdStocks || []} 
-              region="USD" 
+              region="USD"
+              currentPrices={currentPrices || []}
             />
 
             <h2 className="text-xl mb-4 mt-8">ETF Benchmark Comparison</h2>
