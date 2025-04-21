@@ -544,7 +544,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Test with a few sample stocks from each region
       const usdSymbols = ['AAPL', 'MSFT', 'GOOGL'];
       const cadSymbols = ['RY', 'TD', 'BMO'];
-      const intlSymbols = ['SONY', 'TCEHY', 'SAP'];
+      // Use international stocks that trade as ADRs on US exchanges
+      const intlSymbols = ['NSANY', 'NTDOY', 'NOK'];
       
       const results = {
         USD: [] as any[],
@@ -577,6 +578,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Test INTL symbols
       for (const symbol of intlSymbols) {
         try {
+          // For the test, directly use the symbols without region-specific suffix
+          // since these are ADRs that trade on US exchanges
+          console.log(`Testing international symbol: ${symbol}`);
           const success = await historicalPriceService.fetchAndStoreHistoricalPrices(symbol, 'INTL', '1mo');
           const data = await storage.getHistoricalPrices(symbol, 'INTL');
           results.INTL.push({ symbol, success, count: data.length });

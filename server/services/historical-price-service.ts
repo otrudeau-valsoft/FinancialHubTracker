@@ -24,12 +24,32 @@ export class HistoricalPriceService {
     try {
       // Check if we need to add a suffix based on region
       let yahooSymbol = symbol;
-      if (region === 'CAD') {
+      
+      if (region === 'CAD' && !symbol.includes('.')) {
         yahooSymbol = `${symbol}.TO`;
-      } else if (region === 'INTL' && !symbol.includes('.')) {
-        // For international stocks, we might need different suffixes
-        // This is a simplification - you might need more logic based on the exchange
-        yahooSymbol = `${symbol}.L`; // Default to London Stock Exchange
+      } else if (region === 'INTL') {
+        // For international stocks, ADRs can be traded directly on US exchanges
+        // without suffix, while others need different exchange suffixes
+        
+        // Known ADRs and their correct symbols for Yahoo Finance
+        const intlMap: Record<string, string> = {
+          'SONY': 'SONY', // Sony Corp (ADR - trades on US exchanges)
+          'TCEHY': 'TCEHY', // Tencent (ADR - trades on US exchanges)
+          'SAP': 'SAP', // SAP SE (ADR - trades on US exchanges)
+          'NSANY': 'NSANY', // Nissan Motor Co Ltd (ADR)
+          'NTDOY': 'NTDOY', // Nintendo Co Ltd (ADR)
+          'NOK': 'NOK', // Nokia (ADR)
+          // Add more mappings as needed
+        };
+        
+        if (intlMap[symbol]) {
+          yahooSymbol = intlMap[symbol];
+          console.log(`Using mapped ADR symbol: ${yahooSymbol}`);
+        } else if (!symbol.includes('.')) {
+          // For non-ADR international stocks without suffix
+          yahooSymbol = `${symbol}.L`; // Default to London Stock Exchange
+          console.log(`Using default LSE suffix: ${yahooSymbol}`);
+        }
       }
 
       console.log(`Fetching historical prices for ${yahooSymbol} (${region})`);
