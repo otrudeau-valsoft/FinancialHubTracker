@@ -478,19 +478,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Special direct implementation for each region
       // This is a production-ready solution where we directly select a representative stock for each region
       
-      if (regionUpper === "USD") {
-        console.log("USD region detected: directly querying AAPL historical data");
-        // Direct SQL query to confirm data exists
-        console.log("Running direct SQL query for AAPL data");
-        return res.json(await storage.getHistoricalPrices("AAPL", "USD"));
-      } 
-      else if (regionUpper === "CAD") {
-        console.log("CAD region detected: directly querying RY historical data");
-        return res.json(await storage.getHistoricalPrices("RY", "CAD"));
-      }
-      else if (regionUpper === "INTL") {
-        console.log("INTL region detected: directly querying NOK historical data");
-        return res.json(await storage.getHistoricalPrices("NOK", "INTL"));
+      console.log(`Attempting to get historical prices by region for ${regionUpper}`);
+      
+      // Call the CORRECT method here - this is the key fix!
+      // We should be using getHistoricalPricesByRegion, not getHistoricalPrices
+      try {
+        console.log(`Calling storage.getHistoricalPricesByRegion with ${regionUpper}`);
+        const priceData = await storage.getHistoricalPricesByRegion(regionUpper);
+        console.log(`getHistoricalPricesByRegion returned ${priceData.length} records`);
+        
+        if (priceData.length > 0) {
+          console.log(`✅ Found ${priceData.length} historical prices for region ${regionUpper}`);
+          return res.json(priceData);
+        } else {
+          console.log(`⚠️ No historical data found by region for ${regionUpper}, trying specific stocks...`);
+          
+          // If region query fails, fall back to specific stock symbols
+          if (regionUpper === "USD") {
+            console.log("Falling back to AAPL historical data");
+            const appleData = await storage.getHistoricalPrices("AAPL", "USD");
+            if (appleData.length > 0) {
+              return res.json(appleData);
+            }
+          } 
+          else if (regionUpper === "CAD") {
+            console.log("Falling back to RY historical data");
+            const ryData = await storage.getHistoricalPrices("RY", "CAD");
+            if (ryData.length > 0) {
+              return res.json(ryData);
+            }
+          }
+          else if (regionUpper === "INTL") {
+            console.log("Falling back to NOK historical data");
+            const nokData = await storage.getHistoricalPrices("NOK", "INTL");
+            if (nokData.length > 0) {
+              return res.json(nokData);
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Error in getHistoricalPricesByRegion for ${regionUpper}:`, error);
       }
       
       // If we reach here, it means we don't have a hardcoded fallback for the region
