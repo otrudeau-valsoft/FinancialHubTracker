@@ -46,7 +46,7 @@ export const HistoricalPriceChart = ({
     isLoading,
     isError,
     refetch
-  } = useQuery({
+  } = useQuery<HistoricalPrice[]>({
     queryKey: [`/api/historical-prices/${symbol}/${region}`],
     enabled: !!symbol && !!region
   });
@@ -54,9 +54,9 @@ export const HistoricalPriceChart = ({
   // Fetch prices from Yahoo Finance
   const fetchHistoricalPrices = async () => {
     try {
-      await apiRequest(`/api/historical-prices/fetch/${symbol}/${region}`, {
-        method: 'POST',
-        body: JSON.stringify({ period, interval: '1d' })
+      await apiRequest('POST', `/api/historical-prices/fetch/${symbol}/${region}`, {
+        period, 
+        interval: '1d'
       });
       
       toast({
@@ -78,8 +78,8 @@ export const HistoricalPriceChart = ({
   };
 
   // Format data for chart
-  const formatDataForChart = (data: HistoricalPrice[]) => {
-    if (!data) return [];
+  const formatDataForChart = (data: HistoricalPrice[] | undefined) => {
+    if (!data || !Array.isArray(data) || data.length === 0) return [];
     
     return data.map(price => ({
       date: format(new Date(price.date), 'MM/dd/yyyy'),

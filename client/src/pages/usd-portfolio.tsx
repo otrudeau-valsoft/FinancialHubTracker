@@ -6,6 +6,7 @@ import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { AlertsList } from "@/components/dashboard/alerts-list";
 import { PortfolioTable } from "@/components/dashboard/portfolio-table";
 import { EtfComparison } from "@/components/dashboard/etf-comparison";
+import { HistoricalPriceChart } from "@/components/dashboard/historical-price-chart";
 import { Button } from "@/components/ui/button";
 import { Upload, Download } from "lucide-react";
 import { 
@@ -187,6 +188,28 @@ export default function UsdPortfolio() {
               region="USD" 
             />
             
+            <div className="grid grid-cols-1 gap-6 mb-6 mt-8">
+              <h2 className="text-xl">Historical Prices</h2>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {usdStocks && usdStocks.length > 0 && (
+                  <>
+                    <HistoricalPriceChart
+                      symbol={usdStocks[0].symbol}
+                      region="USD"
+                      period="1y"
+                    />
+                    {usdStocks.length > 1 && (
+                      <HistoricalPriceChart
+                        symbol={usdStocks[1].symbol}
+                        region="USD"
+                        period="1y"
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+
             <h2 className="text-xl mb-4 mt-8">ETF Benchmark Comparison</h2>
             {spyLoading ? (
               <div className="text-center p-8 bg-[#0A1929] rounded-md">Loading ETF benchmark data...</div>
