@@ -256,3 +256,31 @@ export const insertPortfolioSummarySchema = createInsertSchema(portfolioSummarie
 
 export type InsertPortfolioSummary = z.infer<typeof insertPortfolioSummarySchema>;
 export type PortfolioSummary = typeof portfolioSummaries.$inferSelect;
+
+// Current Prices (Real-time quotes from Yahoo Finance)
+export const currentPrices = pgTable("current_prices", {
+  id: serial("id").primaryKey(),
+  symbol: text("symbol").notNull(),
+  region: text("region").notNull(),  // USD, CAD, INTL
+  regularMarketPrice: numeric("regular_market_price"),
+  regularMarketChange: numeric("regular_market_change"),
+  regularMarketChangePercent: numeric("regular_market_change_percent"),
+  regularMarketVolume: numeric("regular_market_volume"),
+  regularMarketDayHigh: numeric("regular_market_day_high"),
+  regularMarketDayLow: numeric("regular_market_day_low"),
+  marketCap: numeric("market_cap"),
+  trailingPE: numeric("trailing_pe"),
+  forwardPE: numeric("forward_pe"),
+  dividendYield: numeric("dividend_yield"),
+  fiftyTwoWeekHigh: numeric("fifty_two_week_high"),
+  fiftyTwoWeekLow: numeric("fifty_two_week_low"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertCurrentPriceSchema = createInsertSchema(currentPrices).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertCurrentPrice = z.infer<typeof insertCurrentPriceSchema>;
+export type CurrentPrice = typeof currentPrices.$inferSelect;

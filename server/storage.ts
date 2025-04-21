@@ -1,12 +1,13 @@
 import { 
   users, type User, type InsertUser,
   PortfolioRegion,
-  historicalPrices, type HistoricalPrice, type InsertHistoricalPrice
+  historicalPrices, type HistoricalPrice, type InsertHistoricalPrice,
+  currentPrices, type CurrentPrice, type InsertCurrentPrice,
+  Alert, InsertAlert, MatrixRule, InsertMatrixRule, PortfolioSummary, InsertPortfolioSummary
 } from "@shared/schema";
 
 // Import compatibility types for transitioning
 import { PortfolioStock, InsertPortfolioStock, EtfHolding, InsertEtfHolding } from "./types";
-import { Alert, InsertAlert, MatrixRule, InsertMatrixRule, PortfolioSummary, InsertPortfolioSummary } from "@shared/schema";
 
 // Storage interface for all database operations
 export interface IStorage {
@@ -59,6 +60,14 @@ export interface IStorage {
   createHistoricalPrice(price: InsertHistoricalPrice): Promise<HistoricalPrice>;
   bulkCreateHistoricalPrices(prices: InsertHistoricalPrice[]): Promise<HistoricalPrice[]>;
   deleteHistoricalPrices(symbol: string, region: string): Promise<boolean>;
+  
+  // Current price methods
+  getCurrentPrices(region: string): Promise<CurrentPrice[]>;
+  getCurrentPrice(symbol: string, region: string): Promise<CurrentPrice | undefined>;
+  createCurrentPrice(price: InsertCurrentPrice): Promise<CurrentPrice>;
+  updateCurrentPrice(id: number, price: Partial<InsertCurrentPrice>): Promise<CurrentPrice | undefined>;
+  deleteCurrentPrice(id: number): Promise<boolean>;
+  bulkCreateCurrentPrices(prices: InsertCurrentPrice[]): Promise<CurrentPrice[]>;
 }
 
 // Import and export the database storage implementation
