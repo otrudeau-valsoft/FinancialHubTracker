@@ -62,6 +62,47 @@ export default function Dashboard() {
     staleTime: 60000,
   });
   
+  const { data: xicHoldings, isLoading: xicLoading } = useQuery({
+    queryKey: ['/api/etfs/XIC/holdings/top/10'],
+    staleTime: 60000,
+  });
+  
+  // Process SPY holdings to add portfolio comparison data
+  const processedSpyHoldings = React.useMemo(() => {
+    if (!spyHoldings || !usdStocks) return [];
+    
+    return spyHoldings.map((holding: any) => {
+      // Check if this holding is in our portfolio
+      const inPortfolio = usdStocks.some((stock: any) => 
+        stock.symbol.toUpperCase() === holding.ticker.toUpperCase());
+      
+      // Calculate weight difference if in portfolio
+      let weightDifference = 0;
+      if (inPortfolio) {
+        const portfolioStock = usdStocks.find((stock: any) => 
+          stock.symbol.toUpperCase() === holding.ticker.toUpperCase());
+        
+        if (portfolioStock && portfolioStock.portfolioWeight) {
+          const portfolioWeight = typeof portfolioStock.portfolioWeight === 'string' 
+            ? parseFloat(portfolioStock.portfolioWeight) 
+            : portfolioStock.portfolioWeight;
+            
+          const etfWeight = typeof holding.weight === 'string' 
+            ? parseFloat(holding.weight) 
+            : holding.weight;
+            
+          weightDifference = portfolioWeight - etfWeight;
+        }
+      }
+      
+      return {
+        ...holding,
+        inPortfolio,
+        weightDifference
+      };
+    });
+  }, [spyHoldings, usdStocks]);
+  
   // Import portfolio data from CSV
   const handleImportData = async (region: string, file: File) => {
     try {
@@ -199,7 +240,7 @@ export default function Dashboard() {
             {spyLoading ? (
               <div className="text-center p-8">Loading ETF benchmark data...</div>
             ) : (
-              <EtfComparison holdings={spyHoldings || []} etfSymbol="SPY" region="USD" />
+              <EtfComparison holdings={processedSpyHoldings} etfSymbol="SPY" region="USD" />
             )}
           </>
         )}
