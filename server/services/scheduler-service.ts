@@ -2,6 +2,8 @@ import { db } from "../db";
 import { dataUpdateLogs, insertDataUpdateLogSchema } from "@shared/schema";
 import { InsertDataUpdateLog } from "@shared/schema";
 import { isWeekend, isWithinMarketHours } from "../util";
+import { currentPriceService } from "./current-price-service";
+import { historicalPriceService } from "./historical-price-service";
 
 /**
  * Configuration type for the scheduler
@@ -224,13 +226,21 @@ class SchedulerService {
     console.log('Running scheduled current price update');
     
     try {
-      // For now, we'll just log the update
-      // In a real implementation, this would call an API service to fetch current prices
+      // Call the current price service to update all prices
+      const results = await currentPriceService.updateAllCurrentPrices();
+      
+      const successCount = results.filter(r => r.success).length;
+      const totalSymbols = results.length;
       
       // Log the successful update
       await this.logUpdate('current_prices', 'Success', {
-        message: 'Scheduled current price update completed successfully',
-        timestamp: new Date().toISOString()
+        message: `Scheduled current price update completed successfully - ${successCount}/${totalSymbols} symbols updated`,
+        timestamp: new Date().toISOString(),
+        results: results.map(r => ({
+          symbol: r.symbol,
+          success: r.success,
+          error: r.error ? r.error : undefined
+        }))
       });
       
     } catch (error) {
@@ -251,13 +261,23 @@ class SchedulerService {
     console.log('Running scheduled historical price update');
     
     try {
-      // For now, we'll just log the update
-      // In a real implementation, this would call an API service to fetch historical prices
+      // Call the historical price service to update all prices
+      const results = await historicalPriceService.updateAllHistoricalPrices();
+      
+      const successCount = results.filter(r => r.success).length;
+      const totalSymbols = results.length;
+      const totalPrices = results.reduce((acc, r) => acc + (r.result?.length || 0), 0);
       
       // Log the successful update
       await this.logUpdate('historical_prices', 'Success', {
-        message: 'Scheduled historical price update completed successfully',
-        timestamp: new Date().toISOString()
+        message: `Scheduled historical price update completed successfully - ${successCount}/${totalSymbols} symbols updated, ${totalPrices} new price points added`,
+        timestamp: new Date().toISOString(),
+        results: results.map(r => ({
+          symbol: r.symbol,
+          success: r.success,
+          pricesAdded: r.result?.length || 0,
+          error: r.error ? r.error : undefined
+        }))
       });
       
     } catch (error) {

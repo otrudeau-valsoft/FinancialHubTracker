@@ -172,20 +172,51 @@ class HistoricalPriceService {
           if (startDate < new Date()) {
             console.log(`Fetching historical prices for ${symbol} from ${startDate.toISOString().split('T')[0]}`);
             const result = await this.fetchAndStoreHistoricalPrices(symbol, region, startDate);
-            results.push({ symbol, count: result.length });
+            results.push({ symbol, success: true, result });
           } else {
             console.log(`Historical prices for ${symbol} are already up to date`);
-            results.push({ symbol, count: 0 });
+            results.push({ symbol, success: true, result: [] });
           }
         } catch (error) {
           console.error(`Error updating historical prices for ${symbol} (${region}):`, error);
-          results.push({ symbol, count: 0, error: error.message });
+          results.push({ symbol, success: false, error: error instanceof Error ? error.message : String(error) });
         }
       }
       
       return results;
     } catch (error) {
       console.error(`Error updating portfolio historical prices for ${region}:`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Update historical prices for all portfolios
+   */
+  async updateAllHistoricalPrices() {
+    try {
+      const regions = ['USD', 'CAD', 'INTL'];
+      let allResults = [];
+      
+      for (const region of regions) {
+        try {
+          console.log(`Updating historical prices for ${region} portfolio`);
+          const regionResults = await this.updatePortfolioHistoricalPrices(region);
+          allResults = [...allResults, ...regionResults];
+        } catch (error) {
+          console.error(`Error updating historical prices for ${region}:`, error);
+          // Add error entry for the entire region
+          allResults.push({ 
+            symbol: `${region}_all`, 
+            success: false, 
+            error: error instanceof Error ? error.message : String(error)
+          });
+        }
+      }
+      
+      return allResults;
+    } catch (error) {
+      console.error('Error updating all historical prices:', error);
       throw error;
     }
   }
