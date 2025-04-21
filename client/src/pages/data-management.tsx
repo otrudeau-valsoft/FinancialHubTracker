@@ -67,19 +67,15 @@ export default function DataManagement() {
     staleTime: 60 * 1000 // 1 minute
   });
   
-  // Fetch update logs
+  // Fetch update logs (with more frequent refreshes during active operations)
   const { 
     data: updateLogs,
     isLoading: logsLoading,
     refetch: refetchLogs
   } = useQuery({
     queryKey: ['/api/data-updates/logs'],
-    staleTime: 2 * 1000, // 2 seconds
-    refetchInterval: (data) => {
-      // If there are any "In Progress" logs, poll more frequently
-      const hasInProgressLogs = data?.some(log => log.status === 'In Progress');
-      return hasInProgressLogs ? 2 * 1000 : 10 * 1000; // 2 sec during operations, 10 sec when idle
-    }
+    staleTime: 1000, // 1 second
+    refetchInterval: 3000 // Poll every 3 seconds
   });
   
   // Determine if there are any in-progress logs
@@ -87,6 +83,18 @@ export default function DataManagement() {
     if (!updateLogs) return false;
     return updateLogs.some(log => log.status === 'In Progress');
   }, [updateLogs]);
+  
+  // Dynamically adjust the polling rate based on in-progress activity
+  useEffect(() => {
+    // If there are in-progress logs, temporarily increase the polling frequency
+    if (hasInProgressLogs) {
+      const interval = setInterval(() => {
+        refetchLogs();
+      }, 2000); // Poll every 2 seconds during active operations
+      
+      return () => clearInterval(interval);
+    }
+  }, [hasInProgressLogs, refetchLogs]);
   
   // Clear logs mutation
   const clearLogsMutation = useMutation({
