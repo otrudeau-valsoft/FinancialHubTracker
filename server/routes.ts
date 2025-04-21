@@ -200,11 +200,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/matrix-rules/bulk", async (req: Request, res: Response) => {
     try {
-      // Validate each rule in the array
-      const validatedRules = req.body.rules.map((rule: any) => insertMatrixRuleSchema.parse(rule));
+      // Check if there are rules in the request
+      const rules = req.body.rules;
       
-      const rules = await storage.bulkCreateMatrixRules(validatedRules);
-      return res.status(201).json(rules);
+      if (!Array.isArray(rules) || rules.length === 0) {
+        return res.status(400).json({ message: "Invalid or empty rules data array" });
+      }
+      
+      // Validate each rule in the array
+      const validatedRules = rules.map((rule: any) => insertMatrixRuleSchema.parse(rule));
+      
+      // Clear existing rules to avoid duplicates
+      const existingRules = await Promise.all([
+        storage.getMatrixRules('Increase'),
+        storage.getMatrixRules('Decrease')
+      ]);
+      
+      const allExistingRules = [...existingRules[0], ...existingRules[1]];
+      await Promise.all(allExistingRules.map(async (rule) => {
+        await storage.deleteMatrixRule(rule.id);
+      }));
+      
+      const createdRules = await storage.bulkCreateMatrixRules(validatedRules);
+      
+      return res.status(201).json({
+        message: `Successfully imported ${createdRules.length} matrix rules`,
+        rules: createdRules
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid rule data", errors: error.errors });
@@ -318,27 +340,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/import/portfolio/:region", async (req: Request, res: Response) => {
     try {
       const region = req.params.region.toUpperCase();
-      const csvData = req.body.csvData;
+      const stocks = req.body.stocks;
       
-      // Process CSV data and insert into portfolio stocks
-      // This would be implemented on the frontend side to parse the CSV
+      if (!Array.isArray(stocks) || stocks.length === 0) {
+        return res.status(400).json({ message: "Invalid or empty stocks data array" });
+      }
       
-      return res.status(200).json({ message: "CSV data imported successfully" });
+      // Clear existing stocks for this region first to avoid duplicates
+      await Promise.all((await storage.getPortfolioStocks(region)).map(async (stock) => {
+        await storage.deletePortfolioStock(stock.id);
+      }));
+      
+      // Process each stock and add to database
+      const processedStocks = stocks.map(stock => ({
+        ...stock,
+        region  // Ensure region is set
+      }));
+      
+      const importedStocks = await storage.bulkCreatePortfolioStocks(processedStocks);
+      
+      return res.status(200).json({ 
+        message: `Successfully imported ${importedStocks.length} stocks to ${region} portfolio`,
+        stocks: importedStocks 
+      });
     } catch (error) {
-      console.error("Error importing CSV data:", error);
-      return res.status(500).json({ message: "Failed to import CSV data" });
+      console.error("Error importing portfolio data:", error);
+      return res.status(500).json({ message: "Failed to import portfolio data" });
     }
   });
 
   app.post("/api/import/etf/:symbol", async (req: Request, res: Response) => {
     try {
       const symbol = req.params.symbol.toUpperCase();
-      const csvData = req.body.csvData;
+      const holdings = req.body.holdings;
       
-      // Process CSV data and insert into ETF holdings
-      // This would be implemented on the frontend side to parse the CSV
+      if (!Array.isArray(holdings) || holdings.length === 0) {
+        return res.status(400).json({ message: "Invalid or empty holdings data array" });
+      }
       
-      return res.status(200).json({ message: "ETF data imported successfully" });
+      // Clear existing holdings for this ETF first to avoid duplicates
+      await Promise.all((await storage.getEtfHoldings(symbol)).map(async (holding) => {
+        await storage.deleteEtfHolding(holding.id);
+      }));
+      
+      // Process each holding and add to database
+      const processedHoldings = holdings.map(holding => ({
+        ...holding,
+        etfSymbol: symbol  // Ensure ETF symbol is set
+      }));
+      
+      const importedHoldings = await storage.bulkCreateEtfHoldings(processedHoldings);
+      
+      return res.status(200).json({ 
+        message: `Successfully imported ${importedHoldings.length} holdings to ${symbol} ETF`,
+        holdings: importedHoldings 
+      });
     } catch (error) {
       console.error("Error importing ETF data:", error);
       return res.status(500).json({ message: "Failed to import ETF data" });
