@@ -560,7 +560,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const success = await historicalPriceService.fetchAndStoreHistoricalPrices(
             yahooSymbol,
             regionUpper,
-            period || '1mo', // Default to 1 month for testing/speed
+            period || '5y', // Default to 5 years of data as required
             interval || '1d'  // Default to daily data
           );
           
@@ -634,8 +634,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const success = await historicalPriceService.fetchAndStoreHistoricalPrices(
               yahooSymbol,
               region,
-              period || '1mo', // Default for testing
-              interval || '1d'
+              period || '5y', // Default to 5 years of data as required
+              interval || '1d'  // Default to daily data
             );
             
             if (success) {
@@ -741,7 +741,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Test USD symbols
       for (const symbol of usdSymbols) {
         try {
-          const success = await historicalPriceService.fetchAndStoreHistoricalPrices(symbol, 'USD', '1mo');
+          const success = await historicalPriceService.fetchAndStoreHistoricalPrices(symbol, 'USD', '5y');
           const data = await storage.getHistoricalPrices(symbol, 'USD');
           results.USD.push({ symbol, success, count: data.length });
         } catch (error) {
@@ -752,7 +752,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Test CAD symbols
       for (const symbol of cadSymbols) {
         try {
-          const success = await historicalPriceService.fetchAndStoreHistoricalPrices(symbol, 'CAD', '1mo');
+          const success = await historicalPriceService.fetchAndStoreHistoricalPrices(symbol, 'CAD', '5y');
           const data = await storage.getHistoricalPrices(symbol, 'CAD');
           results.CAD.push({ symbol, success, count: data.length });
         } catch (error) {
