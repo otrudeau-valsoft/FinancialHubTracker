@@ -153,25 +153,28 @@ async function directImportHistoricalPrices() {
         console.log(`Quote data example: ${JSON.stringify(result.quotes[0]).substring(0, 200)}`);
         
         const historicalPrices: InsertHistoricalPrice[] = result.quotes.map(quote => {
-          let date: Date;
+          // Handle date according to schema requirements (date column in PostgreSQL)
+          let dateStr: string;
           
           if (quote.date) {
-            date = new Date(quote.date);
+            // Format date as ISO string and take only the date part (YYYY-MM-DD)
+            dateStr = new Date(quote.date).toISOString().split('T')[0];
           } else {
             console.warn(`Quote missing date field for ${stock.symbol}, skipping`);
-            // Use a placeholder date as fallback
-            date = new Date();
+            // Use a placeholder date as fallback (today's date as string)
+            dateStr = new Date().toISOString().split('T')[0];
           }
           
+          // Convert all numerical values to strings as required by schema
           return {
             symbol: stock.symbol,
-            date,
-            open: quote.open,
-            high: quote.high,
-            low: quote.low,
-            close: quote.close,
-            volume: quote.volume,
-            adjustedClose: quote.adjclose,
+            date: dateStr,
+            open: quote.open !== null ? String(quote.open) : null,
+            high: quote.high !== null ? String(quote.high) : null,
+            low: quote.low !== null ? String(quote.low) : null,
+            close: quote.close !== null ? String(quote.close) : "0", // Required field, defaults to "0"
+            volume: quote.volume !== null ? String(quote.volume) : null,
+            adjustedClose: quote.adjclose !== null ? String(quote.adjclose) : null,
             region: 'USD'
           };
         });
@@ -222,25 +225,28 @@ async function directImportHistoricalPrices() {
         console.log(`Quote data example: ${JSON.stringify(result.quotes[0]).substring(0, 200)}`);
         
         const historicalPrices: InsertHistoricalPrice[] = result.quotes.map(quote => {
-          let date: Date;
+          // Handle date according to schema requirements (date column in PostgreSQL)
+          let dateStr: string;
           
           if (quote.date) {
-            date = new Date(quote.date);
+            // Format date as ISO string and take only the date part (YYYY-MM-DD)
+            dateStr = new Date(quote.date).toISOString().split('T')[0];
           } else {
             console.warn(`Quote missing date field for ${stock.symbol}, skipping`);
-            // Use a placeholder date as fallback
-            date = new Date();
+            // Use a placeholder date as fallback (today's date as string)
+            dateStr = new Date().toISOString().split('T')[0];
           }
           
+          // Convert all numerical values to strings as required by schema
           return {
             symbol: stock.symbol,
-            date,
-            open: quote.open,
-            high: quote.high,
-            low: quote.low,
-            close: quote.close,
-            volume: quote.volume,
-            adjustedClose: quote.adjclose,
+            date: dateStr,
+            open: quote.open !== null ? String(quote.open) : null,
+            high: quote.high !== null ? String(quote.high) : null,
+            low: quote.low !== null ? String(quote.low) : null,
+            close: quote.close !== null ? String(quote.close) : "0", // Required field, defaults to "0"
+            volume: quote.volume !== null ? String(quote.volume) : null,
+            adjustedClose: quote.adjclose !== null ? String(quote.adjclose) : null,
             region: 'CAD'
           };
         });
@@ -296,25 +302,28 @@ async function directImportHistoricalPrices() {
         console.log(`Quote data example: ${JSON.stringify(result.quotes[0]).substring(0, 200)}`);
         
         const historicalPrices: InsertHistoricalPrice[] = result.quotes.map(quote => {
-          let date: Date;
+          // Handle date according to schema requirements (date column in PostgreSQL)
+          let dateStr: string;
           
           if (quote.date) {
-            date = new Date(quote.date);
+            // Format date as ISO string and take only the date part (YYYY-MM-DD)
+            dateStr = new Date(quote.date).toISOString().split('T')[0];
           } else {
             console.warn(`Quote missing date field for ${stock.symbol}, skipping`);
-            // Use a placeholder date as fallback
-            date = new Date();
+            // Use a placeholder date as fallback (today's date as string)
+            dateStr = new Date().toISOString().split('T')[0];
           }
           
+          // Convert all numerical values to strings as required by schema
           return {
             symbol: stock.symbol,
-            date,
-            open: quote.open,
-            high: quote.high,
-            low: quote.low,
-            close: quote.close,
-            volume: quote.volume,
-            adjustedClose: quote.adjclose,
+            date: dateStr,
+            open: quote.open !== null ? String(quote.open) : null,
+            high: quote.high !== null ? String(quote.high) : null,
+            low: quote.low !== null ? String(quote.low) : null,
+            close: quote.close !== null ? String(quote.close) : "0", // Required field, defaults to "0"
+            volume: quote.volume !== null ? String(quote.volume) : null,
+            adjustedClose: quote.adjclose !== null ? String(quote.adjclose) : null,
             region: 'INTL'
           };
         });
