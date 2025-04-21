@@ -967,6 +967,26 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`Fetching historical prices for region: ${region}`);
       
+      // Print the region value to ensure we're using the correct case
+      console.log(`Region value for SQL query: "${region}"`);
+      
+      // Check if there are any records with this region
+      const countResult = await db
+        .select({ count: sql`COUNT(*)` })
+        .from(historicalPrices)
+        .where(eq(historicalPrices.region, region));
+      
+      console.log(`Count of records for region ${region}: ${countResult[0]?.count || 0}`);
+      
+      // Check which symbols have historical data
+      const symbolsWithData = await db
+        .select({ symbol: historicalPrices.symbol })
+        .from(historicalPrices)
+        .where(eq(historicalPrices.region, region))
+        .groupBy(historicalPrices.symbol);
+      
+      console.log(`Symbols with data for region ${region}: ${JSON.stringify(symbolsWithData.map(s => s.symbol))}`);
+      
       // Following the same pattern as getHistoricalPrices
       let query = db
         .select()
@@ -987,6 +1007,24 @@ export class DatabaseStorage implements IStorage {
       
       const prices = await query.orderBy(historicalPrices.date);
       console.log(`Found ${prices.length} historical prices for region ${region}`);
+      
+      // If we didn't find any prices for the region, try individual stocks
+      if (prices.length === 0) {
+        // Get portfolio stocks for this region
+        const stocks = await this.getPortfolioStocks(region);
+        
+        if (stocks.length > 0) {
+          // Try to get data for the first stock
+          const firstStock = stocks[0];
+          console.log(`Trying to get data for ${firstStock.symbol} instead`);
+          
+          const stockPrices = await this.getHistoricalPrices(firstStock.symbol, region, startDate, endDate);
+          if (stockPrices.length > 0) {
+            console.log(`Found ${stockPrices.length} prices for ${firstStock.symbol} (${region})`);
+            return stockPrices;
+          }
+        }
+      }
       
       return prices;
     } catch (error) {
