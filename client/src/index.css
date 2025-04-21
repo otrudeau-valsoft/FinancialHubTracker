@@ -108,6 +108,14 @@
     padding: 0.75rem 1rem;
     border-bottom: 1px solid #2D3748;
     font-weight: 600;
+    text-align: left;
+  }
+  
+  .card-header h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0;
+    text-align: left;
   }
 
   .rating {
