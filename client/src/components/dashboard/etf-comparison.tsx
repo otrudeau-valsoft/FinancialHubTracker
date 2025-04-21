@@ -53,8 +53,8 @@ export const EtfComparison = ({
                 <td className="px-3 py-2 font-medium text-secondary">{holding.ticker}</td>
                 <td className="px-3 py-2">{holding.name}</td>
                 <td className="px-3 py-2 text-muted-foreground">{holding.sector}</td>
-                <td className="px-3 py-2">{holding.weight?.toFixed(2)}%</td>
-                <td className="px-3 py-2">{formatCurrency(holding.price, currencySymbol)}</td>
+                <td className="px-3 py-2">{typeof holding.weight === 'string' ? parseFloat(holding.weight).toFixed(2) : holding.weight?.toFixed(2)}%</td>
+                <td className="px-3 py-2">{formatCurrency(typeof holding.price === 'string' ? parseFloat(holding.price) : holding.price, currencySymbol)}</td>
                 <td className="px-3 py-2">
                   <Badge variant={holding.inPortfolio ? "secondary" : "outline"} className="font-normal">
                     {holding.inPortfolio ? 'In Portfolio' : 'Not Held'}
@@ -62,7 +62,9 @@ export const EtfComparison = ({
                 </td>
                 <td className={`px-3 py-2 ${holding.weightDifference !== undefined ? getProfitLossClass(holding.weightDifference) : ''}`}>
                   {holding.weightDifference !== undefined 
-                    ? `${holding.weightDifference > 0 ? '+' : ''}${holding.weightDifference.toFixed(2)}%` 
+                    ? `${holding.weightDifference > 0 ? '+' : ''}${typeof holding.weightDifference === 'string' 
+                        ? parseFloat(holding.weightDifference).toFixed(2) 
+                        : holding.weightDifference.toFixed(2)}%` 
                     : 'N/A'}
                 </td>
               </tr>
