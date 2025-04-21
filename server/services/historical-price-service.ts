@@ -5,6 +5,15 @@ import { dateToSQLDateString } from '../util';
 import { historicalPrices, type InsertHistoricalPrice } from '@shared/schema';
 import { and, eq, desc, asc, sql } from 'drizzle-orm';
 
+// Rate limiting configuration for Yahoo Finance API - match the same settings as current-price-service
+const RATE_LIMIT = {
+  maxRequests: 2,      // Maximum requests per interval
+  interval: 1000,      // Interval in milliseconds (1 second)
+  requestQueue: [] as { resolve: Function, reject: Function, symbol: string }[],
+  inProgress: 0,       // Number of requests currently in progress
+  lastRequestTime: 0,  // Timestamp of the last request
+};
+
 class HistoricalPriceService {
 
   /**
@@ -39,38 +48,6 @@ class HistoricalPriceService {
       return result;
     } catch (error) {
       console.error(`Error getting latest historical price for ${symbol} (${region}):`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Fetch historical prices for a symbol from Yahoo Finance
-   */
-  async fetchHistoricalPrices(symbol: string, region: string, startDate: Date, endDate: Date = new Date()) {
-    try {
-      let yahooSymbol = symbol;
-      
-      // Add .TO suffix for Canadian stocks if not already present
-      if (region === 'CAD' && !symbol.endsWith('.TO')) {
-        yahooSymbol = `${symbol}.TO`;
-      }
-      
-      console.log(`Fetching historical prices for ${yahooSymbol} from ${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}`);
-      
-      // Format dates for Yahoo Finance API
-      const period1 = dateToSQLDateString(startDate);
-      const period2 = dateToSQLDateString(endDate);
-      
-      // Fetch historical prices from Yahoo Finance
-      const result = await yahooFinance.historical(yahooSymbol, {
-        period1,
-        period2,
-        interval: '1d'
-      });
-      
-      return result;
-    } catch (error) {
-      console.error(`Error fetching historical prices for ${symbol} (${region}):`, error);
       throw error;
     }
   }
@@ -122,7 +99,60 @@ class HistoricalPriceService {
   }
   
   /**
-   * Fetch historical prices for a symbol from Yahoo Finance
+   * Add a request to the rate limiting queue
+   */
+  private enqueueRequest(symbol: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Add to queue
+      RATE_LIMIT.requestQueue.push({ resolve, reject, symbol });
+      
+      // Process the queue
+      this.processQueue();
+    });
+  }
+  
+  /**
+   * Process the rate limiting queue
+   */
+  private processQueue() {
+    // If we're at our limit or no items in queue, just return
+    if (RATE_LIMIT.inProgress >= RATE_LIMIT.maxRequests || RATE_LIMIT.requestQueue.length === 0) {
+      return;
+    }
+    
+    // Calculate time since last request
+    const now = Date.now();
+    const timeSinceLastRequest = now - RATE_LIMIT.lastRequestTime;
+    
+    // If we haven't waited long enough, set a timeout
+    if (timeSinceLastRequest < RATE_LIMIT.interval) {
+      setTimeout(() => this.processQueue(), RATE_LIMIT.interval - timeSinceLastRequest);
+      return;
+    }
+    
+    // Get the next request from the queue
+    const request = RATE_LIMIT.requestQueue.shift();
+    if (!request) return;
+    
+    // Update state
+    RATE_LIMIT.inProgress++;
+    RATE_LIMIT.lastRequestTime = now;
+    
+    // Process the request
+    setTimeout(() => {
+      // Resolve the promise, which will allow the request to proceed
+      request.resolve();
+      
+      // Update state
+      RATE_LIMIT.inProgress--;
+      
+      // Process the next item in the queue
+      this.processQueue();
+    }, 50); // Small delay to ensure rate limiting
+  }
+
+  /**
+   * Fetch historical prices for a symbol from Yahoo Finance with rate limiting
    */
   async fetchHistoricalPrices(symbol: string, region: string, startDate: Date | string, endDate: Date | string = new Date()) {
     try {
@@ -139,18 +169,41 @@ class HistoricalPriceService {
       
       console.log(`Fetching historical prices for ${yahooSymbol} from ${startDateObj.toISOString().split('T')[0]} to ${endDateObj.toISOString().split('T')[0]}`);
       
+      // Wait for rate limit queue slot
+      await this.enqueueRequest(symbol);
+      
       // Format dates for Yahoo Finance API
       const period1 = dateToSQLDateString(startDateObj);
       const period2 = dateToSQLDateString(endDateObj);
       
-      // Fetch historical prices from Yahoo Finance
-      const result = await yahooFinance.historical(yahooSymbol, {
-        period1,
-        period2,
-        interval: '1d'
-      });
+      // Fetch historical prices from Yahoo Finance using exponential backoff
+      let attempt = 0;
+      const maxAttempts = 3;
+      let lastError;
       
-      return result;
+      while (attempt < maxAttempts) {
+        try {
+          // Fetch historical prices from Yahoo Finance
+          return await yahooFinance.historical(yahooSymbol, {
+            period1,
+            period2,
+            interval: '1d'
+          });
+        } catch (error) {
+          lastError = error;
+          attempt++;
+          
+          if (attempt < maxAttempts) {
+            // Exponential backoff
+            const backoffMs = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+            console.log(`Attempt ${attempt} failed for ${yahooSymbol}, retrying in ${backoffMs}ms`);
+            await new Promise(resolve => setTimeout(resolve, backoffMs));
+          }
+        }
+      }
+      
+      // If we got here, all attempts failed
+      throw lastError || new Error(`Failed to fetch historical prices after ${maxAttempts} attempts`);
     } catch (error) {
       console.error(`Error fetching historical prices for ${symbol} (${region}):`, error);
       throw error;
@@ -210,7 +263,58 @@ class HistoricalPriceService {
   }
 
   /**
-   * Fetch and update all historical prices for a portfolio
+   * Process a batch of symbols
+   */
+  private async processBatch(symbols: string[], region: string, batchIndex: number, batchSize: number) {
+    const batchSymbols = symbols.slice(batchIndex, batchIndex + batchSize);
+    const batchResults = [];
+    
+    console.log(`Processing batch ${batchIndex / batchSize + 1} of ${Math.ceil(symbols.length / batchSize)} (${batchSymbols.length} symbols)`);
+    
+    for (let i = 0; i < batchSymbols.length; i++) {
+      const symbol = batchSymbols[i];
+      console.log(`Processing ${symbol} (${region}) - ${batchIndex + i + 1}/${symbols.length}`);
+      
+      try {
+        // Get the latest historical price to determine from when to start fetching
+        const latestPrice = await this.getLatestHistoricalPrice(symbol, region);
+        
+        let startDate: Date;
+        if (latestPrice && latestPrice.length > 0) {
+          // Start the day after the latest price we have
+          startDate = new Date(latestPrice[0].date);
+          startDate.setDate(startDate.getDate() + 1);
+        } else {
+          // If we have no data, fetch the last 5 years
+          startDate = new Date();
+          startDate.setFullYear(startDate.getFullYear() - 5);
+        }
+        
+        // Only fetch if there's potentially new data
+        if (startDate < new Date()) {
+          console.log(`Fetching historical prices for ${symbol} from ${startDate.toISOString().split('T')[0]}`);
+          const result = await this.fetchAndStoreHistoricalPrices(symbol, region, startDate);
+          batchResults.push({ symbol, success: true, result });
+        } else {
+          console.log(`Historical prices for ${symbol} are already up to date`);
+          batchResults.push({ symbol, success: true, result: [] });
+        }
+        
+        // Add a small delay between symbols to avoid overwhelming the API
+        if (i < batchSymbols.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      } catch (error) {
+        console.error(`Error updating historical prices for ${symbol} (${region}):`, error);
+        batchResults.push({ symbol, success: false, error: error instanceof Error ? error.message : String(error) });
+      }
+    }
+    
+    return batchResults;
+  }
+
+  /**
+   * Fetch and update all historical prices for a portfolio with batch processing
    * Only adds new data points from the latest data we have
    */
   async updatePortfolioHistoricalPrices(region: string) {
@@ -237,36 +341,19 @@ class HistoricalPriceService {
       
       console.log(`Updating historical prices for ${symbols.length} symbols in ${region} portfolio`);
       
-      // Process each symbol
-      const results = [];
-      for (const symbol of symbols) {
-        try {
-          // Get the latest historical price to determine from when to start fetching
-          const latestPrice = await this.getLatestHistoricalPrice(symbol, region);
-          
-          let startDate: Date;
-          if (latestPrice && latestPrice.length > 0) {
-            // Start the day after the latest price we have
-            startDate = new Date(latestPrice[0].date);
-            startDate.setDate(startDate.getDate() + 1);
-          } else {
-            // If we have no data, fetch the last 5 years
-            startDate = new Date();
-            startDate.setFullYear(startDate.getFullYear() - 5);
-          }
-          
-          // Only fetch if there's potentially new data
-          if (startDate < new Date()) {
-            console.log(`Fetching historical prices for ${symbol} from ${startDate.toISOString().split('T')[0]}`);
-            const result = await this.fetchAndStoreHistoricalPrices(symbol, region, startDate);
-            results.push({ symbol, success: true, result });
-          } else {
-            console.log(`Historical prices for ${symbol} are already up to date`);
-            results.push({ symbol, success: true, result: [] });
-          }
-        } catch (error) {
-          console.error(`Error updating historical prices for ${symbol} (${region}):`, error);
-          results.push({ symbol, success: false, error: error instanceof Error ? error.message : String(error) });
+      // Process symbols in batches
+      const results: {symbol: string, success: boolean, result?: any, error?: string}[] = [];
+      const batchSize = 5; // Process 5 symbols at a time
+      
+      for (let i = 0; i < symbols.length; i += batchSize) {
+        // Process this batch
+        const batchResults = await this.processBatch(symbols, region, i, batchSize);
+        results.push(...batchResults);
+        
+        // Add a pause between batches to avoid overwhelming the API
+        if (i + batchSize < symbols.length) {
+          console.log(`Pausing for 2 seconds between batches...`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
         }
       }
       
@@ -278,18 +365,24 @@ class HistoricalPriceService {
   }
   
   /**
-   * Update historical prices for all portfolios
+   * Update historical prices for all portfolios with batch processing
    */
   async updateAllHistoricalPrices() {
     try {
       const regions = ['USD', 'CAD', 'INTL'];
-      let allResults = [];
+      let allResults: {symbol: string, success: boolean, result?: any, error?: string}[] = [];
       
       for (const region of regions) {
         try {
           console.log(`Updating historical prices for ${region} portfolio`);
           const regionResults = await this.updatePortfolioHistoricalPrices(region);
           allResults = [...allResults, ...regionResults];
+          
+          // Add a pause between regions to avoid overwhelming the API
+          if (region !== regions[regions.length - 1]) {
+            console.log(`Pausing for 3 seconds between regions...`);
+            await new Promise(resolve => setTimeout(resolve, 3000));
+          }
         } catch (error) {
           console.error(`Error updating historical prices for ${region}:`, error);
           // Add error entry for the entire region
