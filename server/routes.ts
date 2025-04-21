@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertMatrixRuleSchema, insertAlertSchema, insertPortfolioSummarySchema } from "@shared/schema";
+import { insertMatrixRuleSchema, insertAlertSchema, insertPortfolioSummarySchema, dataUpdateLogs } from "@shared/schema";
 import { InsertPortfolioStock, InsertEtfHolding } from "./types";
 import { z } from "zod";
 import { historicalPriceService } from "./services/historical-price-service";
@@ -1062,7 +1062,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Clear all data update logs
   app.delete("/api/data-updates/logs", async (_req: Request, res: Response) => {
     try {
-      await db.delete(schedulerService.dataUpdateLogs);
+      await db.delete(dataUpdateLogs);
       return res.json({ 
         success: true, 
         message: "All logs cleared successfully" 
