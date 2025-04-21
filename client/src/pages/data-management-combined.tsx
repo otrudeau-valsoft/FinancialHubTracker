@@ -30,6 +30,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { formatDistanceToNow } from 'date-fns';
+import { utcToZonedTime, format } from 'date-fns-tz';
 
 type SchedulerConfig = {
   current_prices: {
@@ -178,6 +179,20 @@ export default function DataManagement() {
     }
   };
   
+  // Format timestamp to display in EST
+  const formatTimestampToEST = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const estDate = utcToZonedTime(date, 'America/New_York');
+    return formatDistanceToNow(estDate, { addSuffix: true });
+  };
+  
+  // Format timestamp to display exact EST time
+  const formatExactESTTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const estDate = utcToZonedTime(date, 'America/New_York');
+    return format(estDate, 'MM/dd/yyyy, h:mm:ss a (EST)');
+  };
+  
   return (
     <div className="container mx-auto p-4">
       <div className="mb-6">
@@ -241,8 +256,8 @@ export default function DataManagement() {
                             )}
                           </span>
                         </div>
-                        <span className="text-xs text-gray-500">
-                          {formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}
+                        <span className="text-xs text-gray-500 hover:text-gray-300 cursor-help" title={formatExactESTTime(log.timestamp)}>
+                          {formatTimestampToEST(log.timestamp)}
                         </span>
                       </div>
                       <div className="mt-2 text-sm text-gray-400 bg-[#0A1929] p-2 rounded-md">
@@ -421,7 +436,7 @@ export default function DataManagement() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="start-time" className="text-gray-300">Start time (daily)</Label>
+                      <Label htmlFor="start-time" className="text-gray-300">Start time (EST)</Label>
                       <Input 
                         id="start-time" 
                         type="time" 
@@ -430,7 +445,7 @@ export default function DataManagement() {
                         className="bg-[#0E1F30] border-gray-700 text-gray-300"
                       />
                       <p className="text-xs text-gray-500">
-                        Updates will run between {schedulerConfig.current_prices.startTime} and {schedulerConfig.current_prices.endTime}
+                        Updates will run between {schedulerConfig.current_prices.startTime} and {schedulerConfig.current_prices.endTime} EST
                       </p>
                     </div>
                     
@@ -473,7 +488,7 @@ export default function DataManagement() {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="time-of-day" className="text-gray-300">Time of day (daily)</Label>
+                      <Label htmlFor="time-of-day" className="text-gray-300">Time of day (EST)</Label>
                       <Input 
                         id="time-of-day" 
                         type="time" 
@@ -482,7 +497,7 @@ export default function DataManagement() {
                         className="bg-[#0E1F30] border-gray-700 text-gray-300"
                       />
                       <p className="text-xs text-gray-500">
-                        Daily update at {schedulerConfig.historical_prices.timeOfDay}
+                        Daily update at {schedulerConfig.historical_prices.timeOfDay} EST
                       </p>
                     </div>
                     
