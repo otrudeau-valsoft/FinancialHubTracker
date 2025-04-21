@@ -50,40 +50,91 @@ class CurrentPriceService {
       
       console.log(`Fetching current price for ${yahooSymbol}`);
       
-      // Fetch quote from Yahoo Finance
-      const result = await yahooFinance.quoteSummary(yahooSymbol, {
-        modules: ['price', 'summaryDetail', 'defaultKeyStatistics']
-      });
-      
-      // Helper function to safely handle potentially empty numeric values
+      // Helper function to safely handle potentially empty or invalid numeric values
       const safeNumericString = (value: any): string => {
-        // Return '0' for empty values or null/undefined to avoid database errors
-        if (value === undefined || value === null || value === '') return '0';
+        // Return '0' for empty values, null/undefined, Infinity, or NaN to avoid database errors
+        if (value === undefined || value === null || value === '' || 
+            value === 'Infinity' || value === '-Infinity' || 
+            (typeof value === 'string' && value.toLowerCase() === 'infinity') ||
+            (typeof value === 'number' && !isFinite(value)) ||
+            isNaN(value)) {
+          return '0';
+        }
         return value.toString();
       };
+      
+      let result;
+      try {
+        // Fetch quote from Yahoo Finance
+        result = await yahooFinance.quoteSummary(yahooSymbol, {
+          modules: ['price', 'summaryDetail', 'defaultKeyStatistics']
+        });
+      } catch (yahooError) {
+        // Handle Yahoo Finance API errors gracefully
+        console.warn(`Warning: Yahoo Finance API error for ${yahooSymbol}:`, yahooError.message);
+        
+        // Create a minimal data structure with default values
+        return {
+          symbol,
+          region,
+          regularMarketPrice: '0',
+          regularMarketChange: '0',
+          regularMarketChangePercent: '0',
+          regularMarketVolume: '0',
+          regularMarketDayHigh: '0',
+          regularMarketDayLow: '0',
+          marketCap: '0',
+          trailingPE: '0',
+          forwardPE: '0',
+          dividendYield: '0',
+          fiftyTwoWeekHigh: '0',
+          fiftyTwoWeekLow: '0'
+        };
+      }
+      
+      // Extract price data safely
+      const price = result?.price || {};
+      const summaryDetail = result?.summaryDetail || {};
       
       // Extract relevant price data with safe handling of numeric values
       const priceData = {
         symbol,
         region,
-        regularMarketPrice: result.price?.regularMarketPrice?.raw ? safeNumericString(result.price.regularMarketPrice.raw) : '0',
-        regularMarketChange: result.price?.regularMarketChange?.raw ? safeNumericString(result.price.regularMarketChange.raw) : '0',
-        regularMarketChangePercent: result.price?.regularMarketChangePercent?.raw ? safeNumericString(result.price.regularMarketChangePercent.raw) : '0',
-        regularMarketVolume: result.price?.regularMarketVolume?.raw ? safeNumericString(result.price.regularMarketVolume.raw) : '0',
-        regularMarketDayHigh: result.price?.regularMarketDayHigh?.raw ? safeNumericString(result.price.regularMarketDayHigh.raw) : '0',
-        regularMarketDayLow: result.price?.regularMarketDayLow?.raw ? safeNumericString(result.price.regularMarketDayLow.raw) : '0',
-        marketCap: result.price?.marketCap?.raw ? safeNumericString(result.price.marketCap.raw) : '0',
-        trailingPE: result.summaryDetail?.trailingPE?.raw ? safeNumericString(result.summaryDetail.trailingPE.raw) : '0',
-        forwardPE: result.summaryDetail?.forwardPE?.raw ? safeNumericString(result.summaryDetail.forwardPE.raw) : '0',
-        dividendYield: result.summaryDetail?.dividendYield?.raw ? safeNumericString(result.summaryDetail.dividendYield.raw) : '0',
-        fiftyTwoWeekHigh: result.summaryDetail?.fiftyTwoWeekHigh?.raw ? safeNumericString(result.summaryDetail.fiftyTwoWeekHigh.raw) : '0',
-        fiftyTwoWeekLow: result.summaryDetail?.fiftyTwoWeekLow?.raw ? safeNumericString(result.summaryDetail.fiftyTwoWeekLow.raw) : '0'
+        regularMarketPrice: safeNumericString(price?.regularMarketPrice?.raw),
+        regularMarketChange: safeNumericString(price?.regularMarketChange?.raw),
+        regularMarketChangePercent: safeNumericString(price?.regularMarketChangePercent?.raw),
+        regularMarketVolume: safeNumericString(price?.regularMarketVolume?.raw),
+        regularMarketDayHigh: safeNumericString(price?.regularMarketDayHigh?.raw),
+        regularMarketDayLow: safeNumericString(price?.regularMarketDayLow?.raw),
+        marketCap: safeNumericString(price?.marketCap?.raw),
+        trailingPE: safeNumericString(summaryDetail?.trailingPE?.raw),
+        forwardPE: safeNumericString(summaryDetail?.forwardPE?.raw),
+        dividendYield: safeNumericString(summaryDetail?.dividendYield?.raw),
+        fiftyTwoWeekHigh: safeNumericString(summaryDetail?.fiftyTwoWeekHigh?.raw),
+        fiftyTwoWeekLow: safeNumericString(summaryDetail?.fiftyTwoWeekLow?.raw)
       };
       
       return priceData;
     } catch (error) {
       console.error(`Error fetching current price for ${symbol} (${region}):`, error);
-      throw error;
+      
+      // Return default data instead of throwing error to ensure the process continues
+      return {
+        symbol,
+        region,
+        regularMarketPrice: '0',
+        regularMarketChange: '0',
+        regularMarketChangePercent: '0',
+        regularMarketVolume: '0',
+        regularMarketDayHigh: '0',
+        regularMarketDayLow: '0',
+        marketCap: '0',
+        trailingPE: '0',
+        forwardPE: '0',
+        dividendYield: '0',
+        fiftyTwoWeekHigh: '0',
+        fiftyTwoWeekLow: '0'
+      };
     }
   }
 

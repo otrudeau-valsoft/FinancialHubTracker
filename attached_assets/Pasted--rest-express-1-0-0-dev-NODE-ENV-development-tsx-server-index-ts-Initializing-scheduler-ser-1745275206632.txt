@@ -1,0 +1,585 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+Initializing scheduler service...
+Starting current price scheduler with interval of 10 minutes
+Current EST time: 4/21/2025, 6:37:58 PM
+Current EST time: 4/21/2025, 6:37:58 PM
+Next historical price update scheduled for EST: 4/22/2025, 5:00:00 PM
+Scheduling historical price update at EST: 4/22/2025, 5:00:00 PM
+Scheduler service initialized successfully
+10:37:58 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 6 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+10:38:36 PM [express] GET /api/scheduler/config 304 in 2ms :: {"current_prices":{"enabled":true,"inte…
+10:38:38 PM [express] GET /api/data-updates/logs 304 in 2629ms :: [{"id":1,"type":"current_prices","s…
+Starting current price update for all portfolios
+Updating current prices for 20 symbols in USD portfolio
+Fetching current price for MSFT
+Please consider completing the survey at https://bit.ly/yahoo-finance-api-feedback if you haven't already; for more info see https://github.com/gadicc/node-yahoo-finance2/issues/764#issuecomment-2056623851.  This will only be shown once, but you can suppress this message in future with `yahooFinance.suppressNotices(['yahooSurvey'])`.
+Fetching crumb and cookies from https://finance.yahoo.com/quote/AAPL...
+We expected a redirect to guce.yahoo.com, but got https://finance.yahoo.com/quote/AAPL/
+We'll try to continue anyway - you can safely ignore this if the request succeeds
+Success. Cookie expires on Wed Apr 22 2026 04:38:43 GMT+0000 (Coordinated Universal Time)
+fetch https://query1.finance.yahoo.com/v1/test/getcrumb
+New crumb: sSPluR8Vuj2
+Updated current price for MSFT (USD)
+Fetching current price for AMZN
+Updated current price for AMZN (USD)
+Fetching current price for AAPL
+Updated current price for AAPL (USD)
+Fetching current price for MA
+Updated current price for MA (USD)
+Fetching current price for GOOG
+Updated current price for GOOG (USD)
+Fetching current price for WM
+Updated current price for WM (USD)
+Fetching current price for META
+Updated current price for META (USD)
+Fetching current price for MCO
+Updated current price for MCO (USD)
+Fetching current price for JPM
+Updated current price for JPM (USD)
+Fetching current price for GS
+Updated current price for GS (USD)
+Fetching current price for PANW
+Updated current price for PANW (USD)
+Fetching current price for COST
+Updated current price for COST (USD)
+Fetching current price for pwr
+Created new current price for pwr (USD)
+Fetching current price for AVGO
+Updated current price for AVGO (USD)
+Fetching current price for UBER
+Updated current price for UBER (USD)
+Fetching current price for GLD
+Updated current price for GLD (USD)
+Fetching current price for CW
+Updated current price for CW (USD)
+Fetching current price for PEP
+Updated current price for PEP (USD)
+Fetching current price for CAT
+Updated current price for CAT (USD)
+Fetching current price for BIL
+Updated current price for BIL (USD)
+Updating current prices for 20 symbols in CAD portfolio
+Fetching current price for SU.TO
+Updated current price for SU.TO (CAD)
+Fetching current price for TFII.TO
+Updated current price for TFII.TO (CAD)
+Fetching current price for VNP.TO
+Updated current price for VNP.TO (CAD)
+Fetching current price for CNR.TO
+Updated current price for CNR.TO (CAD)
+Fetching current price for ZGLD.TO
+Updated current price for ZGLD.TO (CAD)
+Fetching current price for SLF.TO
+Updated current price for SLF.TO (CAD)
+Fetching current price for TOU.TO
+Updated current price for TOU.TO (CAD)
+Fetching current price for IFC.TO
+Updated current price for IFC.TO (CAD)
+Fetching current price for RY.TO
+Updated current price for RY.TO (CAD)
+Fetching current price for GIB-A.TO
+Updated current price for GIB-A.TO (CAD)
+Fetching current price for ATD.TO
+Updated current price for ATD.TO (CAD)
+Fetching current price for DOL.TO
+Updated current price for DOL.TO (CAD)
+Fetching current price for EMP-A.TO
+Updated current price for EMP-A.TO (CAD)
+Fetching current price for NA.TO
+Updated current price for NA.TO (CAD)
+Fetching current price for DFY.TO
+Updated current price for DFY.TO (CAD)
+Fetching current price for RCH.TO
+Updated current price for RCH.TO (CAD)
+Fetching current price for BMO.TO
+Updated current price for BMO.TO (CAD)
+Fetching current price for SHOP.TO
+Updated current price for SHOP.TO (CAD)
+Fetching current price for WSP.TO
+Updated current price for WSP.TO (CAD)
+Fetching current price for CCO.TO
+Updated current price for CCO.TO (CAD)
+Updating current prices for 15 symbols in INTL portfolio
+Fetching current price for ACN
+Updated current price for ACN (INTL)
+Fetching current price for LNSTY
+Updated current price for LNSTY (INTL)
+Fetching current price for CB
+Updated current price for CB (INTL)
+Fetching current price for ETN
+Updated current price for ETN (INTL)
+Fetching current price for LVMHF
+Updated current price for LVMHF (INTL)
+Fetching current price for HESAY
+Updated current price for HESAY (INTL)
+Fetching current price for KWEB
+Updated current price for KWEB (INTL)
+Fetching current price for SDZNY
+{
+  "type": 62,
+  "schema": {
+    "title": "YahooNumber",
+    "anyOf": [
+      {
+        "title": "RawNumber",
+        "type": "object",
+        "properties": {
+          "raw": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "raw"
+        ]
+      },
+      {
+        "type": "number"
+      }
+    ]
+  },
+  "path": "/summaryDetail/trailingPE",
+  "value": "Infinity",
+  "message": "Expected union value"
+}
+
+    This may happen intermittently and you should catch errors appropriately.
+    However:  1) if this recently started happening on every request for a symbol
+    that used to work, Yahoo may have changed their API.  2) If this happens on
+    every request for a symbol you've never used before, but not for other
+    symbols, you've found an edge-case (OR, we may just be protecting you from
+    "bad" data sometimes stored for e.g. misspelt symbols on Yahoo's side).
+    Please see if anyone has reported this previously:
+    
+      https://github.com/gadicc/node-yahoo-finance2/issues?q=is%3Aissue+QuoteSummaryResult
+    
+    or open a new issue (and mention the symbol):  yahoo-finance2 v2.13.3
+    
+      https://github.com/gadicc/node-yahoo-finance2/issues/new?labels=bug%2C+validation&template=validation.md&title=QuoteSummaryResult
+    
+    For information on how to turn off the above logging or skip these errors,
+    see https://github.com/gadicc/node-yahoo-finance2/tree/devel/docs/validation.md.
+    
+    At the end of the doc, there's also a section on how to
+    [Help Fix Validation Errors](https://github.com/gadicc/node-yahoo-finance2/blob/devel/docs/validation.md#help-fix)
+    in case you'd like to contribute to the project.  Most of the time, these
+    fixes are very quick and easy; it's just hard for our small core team to keep up,
+    so help is always appreciated!
+    
+Error fetching current price for SDZNY (INTL): FailedYahooValidationError: Failed Yahoo Schema validation
+    at handleResultError (file:///home/runner/workspace/node_modules/yahoo-finance2/dist/esm/src/lib/validateAndCoerceTypes.js:39:11)
+    at validateAndCoerceTypebox (file:///home/runner/workspace/node_modules/yahoo-finance2/dist/esm/src/lib/validateAndCoerceTypes.js:66:19)
+    at Object.moduleExec [as _moduleExec] (file:///home/runner/workspace/node_modules/yahoo-finance2/dist/esm/src/lib/moduleExec.js:89:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async CurrentPriceService.fetchCurrentPrice (/home/runner/workspace/server/services/current-price-service.ts:54:22)
+    at async CurrentPriceService.fetchAndStoreCurrentPrice (/home/runner/workspace/server/services/current-price-service.ts:96:25)
+    at async CurrentPriceService.updatePortfolioCurrentPrices (/home/runner/workspace/server/services/current-price-service.ts:137:26)
+    at async CurrentPriceService.updateAllCurrentPrices (/home/runner/workspace/server/services/current-price-service.ts:162:33)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:912:23) {
+  result: {
+    summaryDetail: {
+      maxAge: 1,
+      priceHint: 2,
+      previousClose: 40.24,
+      open: 39.08,
+      dayLow: 39.08,
+      dayHigh: 40.56,
+      regularMarketPreviousClose: 40.24,
+      regularMarketOpen: 39.08,
+      regularMarketDayLow: 39.08,
+      regularMarketDayHigh: 40.56,
+      dividendRate: 0.67,
+      dividendYield: 0.0168,
+      exDividendDate: 1745280000,
+      payoutRatio: 0,
+      trailingPE: 'Infinity',
+      volume: 5262,
+      regularMarketVolume: 5262,
+      averageVolume: 44131,
+      averageVolume10days: 66710,
+      averageDailyVolume10Day: 66710,
+      bid: 40.15,
+      ask: 40.23,
+      bidSize: 38800,
+      askSize: 40000,
+      marketCap: 17322835968,
+      fiftyTwoWeekLow: 32.48,
+      fiftyTwoWeekHigh: 49.81,
+      priceToSalesTrailing12Months: 1.6682239,
+      fiftyDayAverage: 43.32006,
+      twoHundredDayAverage: 42.92036,
+      trailingAnnualDividendRate: 0.662,
+      trailingAnnualDividendYield: 0.016451292,
+      currency: 'USD',
+      fromCurrency: null,
+      toCurrency: null,
+      lastMarket: null,
+      coinMarketCapLink: null,
+      algorithm: null,
+      tradeable: false
+    },
+    defaultKeyStatistics: {
+      maxAge: 1,
+      priceHint: 2,
+      enterpriseValue: 21010434048,
+      profitMargins: 0,
+      floatShares: 412767243,
+      sharesOutstanding: 430702016,
+      heldPercentInsiders: 0,
+      heldPercentInstitutions: 0.0036199999,
+      impliedSharesOutstanding: 432516000,
+      category: null,
+      bookValue: 18.953,
+      priceToBook: 2.1220918,
+      fundFamily: null,
+      legalType: null,
+      lastFiscalYearEnd: 1735603200,
+      nextFiscalYearEnd: 1767139200,
+      mostRecentQuarter: 1735603200,
+      netIncomeToCommon: 0,
+      trailingEps: 0,
+      lastSplitFactor: null,
+      enterpriseToRevenue: 2.023,
+      enterpriseToEbitda: 28.625,
+      '52WeekChange': 0.18283367,
+      SandP52WeekChange: 0.05430484,
+      lastDividendValue: 0.498,
+      lastDividendDate: 1714694400,
+      latestShareClass: null,
+      leadInvestor: null
+    },
+    price: {
+      maxAge: 1,
+      regularMarketChangePercent: -0.0004970292,
+      regularMarketChange: -0.020000458,
+      regularMarketTime: 1745265110,
+      priceHint: 2,
+      regularMarketPrice: 40.22,
+      regularMarketDayHigh: 40.56,
+      regularMarketDayLow: 39.08,
+      regularMarketVolume: 5262,
+      averageDailyVolume10Day: 66710,
+      averageDailyVolume3Month: 44131,
+      regularMarketPreviousClose: 40.24,
+      regularMarketSource: 'DELAYED',
+      regularMarketOpen: 39.08,
+      exchange: 'OQX',
+      exchangeName: 'OTC Markets OTCQX',
+      exchangeDataDelayedBy: 0,
+      marketState: 'POST',
+      quoteType: 'EQUITY',
+      symbol: 'SDZNY',
+      underlyingSymbol: null,
+      shortName: 'Sandoz Group AG',
+      longName: 'Sandoz Group AG',
+      currency: 'USD',
+      quoteSourceName: 'Delayed Quote',
+      currencySymbol: '$',
+      fromCurrency: null,
+      toCurrency: null,
+      lastMarket: null,
+      marketCap: 17322835968
+    }
+  },
+  errors: [
+    TransformDecodeCheckError: Unable to decode value as it does not match the expected schema
+        at Module.Decode (file:///home/runner/workspace/node_modules/yahoo-finance2/node_modules/@sinclair/typebox/build/esm/value/value/value.mjs:42:15)
+        at validateAndCoerceTypebox (file:///home/runner/workspace/node_modules/yahoo-finance2/dist/esm/src/lib/validateAndCoerceTypes.js:55:22)
+        at Object.moduleExec [as _moduleExec] (file:///home/runner/workspace/node_modules/yahoo-finance2/dist/esm/src/lib/moduleExec.js:89:16)
+        at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+        at async CurrentPriceService.fetchCurrentPrice (/home/runner/workspace/server/services/current-price-service.ts:54:22)
+        at async CurrentPriceService.fetchAndStoreCurrentPrice (/home/runner/workspace/server/services/current-price-service.ts:96:25)
+        at async CurrentPriceService.updatePortfolioCurrentPrices (/home/runner/workspace/server/services/current-price-service.ts:137:26)
+        at async CurrentPriceService.updateAllCurrentPrices (/home/runner/workspace/server/services/current-price-service.ts:162:33)
+        at async <anonymous> (/home/runner/workspace/server/routes.ts:912:23) {
+      schema: [Object],
+      value: [Object],
+      error: [Object]
+    }
+  ]
+}
+Error fetching and storing current price for SDZNY (INTL): FailedYahooValidationError: Failed Yahoo Schema validation
+    at handleResultError (file:///home/runner/workspace/node_modules/yahoo-finance2/dist/esm/src/lib/validateAndCoerceTypes.js:39:11)
+    at validateAndCoerceTypebox (file:///home/runner/workspace/node_modules/yahoo-finance2/dist/esm/src/lib/validateAndCoerceTypes.js:66:19)
+    at Object.moduleExec [as _moduleExec] (file:///home/runner/workspace/node_modules/yahoo-finance2/dist/esm/src/lib/moduleExec.js:89:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async CurrentPriceService.fetchCurrentPrice (/home/runner/workspace/server/services/current-price-service.ts:54:22)
+    at async CurrentPriceService.fetchAndStoreCurrentPrice (/home/runner/workspace/server/services/current-price-service.ts:96:25)
+    at async CurrentPriceService.updatePortfolioCurrentPrices (/home/runner/workspace/server/services/current-price-service.ts:137:26)
+    at async CurrentPriceService.updateAllCurrentPrices (/home/runner/workspace/server/services/current-price-service.ts:162:33)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:912:23) {
+  result: {
+    summaryDetail: {
+      maxAge: 1,
+      priceHint: 2,
+      previousClose: 40.24,
+      open: 39.08,
+      dayLow: 39.08,
+      dayHigh: 40.56,
+      regularMarketPreviousClose: 40.24,
+      regularMarketOpen: 39.08,
+      regularMarketDayLow: 39.08,
+      regularMarketDayHigh: 40.56,
+      dividendRate: 0.67,
+      dividendYield: 0.0168,
+      exDividendDate: 1745280000,
+      payoutRatio: 0,
+      trailingPE: 'Infinity',
+      volume: 5262,
+      regularMarketVolume: 5262,
+      averageVolume: 44131,
+      averageVolume10days: 66710,
+      averageDailyVolume10Day: 66710,
+      bid: 40.15,
+      ask: 40.23,
+      bidSize: 38800,
+      askSize: 40000,
+      marketCap: 17322835968,
+      fiftyTwoWeekLow: 32.48,
+      fiftyTwoWeekHigh: 49.81,
+      priceToSalesTrailing12Months: 1.6682239,
+      fiftyDayAverage: 43.32006,
+      twoHundredDayAverage: 42.92036,
+      trailingAnnualDividendRate: 0.662,
+      trailingAnnualDividendYield: 0.016451292,
+      currency: 'USD',
+      fromCurrency: null,
+      toCurrency: null,
+      lastMarket: null,
+      coinMarketCapLink: null,
+      algorithm: null,
+      tradeable: false
+    },
+    defaultKeyStatistics: {
+      maxAge: 1,
+      priceHint: 2,
+      enterpriseValue: 21010434048,
+      profitMargins: 0,
+      floatShares: 412767243,
+      sharesOutstanding: 430702016,
+      heldPercentInsiders: 0,
+      heldPercentInstitutions: 0.0036199999,
+      impliedSharesOutstanding: 432516000,
+      category: null,
+      bookValue: 18.953,
+      priceToBook: 2.1220918,
+      fundFamily: null,
+      legalType: null,
+      lastFiscalYearEnd: 1735603200,
+      nextFiscalYearEnd: 1767139200,
+      mostRecentQuarter: 1735603200,
+      netIncomeToCommon: 0,
+      trailingEps: 0,
+      lastSplitFactor: null,
+      enterpriseToRevenue: 2.023,
+      enterpriseToEbitda: 28.625,
+      '52WeekChange': 0.18283367,
+      SandP52WeekChange: 0.05430484,
+      lastDividendValue: 0.498,
+      lastDividendDate: 1714694400,
+      latestShareClass: null,
+      leadInvestor: null
+    },
+    price: {
+      maxAge: 1,
+      regularMarketChangePercent: -0.0004970292,
+      regularMarketChange: -0.020000458,
+      regularMarketTime: 1745265110,
+      priceHint: 2,
+      regularMarketPrice: 40.22,
+      regularMarketDayHigh: 40.56,
+      regularMarketDayLow: 39.08,
+      regularMarketVolume: 5262,
+      averageDailyVolume10Day: 66710,
+      averageDailyVolume3Month: 44131,
+      regularMarketPreviousClose: 40.24,
+      regularMarketSource: 'DELAYED',
+      regularMarketOpen: 39.08,
+      exchange: 'OQX',
+      exchangeName: 'OTC Markets OTCQX',
+      exchangeDataDelayedBy: 0,
+      marketState: 'POST',
+      quoteType: 'EQUITY',
+      symbol: 'SDZNY',
+      underlyingSymbol: null,
+      shortName: 'Sandoz Group AG',
+      longName: 'Sandoz Group AG',
+      currency: 'USD',
+      quoteSourceName: 'Delayed Quote',
+      currencySymbol: '$',
+      fromCurrency: null,
+      toCurrency: null,
+      lastMarket: null,
+      marketCap: 17322835968
+    }
+  },
+  errors: [
+    TransformDecodeCheckError: Unable to decode value as it does not match the expected schema
+        at Module.Decode (file:///home/runner/workspace/node_modules/yahoo-finance2/node_modules/@sinclair/typebox/build/esm/value/value/value.mjs:42:15)
+        at validateAndCoerceTypebox (file:///home/runner/workspace/node_modules/yahoo-finance2/dist/esm/src/lib/validateAndCoerceTypes.js:55:22)
+        at Object.moduleExec [as _moduleExec] (file:///home/runner/workspace/node_modules/yahoo-finance2/dist/esm/src/lib/moduleExec.js:89:16)
+        at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+        at async CurrentPriceService.fetchCurrentPrice (/home/runner/workspace/server/services/current-price-service.ts:54:22)
+        at async CurrentPriceService.fetchAndStoreCurrentPrice (/home/runner/workspace/server/services/current-price-service.ts:96:25)
+        at async CurrentPriceService.updatePortfolioCurrentPrices (/home/runner/workspace/server/services/current-price-service.ts:137:26)
+        at async CurrentPriceService.updateAllCurrentPrices (/home/runner/workspace/server/services/current-price-service.ts:162:33)
+        at async <anonymous> (/home/runner/workspace/server/routes.ts:912:23) {
+      schema: [Object],
+      value: [Object],
+      error: [Object]
+    }
+  ]
+}
+Error updating current price for SDZNY (INTL): FailedYahooValidationError: Failed Yahoo Schema validation
+    at handleResultError (file:///home/runner/workspace/node_modules/yahoo-finance2/dist/esm/src/lib/validateAndCoerceTypes.js:39:11)
+    at validateAndCoerceTypebox (file:///home/runner/workspace/node_modules/yahoo-finance2/dist/esm/src/lib/validateAndCoerceTypes.js:66:19)
+    at Object.moduleExec [as _moduleExec] (file:///home/runner/workspace/node_modules/yahoo-finance2/dist/esm/src/lib/moduleExec.js:89:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async CurrentPriceService.fetchCurrentPrice (/home/runner/workspace/server/services/current-price-service.ts:54:22)
+    at async CurrentPriceService.fetchAndStoreCurrentPrice (/home/runner/workspace/server/services/current-price-service.ts:96:25)
+    at async CurrentPriceService.updatePortfolioCurrentPrices (/home/runner/workspace/server/services/current-price-service.ts:137:26)
+    at async CurrentPriceService.updateAllCurrentPrices (/home/runner/workspace/server/services/current-price-service.ts:162:33)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:912:23) {
+  result: {
+    summaryDetail: {
+      maxAge: 1,
+      priceHint: 2,
+      previousClose: 40.24,
+      open: 39.08,
+      dayLow: 39.08,
+      dayHigh: 40.56,
+      regularMarketPreviousClose: 40.24,
+      regularMarketOpen: 39.08,
+      regularMarketDayLow: 39.08,
+      regularMarketDayHigh: 40.56,
+      dividendRate: 0.67,
+      dividendYield: 0.0168,
+      exDividendDate: 1745280000,
+      payoutRatio: 0,
+      trailingPE: 'Infinity',
+      volume: 5262,
+      regularMarketVolume: 5262,
+      averageVolume: 44131,
+      averageVolume10days: 66710,
+      averageDailyVolume10Day: 66710,
+      bid: 40.15,
+      ask: 40.23,
+      bidSize: 38800,
+      askSize: 40000,
+      marketCap: 17322835968,
+      fiftyTwoWeekLow: 32.48,
+      fiftyTwoWeekHigh: 49.81,
+      priceToSalesTrailing12Months: 1.6682239,
+      fiftyDayAverage: 43.32006,
+      twoHundredDayAverage: 42.92036,
+      trailingAnnualDividendRate: 0.662,
+      trailingAnnualDividendYield: 0.016451292,
+      currency: 'USD',
+      fromCurrency: null,
+      toCurrency: null,
+      lastMarket: null,
+      coinMarketCapLink: null,
+      algorithm: null,
+      tradeable: false
+    },
+    defaultKeyStatistics: {
+      maxAge: 1,
+      priceHint: 2,
+      enterpriseValue: 21010434048,
+      profitMargins: 0,
+      floatShares: 412767243,
+      sharesOutstanding: 430702016,
+      heldPercentInsiders: 0,
+      heldPercentInstitutions: 0.0036199999,
+      impliedSharesOutstanding: 432516000,
+      category: null,
+      bookValue: 18.953,
+      priceToBook: 2.1220918,
+      fundFamily: null,
+      legalType: null,
+      lastFiscalYearEnd: 1735603200,
+      nextFiscalYearEnd: 1767139200,
+      mostRecentQuarter: 1735603200,
+      netIncomeToCommon: 0,
+      trailingEps: 0,
+      lastSplitFactor: null,
+      enterpriseToRevenue: 2.023,
+      enterpriseToEbitda: 28.625,
+      '52WeekChange': 0.18283367,
+      SandP52WeekChange: 0.05430484,
+      lastDividendValue: 0.498,
+      lastDividendDate: 1714694400,
+      latestShareClass: null,
+      leadInvestor: null
+    },
+    price: {
+      maxAge: 1,
+      regularMarketChangePercent: -0.0004970292,
+      regularMarketChange: -0.020000458,
+      regularMarketTime: 1745265110,
+      priceHint: 2,
+      regularMarketPrice: 40.22,
+      regularMarketDayHigh: 40.56,
+      regularMarketDayLow: 39.08,
+      regularMarketVolume: 5262,
+      averageDailyVolume10Day: 66710,
+      averageDailyVolume3Month: 44131,
+      regularMarketPreviousClose: 40.24,
+      regularMarketSource: 'DELAYED',
+      regularMarketOpen: 39.08,
+      exchange: 'OQX',
+      exchangeName: 'OTC Markets OTCQX',
+      exchangeDataDelayedBy: 0,
+      marketState: 'POST',
+      quoteType: 'EQUITY',
+      symbol: 'SDZNY',
+      underlyingSymbol: null,
+      shortName: 'Sandoz Group AG',
+      longName: 'Sandoz Group AG',
+      currency: 'USD',
+      quoteSourceName: 'Delayed Quote',
+      currencySymbol: '$',
+      fromCurrency: null,
+      toCurrency: null,
+      lastMarket: null,
+      marketCap: 17322835968
+    }
+  },
+  errors: [
+    TransformDecodeCheckError: Unable to decode value as it does not match the expected schema
+        at Module.Decode (file:///home/runner/workspace/node_modules/yahoo-finance2/node_modules/@sinclair/typebox/build/esm/value/value/value.mjs:42:15)
+        at validateAndCoerceTypebox (file:///home/runner/workspace/node_modules/yahoo-finance2/dist/esm/src/lib/validateAndCoerceTypes.js:55:22)
+        at Object.moduleExec [as _moduleExec] (file:///home/runner/workspace/node_modules/yahoo-finance2/dist/esm/src/lib/moduleExec.js:89:16)
+        at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+        at async CurrentPriceService.fetchCurrentPrice (/home/runner/workspace/server/services/current-price-service.ts:54:22)
+        at async CurrentPriceService.fetchAndStoreCurrentPrice (/home/runner/workspace/server/services/current-price-service.ts:96:25)
+        at async CurrentPriceService.updatePortfolioCurrentPrices (/home/runner/workspace/server/services/current-price-service.ts:137:26)
+        at async CurrentPriceService.updateAllCurrentPrices (/home/runner/workspace/server/services/current-price-service.ts:162:33)
+        at async <anonymous> (/home/runner/workspace/server/routes.ts:912:23) {
+      schema: [Object],
+      value: [Object],
+      error: [Object]
+    }
+  ]
+}
+Fetching current price for ESLOY
+Updated current price for ESLOY (INTL)
+Fetching current price for ASML
+Updated current price for ASML (INTL)
+Fetching current price for ATRL.TO
+Updated current price for ATRL.TO (INTL)
+Fetching current price for NSRGY
+Updated current price for NSRGY (INTL)
+Fetching current price for TT
+Updated current price for TT (INTL)
+Fetching current price for MUFG
+Updated current price for MUFG (INTL)
+Fetching current price for BYDDY
+Updated current price for BYDDY (INTL)
+10:38:47 PM [express] POST /api/current-prices/fetch/all 200 in 4364ms :: {"message":"Successfully up…
+10:38:48 PM [express] GET /api/data-updates/logs 200 in 19ms :: [{"id":1,"type":"current_prices","sta…
