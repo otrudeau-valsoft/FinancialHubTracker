@@ -108,7 +108,7 @@ export const PortfolioTable = ({ stocks, region }: PortfolioTableProps) => {
                 <td className="mono font-medium">{stock.symbol}</td>
                 <td>{stock.company}</td>
                 <td>
-                  <Badge className={getStockTypeBackground(stock.stockType)}>
+                  <Badge variant="outline" className={`text-xs px-2.5 py-0.5 rounded-full ${getStockTypeBackground(stock.stockType)}`}>
                     {stock.stockType}
                   </Badge>
                 </td>

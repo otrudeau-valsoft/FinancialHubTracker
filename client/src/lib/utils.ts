@@ -58,15 +58,15 @@ export function getStockTypeBackground(type: string): string {
   switch (type.toLowerCase()) {
     case 'comp':
     case 'compounder':
-      return 'bg-secondary bg-opacity-20 text-secondary';
+      return 'bg-[#0A7AFF] text-white';
     case 'cat':
     case 'catalyst':
-      return 'bg-[#FFC107] bg-opacity-20 text-[#FFC107]';
+      return 'bg-[#FFC107] text-black';
     case 'cycl':
     case 'cyclical':
-      return 'bg-[#9C27B0] bg-opacity-20 text-[#9C27B0]';
+      return 'bg-[#9C27B0] text-white';
     default:
-      return 'bg-gray-600 bg-opacity-20 text-gray-400';
+      return 'bg-gray-600 text-white';
   }
 }
 
