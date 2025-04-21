@@ -1,0 +1,498 @@
+Initiating historical price collection for all portfolios
+Processing MSFT (USD) - 1/20
+Error fetching and storing historical prices for MSFT (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing MSFT: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing AMZN (USD) - 1/20
+Error fetching and storing historical prices for AMZN (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing AMZN: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing AAPL (USD) - 1/20
+Error fetching and storing historical prices for AAPL (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing AAPL: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing MA (USD) - 1/20
+Error fetching and storing historical prices for MA (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing MA: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing GOOG (USD) - 1/20
+Error fetching and storing historical prices for GOOG (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing GOOG: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing WM (USD) - 1/20
+Error fetching and storing historical prices for WM (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing WM: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing META (USD) - 1/20
+Error fetching and storing historical prices for META (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing META: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing MCO (USD) - 1/20
+Error fetching and storing historical prices for MCO (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing MCO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing JPM (USD) - 1/20
+Error fetching and storing historical prices for JPM (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing JPM: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing GS (USD) - 1/20
+Error fetching and storing historical prices for GS (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing GS: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing PANW (USD) - 1/20
+Error fetching and storing historical prices for PANW (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing PANW: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing COST (USD) - 1/20
+Error fetching and storing historical prices for COST (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing COST: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing PWR (USD) - 1/20
+Error fetching and storing historical prices for PWR (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing pwr: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing AVGO (USD) - 1/20
+Error fetching and storing historical prices for AVGO (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing AVGO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing UBER (USD) - 1/20
+Error fetching and storing historical prices for UBER (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing UBER: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing GLD (USD) - 1/20
+Error fetching and storing historical prices for GLD (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing GLD: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing CW (USD) - 1/20
+Error fetching and storing historical prices for CW (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing CW: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing PEP (USD) - 1/20
+Error fetching and storing historical prices for PEP (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing PEP: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing CAT (USD) - 1/20
+Error fetching and storing historical prices for CAT (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing CAT: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing BIL (USD) - 1/20
+Error fetching and storing historical prices for BIL (USD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing BIL: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing SU.TO (CAD) - 1/20
+Error fetching and storing historical prices for SU.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing SU.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing TFII.TO (CAD) - 1/20
+Error fetching and storing historical prices for TFII.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing TFII.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing VNP.TO (CAD) - 1/20
+Error fetching and storing historical prices for VNP.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing VNP.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing CNR.TO (CAD) - 1/20
+Error fetching and storing historical prices for CNR.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing CNR.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing ZGLD.TO (CAD) - 1/20
+Error fetching and storing historical prices for ZGLD.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing ZGLD.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing SLF.TO (CAD) - 1/20
+Error fetching and storing historical prices for SLF.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing SLF.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing TOU.TO (CAD) - 1/20
+Error fetching and storing historical prices for TOU.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing TOU.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing IFC.TO (CAD) - 1/20
+Error fetching and storing historical prices for IFC.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing IFC.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing RY.TO (CAD) - 1/20
+Error fetching and storing historical prices for RY.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing RY.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing GIB-A.TO (CAD) - 1/20
+Error fetching and storing historical prices for GIB-A.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing GIB-A.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing ATD.TO (CAD) - 1/20
+Error fetching and storing historical prices for ATD.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing ATD.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing DOL.TO (CAD) - 1/20
+Error fetching and storing historical prices for DOL.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing DOL.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing EMP-A.TO (CAD) - 1/20
+Error fetching and storing historical prices for EMP-A.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing EMP-A.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing NA.TO (CAD) - 1/20
+Error fetching and storing historical prices for NA.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing NA.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing DFY.TO (CAD) - 1/20
+Error fetching and storing historical prices for DFY.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing DFY.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing RCH.TO (CAD) - 1/20
+Error fetching and storing historical prices for RCH.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing RCH.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing BMO.TO (CAD) - 1/20
+Error fetching and storing historical prices for BMO.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing BMO.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing SHOP.TO (CAD) - 1/20
+Error fetching and storing historical prices for SHOP.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing SHOP.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing WSP.TO (CAD) - 1/20
+Error fetching and storing historical prices for WSP.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing WSP.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing CCO.TO (CAD) - 1/20
+Error fetching and storing historical prices for CCO.TO (CAD): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing CCO.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing ACN (INTL) - 1/15
+Error fetching and storing historical prices for ACN (INTL): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing ACN: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing LNSTY (INTL) - 1/15
+Error fetching and storing historical prices for LNSTY (INTL): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing LNSTY: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing CB (INTL) - 1/15
+Error fetching and storing historical prices for CB (INTL): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing CB: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing ETN (INTL) - 1/15
+Error fetching and storing historical prices for ETN (INTL): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing ETN: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing LVMHF (INTL) - 1/15
+Error fetching and storing historical prices for LVMHF (INTL): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing LVMHF: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing HESAY (INTL) - 1/15
+Error fetching and storing historical prices for HESAY (INTL): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing HESAY: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing KWEB (INTL) - 1/15
+Error fetching and storing historical prices for KWEB (INTL): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing KWEB: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing SDZNY (INTL) - 1/15
+Error fetching and storing historical prices for SDZNY (INTL): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing SDZNY: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing ESLOY (INTL) - 1/15
+Error fetching and storing historical prices for ESLOY (INTL): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing ESLOY: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing ASML (INTL) - 1/15
+Error fetching and storing historical prices for ASML (INTL): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing ASML: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing ATRL.TO (INTL) - 1/15
+Error fetching and storing historical prices for ATRL.TO (INTL): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing ATRL.TO: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing NSRGY (INTL) - 1/15
+Error fetching and storing historical prices for NSRGY (INTL): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing NSRGY: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing TT (INTL) - 1/15
+Error fetching and storing historical prices for TT (INTL): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing TT: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing MUFG (INTL) - 1/15
+Error fetching and storing historical prices for MUFG (INTL): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing MUFG: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Processing BYDDY (INTL) - 1/15
+Error fetching and storing historical prices for BYDDY (INTL): TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+Error processing BYDDY: TypeError: startDate.toISOString is not a function
+    at HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:87:93)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:636:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+10:42:00 PM [express] POST /api/historical-prices/fetch/all 200 in 71ms :: {"message":"Historical pri…
+10:42:00 PM [express] GET /api/data-updates/logs 304 in 19ms :: [{"id":1,"type":"current_prices","sta…

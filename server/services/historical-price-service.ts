@@ -76,20 +76,107 @@ class HistoricalPriceService {
   }
 
   /**
+   * Helper method to convert a period string to a Date object
+   * Handles formats like "5y", "1mo", "7d" (y=years, mo=months, d=days)
+   */
+  private periodToDate(period: string | Date): Date {
+    // If it's already a Date object, return it
+    if (period instanceof Date) {
+      return period;
+    }
+    
+    // Handle Yahoo Finance period format (e.g., "5y")
+    if (typeof period === 'string') {
+      const now = new Date();
+      const match = period.match(/^(\d+)([ymd]|mo)$/);
+      
+      if (match) {
+        const amount = parseInt(match[1], 10);
+        const unit = match[2];
+        
+        const result = new Date();
+        
+        if (unit === 'y') {
+          result.setFullYear(now.getFullYear() - amount);
+        } else if (unit === 'mo') {
+          result.setMonth(now.getMonth() - amount);
+        } else if (unit === 'd') {
+          result.setDate(now.getDate() - amount);
+        }
+        
+        return result;
+      }
+      
+      // If it's a date string, try to parse it
+      const parsedDate = new Date(period);
+      if (!isNaN(parsedDate.getTime())) {
+        return parsedDate;
+      }
+    }
+    
+    // Default to 5 years ago if can't parse
+    console.warn(`Could not parse date/period: ${period}, defaulting to 5 years ago`);
+    const defaultDate = new Date();
+    defaultDate.setFullYear(defaultDate.getFullYear() - 5);
+    return defaultDate;
+  }
+  
+  /**
+   * Fetch historical prices for a symbol from Yahoo Finance
+   */
+  async fetchHistoricalPrices(symbol: string, region: string, startDate: Date | string, endDate: Date | string = new Date()) {
+    try {
+      // Convert dates if they're strings
+      const startDateObj = this.periodToDate(startDate);
+      const endDateObj = this.periodToDate(endDate);
+      
+      let yahooSymbol = symbol;
+      
+      // Add .TO suffix for Canadian stocks if not already present
+      if (region === 'CAD' && !symbol.endsWith('.TO')) {
+        yahooSymbol = `${symbol}.TO`;
+      }
+      
+      console.log(`Fetching historical prices for ${yahooSymbol} from ${startDateObj.toISOString().split('T')[0]} to ${endDateObj.toISOString().split('T')[0]}`);
+      
+      // Format dates for Yahoo Finance API
+      const period1 = dateToSQLDateString(startDateObj);
+      const period2 = dateToSQLDateString(endDateObj);
+      
+      // Fetch historical prices from Yahoo Finance
+      const result = await yahooFinance.historical(yahooSymbol, {
+        period1,
+        period2,
+        interval: '1d'
+      });
+      
+      return result;
+    } catch (error) {
+      console.error(`Error fetching historical prices for ${symbol} (${region}):`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Fetch and store historical prices for a symbol
    * 
    * This implementation focuses on fetching only newer data than what we already have
+   * Can handle both Date objects and period strings for startDate and endDate
    */
-  async fetchAndStoreHistoricalPrices(symbol: string, region: string, startDate: Date, endDate: Date = new Date()) {
+  async fetchAndStoreHistoricalPrices(symbol: string, region: string, startDate: Date | string, endDate: Date | string = new Date()) {
     try {
+      // Convert dates if they're strings
+      const startDateObj = this.periodToDate(startDate);
+      const endDateObj = this.periodToDate(endDate);
+      
       // Check if we need to fetch any data at all
-      if (startDate >= endDate) {
-        console.log(`No new data to fetch for ${symbol} (${region}): start date ${startDate.toISOString()} is after end date ${endDate.toISOString()}`);
+      if (startDateObj >= endDateObj) {
+        console.log(`No new data to fetch for ${symbol} (${region}): start date ${startDateObj.toISOString()} is after end date ${endDateObj.toISOString()}`);
         return [];
       }
       
       // Fetch historical prices from Yahoo Finance
-      const historicalData = await this.fetchHistoricalPrices(symbol, region, startDate, endDate);
+      const historicalData = await this.fetchHistoricalPrices(symbol, region, startDateObj, endDateObj);
       
       // Skip if no data returned
       if (!historicalData || historicalData.length === 0) {
