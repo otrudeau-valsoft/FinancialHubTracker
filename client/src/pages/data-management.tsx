@@ -74,8 +74,19 @@ export default function DataManagement() {
     refetch: refetchLogs
   } = useQuery({
     queryKey: ['/api/data-updates/logs'],
-    staleTime: 30 * 1000 // 30 seconds
+    staleTime: 2 * 1000, // 2 seconds
+    refetchInterval: (data) => {
+      // If there are any "In Progress" logs, poll more frequently
+      const hasInProgressLogs = data?.some(log => log.status === 'In Progress');
+      return hasInProgressLogs ? 2 * 1000 : 10 * 1000; // 2 sec during operations, 10 sec when idle
+    }
   });
+  
+  // Determine if there are any in-progress logs
+  const hasInProgressLogs = useMemo(() => {
+    if (!updateLogs) return false;
+    return updateLogs.some(log => log.status === 'In Progress');
+  }, [updateLogs]);
   
   // Clear logs mutation
   const clearLogsMutation = useMutation({
