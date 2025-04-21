@@ -471,62 +471,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/historical-prices/region/:region", async (req: Request, res: Response) => {
     try {
       const { region } = req.params;
-      console.log(`API Request - Fetching historical prices for region: ${region.toUpperCase()}`);
+      const regionUpper = region.toUpperCase();
+      console.log(`API Request - Fetching historical prices for region: ${regionUpper}`);
       
-      // Get all symbols in the region's portfolio
-      const stocks = await storage.getPortfolioStocks(region.toUpperCase());
-      console.log(`Found ${stocks.length} stocks in ${region.toUpperCase()} portfolio: ${stocks.map(s => s.symbol).join(', ')}`);
+      // Extract query parameters
+      const startDateStr = req.query.startDate as string | undefined;
+      const endDateStr = req.query.endDate as string | undefined;
+      
+      console.log(`Query parameters - startDate: ${startDateStr || 'none'}, endDate: ${endDateStr || 'none'}`);
+      
+      let startDate: Date | undefined;
+      let endDate: Date | undefined;
+      
+      if (startDateStr) {
+        startDate = new Date(startDateStr);
+        console.log(`Parsed startDate: ${startDate.toISOString()}`);
+      }
+      
+      if (endDateStr) {
+        endDate = new Date(endDateStr);
+        console.log(`Parsed endDate: ${endDate.toISOString()}`);
+      }
+      
+      // First verify that there are stocks in this region's portfolio
+      const stocks = await storage.getPortfolioStocks(regionUpper);
+      console.log(`Found ${stocks.length} stocks in ${regionUpper} portfolio: ${stocks.map(s => s.symbol).join(', ')}`);
       
       if (stocks.length === 0) {
-        console.log(`No stocks found in ${region.toUpperCase()} portfolio`);
+        console.log(`No stocks found in ${regionUpper} portfolio`);
         return res.json([]);
       }
       
-      // Compile all historical prices for all stocks in the region
-      let allPrices: any[] = [];
-      
-      // Try a different approach - loop through each stock and get its prices individually
-      // We know this works for individual symbols
-      for (const stock of stocks.slice(0, 3)) { // Limit to first 3 for testing
-        console.log(`Fetching historical prices for ${stock.symbol} (${region.toUpperCase()})`);
-        const stockPrices = await storage.getHistoricalPrices(stock.symbol, region.toUpperCase());
-        console.log(`Found ${stockPrices.length} historical prices for ${stock.symbol}`);
-        allPrices = allPrices.concat(stockPrices);
-      }
-      
-      console.log(`Combined historical prices for region ${region.toUpperCase()}: ${allPrices.length} records`);
-      
-      if (allPrices.length === 0) {
-        // Try a direct SQL query as fallback
-        console.log(`Attempting direct SQL query for historical prices in region ${region.toUpperCase()}`);
+      // Use direct SQL query for performance reasons
+      try {
         const { db } = await import('./db');
         const { historicalPrices } = await import('@shared/schema');
-        const { eq } = await import('drizzle-orm');
+        const { eq, and, gte, lte } = await import('drizzle-orm');
         
-        try {
-          // Execute a prepared SQL query to diagnostics  
-          const result = await db.execute(
-            `SELECT COUNT(*) FROM historical_prices WHERE region = $1`, 
-            [region.toUpperCase()]
-          );
-          console.log(`SQL Query result for count: `, result);
-          
-          // Try to get AAPL data specifically
-          const appleData = await storage.getHistoricalPrices('AAPL', region.toUpperCase());
-          if (appleData.length > 0) {
-            console.log(`Returning ${appleData.length} AAPL records as a fallback`);
-            return res.json(appleData);
-          }
-        } catch (sqlError) {
-          console.error("SQL query error:", sqlError);
+        // Build query with conditions
+        let query = db
+          .select()
+          .from(historicalPrices)
+          .where(eq(historicalPrices.region, regionUpper));
+        
+        if (startDate) {
+          const startDateStr = startDate.toISOString().split('T')[0];
+          console.log(`Filtering by start date: ${startDateStr}`);
+          query = query.where(gte(historicalPrices.date, startDateStr));
         }
+        
+        if (endDate) {
+          const endDateStr = endDate.toISOString().split('T')[0];
+          console.log(`Filtering by end date: ${endDateStr}`);
+          query = query.where(lte(historicalPrices.date, endDateStr));
+        }
+        
+        console.log(`Executing query for historical prices in region: ${regionUpper}`);
+        const prices = await query.orderBy(historicalPrices.date);
+        console.log(`Query returned ${prices.length} historical prices for region ${regionUpper}`);
+        
+        // If we don't get any data this way, try getting data for individual stocks
+        if (prices.length === 0) {
+          console.log(`No prices found using direct query. Trying individual stock queries`);
+          
+          // Use Promise.all for better performance
+          const stockDataPromises = stocks.slice(0, 3).map(stock => 
+            storage.getHistoricalPrices(stock.symbol, regionUpper, startDate, endDate)
+          );
+          
+          const stockDataResults = await Promise.all(stockDataPromises);
+          const allPrices = stockDataResults.flat();
+          
+          console.log(`Found ${allPrices.length} prices from individual stock queries`);
+          return res.json(allPrices);
+        }
+        
+        return res.json(prices);
+        
+      } catch (sqlError) {
+        console.error("SQL query error:", sqlError);
+        
+        // Fallback to direct stock query if SQL fails
+        const appleData = await storage.getHistoricalPrices('AAPL', regionUpper);
+        if (appleData.length > 0) {
+          console.log(`Returning ${appleData.length} AAPL records as a fallback after SQL error`);
+          return res.json(appleData);
+        }
+        
+        throw sqlError;
       }
-      
-      // Return all the prices we collected
-      return res.json(allPrices);
     } catch (error) {
       console.error("Error fetching historical prices by region:", error);
-      return res.status(500).json({ message: "Failed to fetch historical prices by region", error: (error as Error).message });
+      return res.status(500).json({ 
+        message: "Failed to fetch historical prices by region", 
+        error: (error as Error).message 
+      });
     }
   });
 
