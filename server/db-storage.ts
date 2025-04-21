@@ -627,6 +627,7 @@ export class DatabaseStorage implements IStorage {
         const spyHoldings = await db
           .select()
           .from(etfHoldingsSPY)
+          .where(sql`ticker != ''`)
           .orderBy(desc(etfHoldingsSPY.weight))
           .limit(limit);
         
@@ -635,6 +636,7 @@ export class DatabaseStorage implements IStorage {
         const xicHoldings = await db
           .select()
           .from(etfHoldingsXIC)
+          .where(sql`ticker != ''`)
           .orderBy(desc(etfHoldingsXIC.weight))
           .limit(limit);
         
@@ -643,6 +645,7 @@ export class DatabaseStorage implements IStorage {
         const acwxHoldings = await db
           .select()
           .from(etfHoldingsACWX)
+          .where(sql`ticker != ''`)
           .orderBy(desc(etfHoldingsACWX.weight))
           .limit(limit);
         
