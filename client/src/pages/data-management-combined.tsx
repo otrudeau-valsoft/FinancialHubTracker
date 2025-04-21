@@ -179,6 +179,23 @@ export default function DataManagement() {
     }
   };
   
+  // Function to get progress information from the log details
+  const getProgressInfo = (detailsJson: string) => {
+    try {
+      const details = JSON.parse(detailsJson);
+      if (details.progress) {
+        return {
+          current: details.progress.current,
+          total: details.progress.total,
+          percent: Math.round((details.progress.current / details.progress.total) * 100)
+        };
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  };
+  
   // Format timestamp to display in EST
   const formatTimestampToEST = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -262,6 +279,22 @@ export default function DataManagement() {
                       </div>
                       <div className="mt-2 text-sm text-gray-400 bg-[#0A1929] p-2 rounded-md">
                         {formatDetails(log.details)}
+                        
+                        {/* Progress bar for historical price updates that are in progress */}
+                        {log.type === 'historical_prices' && log.status === 'In Progress' && getProgressInfo(log.details) && (
+                          <div className="mt-3">
+                            <div className="flex justify-between text-xs mb-1">
+                              <span>Progress</span>
+                              <span>{getProgressInfo(log.details)?.current}/{getProgressInfo(log.details)?.total} symbols</span>
+                            </div>
+                            <div className="w-full bg-gray-800 rounded-full h-2.5">
+                              <div 
+                                className="bg-green-600 h-2.5 rounded-full" 
+                                style={{ width: `${getProgressInfo(log.details)?.percent}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

@@ -601,74 +601,141 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { period, interval } = req.body;
       console.log("Initiating historical price collection for all portfolios");
       
-      const regions = ['USD', 'CAD', 'INTL'];
-      const results = {};
+      // Log the start of the operation immediately
+      await schedulerService.logUpdate('historical_prices', 'In Progress', {
+        message: `Starting historical price update for all portfolios...`,
+        timestamp: new Date().toISOString()
+      });
       
-      // Process each region portfolio
-      for (const region of regions) {
-        let tableName;
-        switch (region) {
-          case 'USD': tableName = 'assets_us'; break;
-          case 'CAD': tableName = 'assets_cad'; break;
-          case 'INTL': tableName = 'assets_intl'; break;
-        }
+      // Respond to the client immediately to avoid timeout
+      res.status(200).json({ 
+        message: "Historical price collection initiated for all portfolios",
+        status: "processing"
+      });
+      
+      // Continue the work asynchronously
+      (async () => {
+        const regions = ['USD', 'CAD', 'INTL'];
+        const results = {};
+        let totalSuccessCount = 0;
+        let totalSymbolCount = 0;
         
-        // Query for symbols directly using SQL
-        const result = await db.execute(sql.raw(`SELECT symbol FROM ${tableName}`));
-        const symbols = result.rows.map(row => row.symbol);
-        
-        if (!symbols || symbols.length === 0) {
-          results[region] = { status: 'error', message: `No symbols found for ${region} portfolio` };
-          continue;
-        }
-        
-        // Track successful updates
-        let successCount = 0;
-        
-        // Process symbols with rate limiting
-        for (const symbol of symbols) {
-          try {
-            // Ensure symbol is treated as a string
-            const symbolStr = String(symbol);
-            const yahooSymbol = symbolStr.toUpperCase();
-            console.log(`Processing ${yahooSymbol} (${region}) - ${successCount+1}/${symbols.length}`);
-            
-            const success = await historicalPriceService.fetchAndStoreHistoricalPrices(
-              yahooSymbol,
-              region,
-              period || '5y', // Default to 5 years of data as required
-              interval || '1d'  // Default to daily data
-            );
-            
-            if (success) {
-              successCount++;
-              console.log(`✓ Successfully updated ${yahooSymbol} (${region})`);
-            } else {
-              console.log(`✗ Failed to update ${yahooSymbol} (${region})`);
+        try {
+          // Process each region portfolio
+          for (const region of regions) {
+            let tableName;
+            switch (region) {
+              case 'USD': tableName = 'assets_us'; break;
+              case 'CAD': tableName = 'assets_cad'; break;
+              case 'INTL': tableName = 'assets_intl'; break;
             }
             
-            // Add a delay to avoid rate limiting
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          } catch (error) {
-            console.error(`Error processing ${symbol}:`, error);
-            // Continue to next symbol
+            // Query for symbols directly using SQL
+            const result = await db.execute(sql.raw(`SELECT symbol FROM ${tableName}`));
+            const symbols = result.rows.map(row => row.symbol);
+            
+            if (!symbols || symbols.length === 0) {
+              results[region] = { status: 'error', message: `No symbols found for ${region} portfolio` };
+              continue;
+            }
+            
+            // Track successful updates
+            let successCount = 0;
+            totalSymbolCount += symbols.length;
+            
+            // Begin processing for this region - log it
+            await schedulerService.logUpdate('historical_prices', 'In Progress', {
+              message: `Processing ${region} portfolio (0/${symbols.length} symbols)`,
+              region,
+              progress: { current: 0, total: symbols.length },
+              timestamp: new Date().toISOString()
+            });
+            
+            // Process symbols with rate limiting
+            for (const symbol of symbols) {
+              try {
+                // Ensure symbol is treated as a string
+                const symbolStr = String(symbol);
+                const yahooSymbol = symbolStr.toUpperCase();
+                console.log(`Processing ${yahooSymbol} (${region}) - ${successCount+1}/${symbols.length}`);
+                
+                // Update the log with current progress
+                if ((successCount + 1) % 5 === 0 || successCount === 0) { // Log every 5 symbols to avoid too many logs
+                  await schedulerService.logUpdate('historical_prices', 'In Progress', {
+                    message: `Processing ${region} portfolio (${successCount+1}/${symbols.length} symbols)`,
+                    region,
+                    symbol: yahooSymbol,
+                    progress: { current: successCount + 1, total: symbols.length },
+                    timestamp: new Date().toISOString()
+                  });
+                }
+                
+                const success = await historicalPriceService.fetchAndStoreHistoricalPrices(
+                  yahooSymbol,
+                  region,
+                  period || '5y', // Default to 5 years of data as required
+                  interval || '1d'  // Default to daily data
+                );
+                
+                if (success) {
+                  successCount++;
+                  totalSuccessCount++;
+                  console.log(`✓ Successfully updated ${yahooSymbol} (${region})`);
+                } else {
+                  console.log(`✗ Failed to update ${yahooSymbol} (${region})`);
+                }
+                
+                // Add a delay to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              } catch (error) {
+                console.error(`Error processing ${symbol}:`, error);
+                // Continue to next symbol
+              }
+            }
+            
+            results[region] = { 
+              status: 'success', 
+              message: `Updated ${successCount}/${symbols.length} symbols in ${region} portfolio`,
+              successCount,
+              totalSymbols: symbols.length
+            };
+            
+            // Log completion for this region
+            await schedulerService.logUpdate('historical_prices', 'Success', {
+              message: `Completed ${region} portfolio: ${successCount}/${symbols.length} symbols updated`,
+              region,
+              progress: { current: symbols.length, total: symbols.length },
+              timestamp: new Date().toISOString()
+            });
           }
+          
+          // Log the final completion
+          await schedulerService.logUpdate('historical_prices', 'Success', {
+            message: `Manual historical price update completed - ${totalSuccessCount}/${totalSymbolCount} symbols updated across all portfolios`,
+            results,
+            timestamp: new Date().toISOString()
+          });
+          
+        } catch (error) {
+          console.error("Error in asynchronous historical price update:", error);
+          await schedulerService.logUpdate('historical_prices', 'Error', {
+            message: `Error updating historical prices: ${(error as Error).message}`,
+            error: (error as Error).message,
+            timestamp: new Date().toISOString()
+          });
         }
-        
-        results[region] = { 
-          status: 'success', 
-          message: `Updated ${successCount}/${symbols.length} symbols in ${region} portfolio`,
-          successCount,
-          totalSymbols: symbols.length
-        };
-      }
+      })();
       
-      return res.status(200).json({ 
-        message: "Historical price collection completed for all portfolios",
-        results
-      });
     } catch (error) {
-      console.error("Error updating historical prices for all portfolios:", error);
+      console.error("Error initiating historical prices update for all portfolios:", error);
+      
+      // Log the error
+      await schedulerService.logUpdate('historical_prices', 'Error', {
+        message: `Failed to initiate historical price update: ${(error as Error).message}`,
+        error: (error as Error).message,
+        timestamp: new Date().toISOString()
+      });
+      
       return res.status(500).json({ 
         message: "Failed to update historical prices for all portfolios", 
         error: (error as Error).message 
