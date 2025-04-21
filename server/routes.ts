@@ -541,9 +541,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { region } = req.params;
       const { period, interval } = req.body;
       
+      // Use 5y and 1d as defaults for our project requirements
       const successCount = await historicalPriceService.updateHistoricalPricesForPortfolio(
         region.toUpperCase(),
-        period || '1y',
+        period || '5y',
         interval || '1d'
       );
       
@@ -553,6 +554,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating historical prices for portfolio:", error);
       return res.status(500).json({ message: "Failed to update historical prices for portfolio" });
+    }
+  });
+  
+  // New endpoint to fetch historical prices for ALL portfolios (USD, CAD, INTL)
+  app.post("/api/historical-prices/fetch/all", async (req: Request, res: Response) => {
+    try {
+      console.log("Initiating historical price collection for all portfolios (5 years daily data)");
+      
+      const results = await historicalPriceService.updateAllHistoricalPrices('5y', '1d');
+      
+      return res.status(200).json({ 
+        message: "Historical price collection completed",
+        results
+      });
+    } catch (error) {
+      console.error("Error updating historical prices for all portfolios:", error);
+      return res.status(500).json({ 
+        message: "Failed to update historical prices for all portfolios", 
+        error: (error as Error).message 
+      });
     }
   });
   

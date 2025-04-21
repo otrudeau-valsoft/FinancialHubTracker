@@ -2,6 +2,9 @@ import yahooFinance from 'yahoo-finance2';
 import { storage } from '../storage';
 import { InsertHistoricalPrice } from '@shared/schema';
 import { DateTime } from 'luxon';
+import { Pool } from '@neondatabase/serverless';
+import { db } from '../db';
+import { sql } from 'drizzle-orm';
 
 /**
  * Service to fetch and manage historical price data
@@ -18,14 +21,26 @@ export class HistoricalPriceService {
   async fetchAndStoreHistoricalPrices(
     symbol: string, 
     region: string, 
-    period: string = '1y', 
-    interval: string = '1d'
+    period: string = '5y', // Default to 5 years as requested
+    interval: string = '1d'  // Default to daily data as requested
   ): Promise<boolean> {
     try {
-      // Use the symbol as is since database already has correct symbols
+      // Yahoo Finance symbol adjustment for different exchanges
       let yahooSymbol = symbol;
-
-      console.log(`Fetching historical prices for ${yahooSymbol} (${region})`);
+      
+      // Handle Toronto Stock Exchange (TSX) symbols
+      if (region === 'CAD') {
+        // If the symbol already contains the .TO suffix, use it as is
+        if (!yahooSymbol.endsWith('.TO')) {
+          // For some TSX symbols, we may need to append .TO
+          yahooSymbol = `${yahooSymbol}.TO`;
+          console.log(`Adjusted CAD symbol to: ${yahooSymbol}`);
+        }
+      }
+      
+      // For INTL symbols (usually ADRs), use as is
+      
+      console.log(`Fetching 5-year historical prices for ${yahooSymbol} (${region})`);
       
       const result = await yahooFinance.chart(yahooSymbol, {
         period1: this.getPeriodStartDate(period),
@@ -38,14 +53,13 @@ export class HistoricalPriceService {
         return false;
       }
 
+      console.log(`Found ${result.quotes.length} historical price points for ${symbol}`);
+
       // Delete existing data for this symbol/region
-      await storage.deleteHistoricalPrices(symbol, region);
+      await this.deleteHistoricalPricesDirectSql(symbol, region);
 
       // Map Yahoo Finance data to our database schema
       const historicalPrices: InsertHistoricalPrice[] = result.quotes.map(quote => {
-        // Yahoo Finance data structure analysis
-        console.log(`Quote data sample: ${JSON.stringify(quote).substring(0, 200)}`);
-        
         // Use Luxon to handle date conversion properly
         let dateObj: Date;
         
@@ -75,8 +89,8 @@ export class HistoricalPriceService {
         };
       });
 
-      // Store in database
-      await storage.bulkCreateHistoricalPrices(historicalPrices);
+      // Store in database using direct SQL approach for improved reliability
+      await this.bulkInsertHistoricalPricesDirectSql(historicalPrices);
       
       console.log(`Stored ${historicalPrices.length} historical prices for ${symbol} (${region})`);
       return true;
@@ -84,6 +98,158 @@ export class HistoricalPriceService {
       console.error(`Error fetching historical prices for ${symbol}:`, error);
       return false;
     }
+  }
+
+  /**
+   * Direct SQL approach to delete historical prices for a symbol
+   */
+  private async deleteHistoricalPricesDirectSql(symbol: string, region: string): Promise<void> {
+    try {
+      await db.execute(sql`
+        DELETE FROM historical_prices 
+        WHERE symbol = ${symbol} AND region = ${region}
+      `);
+      console.log(`Deleted existing historical prices for ${symbol} (${region})`);
+    } catch (error) {
+      console.error(`Error deleting historical prices for ${symbol}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Direct SQL approach to bulk insert historical prices
+   */
+  private async bulkInsertHistoricalPricesDirectSql(prices: InsertHistoricalPrice[]): Promise<void> {
+    if (prices.length === 0) return;
+
+    try {
+      // Batch inserts in groups of 100 to avoid statement size limits
+      const batchSize = 100;
+      for (let i = 0; i < prices.length; i += batchSize) {
+        const batch = prices.slice(i, i + batchSize);
+        
+        // Construct a VALUES clause for all records in this batch
+        const valuesSql = batch.map(price => `(
+          '${price.symbol}', 
+          '${price.date}', 
+          ${price.open ? `'${price.open}'` : 'NULL'}, 
+          ${price.high ? `'${price.high}'` : 'NULL'}, 
+          ${price.low ? `'${price.low}'` : 'NULL'}, 
+          '${price.close}', 
+          ${price.volume ? `'${price.volume}'` : 'NULL'}, 
+          ${price.adjustedClose ? `'${price.adjustedClose}'` : 'NULL'}, 
+          '${price.region}'
+        )`).join(', ');
+        
+        // Execute the INSERT statement
+        await db.execute(sql`
+          INSERT INTO historical_prices (
+            symbol, 
+            date, 
+            open, 
+            high, 
+            low, 
+            close, 
+            volume, 
+            adjusted_close, 
+            region
+          ) 
+          VALUES ${sql.raw(valuesSql)}
+        `);
+      }
+      
+      console.log(`Bulk inserted ${prices.length} historical price records`);
+    } catch (error) {
+      console.error('Error bulk inserting historical prices:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch all symbols from a specific region's assets table using direct SQL
+   */
+  private async getSymbolsByRegionDirectSql(region: string): Promise<string[]> {
+    try {
+      let tableName: string;
+      
+      if (region === 'USD') {
+        tableName = 'assets_US';
+      } else if (region === 'CAD') {
+        tableName = 'assets_CAD';
+      } else if (region === 'INTL') {
+        tableName = 'assets_INTL';
+      } else {
+        throw new Error(`Invalid region: ${region}`);
+      }
+      
+      const result = await db.execute(sql`
+        SELECT symbol FROM ${sql.raw(tableName)}
+      `);
+      
+      return result.rows.map(row => row.symbol as string);
+    } catch (error) {
+      console.error(`Error fetching symbols for region ${region}:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Batch fetch historical prices for all stocks in all regions
+   * Optimized for the 5-year daily history requirement
+   */
+  async updateAllHistoricalPrices(
+    period: string = '5y',
+    interval: string = '1d',
+    delayMs: number = 1000 // Increased delay to avoid rate limiting
+  ): Promise<Record<string, number>> {
+    const regions = ['USD', 'CAD', 'INTL'];
+    const results: Record<string, number> = {};
+    
+    for (const region of regions) {
+      try {
+        console.log(`Fetching historical prices for ${region} region`);
+        
+        // Get all symbols for this region using direct SQL
+        const symbols = await this.getSymbolsByRegionDirectSql(region);
+        console.log(`Found ${symbols.length} symbols for ${region} region: ${symbols.join(', ')}`);
+        
+        let successCount = 0;
+        
+        for (const symbol of symbols) {
+          console.log(`Processing ${symbol} (${region}) - ${successCount+1} of ${symbols.length}`);
+          
+          try {
+            const success = await this.fetchAndStoreHistoricalPrices(
+              symbol, 
+              region, 
+              period, 
+              interval
+            );
+            
+            if (success) {
+              successCount++;
+              console.log(`✓ Successfully updated ${symbol} (${region}) - ${successCount} of ${symbols.length}`);
+            } else {
+              console.log(`✗ Failed to update ${symbol} (${region})`);
+            }
+            
+            // Add a delay between requests to avoid rate limiting
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+          } catch (error) {
+            console.error(`Error processing ${symbol} (${region}):`, error);
+            // Continue with next symbol
+          }
+        }
+        
+        results[region] = successCount;
+        console.log(`Completed ${region} region: ${successCount}/${symbols.length} symbols updated`);
+      } catch (error) {
+        console.error(`Error processing ${region} region:`, error);
+        results[region] = 0;
+      }
+    }
+    
+    return results;
   }
 
   /**
@@ -95,16 +261,21 @@ export class HistoricalPriceService {
    */
   async updateHistoricalPricesForPortfolio(
     region: string, 
-    period: string = '1y', 
-    interval: string = '1d'
+    period: string = '5y',  // Default to 5 years
+    interval: string = '1d'  // Default to daily data
   ): Promise<number> {
     try {
-      const stocks = await storage.getPortfolioStocks(region);
+      // Get symbols directly from regional assets table
+      const symbols = await this.getSymbolsByRegionDirectSql(region);
       let successCount = 0;
 
-      for (const stock of stocks) {
+      console.log(`Updating historical prices for ${symbols.length} symbols in ${region} portfolio`);
+
+      for (const symbol of symbols) {
+        console.log(`Processing ${symbol} (${region}) - ${successCount+1} of ${symbols.length}`);
+        
         const success = await this.fetchAndStoreHistoricalPrices(
-          stock.symbol, 
+          symbol, 
           region, 
           period, 
           interval
@@ -112,12 +283,16 @@ export class HistoricalPriceService {
         
         if (success) {
           successCount++;
+          console.log(`✓ Successfully updated ${symbol} (${region})`);
+        } else {
+          console.log(`✗ Failed to update ${symbol} (${region})`);
         }
         
-        // Add a small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Add a delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
+      console.log(`Completed ${region} update: ${successCount}/${symbols.length} symbols updated`);
       return successCount;
     } catch (error) {
       console.error(`Error updating historical prices for ${region} portfolio:`, error);
@@ -157,7 +332,7 @@ export class HistoricalPriceService {
       case 'max':
         return DateTime.fromObject({ year: 1970, month: 1, day: 1 }).toJSDate(); // Unix epoch
       default:
-        return now.minus({ years: 1 }).toJSDate(); // Default to 1 year
+        return now.minus({ years: 5 }).toJSDate(); // Default to 5 years
     }
   }
 }
