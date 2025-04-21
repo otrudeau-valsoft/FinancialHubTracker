@@ -114,24 +114,27 @@ class SchedulerService {
     console.log(`Starting current price scheduler with interval of ${intervalMinutes} minutes`);
 
     // Run immediately if within market hours
-    const now = new Date();
+    const estNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    console.log(`Current EST time: ${estNow.toLocaleString()}`);
+    
     const { startTime, endTime, skipWeekends } = this.config.current_prices;
     
     if (
-      (!skipWeekends || !isWeekend(now)) && 
-      isWithinMarketHours(now, startTime, endTime)
+      (!skipWeekends || !isWeekend(estNow)) && 
+      isWithinMarketHours(estNow, startTime, endTime)
     ) {
       this.updateCurrentPrices();
     }
     
     // Schedule regular updates
     this.currentPriceTimer = setInterval(() => {
-      const now = new Date();
+      const estNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
       
       if (
-        (!skipWeekends || !isWeekend(now)) && 
-        isWithinMarketHours(now, startTime, endTime)
+        (!skipWeekends || !isWeekend(estNow)) && 
+        isWithinMarketHours(estNow, startTime, endTime)
       ) {
+        console.log(`Running scheduled current price update at EST: ${estNow.toLocaleString()}`);
         this.updateCurrentPrices();
       }
     }, intervalMinutes * 60 * 1000);
@@ -159,7 +162,7 @@ class SchedulerService {
     const now = new Date();
     const msUntilNextRun = nextRunTime.getTime() - now.getTime();
     
-    console.log(`Scheduling historical price update at ${nextRunTime.toLocaleString()}`);
+    console.log(`Scheduling historical price update at EST: ${nextRunTime.toLocaleString()}`);
     
     // Schedule the next run
     this.historicalPriceTimer = setTimeout(() => {
@@ -167,8 +170,9 @@ class SchedulerService {
       
       // Schedule daily runs
       this.historicalPriceTimer = setInterval(() => {
-        const now = new Date();
-        if (!this.config.historical_prices.skipWeekends || !isWeekend(now)) {
+        const estNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+        if (!this.config.historical_prices.skipWeekends || !isWeekend(estNow)) {
+          console.log(`Running scheduled historical price update at EST: ${estNow.toLocaleString()}`);
           this.updateHistoricalPrices();
         }
       }, 24 * 60 * 60 * 1000); // 24 hours
@@ -195,14 +199,17 @@ class SchedulerService {
    * Calculate the next time to run the historical price update
    */
   private calculateNextHistoricalPriceRunTime(): Date {
-    const now = new Date();
+    // Get current time in EST timezone
+    const estNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    console.log(`Current EST time: ${estNow.toLocaleString()}`);
+    
     const [hours, minutes] = this.config.historical_prices.timeOfDay.split(':').map(Number);
     
-    const nextRun = new Date(now);
+    const nextRun = new Date(estNow);
     nextRun.setHours(hours, minutes, 0, 0);
     
     // If the time has already passed today, schedule for tomorrow
-    if (nextRun <= now) {
+    if (nextRun <= estNow) {
       nextRun.setDate(nextRun.getDate() + 1);
     }
     
@@ -216,6 +223,7 @@ class SchedulerService {
       }
     }
     
+    console.log(`Next historical price update scheduled for EST: ${nextRun.toLocaleString()}`);
     return nextRun;
   }
 
