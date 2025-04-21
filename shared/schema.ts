@@ -288,12 +288,9 @@ export type CurrentPrice = typeof currentPrices.$inferSelect;
 // Data Update Logs
 export const dataUpdateLogs = pgTable("data_update_logs", {
   id: serial("id").primaryKey(),
-  type: text("type").notNull(), // 'current_price' or 'historical_price'
-  region: text("region").notNull(), // 'USD', 'CAD', 'INTL'
-  symbol: text("symbol"), // Optional symbol for individual updates
-  status: text("status").notNull(), // 'success', 'failed', 'pending'
-  message: text("message"), // Optional message
-  affectedRows: integer("affected_rows"), // Number of rows affected
+  type: text("type").notNull(), // 'current_prices' or 'historical_prices'
+  status: text("status").notNull(), // 'Success' or 'Error'
+  details: text("details"), // JSON string with additional details
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
 
