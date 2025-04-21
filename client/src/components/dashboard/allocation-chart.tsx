@@ -32,9 +32,9 @@ export const AllocationChart = ({ typeAllocation, ratingAllocation }: Allocation
   };
   
   return (
-    <Card className="bg-card">
-      <CardHeader className="card-header flex justify-between items-center">
-        <h3>Portfolio Allocation</h3>
+    <Card className="bg-card mb-6 border-0 shadow">
+      <CardHeader className="card-header flex flex-row items-center justify-between px-4 py-3 bg-[#1C2938]">
+        <h3 className="text-left">Portfolio Allocation</h3>
         <div className="text-xs text-gray-400">By classification</div>
       </CardHeader>
       <CardContent className="p-4">

@@ -37,9 +37,9 @@ export const AlertsList = ({ alerts, limit = 5 }: AlertsListProps) => {
   };
   
   return (
-    <Card className="bg-card">
-      <CardHeader className="card-header flex justify-between items-center">
-        <h3>Matrix Rule Alerts</h3>
+    <Card className="bg-card mb-6 border-0 shadow">
+      <CardHeader className="card-header flex flex-row items-center justify-between px-4 py-3 bg-[#1C2938]">
+        <h3 className="text-left">Matrix Rule Alerts</h3>
         <button className="text-xs text-secondary">View All</button>
       </CardHeader>
       <CardContent className="p-2">

@@ -41,9 +41,9 @@ export const PortfolioTable = ({ stocks, region }: PortfolioTableProps) => {
     : stocks.filter(stock => stock.stockType.toLowerCase() === filter.toLowerCase());
   
   return (
-    <Card className="bg-card mb-6">
-      <CardHeader className="card-header flex justify-between items-center">
-        <h3>{region} Portfolio Holdings</h3>
+    <Card className="bg-card mb-6 border-0 shadow">
+      <CardHeader className="card-header flex flex-row items-center justify-between px-4 py-3 bg-[#1C2938]">
+        <h3 className="text-left">{region} Portfolio Holdings</h3>
         <div className="flex space-x-2">
           <Button 
             variant="ghost" 

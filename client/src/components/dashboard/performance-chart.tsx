@@ -63,9 +63,9 @@ export const PerformanceChart = ({
   }
   
   return (
-    <Card className="bg-card">
-      <CardHeader className="card-header flex justify-between items-center">
-        <h3>Performance vs {benchmark}</h3>
+    <Card className="bg-card mb-6 border-0 shadow">
+      <CardHeader className="card-header flex flex-row items-center justify-between px-4 py-3 bg-[#1C2938]">
+        <h3 className="text-left">Performance vs {benchmark}</h3>
         <div className="flex items-center space-x-2 text-xs">
           {timeRanges.map(range => (
             <button
