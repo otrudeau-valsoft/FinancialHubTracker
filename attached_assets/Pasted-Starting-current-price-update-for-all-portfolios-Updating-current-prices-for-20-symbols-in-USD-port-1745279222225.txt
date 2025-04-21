@@ -1,0 +1,172 @@
+Starting current price update for all portfolios
+Updating current prices for 20 symbols in USD portfolio
+Fetching current price for MSFT
+Updated current price for MSFT (USD)
+Fetching current price for AMZN
+Updated current price for AMZN (USD)
+Fetching current price for AAPL
+Updated current price for AAPL (USD)
+Fetching current price for MA
+Updated current price for MA (USD)
+Fetching current price for GOOG
+Updated current price for GOOG (USD)
+Fetching current price for WM
+Updated current price for WM (USD)
+Fetching current price for META
+Updated current price for META (USD)
+Fetching current price for MCO
+Updated current price for MCO (USD)
+Fetching current price for JPM
+Updated current price for JPM (USD)
+Fetching current price for GS
+Updated current price for GS (USD)
+Fetching current price for PANW
+Updated current price for PANW (USD)
+Fetching current price for COST
+Updated current price for COST (USD)
+Fetching current price for pwr
+Updated current price for pwr (USD)
+Fetching current price for AVGO
+Updated current price for AVGO (USD)
+Fetching current price for UBER
+Updated current price for UBER (USD)
+Fetching current price for GLD
+Updated current price for GLD (USD)
+Fetching current price for CW
+Updated current price for CW (USD)
+Fetching current price for PEP
+Updated current price for PEP (USD)
+Fetching current price for CAT
+Updated current price for CAT (USD)
+Fetching current price for BIL
+Updated current price for BIL (USD)
+Updating current prices for 20 symbols in CAD portfolio
+Fetching current price for SU.TO
+Updated current price for SU.TO (CAD)
+Fetching current price for TFII.TO
+Updated current price for TFII.TO (CAD)
+Fetching current price for VNP.TO
+Updated current price for VNP.TO (CAD)
+Fetching current price for CNR.TO
+Updated current price for CNR.TO (CAD)
+Fetching current price for ZGLD.TO
+Updated current price for ZGLD.TO (CAD)
+Fetching current price for SLF.TO
+Updated current price for SLF.TO (CAD)
+Fetching current price for TOU.TO
+11:46:36 PM [express] GET /api/data-updates/logs 200 in 88ms :: [{"id":104,"type":"current_prices","s…
+Updated current price for TOU.TO (CAD)
+Fetching current price for IFC.TO
+Updated current price for IFC.TO (CAD)
+Fetching current price for RY.TO
+Updated current price for RY.TO (CAD)
+Fetching current price for GIB-A.TO
+Updated current price for GIB-A.TO (CAD)
+Fetching current price for ATD.TO
+Updated current price for ATD.TO (CAD)
+Fetching current price for DOL.TO
+Updated current price for DOL.TO (CAD)
+Fetching current price for EMP-A.TO
+Updated current price for EMP-A.TO (CAD)
+Fetching current price for NA.TO
+Updated current price for NA.TO (CAD)
+Fetching current price for DFY.TO
+Updated current price for DFY.TO (CAD)
+Fetching current price for RCH.TO
+Updated current price for RCH.TO (CAD)
+Fetching current price for BMO.TO
+Updated current price for BMO.TO (CAD)
+Fetching current price for SHOP.TO
+Updated current price for SHOP.TO (CAD)
+Fetching current price for WSP.TO
+Updated current price for WSP.TO (CAD)
+Fetching current price for CCO.TO
+Updated current price for CCO.TO (CAD)
+Updating current prices for 15 symbols in INTL portfolio
+Fetching current price for ACN
+Updated current price for ACN (INTL)
+Fetching current price for LNSTY
+Updated current price for LNSTY (INTL)
+Fetching current price for CB
+Updated current price for CB (INTL)
+Fetching current price for ETN
+Updated current price for ETN (INTL)
+Fetching current price for LVMHF
+Updated current price for LVMHF (INTL)
+Fetching current price for HESAY
+Updated current price for HESAY (INTL)
+Fetching current price for KWEB
+Updated current price for KWEB (INTL)
+Fetching current price for SDZNY
+{
+  "type": 62,
+  "schema": {
+    "title": "YahooNumber",
+    "anyOf": [
+      {
+        "title": "RawNumber",
+        "type": "object",
+        "properties": {
+          "raw": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "raw"
+        ]
+      },
+      {
+        "type": "number"
+      }
+    ]
+  },
+  "path": "/summaryDetail/trailingPE",
+  "value": "Infinity",
+  "message": "Expected union value"
+}
+
+    This may happen intermittently and you should catch errors appropriately.
+    However:  1) if this recently started happening on every request for a symbol
+    that used to work, Yahoo may have changed their API.  2) If this happens on
+    every request for a symbol you've never used before, but not for other
+    symbols, you've found an edge-case (OR, we may just be protecting you from
+    "bad" data sometimes stored for e.g. misspelt symbols on Yahoo's side).
+    Please see if anyone has reported this previously:
+    
+      https://github.com/gadicc/node-yahoo-finance2/issues?q=is%3Aissue+QuoteSummaryResult
+    
+    or open a new issue (and mention the symbol):  yahoo-finance2 v2.13.3
+    
+      https://github.com/gadicc/node-yahoo-finance2/issues/new?labels=bug%2C+validation&template=validation.md&title=QuoteSummaryResult
+    
+    For information on how to turn off the above logging or skip these errors,
+    see https://github.com/gadicc/node-yahoo-finance2/tree/devel/docs/validation.md.
+    
+    At the end of the doc, there's also a section on how to
+    [Help Fix Validation Errors](https://github.com/gadicc/node-yahoo-finance2/blob/devel/docs/validation.md#help-fix)
+    in case you'd like to contribute to the project.  Most of the time, these
+    fixes are very quick and easy; it's just hard for our small core team to keep up,
+    so help is always appreciated!
+    
+Warning: Yahoo Finance API error for SDZNY: Failed Yahoo Schema validation
+Updated current price for SDZNY (INTL)
+Fetching current price for ESLOY
+Updated current price for ESLOY (INTL)
+Fetching current price for ASML
+Updated current price for ASML (INTL)
+Fetching current price for ATRL.TO
+Updated current price for ATRL.TO (INTL)
+Fetching current price for NSRGY
+11:46:38 PM [express] GET /api/data-updates/logs 304 in 18ms :: [{"id":104,"type":"current_prices","s…
+Updated current price for NSRGY (INTL)
+Fetching current price for TT
+Updated current price for TT (INTL)
+Fetching current price for MUFG
+Updated current price for MUFG (INTL)
+Fetching current price for BYDDY
+Updated current price for BYDDY (INTL)
+Updated existing log 104 from In Progress to Success
+11:46:38 PM [express] POST /api/current-prices/fetch/all 200 in 4809ms :: {"message":"Successfully up…
+11:46:38 PM [express] GET /api/data-updates/logs 200 in 23ms :: [{"id":104,"type":"current_prices","s…
+11:46:41 PM [express] GET /api/data-updates/logs 304 in 21ms :: [{"id":104,"type":"current_prices","s…
+11:46:45 PM [express] GET /api/data-updates/logs 304 in 21ms :: [{"id":104,"type":"current_prices","s…
