@@ -12,7 +12,7 @@ import {
   portfolioSummaries, type PortfolioSummary, type InsertPortfolioSummary
 } from "@shared/schema";
 import { db, sanitizeForDb } from "./db";
-import { eq, desc, and, sql, lt, gt, isNull, not } from "drizzle-orm";
+import { eq, desc, and, sql, lt, gt, lte, gte, isNull, not } from "drizzle-orm";
 
 // Import compatibility types for transitioning
 import { PortfolioStock, InsertPortfolioStock, EtfHolding, InsertEtfHolding } from "./types";
@@ -965,6 +965,28 @@ export class DatabaseStorage implements IStorage {
 
   async getHistoricalPricesByRegion(region: string, startDate?: Date, endDate?: Date): Promise<HistoricalPrice[]> {
     try {
+      console.log(`Fetching historical prices for region: ${region}`);
+      
+      // First, let's verify data exists by counting the records
+      const countQuery = db
+        .select({ count: sql`count(*)` })
+        .from(historicalPrices)
+        .where(eq(historicalPrices.region, region));
+        
+      const [countResult] = await countQuery;
+      console.log(`Raw count for region ${region}:`, countResult);
+      
+      // Next, try a simple query to get the first few records
+      const sampleRecords = await db
+        .select()
+        .from(historicalPrices)
+        .where(eq(historicalPrices.region, region))
+        .limit(5);
+      
+      console.log(`Sample records for region ${region}:`, 
+        sampleRecords.length > 0 ? 'Found samples' : 'No samples');
+      
+      // Now build the actual query with date filtering
       let query = db
         .select()
         .from(historicalPrices)
@@ -973,17 +995,21 @@ export class DatabaseStorage implements IStorage {
       if (startDate) {
         // Convert Date object to ISO string date (YYYY-MM-DD)
         const startDateStr = startDate.toISOString().split('T')[0];
-        query = query.where(gte(historicalPrices.date, startDateStr));
+        console.log(`Filtering by start date: ${startDateStr}`);
+        query = query.where(gt(historicalPrices.date, startDateStr));
       }
       
       if (endDate) {
         // Convert Date object to ISO string date (YYYY-MM-DD)
         const endDateStr = endDate.toISOString().split('T')[0];
-        query = query.where(lte(historicalPrices.date, endDateStr));
+        console.log(`Filtering by end date: ${endDateStr}`);
+        query = query.where(lt(historicalPrices.date, endDateStr));
       }
       
       const prices = await query.orderBy(historicalPrices.date);
       console.log(`Found ${prices.length} historical prices for region ${region}`);
+      
+      // Return the results - even if empty
       return prices;
     } catch (error) {
       console.error("Error in getHistoricalPricesByRegion:", error);
