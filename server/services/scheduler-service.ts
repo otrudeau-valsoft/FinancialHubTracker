@@ -319,13 +319,16 @@ class SchedulerService {
         console.log(`Cleaned up In Progress logs for ${type}`);
       }
       
+      // Make sure details is properly stringified
+      const detailsJson = typeof details === 'string' ? details : JSON.stringify(details);
+      
       // If logId is provided, update the existing log entry
       if (logId) {
         const [result] = await db
           .update(dataUpdateLogs)
           .set({
             status,
-            details: JSON.stringify(details),
+            details: detailsJson,
             // Intentionally not updating timestamp to preserve the original creation time
           })
           .where({ id: logId })
@@ -338,7 +341,7 @@ class SchedulerService {
       const logEntry: InsertDataUpdateLog = {
         type,
         status, // Now status can be 'Success', 'Error', or 'In Progress'
-        details: JSON.stringify(details),
+        details: detailsJson,
       };
       
       const [result] = await db.insert(dataUpdateLogs).values(logEntry).returning();

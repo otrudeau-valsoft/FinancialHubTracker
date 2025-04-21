@@ -980,6 +980,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Starting current price update for all portfolios");
       
+      // Create a log entry with 'In Progress' status
+      const inProgressLog = await schedulerService.logUpdate('current_prices', 'In Progress', {
+        message: "Starting current price update for all portfolios...",
+        timestamp: new Date().toISOString()
+      });
+      
       const results = await currentPriceService.updateAllCurrentPrices();
       
       // Log the update in the data_update_logs table
