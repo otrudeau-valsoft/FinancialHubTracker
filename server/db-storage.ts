@@ -971,14 +971,19 @@ export class DatabaseStorage implements IStorage {
         .where(eq(historicalPrices.region, region));
       
       if (startDate) {
-        query = query.where(gte(historicalPrices.date, startDate));
+        // Convert Date object to ISO string date (YYYY-MM-DD)
+        const startDateStr = startDate.toISOString().split('T')[0];
+        query = query.where(gte(historicalPrices.date, startDateStr));
       }
       
       if (endDate) {
-        query = query.where(lte(historicalPrices.date, endDate));
+        // Convert Date object to ISO string date (YYYY-MM-DD)
+        const endDateStr = endDate.toISOString().split('T')[0];
+        query = query.where(lte(historicalPrices.date, endDateStr));
       }
       
       const prices = await query.orderBy(historicalPrices.date);
+      console.log(`Found ${prices.length} historical prices for region ${region}`);
       return prices;
     } catch (error) {
       console.error("Error in getHistoricalPricesByRegion:", error);
