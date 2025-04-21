@@ -54,29 +54,30 @@ export class HistoricalPriceService {
         console.log(`Quote data sample: ${JSON.stringify(quote).substring(0, 200)}`);
         
         // Use Luxon to handle date conversion properly
-        let date: Date;
+        let dateObj: Date;
         
         if (quote.date) {
           // If we have a date object, use it directly
-          date = new Date(quote.date);
-        } else if (quote.timestamp) {
-          // If we have a timestamp (in milliseconds), convert it
-          date = new Date(Number(quote.timestamp) * 1000); // Convert seconds to milliseconds if needed
+          dateObj = new Date(quote.date);
         } else {
           // Last resort fallback
-          date = new Date();
-          console.warn(`No valid date or timestamp for ${symbol} (${region}), using current date`);
+          dateObj = new Date();
+          console.warn(`No valid date for ${symbol} (${region}), using current date`);
         }
         
+        // Format date as ISO string and take only the date part (YYYY-MM-DD)
+        const dateStr = dateObj.toISOString().split('T')[0];
+        
+        // Convert all numeric values to strings as required by schema
         return {
           symbol,
-          date,
-          open: quote.open,
-          high: quote.high,
-          low: quote.low,
-          close: quote.close,
-          volume: quote.volume,
-          adjustedClose: quote.adjclose,
+          date: dateStr,
+          open: quote.open !== null ? String(quote.open) : null,
+          high: quote.high !== null ? String(quote.high) : null,
+          low: quote.low !== null ? String(quote.low) : null,
+          close: quote.close !== null ? String(quote.close) : "0", // Required field, defaults to "0"
+          volume: quote.volume !== null ? String(quote.volume) : null,
+          adjustedClose: quote.adjclose !== null ? String(quote.adjclose) : null,
           region
         };
       });
@@ -132,38 +133,38 @@ export class HistoricalPriceService {
   }
 
   /**
-   * Get start date based on period
+   * Get start date based on period using Luxon for better date handling
    * @param period Period string ('1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max')
    * @returns Date object for the start of the period
    */
   private getPeriodStartDate(period: string): Date {
-    const now = new Date();
+    const now = DateTime.now();
     
     switch (period) {
       case '1d':
-        return new Date(now.setDate(now.getDate() - 1));
+        return now.minus({ days: 1 }).toJSDate();
       case '5d':
-        return new Date(now.setDate(now.getDate() - 5));
+        return now.minus({ days: 5 }).toJSDate();
       case '1mo':
-        return new Date(now.setMonth(now.getMonth() - 1));
+        return now.minus({ months: 1 }).toJSDate();
       case '3mo':
-        return new Date(now.setMonth(now.getMonth() - 3));
+        return now.minus({ months: 3 }).toJSDate();
       case '6mo':
-        return new Date(now.setMonth(now.getMonth() - 6));
+        return now.minus({ months: 6 }).toJSDate();
       case '1y':
-        return new Date(now.setFullYear(now.getFullYear() - 1));
+        return now.minus({ years: 1 }).toJSDate();
       case '2y':
-        return new Date(now.setFullYear(now.getFullYear() - 2));
+        return now.minus({ years: 2 }).toJSDate();
       case '5y':
-        return new Date(now.setFullYear(now.getFullYear() - 5));
+        return now.minus({ years: 5 }).toJSDate();
       case '10y':
-        return new Date(now.setFullYear(now.getFullYear() - 10));
+        return now.minus({ years: 10 }).toJSDate();
       case 'ytd':
-        return new Date(now.getFullYear(), 0, 1); // January 1st of current year
+        return DateTime.local(now.year, 1, 1).toJSDate(); // January 1st of current year
       case 'max':
-        return new Date(1970, 0, 1); // Unix epoch
+        return DateTime.fromObject({ year: 1970, month: 1, day: 1 }).toJSDate(); // Unix epoch
       default:
-        return new Date(now.setFullYear(now.getFullYear() - 1)); // Default to 1 year
+        return now.minus({ years: 1 }).toJSDate(); // Default to 1 year
     }
   }
 }

@@ -537,6 +537,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ message: "Failed to update historical prices for portfolio" });
     }
   });
+  
+  // Test route for historical price import
+  app.get("/api/test/historical-prices", async (_req: Request, res: Response) => {
+    try {
+      // Test with a few sample stocks from each region
+      const usdSymbols = ['AAPL', 'MSFT', 'GOOGL'];
+      const cadSymbols = ['RY', 'TD', 'BMO'];
+      const intlSymbols = ['SONY', 'TCEHY', 'SAP'];
+      
+      const results = {
+        USD: [] as any[],
+        CAD: [] as any[],
+        INTL: [] as any[]
+      };
+      
+      // Test USD symbols
+      for (const symbol of usdSymbols) {
+        try {
+          const success = await historicalPriceService.fetchAndStoreHistoricalPrices(symbol, 'USD', '1mo');
+          const data = await storage.getHistoricalPrices(symbol, 'USD');
+          results.USD.push({ symbol, success, count: data.length });
+        } catch (error) {
+          results.USD.push({ symbol, success: false, error: (error as Error).message });
+        }
+      }
+      
+      // Test CAD symbols
+      for (const symbol of cadSymbols) {
+        try {
+          const success = await historicalPriceService.fetchAndStoreHistoricalPrices(symbol, 'CAD', '1mo');
+          const data = await storage.getHistoricalPrices(symbol, 'CAD');
+          results.CAD.push({ symbol, success, count: data.length });
+        } catch (error) {
+          results.CAD.push({ symbol, success: false, error: (error as Error).message });
+        }
+      }
+      
+      // Test INTL symbols
+      for (const symbol of intlSymbols) {
+        try {
+          const success = await historicalPriceService.fetchAndStoreHistoricalPrices(symbol, 'INTL', '1mo');
+          const data = await storage.getHistoricalPrices(symbol, 'INTL');
+          results.INTL.push({ symbol, success, count: data.length });
+        } catch (error) {
+          results.INTL.push({ symbol, success: false, error: (error as Error).message });
+        }
+      }
+      
+      return res.json({
+        message: 'Historical price test complete',
+        results
+      });
+    } catch (error) {
+      console.error("Error in historical price test:", error);
+      return res.status(500).json({ message: "Failed to run historical price test", error: (error as Error).message });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
