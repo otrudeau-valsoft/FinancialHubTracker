@@ -473,37 +473,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { region } = req.params;
       console.log(`API Request - Fetching historical prices for region: ${region.toUpperCase()}`);
       
-      // Direct SQL approach to get historical prices by region
-      const { db } = await import('./db');
-      const { historicalPrices } = await import('@shared/schema');
-      const { eq } = await import('drizzle-orm');
+      // Get all symbols in the region's portfolio
+      const stocks = await storage.getPortfolioStocks(region.toUpperCase());
+      console.log(`Found ${stocks.length} stocks in ${region.toUpperCase()} portfolio: ${stocks.map(s => s.symbol).join(', ')}`);
       
-      // Run a direct SQL query to get historical prices
-      const prices = await db
-        .select()
-        .from(historicalPrices)
-        .where(eq(historicalPrices.region, region.toUpperCase()));
+      if (stocks.length === 0) {
+        console.log(`No stocks found in ${region.toUpperCase()} portfolio`);
+        return res.json([]);
+      }
       
-      console.log(`Direct SQL query found ${prices.length} prices for region ${region.toUpperCase()}`);
+      // Compile all historical prices for all stocks in the region
+      let allPrices: any[] = [];
       
-      // If we still don't get results, let's try to debug with a direct SQL query
-      if (prices.length === 0) {
-        // Get a list of symbols in the region
-        const stocks = await storage.getPortfolioStocks(region.toUpperCase());
-        console.log(`Found ${stocks.length} stocks in ${region.toUpperCase()} portfolio: ${stocks.map(s => s.symbol).join(', ')}`);
+      // Try a different approach - loop through each stock and get its prices individually
+      // We know this works for individual symbols
+      for (const stock of stocks.slice(0, 3)) { // Limit to first 3 for testing
+        console.log(`Fetching historical prices for ${stock.symbol} (${region.toUpperCase()})`);
+        const stockPrices = await storage.getHistoricalPrices(stock.symbol, region.toUpperCase());
+        console.log(`Found ${stockPrices.length} historical prices for ${stock.symbol}`);
+        allPrices = allPrices.concat(stockPrices);
+      }
+      
+      console.log(`Combined historical prices for region ${region.toUpperCase()}: ${allPrices.length} records`);
+      
+      if (allPrices.length === 0) {
+        // Try a direct SQL query as fallback
+        console.log(`Attempting direct SQL query for historical prices in region ${region.toUpperCase()}`);
+        const { db } = await import('./db');
+        const { historicalPrices } = await import('@shared/schema');
+        const { eq } = await import('drizzle-orm');
         
-        // Try fetching AAPL data directly
-        const appleData = await storage.getHistoricalPrices('AAPL', region.toUpperCase());
-        console.log(`AAPL has ${appleData.length} records`);
-        
-        // If we have Apple data but not returning it correctly, return it directly
-        if (appleData.length > 0) {
-          console.log(`Returning ${appleData.length} AAPL records as a fallback`);
-          return res.json(appleData);
+        try {
+          // Execute a prepared SQL query to diagnostics  
+          const result = await db.execute(
+            `SELECT COUNT(*) FROM historical_prices WHERE region = $1`, 
+            [region.toUpperCase()]
+          );
+          console.log(`SQL Query result for count: `, result);
+          
+          // Try to get AAPL data specifically
+          const appleData = await storage.getHistoricalPrices('AAPL', region.toUpperCase());
+          if (appleData.length > 0) {
+            console.log(`Returning ${appleData.length} AAPL records as a fallback`);
+            return res.json(appleData);
+          }
+        } catch (sqlError) {
+          console.error("SQL query error:", sqlError);
         }
       }
       
-      return res.json(prices);
+      // Return all the prices we collected
+      return res.json(allPrices);
     } catch (error) {
       console.error("Error fetching historical prices by region:", error);
       return res.status(500).json({ message: "Failed to fetch historical prices by region", error: (error as Error).message });
