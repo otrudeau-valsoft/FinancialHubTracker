@@ -967,49 +967,40 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`Fetching historical prices for region: ${region}`);
       
-      // First, let's verify data exists by counting the records
-      const countQuery = db
+      // First, check if we have data in this region
+      const countResult = await db
         .select({ count: sql`count(*)` })
         .from(historicalPrices)
         .where(eq(historicalPrices.region, region));
         
-      const [countResult] = await countQuery;
-      console.log(`Raw count for region ${region}:`, countResult);
+      console.log(`Raw count for region ${region}:`, countResult[0]?.count || 0);
       
-      // Next, try a simple query to get the first few records
-      const sampleRecords = await db
-        .select()
-        .from(historicalPrices)
-        .where(eq(historicalPrices.region, region))
-        .limit(5);
+      // Basic query without date filters
+      let whereConditions = [eq(historicalPrices.region, region)];
       
-      console.log(`Sample records for region ${region}:`, 
-        sampleRecords.length > 0 ? 'Found samples' : 'No samples');
-      
-      // Now build the actual query with date filtering
-      let query = db
-        .select()
-        .from(historicalPrices)
-        .where(eq(historicalPrices.region, region));
-      
+      // Add date filters if provided
       if (startDate) {
-        // Convert Date object to ISO string date (YYYY-MM-DD)
         const startDateStr = startDate.toISOString().split('T')[0];
         console.log(`Filtering by start date: ${startDateStr}`);
-        query = query.where(gt(historicalPrices.date, startDateStr));
+        whereConditions.push(gte(historicalPrices.date, startDateStr));
       }
       
       if (endDate) {
-        // Convert Date object to ISO string date (YYYY-MM-DD)
         const endDateStr = endDate.toISOString().split('T')[0];
         console.log(`Filtering by end date: ${endDateStr}`);
-        query = query.where(lt(historicalPrices.date, endDateStr));
+        whereConditions.push(lte(historicalPrices.date, endDateStr));
       }
       
-      const prices = await query.orderBy(historicalPrices.date);
+      // Execute the query with all conditions using and()
+      const prices = await db
+        .select()
+        .from(historicalPrices)
+        .where(and(...whereConditions))
+        .orderBy(historicalPrices.date);
+      
       console.log(`Found ${prices.length} historical prices for region ${region}`);
       
-      // Return the results - even if empty
+      // Return the results
       return prices;
     } catch (error) {
       console.error("Error in getHistoricalPricesByRegion:", error);
