@@ -63,8 +63,8 @@ export const PerformanceChart = ({
   }
   
   return (
-    <Card className="bg-card mb-6 border-0 shadow">
-      <CardHeader className="card-header flex flex-row items-center justify-between px-4 py-3 bg-[#1C2938]">
+    <Card className="mb-6 border-0 shadow bg-[#0A1929]">
+      <CardHeader className="card-header flex flex-row items-center justify-between px-4 py-3 bg-[#111E2E]">
         <h3 className="text-left">Performance vs {benchmark}</h3>
         <div className="flex items-center space-x-2 text-xs">
           {timeRanges.map(range => (
@@ -81,7 +81,7 @@ export const PerformanceChart = ({
           ))}
         </div>
       </CardHeader>
-      <CardContent className="p-4">
+      <CardContent className="p-4 bg-[#0A1929]">
         <div className="h-[200px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart

@@ -41,8 +41,8 @@ export const PortfolioTable = ({ stocks, region }: PortfolioTableProps) => {
     : stocks.filter(stock => stock.stockType.toLowerCase() === filter.toLowerCase());
   
   return (
-    <Card className="bg-card mb-6 border-0 shadow">
-      <CardHeader className="card-header flex flex-row items-center justify-between px-4 py-3 bg-[#1C2938]">
+    <Card className="mb-6 border-0 shadow bg-[#0A1929]">
+      <CardHeader className="card-header flex flex-row items-center justify-between px-4 py-3 bg-[#111E2E]">
         <h3 className="text-left">{region} Portfolio Holdings</h3>
         <div className="flex space-x-2">
           <Button 
@@ -57,7 +57,7 @@ export const PortfolioTable = ({ stocks, region }: PortfolioTableProps) => {
           <Button 
             variant="ghost" 
             size="sm" 
-            className={`text-xs ${filter === 'comp' ? 'text-white' : 'text-gray-400'}`}
+            className={`text-xs px-3 py-1 rounded-full flex items-center ${filter === 'comp' ? 'bg-blue-900/30 text-white' : 'text-gray-400'}`}
             onClick={() => setFilter('comp')}
           >
             <div className="w-3 h-3 rounded-full bg-secondary mr-1"></div>
@@ -66,7 +66,7 @@ export const PortfolioTable = ({ stocks, region }: PortfolioTableProps) => {
           <Button 
             variant="ghost" 
             size="sm" 
-            className={`text-xs ${filter === 'cat' ? 'text-white' : 'text-gray-400'}`}
+            className={`text-xs px-3 py-1 rounded-full flex items-center ${filter === 'cat' ? 'bg-yellow-900/30 text-white' : 'text-gray-400'}`}
             onClick={() => setFilter('cat')}
           >
             <div className="w-3 h-3 rounded-full bg-[#FFC107] mr-1"></div>

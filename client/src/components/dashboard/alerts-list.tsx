@@ -37,12 +37,12 @@ export const AlertsList = ({ alerts, limit = 5 }: AlertsListProps) => {
   };
   
   return (
-    <Card className="bg-card mb-6 border-0 shadow">
-      <CardHeader className="card-header flex flex-row items-center justify-between px-4 py-3 bg-[#1C2938]">
+    <Card className="mb-6 border-0 shadow bg-[#0A1929]">
+      <CardHeader className="card-header flex flex-row items-center justify-between px-4 py-3 bg-[#111E2E]">
         <h3 className="text-left">Matrix Rule Alerts</h3>
         <button className="text-xs text-secondary">View All</button>
       </CardHeader>
-      <CardContent className="p-2">
+      <CardContent className="p-2 bg-[#0A1929]">
         <div className="space-y-2 max-h-[200px] overflow-y-auto">
           {displayAlerts.length > 0 ? (
             displayAlerts.map((alert) => (
