@@ -1,7 +1,12 @@
 import { 
   users, type User, type InsertUser,
-  portfolioStocks, type PortfolioStock, type InsertPortfolioStock,
-  etfHoldings, type EtfHolding, type InsertEtfHolding,
+  assetsUS, type AssetsUS, type InsertAssetsUS,
+  assetsCAD, type AssetsCAD, type InsertAssetsCAD,
+  assetsINTL, type AssetsINTL, type InsertAssetsINTL,
+  etfHoldingsSPY, type EtfHoldingsSPY, type InsertEtfHoldingsSPY,
+  etfHoldingsXIC, type EtfHoldingsXIC, type InsertEtfHoldingsXIC,
+  etfHoldingsACWX, type EtfHoldingsACWX, type InsertEtfHoldingsACWX,
+  historicalPrices, type HistoricalPrice, type InsertHistoricalPrice,
   matrixRules, type MatrixRule, type InsertMatrixRule,
   alerts, type Alert, type InsertAlert,
   portfolioSummaries, type PortfolioSummary, type InsertPortfolioSummary,
@@ -9,6 +14,9 @@ import {
 } from "@shared/schema";
 import { db, sanitizeForDb } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
+
+// Import compatibility types for transitioning
+import { PortfolioStock, InsertPortfolioStock, EtfHolding, InsertEtfHolding } from "./types";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -559,9 +567,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateMatrixRule(id: number, rule: Partial<InsertMatrixRule>): Promise<MatrixRule | undefined> {
+    // Sanitize the update data to ensure undefined values are converted to null
+    const sanitizedData = sanitizeForDb(rule);
+    
     const [updatedRule] = await db
       .update(matrixRules)
-      .set(rule)
+      .set(sanitizedData)
       .where(eq(matrixRules.id, id))
       .returning();
     return updatedRule || undefined;
@@ -606,7 +617,10 @@ export class DatabaseStorage implements IStorage {
         if (a.severity !== 'critical' && b.severity === 'critical') return 1;
         
         // Then by creation date (newest first)
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        // Safely handle potentially null dates by using default dates if needed
+        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+        return dateB.getTime() - dateA.getTime();
       });
     } catch (error) {
       console.error("Error in getAlerts:", error);
@@ -685,12 +699,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePortfolioSummary(id: number, summary: Partial<InsertPortfolioSummary>): Promise<PortfolioSummary | undefined> {
+    // Sanitize the update data to ensure undefined values are converted to null
+    const sanitizedData = sanitizeForDb({
+      ...summary,
+      updatedAt: new Date()
+    });
+    
     const [updatedSummary] = await db
       .update(portfolioSummaries)
-      .set({
-        ...summary,
-        updatedAt: new Date()
-      })
+      .set(sanitizedData)
       .where(eq(portfolioSummaries.id, id))
       .returning();
     return updatedSummary || undefined;
@@ -698,4 +715,6 @@ export class DatabaseStorage implements IStorage {
 }
 
 // Export an instance of the database storage
-export const storage = new DatabaseStorage();
+// Use the new database storage implementation
+import { DatabaseStorage as DbStorage } from './db-storage';
+export const storage = new DbStorage();

@@ -1,9 +1,49 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPortfolioStockSchema, insertEtfHoldingSchema, insertMatrixRuleSchema, insertAlertSchema, insertPortfolioSummarySchema } from "@shared/schema";
+import { insertMatrixRuleSchema, insertAlertSchema, insertPortfolioSummarySchema } from "@shared/schema";
+import { InsertPortfolioStock, InsertEtfHolding } from "./types";
 import { z } from "zod";
 
+// Define validation schemas for the compatibility types
+const insertPortfolioStockSchema = z.object({
+  symbol: z.string(),
+  company: z.string(),
+  region: z.string(),
+  sector: z.string().nullable().optional(),
+  stockType: z.string(),
+  rating: z.string(),
+  price: z.string().nullable().optional(),
+  quantity: z.string().nullable().optional(),
+  nav: z.string().nullable().optional(),
+  portfolioWeight: z.string().nullable().optional(),
+  dailyChange: z.string().nullable().optional(),
+  mtdChange: z.string().nullable().optional(),
+  ytdChange: z.string().nullable().optional(),
+  sixMonthChange: z.string().nullable().optional(),
+  fiftyTwoWeekChange: z.string().nullable().optional(),
+  dividendYield: z.string().nullable().optional(),
+  profitLoss: z.string().nullable().optional(),
+  nextEarningsDate: z.string().nullable().optional()
+});
+
+const insertEtfHoldingSchema = z.object({
+  etfSymbol: z.string(),
+  ticker: z.string(),
+  name: z.string(),
+  sector: z.string().nullable().optional(),
+  assetClass: z.string().nullable().optional(),
+  marketValue: z.string().nullable().optional(),
+  weight: z.string().nullable().optional(),
+  notionalValue: z.string().nullable().optional(),
+  price: z.string().nullable().optional(),
+  quantity: z.string().nullable().optional(),
+  location: z.string().nullable().optional(),
+  exchange: z.string().nullable().optional(),
+  currency: z.string().nullable().optional(),
+  fxRate: z.string().nullable().optional(),
+  marketCurrency: z.string().nullable().optional()
+});
 export async function registerRoutes(app: Express): Promise<Server> {
   // prefix all routes with /api
   const apiRouter = app.route("/api");
