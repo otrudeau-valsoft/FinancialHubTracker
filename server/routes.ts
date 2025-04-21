@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertMatrixRuleSchema, insertAlertSchema, insertPortfolioSummarySchema } from "@shared/schema";
 import { InsertPortfolioStock, InsertEtfHolding } from "./types";
 import { z } from "zod";
+import { historicalPriceService } from "./services/historical-price-service";
 
 // Define validation schemas for the compatibility types
 const insertPortfolioStockSchema = z.object({
@@ -438,6 +439,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error importing ETF data:", error);
       return res.status(500).json({ message: "Failed to import ETF data" });
+    }
+  });
+
+  // Historical Prices Routes
+  app.get("/api/historical-prices/:symbol/:region", async (req: Request, res: Response) => {
+    try {
+      const { symbol, region } = req.params;
+      const startDateStr = req.query.startDate as string | undefined;
+      const endDateStr = req.query.endDate as string | undefined;
+      
+      let startDate: Date | undefined;
+      let endDate: Date | undefined;
+      
+      if (startDateStr) {
+        startDate = new Date(startDateStr);
+      }
+      
+      if (endDateStr) {
+        endDate = new Date(endDateStr);
+      }
+      
+      const prices = await storage.getHistoricalPrices(symbol, region.toUpperCase(), startDate, endDate);
+      return res.json(prices);
+    } catch (error) {
+      console.error("Error fetching historical prices:", error);
+      return res.status(500).json({ message: "Failed to fetch historical prices" });
+    }
+  });
+
+  app.get("/api/historical-prices/region/:region", async (req: Request, res: Response) => {
+    try {
+      const { region } = req.params;
+      const startDateStr = req.query.startDate as string | undefined;
+      const endDateStr = req.query.endDate as string | undefined;
+      
+      let startDate: Date | undefined;
+      let endDate: Date | undefined;
+      
+      if (startDateStr) {
+        startDate = new Date(startDateStr);
+      }
+      
+      if (endDateStr) {
+        endDate = new Date(endDateStr);
+      }
+      
+      const prices = await storage.getHistoricalPricesByRegion(region.toUpperCase(), startDate, endDate);
+      return res.json(prices);
+    } catch (error) {
+      console.error("Error fetching historical prices by region:", error);
+      return res.status(500).json({ message: "Failed to fetch historical prices by region" });
+    }
+  });
+
+  app.post("/api/historical-prices/fetch/:symbol/:region", async (req: Request, res: Response) => {
+    try {
+      const { symbol, region } = req.params;
+      const { period, interval } = req.body;
+      
+      const success = await historicalPriceService.fetchAndStoreHistoricalPrices(
+        symbol,
+        region.toUpperCase(),
+        period || '1y',
+        interval || '1d'
+      );
+      
+      if (!success) {
+        return res.status(404).json({ message: `No historical data found for ${symbol}` });
+      }
+      
+      return res.status(200).json({ 
+        message: `Successfully fetched and stored historical prices for ${symbol} (${region})`
+      });
+    } catch (error) {
+      console.error("Error fetching historical prices from Yahoo Finance:", error);
+      return res.status(500).json({ message: "Failed to fetch historical prices" });
+    }
+  });
+
+  app.post("/api/historical-prices/fetch/portfolio/:region", async (req: Request, res: Response) => {
+    try {
+      const { region } = req.params;
+      const { period, interval } = req.body;
+      
+      const successCount = await historicalPriceService.updateHistoricalPricesForPortfolio(
+        region.toUpperCase(),
+        period || '1y',
+        interval || '1d'
+      );
+      
+      return res.status(200).json({ 
+        message: `Successfully updated historical prices for ${successCount} stocks in ${region} portfolio`
+      });
+    } catch (error) {
+      console.error("Error updating historical prices for portfolio:", error);
+      return res.status(500).json({ message: "Failed to update historical prices for portfolio" });
     }
   });
 
