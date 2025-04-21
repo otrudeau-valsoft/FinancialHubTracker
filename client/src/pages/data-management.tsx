@@ -78,7 +78,7 @@ export default function DataManagement() {
   
   // Mutations for triggering manual updates
   const updateCurrentPricesMutation = useMutation({
-    mutationFn: () => apiRequest('/api/current-prices/fetch/all', { method: 'POST' }),
+    mutationFn: () => apiRequest('POST', '/api/current-prices/fetch/all'),
     onSuccess: () => {
       toast({
         title: "Current prices updated",
@@ -100,7 +100,7 @@ export default function DataManagement() {
   
   const updateHistoricalPricesMutation = useMutation({
     mutationFn: (region: string) => 
-      apiRequest(`/api/historical-prices/fetch/portfolio/${region}`, { method: 'POST' }),
+      apiRequest('POST', `/api/historical-prices/fetch/portfolio/${region}`),
     onSuccess: (_, region) => {
       toast({
         title: "Historical prices updated",
@@ -119,7 +119,7 @@ export default function DataManagement() {
   });
   
   const updateAllHistoricalPricesMutation = useMutation({
-    mutationFn: () => apiRequest('/api/historical-prices/fetch/all', { method: 'POST' }),
+    mutationFn: () => apiRequest('POST', '/api/historical-prices/fetch/all'),
     onSuccess: () => {
       toast({
         title: "All historical prices updated",
@@ -140,10 +140,7 @@ export default function DataManagement() {
   // Mutation for updating scheduler config
   const updateSchedulerConfigMutation = useMutation({
     mutationFn: ({ type, config }: { type: string, config: any }) => 
-      apiRequest(`/api/scheduler/config/${type}`, { 
-        method: 'POST',
-        data: config
-      }),
+      apiRequest('POST', `/api/scheduler/config/${type}`, config),
     onSuccess: () => {
       toast({
         title: "Scheduler configuration updated",
