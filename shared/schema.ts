@@ -289,13 +289,15 @@ export type CurrentPrice = typeof currentPrices.$inferSelect;
 export const dataUpdateLogs = pgTable("data_update_logs", {
   id: serial("id").primaryKey(),
   type: text("type").notNull(), // 'current_prices' or 'historical_prices'
-  status: text("status").notNull(), // 'Success' or 'Error'
+  status: text("status").notNull(), // 'Success', 'Error', or 'In Progress'
   details: text("details"), // JSON string with additional details
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
 
 export const insertDataUpdateLogSchema = createInsertSchema(dataUpdateLogs).omit({
   id: true,
+}).extend({
+  status: z.enum(['Success', 'Error', 'In Progress'])
 });
 
 export type InsertDataUpdateLog = z.infer<typeof insertDataUpdateLogSchema>;

@@ -300,14 +300,35 @@ class SchedulerService {
   }
 
   /**
-   * Log an update to the database
+   * Log an update to the database or update an existing log entry
    * This is public so that route handlers can call it directly for manual updates
+   * @param type The type of update
+   * @param status The status of the update
+   * @param details The details of the update
+   * @param logId Optional ID of an existing log entry to update instead of creating a new one
+   * @returns The log entry
    */
-  async logUpdate(type: string, status: 'Success' | 'Error', details: any): Promise<any> {
+  async logUpdate(type: string, status: 'Success' | 'Error' | 'In Progress', details: any, logId?: number): Promise<any> {
     try {
+      // If logId is provided, update the existing log entry
+      if (logId) {
+        const [result] = await db
+          .update(dataUpdateLogs)
+          .set({
+            status,
+            details: JSON.stringify(details),
+            // Intentionally not updating timestamp to preserve the original creation time
+          })
+          .where({ id: logId })
+          .returning();
+        
+        return result;
+      }
+      
+      // Otherwise, create a new log entry
       const logEntry: InsertDataUpdateLog = {
         type,
-        status,
+        status: status as 'Success' | 'Error', // TypeScript narrowing
         details: JSON.stringify(details),
       };
       

@@ -49,7 +49,7 @@ type SchedulerConfig = {
 type DataUpdateLog = {
   id: number;
   type: string;
-  status: 'Success' | 'Error';
+  status: 'Success' | 'Error' | 'In Progress';
   details: string;
   timestamp: string;
 };
@@ -175,6 +175,22 @@ export default function DataManagement() {
       return details.message || JSON.stringify(details, null, 2);
     } catch (e) {
       return detailsJson;
+    }
+  };
+  
+  // Extract and format progress information from log details
+  const extractProgress = (detailsJson: string) => {
+    try {
+      const details = JSON.parse(detailsJson);
+      if (details.progress && typeof details.progress === 'object') {
+        const { current, total } = details.progress;
+        if (typeof current === 'number' && typeof total === 'number') {
+          return { current, total, percent: Math.round((current / total) * 100) };
+        }
+      }
+      return null;
+    } catch (e) {
+      return null;
     }
   };
   
@@ -376,12 +392,19 @@ export default function DataManagement() {
                               {log.type === 'current_prices' ? 'CURRENT PRICES' : 'HISTORICAL PRICES'}
                             </span>
                             <span className={`ml-2 px-2 py-0.5 text-xs font-mono ${
-                              log.status === 'Success' ? 'bg-[#0D3A21] text-[#4CAF50]' : 'bg-[#3A1A1A] text-[#F44336]'
+                              log.status === 'Success' ? 'bg-[#0D3A21] text-[#4CAF50]' : 
+                              log.status === 'In Progress' ? 'bg-[#3A2F10] text-[#FFCA28]' : 
+                              'bg-[#3A1A1A] text-[#F44336]'
                             }`}>
                               {log.status === 'Success' ? (
                                 <span className="flex items-center">
                                   <CheckCircle2 className="h-3 w-3 mr-1" />
                                   SUCCESS
+                                </span>
+                              ) : log.status === 'In Progress' ? (
+                                <span className="flex items-center">
+                                  <div className="h-3 w-3 mr-1 animate-spin rounded-full border-2 border-[#FFCA28] border-t-transparent"></div>
+                                  IN PROGRESS
                                 </span>
                               ) : (
                                 <span className="flex items-center">
@@ -397,6 +420,24 @@ export default function DataManagement() {
                         </div>
                         <div className="ml-6 mt-1 text-xs font-mono text-[#C0C0C0] bg-[#081120] p-2 rounded-none border-l-2 border-[#1A304A]">
                           {formatDetails(log.details)}
+                          
+                          {/* Progress bar for In Progress status */}
+                          {log.status === 'In Progress' && extractProgress(log.details) && (
+                            <div className="mt-2">
+                              <div className="flex justify-between text-xs mb-1">
+                                <span className="text-[#7A8999]">PROGRESS:</span>
+                                <span className="text-[#FFCA28]">
+                                  {extractProgress(log.details)?.current} / {extractProgress(log.details)?.total} ({extractProgress(log.details)?.percent}%)
+                                </span>
+                              </div>
+                              <div className="h-2 w-full bg-[#111E2E] overflow-hidden">
+                                <div 
+                                  className="h-full bg-[#FFCA28]" 
+                                  style={{ width: `${extractProgress(log.details)?.percent || 0}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
