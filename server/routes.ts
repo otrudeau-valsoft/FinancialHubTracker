@@ -539,24 +539,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/historical-prices/fetch/portfolio/:region", async (req: Request, res: Response) => {
     try {
       const { region } = req.params;
+      const regionUpper = region.toUpperCase();
       const { period, interval } = req.body;
+      
+      console.log(`Fetching historical prices for portfolio: ${region}`);
+      
+      // First check if we have symbols in the database for this region
+      const symbols = await historicalPriceService.getSymbolsByRegionDirectSql(regionUpper);
+      
+      if (!symbols || symbols.length === 0) {
+        return res.status(404).json({ 
+          message: `No symbols found for ${region} portfolio. Please import portfolio first.`
+        });
+      }
+      
+      console.log(`Found ${symbols.length} symbols for ${region} portfolio`);
+      
+      // Test with a single symbol first to ensure connectivity works
+      const testSymbol = symbols[0].toUpperCase();
+      const singleSuccess = await historicalPriceService.fetchAndStoreHistoricalPrices(
+        testSymbol,
+        regionUpper,
+        period || '1mo', // Use shorter period for test
+        interval || '1d'
+      );
+      
+      if (!singleSuccess) {
+        return res.status(404).json({ 
+          message: `Test fetch failed for symbol ${testSymbol}. Cannot retrieve historical prices.`
+        });
+      }
+      
+      // Now proceed with the full portfolio
+      console.log(`Test fetch successful. Proceeding with full portfolio update...`);
       
       // Use 5y and 1d as defaults for our project requirements
       const successCount = await historicalPriceService.updateHistoricalPricesForPortfolio(
-        region.toUpperCase(),
+        regionUpper,
         period || '5y',
         interval || '1d'
       );
       
       if (successCount === 0) {
-        // No stocks were successfully updated
+        // No stocks were successfully updated beyond our test
         return res.status(404).json({ 
-          message: "No historical data found for portfolio"
+          message: "Failed to update historical prices for portfolio (beyond test symbol)"
         });
       }
       
       return res.status(200).json({ 
-        message: `Successfully updated historical prices for ${successCount} stocks in ${region} portfolio`
+        message: `Successfully updated historical prices for ${successCount} stocks in ${region} portfolio`,
+        stockCount: successCount,
+        totalSymbols: symbols.length
       });
     } catch (error) {
       console.error("Error updating historical prices for portfolio:", error);
@@ -619,6 +653,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error in direct query test:", error);
       return res.status(500).json({ 
         message: "Failed to run direct query test", 
+        error: (error as Error).message 
+      });
+    }
+  });
+
+  // New test endpoint to verify symbol retrieval and display
+  app.get("/api/portfolio-symbols/:region", async (req: Request, res: Response) => {
+    try {
+      const { region } = req.params;
+      const regionUpper = region.toUpperCase();
+      
+      // Get symbols from the database for this region
+      const symbols = await historicalPriceService.getSymbolsByRegionDirectSql(regionUpper);
+      
+      return res.json({
+        region: regionUpper,
+        count: symbols.length,
+        symbols: symbols
+      });
+    } catch (error) {
+      console.error("Error retrieving portfolio symbols:", error);
+      return res.status(500).json({ 
+        message: "Failed to retrieve portfolio symbols", 
         error: (error as Error).message 
       });
     }

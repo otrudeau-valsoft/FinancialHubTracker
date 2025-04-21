@@ -167,7 +167,7 @@ export class HistoricalPriceService {
   /**
    * Fetch all symbols from a specific region's assets table using direct SQL
    */
-  private async getSymbolsByRegionDirectSql(region: string): Promise<string[]> {
+  async getSymbolsByRegionDirectSql(region: string): Promise<string[]> {
     try {
       let tableName: string;
       
