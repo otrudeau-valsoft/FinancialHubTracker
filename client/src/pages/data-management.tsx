@@ -179,224 +179,258 @@ export default function DataManagement() {
   };
   
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 bg-[#061220]">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-100">Data Management</h1>
-        <p className="text-gray-400 mt-2">Manage data updates and configure automated scheduling</p>
+        <h1 className="text-3xl font-bold text-[#EFEFEF] font-mono tracking-tight">DATA MANAGEMENT</h1>
+        <div className="flex items-center space-x-2 mt-1">
+          <div className="h-1 w-12 bg-[#FFCA28]"></div>
+          <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">MANAGE DATA UPDATES • REAL-TIME SCHEDULING • SYSTEM LOGS</p>
+        </div>
       </div>
       
-      <div className="grid gap-6">
-        {/* Update History Section */}
-        <Card className="bg-[#0A1929] border-gray-800">
-          <CardHeader className="bg-[#111E2E] border-b border-gray-800">
-            <CardTitle className="text-gray-100 flex items-center">
-              <Terminal className="mr-2 h-5 w-5" />
-              Data Update Logs
-            </CardTitle>
-            <CardDescription className="text-gray-400">
-              History of all data updates to the system
-            </CardDescription>
+      <div className="grid gap-4">
+        {/* Update Panels - Top Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="bg-[#0A1524] border border-[#1A304A] rounded-none shadow-lg">
+            <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-3">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-[#EFEFEF] text-lg font-mono flex items-center">
+                  <BarChart4 className="mr-2 h-5 w-5 text-[#38AAFD]" />
+                  REAL-TIME UPDATES
+                </CardTitle>
+                <Button 
+                  variant="default" 
+                  onClick={() => updateCurrentPricesMutation.mutate()}
+                  disabled={updateCurrentPricesMutation.isPending}
+                  className="bg-[#38AAFD] hover:bg-[#1D90E0] text-white rounded-sm h-8 px-3 py-1"
+                  size="sm"
+                >
+                  {updateCurrentPricesMutation.isPending ? (
+                    <>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      RUNNING
+                    </>
+                  ) : (
+                    <>
+                      <RotateCw className="mr-2 h-4 w-4" />
+                      UPDATE CURRENT PRICES
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-3 pt-4">
+              <div className="font-mono text-xs space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-[#7A8999]">MODE:</span>
+                  <span className="text-[#EFEFEF]">ALL PORTFOLIOS</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#7A8999]">REGIONS:</span>
+                  <span className="text-[#EFEFEF]">USD | CAD | INTL</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#7A8999]">SCHEDULED:</span>
+                  <span className={`${schedulerConfig?.current_prices.enabled ? 'text-[#4CAF50]' : 'text-[#F44336]'}`}>
+                    {schedulerConfig?.current_prices.enabled ? 'ACTIVE' : 'DISABLED'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#7A8999]">INTERVAL:</span>
+                  <span className="text-[#EFEFEF]">{schedulerConfig?.current_prices.intervalMinutes} MIN</span>
+                </div>
+              </div>
+              <div className="mt-3 text-xs text-[#7A8999] border-t border-[#1A304A] pt-3">
+                Updates include current price, percent change, volume, and other market metrics.
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-[#0A1524] border border-[#1A304A] rounded-none shadow-lg">
+            <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-3">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-[#EFEFEF] text-lg font-mono flex items-center">
+                  <LineChart className="mr-2 h-5 w-5 text-[#4CAF50]" />
+                  HISTORICAL DATA
+                </CardTitle>
+                <Button 
+                  variant="default" 
+                  onClick={() => updateAllHistoricalPricesMutation.mutate()}
+                  disabled={updateHistoricalPricesMutation.isPending || updateAllHistoricalPricesMutation.isPending}
+                  className="bg-[#4CAF50] hover:bg-[#388E3C] text-white rounded-sm h-8 px-3 py-1"
+                  size="sm"
+                >
+                  {updateAllHistoricalPricesMutation.isPending ? (
+                    <>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      RUNNING
+                    </>
+                  ) : (
+                    <>
+                      <RotateCw className="mr-2 h-4 w-4" />
+                      UPDATE ALL HISTORY
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-3 pt-4">
+              <div className="font-mono text-xs space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-[#7A8999]">MODE:</span>
+                  <span className="text-[#EFEFEF]">INCREMENTAL</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#7A8999]">REGIONS:</span>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateHistoricalPricesMutation.mutate('USD')}
+                      disabled={updateHistoricalPricesMutation.isPending || updateAllHistoricalPricesMutation.isPending}
+                      className="h-6 px-2 text-xs border-[#1A304A] text-[#EFEFEF] bg-[#0D1C30] hover:bg-[#1A304A]"
+                    >
+                      USD
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateHistoricalPricesMutation.mutate('CAD')}
+                      disabled={updateHistoricalPricesMutation.isPending || updateAllHistoricalPricesMutation.isPending}
+                      className="h-6 px-2 text-xs border-[#1A304A] text-[#EFEFEF] bg-[#0D1C30] hover:bg-[#1A304A]"
+                    >
+                      CAD
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateHistoricalPricesMutation.mutate('INTL')}
+                      disabled={updateHistoricalPricesMutation.isPending || updateAllHistoricalPricesMutation.isPending}
+                      className="h-6 px-2 text-xs border-[#1A304A] text-[#EFEFEF] bg-[#0D1C30] hover:bg-[#1A304A]"
+                    >
+                      INTL
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#7A8999]">SCHEDULED:</span>
+                  <span className={`${schedulerConfig?.historical_prices.enabled ? 'text-[#4CAF50]' : 'text-[#F44336]'}`}>
+                    {schedulerConfig?.historical_prices.enabled ? 'ACTIVE' : 'DISABLED'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#7A8999]">DAILY RUN:</span>
+                  <span className="text-[#EFEFEF]">{schedulerConfig?.historical_prices.timeOfDay}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Update Logs Section */}
+        <Card className="bg-[#0A1524] border border-[#1A304A] rounded-none shadow-lg">
+          <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-3">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-[#EFEFEF] text-lg font-mono flex items-center">
+                <Terminal className="mr-2 h-5 w-5 text-[#FFCA28]" />
+                SYSTEM LOGS
+              </CardTitle>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => refetchLogs()}
+                className="h-7 border-[#1A304A] text-[#EFEFEF] bg-transparent hover:bg-[#1A304A] rounded-sm"
+              >
+                <RotateCw className="mr-2 h-3 w-3" />
+                REFRESH
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             {logsLoading ? (
               <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#38AAFD]"></div>
               </div>
             ) : !updateLogs || updateLogs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+              <div className="flex flex-col items-center justify-center h-64 text-[#7A8999]">
                 <History className="h-12 w-12 mb-2 opacity-30" />
-                <p>No update logs available</p>
+                <p className="font-mono">NO UPDATE LOGS AVAILABLE</p>
               </div>
             ) : (
-              <ScrollArea className="h-[300px] w-full">
-                <div className="p-4">
-                  {updateLogs.map((log: DataUpdateLog) => (
-                    <div 
-                      key={log.id} 
-                      className="mb-4 p-4 rounded-md border border-gray-800 bg-[#0E1F30]"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center">
-                          {log.type === 'current_prices' ? (
-                            <BarChart4 className="h-5 w-5 mr-2 text-blue-400" />
-                          ) : (
-                            <LineChart className="h-5 w-5 mr-2 text-green-400" />
-                          )}
-                          <span className="font-medium text-gray-200">
-                            {log.type === 'current_prices' ? 'Current Price Update' : 'Historical Price Update'}
-                          </span>
-                          <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                            log.status === 'Success' ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'
-                          }`}>
-                            {log.status === 'Success' ? (
-                              <span className="flex items-center">
-                                <CheckCircle2 className="h-3 w-3 mr-1" />
-                                Success
-                              </span>
+              <ScrollArea className="h-[400px] w-full">
+                <div className="p-3">
+                  <div className="grid grid-cols-1 gap-0">
+                    {updateLogs.map((log: DataUpdateLog) => (
+                      <div 
+                        key={log.id} 
+                        className="py-2 border-b border-[#1A304A] last:border-b-0"
+                      >
+                        <div className="flex justify-between items-start mb-1">
+                          <div className="flex items-center">
+                            {log.type === 'current_prices' ? (
+                              <BarChart4 className="h-4 w-4 mr-2 text-[#38AAFD]" />
                             ) : (
-                              <span className="flex items-center">
-                                <XCircle className="h-3 w-3 mr-1" />
-                                Error
-                              </span>
+                              <LineChart className="h-4 w-4 mr-2 text-[#4CAF50]" />
                             )}
+                            <span className="font-mono text-sm text-[#EFEFEF]">
+                              {log.type === 'current_prices' ? 'CURRENT PRICES' : 'HISTORICAL PRICES'}
+                            </span>
+                            <span className={`ml-2 px-2 py-0.5 text-xs font-mono ${
+                              log.status === 'Success' ? 'bg-[#0D3A21] text-[#4CAF50]' : 'bg-[#3A1A1A] text-[#F44336]'
+                            }`}>
+                              {log.status === 'Success' ? (
+                                <span className="flex items-center">
+                                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                                  SUCCESS
+                                </span>
+                              ) : (
+                                <span className="flex items-center">
+                                  <XCircle className="h-3 w-3 mr-1" />
+                                  ERROR
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                          <span className="text-xs font-mono text-[#7A8999]">
+                            {formatDistanceToNow(new Date(log.timestamp), { addSuffix: true }).toUpperCase()}
                           </span>
                         </div>
-                        <span className="text-xs text-gray-500">
-                          {formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}
-                        </span>
+                        <div className="ml-6 mt-1 text-xs font-mono text-[#C0C0C0] bg-[#081120] p-2 rounded-none border-l-2 border-[#1A304A]">
+                          {formatDetails(log.details)}
+                        </div>
                       </div>
-                      <div className="mt-2 text-sm text-gray-400 bg-[#0A1929] p-2 rounded-md">
-                        {formatDetails(log.details)}
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </ScrollArea>
             )}
           </CardContent>
-          <CardFooter className="bg-[#111E2E] border-t border-gray-800 justify-end">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => refetchLogs()}
-              className="border-gray-700 text-gray-300 hover:bg-blue-900/20 hover:text-white"
-            >
-              <RotateCw className="mr-2 h-4 w-4" />
-              Refresh Logs
-            </Button>
-          </CardFooter>
         </Card>
-        
-        {/* Manual Updates Section */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card className="bg-[#0A1929] border-gray-800">
-            <CardHeader className="bg-[#111E2E] border-b border-gray-800">
-              <CardTitle className="text-gray-100 flex items-center">
-                <BarChart4 className="mr-2 h-5 w-5 text-blue-400" />
-                Current Prices
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Fetch real-time market prices for all portfolio stocks
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <p className="text-sm text-gray-400 mb-4">
-                This will update the current market prices for all stocks across USD, CAD, and INTL portfolios.
-                Updated data includes current price, market change, and other market data points.
-              </p>
-            </CardContent>
-            <CardFooter className="bg-[#111E2E] border-t border-gray-800 justify-end">
-              <Button 
-                variant="default" 
-                onClick={() => updateCurrentPricesMutation.mutate()}
-                disabled={updateCurrentPricesMutation.isPending}
-                className="bg-blue-700 hover:bg-blue-600 text-white"
-              >
-                {updateCurrentPricesMutation.isPending ? (
-                  <>
-                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                    Updating...
-                  </>
-                ) : (
-                  <>
-                    <RotateCw className="mr-2 h-4 w-4" />
-                    Update Current Prices
-                  </>
-                )}
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          <Card className="bg-[#0A1929] border-gray-800">
-            <CardHeader className="bg-[#111E2E] border-b border-gray-800">
-              <CardTitle className="text-gray-100 flex items-center">
-                <LineChart className="mr-2 h-5 w-5 text-green-400" />
-                Historical Prices
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Fetch historical price data for all portfolio stocks
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <p className="text-sm text-gray-400 mb-4">
-                This will fetch and update historical price data for all stocks. You can update a single
-                regional portfolio or all portfolios at once.
-              </p>
-              <div className="grid grid-cols-3 gap-2 mb-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => updateHistoricalPricesMutation.mutate('USD')}
-                  disabled={updateHistoricalPricesMutation.isPending || updateAllHistoricalPricesMutation.isPending}
-                  className="border-gray-700 text-gray-300 hover:bg-blue-900/20 hover:text-white"
-                >
-                  USD Portfolio
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => updateHistoricalPricesMutation.mutate('CAD')}
-                  disabled={updateHistoricalPricesMutation.isPending || updateAllHistoricalPricesMutation.isPending}
-                  className="border-gray-700 text-gray-300 hover:bg-blue-900/20 hover:text-white"
-                >
-                  CAD Portfolio
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => updateHistoricalPricesMutation.mutate('INTL')}
-                  disabled={updateHistoricalPricesMutation.isPending || updateAllHistoricalPricesMutation.isPending}
-                  className="border-gray-700 text-gray-300 hover:bg-blue-900/20 hover:text-white"
-                >
-                  INTL Portfolio
-                </Button>
-              </div>
-            </CardContent>
-            <CardFooter className="bg-[#111E2E] border-t border-gray-800 justify-end">
-              <Button 
-                variant="default" 
-                onClick={() => updateAllHistoricalPricesMutation.mutate()}
-                disabled={updateHistoricalPricesMutation.isPending || updateAllHistoricalPricesMutation.isPending}
-                className="bg-green-700 hover:bg-green-600 text-white"
-              >
-                {updateAllHistoricalPricesMutation.isPending ? (
-                  <>
-                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                    Updating...
-                  </>
-                ) : (
-                  <>
-                    <RotateCw className="mr-2 h-4 w-4" />
-                    Update All Historical Prices
-                  </>
-                )}
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
         
         {/* Scheduler Configuration Section */}
         <div className="grid gap-4 md:grid-cols-2">
           {configLoading ? (
             <div className="col-span-2 flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#38AAFD]"></div>
             </div>
           ) : schedulerConfig && (
             <>
-              <Card className="bg-[#0A1929] border-gray-800">
-                <CardHeader className="bg-[#111E2E] border-b border-gray-800">
-                  <CardTitle className="text-gray-100 flex items-center">
-                    <BarChart4 className="mr-2 h-5 w-5 text-blue-400" />
-                    Current Price Updates
-                  </CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Configure automated current price data updates
-                  </CardDescription>
+              <Card className="bg-[#0A1524] border border-[#1A304A] rounded-none shadow-lg">
+                <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-3">
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-[#EFEFEF] text-lg font-mono flex items-center">
+                      <BarChart4 className="mr-2 h-5 w-5 text-[#38AAFD]" />
+                      CURRENT PRICES
+                    </CardTitle>
+                    <div className="bg-[#38AAFD]/20 text-[#38AAFD] text-xs px-2 py-0.5 font-mono rounded-sm">
+                      SCHEDULER
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="mb-4 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="current-price-enabled" className="text-gray-300">Enable scheduler</Label>
+                <CardContent className="p-3 pt-4">
+                  <div className="font-mono text-xs space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-[#7A8999]">SCHEDULER:</span>
                       <Switch 
                         id="current-price-enabled" 
                         checked={schedulerConfig.current_prices.enabled} 
@@ -404,66 +438,51 @@ export default function DataManagement() {
                         disabled={updateSchedulerConfigMutation.isPending}
                       />
                     </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="interval-minutes" className="text-gray-300">Update interval (minutes)</Label>
-                      <Input 
-                        id="interval-minutes" 
-                        type="number" 
-                        min={5}
-                        value={schedulerConfig.current_prices.intervalMinutes} 
-                        disabled={true}
-                        className="bg-[#0E1F30] border-gray-700 text-gray-300"
-                      />
-                      <p className="text-xs text-gray-500">
-                        Set to {schedulerConfig.current_prices.intervalMinutes} minute intervals
-                      </p>
+                    <div className="flex justify-between">
+                      <span className="text-[#7A8999]">STATUS:</span>
+                      <span className={`${schedulerConfig.current_prices.enabled ? 'text-[#4CAF50]' : 'text-[#F44336]'}`}>
+                        {schedulerConfig.current_prices.enabled ? 'ACTIVE' : 'DISABLED'}
+                      </span>
                     </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="start-time" className="text-gray-300">Start time (daily)</Label>
-                      <Input 
-                        id="start-time" 
-                        type="time" 
-                        value={schedulerConfig.current_prices.startTime} 
-                        disabled={true}
-                        className="bg-[#0E1F30] border-gray-700 text-gray-300"
-                      />
-                      <p className="text-xs text-gray-500">
-                        Updates will run between {schedulerConfig.current_prices.startTime} and {schedulerConfig.current_prices.endTime}
-                      </p>
+                    <div className="flex justify-between">
+                      <span className="text-[#7A8999]">INTERVAL:</span>
+                      <span className="text-[#EFEFEF]">{schedulerConfig.current_prices.intervalMinutes} MIN</span>
                     </div>
-                    
-                    <div className="flex items-center justify-between mt-4">
-                      <Label htmlFor="skip-weekends-current" className="text-gray-300">Skip weekends</Label>
-                      <Switch 
-                        id="skip-weekends-current" 
-                        checked={schedulerConfig.current_prices.skipWeekends}
-                        disabled={true}
-                      />
+                    <div className="flex justify-between">
+                      <span className="text-[#7A8999]">MARKET HOURS:</span>
+                      <span className="text-[#EFEFEF]">{schedulerConfig.current_prices.startTime} - {schedulerConfig.current_prices.endTime}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[#7A8999]">SKIP WEEKENDS:</span>
+                      <span className="text-[#EFEFEF]">{schedulerConfig.current_prices.skipWeekends ? 'YES' : 'NO'}</span>
                     </div>
                   </div>
+                  <div className="mt-3 text-xs text-[#7A8999] border-t border-[#1A304A] pt-3">
+                    Updates include current price, percent change, volume, and other market metrics.
+                  </div>
                 </CardContent>
-                <CardFooter className="bg-[#111E2E] border-t border-gray-800 text-xs text-gray-500">
+                <CardFooter className="bg-[#0D1C30] border-t border-[#1A304A] p-2 text-xs text-[#7A8999]">
                   <InfoIcon className="h-4 w-4 mr-2 text-gray-500" />
                   Current prices update every {schedulerConfig.current_prices.intervalMinutes} minutes during market hours
                 </CardFooter>
               </Card>
               
-              <Card className="bg-[#0A1929] border-gray-800">
-                <CardHeader className="bg-[#111E2E] border-b border-gray-800">
-                  <CardTitle className="text-gray-100 flex items-center">
-                    <LineChart className="mr-2 h-5 w-5 text-green-400" />
-                    Historical Price Updates
-                  </CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Configure automated historical price data updates
-                  </CardDescription>
+              <Card className="bg-[#0A1524] border border-[#1A304A] rounded-none shadow-lg">
+                <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-3">
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-[#EFEFEF] text-lg font-mono flex items-center">
+                      <LineChart className="mr-2 h-5 w-5 text-[#4CAF50]" />
+                      HISTORICAL DATA
+                    </CardTitle>
+                    <div className="bg-[#4CAF50]/20 text-[#4CAF50] text-xs px-2 py-0.5 font-mono rounded-sm">
+                      SCHEDULER
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="mb-4 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="hist-price-enabled" className="text-gray-300">Enable scheduler</Label>
+                <CardContent className="p-3 pt-4">
+                  <div className="font-mono text-xs space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-[#7A8999]">SCHEDULER:</span>
                       <Switch 
                         id="hist-price-enabled" 
                         checked={schedulerConfig.historical_prices.enabled} 
@@ -471,32 +490,26 @@ export default function DataManagement() {
                         disabled={updateSchedulerConfigMutation.isPending}
                       />
                     </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="time-of-day" className="text-gray-300">Time of day (daily)</Label>
-                      <Input 
-                        id="time-of-day" 
-                        type="time" 
-                        value={schedulerConfig.historical_prices.timeOfDay} 
-                        disabled={true}
-                        className="bg-[#0E1F30] border-gray-700 text-gray-300"
-                      />
-                      <p className="text-xs text-gray-500">
-                        Daily update at {schedulerConfig.historical_prices.timeOfDay}
-                      </p>
+                    <div className="flex justify-between">
+                      <span className="text-[#7A8999]">STATUS:</span>
+                      <span className={`${schedulerConfig.historical_prices.enabled ? 'text-[#4CAF50]' : 'text-[#F44336]'}`}>
+                        {schedulerConfig.historical_prices.enabled ? 'ACTIVE' : 'DISABLED'}
+                      </span>
                     </div>
-                    
-                    <div className="flex items-center justify-between mt-4">
-                      <Label htmlFor="skip-weekends-hist" className="text-gray-300">Skip weekends</Label>
-                      <Switch 
-                        id="skip-weekends-hist" 
-                        checked={schedulerConfig.historical_prices.skipWeekends}
-                        disabled={true}
-                      />
+                    <div className="flex justify-between">
+                      <span className="text-[#7A8999]">RUN TIME:</span>
+                      <span className="text-[#EFEFEF]">{schedulerConfig.historical_prices.timeOfDay}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-[#7A8999]">SKIP WEEKENDS:</span>
+                      <span className="text-[#EFEFEF]">{schedulerConfig.historical_prices.skipWeekends ? 'YES' : 'NO'}</span>
                     </div>
                   </div>
+                  <div className="mt-3 text-xs text-[#7A8999] border-t border-[#1A304A] pt-3">
+                    Performs incremental fetching, only retrieving data since the last successful update.
+                  </div>
                 </CardContent>
-                <CardFooter className="bg-[#111E2E] border-t border-gray-800 text-xs text-gray-500">
+                <CardFooter className="bg-[#0D1C30] border-t border-[#1A304A] p-2 text-xs text-[#7A8999]">
                   <InfoIcon className="h-4 w-4 mr-2 text-gray-500" />
                   Historical prices update once daily at {schedulerConfig.historical_prices.timeOfDay}
                 </CardFooter>
