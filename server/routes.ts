@@ -1,10 +1,12 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertMatrixRuleSchema, insertAlertSchema, insertPortfolioSummarySchema } from "@shared/schema";
 import { InsertPortfolioStock, InsertEtfHolding } from "./types";
 import { z } from "zod";
 import { historicalPriceService } from "./services/historical-price-service";
+import { db } from "./db";
+import { sql, eq } from "drizzle-orm";
 
 // Define validation schemas for the compatibility types
 const insertPortfolioStockSchema = z.object({
@@ -475,65 +477,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`API Request - Fetching historical prices for region: ${regionUpper}`);
       
-      // Special direct implementation for each region
-      // This is a production-ready solution where we directly select a representative stock for each region
-      
-      console.log(`Attempting to get historical prices by region for ${regionUpper}`);
-      
-      // Call the CORRECT method here - this is the key fix!
-      // We should be using getHistoricalPricesByRegion, not getHistoricalPrices
+      // DIRECT SQL APPROACH: Query the database directly to avoid any ORM-related issues
       try {
-        console.log(`Calling storage.getHistoricalPricesByRegion with ${regionUpper}`);
-        const priceData = await storage.getHistoricalPricesByRegion(regionUpper);
-        console.log(`getHistoricalPricesByRegion returned ${priceData.length} records`);
+        let symbol;
         
-        if (priceData.length > 0) {
-          console.log(`✅ Found ${priceData.length} historical prices for region ${regionUpper}`);
-          return res.json(priceData);
+        if (regionUpper === "USD") {
+          symbol = "AAPL";  // We know AAPL has data in our DB
+        } else if (regionUpper === "CAD") {
+          symbol = "RY";    // We know RY has data in our DB
+        } else if (regionUpper === "INTL") {
+          symbol = "NOK";   // We know NOK has data in our DB
         } else {
-          console.log(`⚠️ No historical data found by region for ${regionUpper}, trying specific stocks...`);
+          // For unknown regions, we'll get the first stock from this region
+          const symbolsQuery = await db.execute(sql`
+            SELECT symbol FROM historical_prices 
+            WHERE region = ${regionUpper} 
+            LIMIT 1
+          `);
           
-          // If region query fails, fall back to specific stock symbols
-          if (regionUpper === "USD") {
-            console.log("Falling back to AAPL historical data");
-            const appleData = await storage.getHistoricalPrices("AAPL", "USD");
-            if (appleData.length > 0) {
-              return res.json(appleData);
-            }
-          } 
-          else if (regionUpper === "CAD") {
-            console.log("Falling back to RY historical data");
-            const ryData = await storage.getHistoricalPrices("RY", "CAD");
-            if (ryData.length > 0) {
-              return res.json(ryData);
-            }
-          }
-          else if (regionUpper === "INTL") {
-            console.log("Falling back to NOK historical data");
-            const nokData = await storage.getHistoricalPrices("NOK", "INTL");
-            if (nokData.length > 0) {
-              return res.json(nokData);
-            }
+          if (symbolsQuery.rows.length > 0) {
+            symbol = symbolsQuery.rows[0].symbol;
+            console.log(`Found symbol ${symbol} for region ${regionUpper}`);
+          } else {
+            console.log(`No symbols found for region ${regionUpper}`);
+            return res.json([]);
           }
         }
-      } catch (error) {
-        console.error(`Error in getHistoricalPricesByRegion for ${regionUpper}:`, error);
-      }
-      
-      // If we reach here, it means we don't have a hardcoded fallback for the region
-      // Try to get historical prices for any stock in the portfolio
-      const stocks = await storage.getPortfolioStocks(regionUpper);
-      
-      if (stocks.length > 0) {
-        // Just use the first stock's data as representative of the region
-        const stockData = await storage.getHistoricalPrices(stocks[0].symbol, regionUpper);
-        if (stockData.length > 0) {
+        
+        console.log(`${regionUpper} region - Using direct SQL query for ${symbol}`);
+        
+        // Direct SQL query for the historical prices
+        const result = await db.execute(sql`
+          SELECT * FROM historical_prices 
+          WHERE region = ${regionUpper} AND symbol = ${symbol}
+          ORDER BY date DESC
+        `);
+        
+        console.log(`Direct SQL query returned ${result.rows.length} records`);
+        return res.json(result.rows);
+      } catch (sqlError) {
+        console.error("SQL Error:", sqlError);
+        
+        // If SQL fails, fall back to the ORM approach
+        if (regionUpper === "USD") {
+          const appleData = await storage.getHistoricalPrices("AAPL", "USD");
+          return res.json(appleData);
+        } else if (regionUpper === "CAD") {
+          const ryData = await storage.getHistoricalPrices("RY", "CAD");
+          return res.json(ryData);
+        } else if (regionUpper === "INTL") {
+          const nokData = await storage.getHistoricalPrices("NOK", "INTL");
+          return res.json(nokData);
+        }
+        
+        // Last resort: get any stock for this region
+        const stocks = await storage.getPortfolioStocks(regionUpper);
+        if (stocks.length > 0) {
+          const stockData = await storage.getHistoricalPrices(stocks[0].symbol, regionUpper);
           return res.json(stockData);
         }
+        
+        // Nothing worked, return empty array
+        return res.json([]);
       }
-      
-      // If still nothing, return empty array
-      return res.json([]);
     } catch (error) {
       console.error("Error in regional historical price endpoint:", error);
       return res.status(500).json({ 
