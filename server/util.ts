@@ -80,6 +80,7 @@ export function parseDate(dateString: string): Date {
 
 /**
  * Check if a time is within market hours
+ * Note: The time parameter should already be in EST timezone
  */
 export function isWithinMarketHours(time: Date, startTime: string, endTime: string): boolean {
   const [startHour, startMinute] = startTime.split(':').map(Number);
@@ -99,4 +100,11 @@ export function isWithinMarketHours(time: Date, startTime: string, endTime: stri
  */
 export function getDayName(date: Date): string {
   return date.toLocaleDateString('en-US', { weekday: 'long' });
+}
+
+/**
+ * Convert a date to EST timezone
+ */
+export function toESTTime(date: Date): Date {
+  return new Date(date.toLocaleString('en-US', { timeZone: 'America/New_York' }));
 }
