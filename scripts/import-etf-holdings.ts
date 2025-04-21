@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { parse } from 'papaparse';
+import Papa from 'papaparse';
 import { db } from '../server/db';
 import { etfHoldingsSPY, etfHoldingsXIC, etfHoldingsACWX } from '../shared/schema';
 
@@ -33,7 +33,7 @@ async function importSPYHoldings() {
   const fileContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
   
   // Parse CSV data
-  const { data } = parse(fileContent, {
+  const { data } = Papa.parse(fileContent, {
     header: true,
     skipEmptyLines: true
   });
@@ -78,7 +78,7 @@ async function importXICHoldings() {
   const fileContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
   
   // Parse CSV data - Skip the first few lines if needed
-  const { data } = parse(fileContent, {
+  const { data } = Papa.parse(fileContent, {
     header: true,
     skipEmptyLines: true
   });
@@ -123,7 +123,7 @@ async function importACWXHoldings() {
   const fileContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
   
   // Parse CSV data, skipping header rows
-  const { data } = parse(fileContent, {
+  const { data } = Papa.parse(fileContent, {
     header: true,
     skipEmptyLines: true,
     transformHeader: (header) => header.trim()

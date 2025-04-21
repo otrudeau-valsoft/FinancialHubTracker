@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { parse } from 'papaparse';
+import Papa from 'papaparse';
 import { db } from '../server/db';
 import { assetsUS, assetsCAD, assetsINTL } from '../shared/schema';
 
@@ -27,7 +27,7 @@ async function importUSPortfolio() {
   const fileContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
   
   // Parse CSV data
-  const { data } = parse(fileContent, {
+  const { data } = Papa.parse(fileContent, {
     header: true,
     skipEmptyLines: true
   });
@@ -63,7 +63,7 @@ async function importCADPortfolio() {
   const fileContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
   
   // Parse CSV data
-  const { data } = parse(fileContent, {
+  const { data } = Papa.parse(fileContent, {
     header: true,
     skipEmptyLines: true
   });
@@ -99,7 +99,7 @@ async function importINTLPortfolio() {
   const fileContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
   
   // Parse CSV data
-  const { data } = parse(fileContent, {
+  const { data } = Papa.parse(fileContent, {
     header: true,
     skipEmptyLines: true
   });
