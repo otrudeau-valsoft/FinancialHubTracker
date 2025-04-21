@@ -10,14 +10,14 @@ import CadPortfolio from "@/pages/cad-portfolio";
 import IntlPortfolio from "@/pages/intl-portfolio";
 import MatrixRulesPage from "@/pages/matrix-rules";
 import EtfHoldings from "@/pages/etf-holdings";
-import { Sidebar } from "@/components/layout/sidebar";
+import { Header } from "@/components/layout/header";
 
 function Router() {
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <div className="flex flex-col w-0 flex-1 overflow-hidden">
-        <main className="flex-1 relative overflow-y-auto focus:outline-none bg-background">
+    <div className="flex flex-col h-screen overflow-hidden">
+      <Header />
+      <div className="flex-1 overflow-hidden">
+        <main className="h-full overflow-y-auto focus:outline-none bg-background">
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/usd-portfolio" component={UsdPortfolio} />
