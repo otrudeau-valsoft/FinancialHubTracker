@@ -48,7 +48,7 @@ export const PortfolioTable = ({ stocks, region }: PortfolioTableProps) => {
           <Button 
             variant="ghost" 
             size="sm" 
-            className={`text-xs px-3 py-1 rounded-full flex items-center ${filter === 'all' ? 'bg-gray-800/70 text-white' : 'text-gray-400'}`}
+            className={`text-xs px-3 py-1 rounded-full flex items-center ${filter === 'all' ? 'bg-gray-800/70 text-white' : 'text-gray-400 hover:bg-gray-800/40 hover:text-white'}`}
             onClick={() => setFilter('all')}
           >
             <List className="mr-1 h-4 w-4" />
@@ -57,7 +57,7 @@ export const PortfolioTable = ({ stocks, region }: PortfolioTableProps) => {
           <Button 
             variant="ghost" 
             size="sm" 
-            className={`text-xs px-3 py-1 rounded-full flex items-center ${filter === 'comp' ? 'bg-blue-900/30 text-white' : 'text-gray-400'}`}
+            className={`text-xs px-3 py-1 rounded-full flex items-center ${filter === 'comp' ? 'bg-blue-900/30 text-white' : 'text-gray-400 hover:bg-blue-900/20 hover:text-white'}`}
             onClick={() => setFilter('comp')}
           >
             <div className="w-3 h-3 rounded-full bg-secondary mr-1"></div>
@@ -66,7 +66,7 @@ export const PortfolioTable = ({ stocks, region }: PortfolioTableProps) => {
           <Button 
             variant="ghost" 
             size="sm" 
-            className={`text-xs px-3 py-1 rounded-full flex items-center ${filter === 'cat' ? 'bg-yellow-900/30 text-white' : 'text-gray-400'}`}
+            className={`text-xs px-3 py-1 rounded-full flex items-center ${filter === 'cat' ? 'bg-yellow-900/30 text-white' : 'text-gray-400 hover:bg-yellow-900/20 hover:text-white'}`}
             onClick={() => setFilter('cat')}
           >
             <div className="w-3 h-3 rounded-full bg-[#FFC107] mr-1"></div>
@@ -75,7 +75,7 @@ export const PortfolioTable = ({ stocks, region }: PortfolioTableProps) => {
           <Button 
             variant="ghost" 
             size="sm" 
-            className={`text-xs px-3 py-1 rounded-full flex items-center ${filter === 'cycl' ? 'bg-purple-900/30 text-white' : 'text-gray-400'}`}
+            className={`text-xs px-3 py-1 rounded-full flex items-center ${filter === 'cycl' ? 'bg-purple-900/30 text-white' : 'text-gray-400 hover:bg-purple-900/20 hover:text-white'}`}
             onClick={() => setFilter('cycl')}
           >
             <div className="w-3 h-3 rounded-full bg-[#9C27B0] mr-1"></div>

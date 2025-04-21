@@ -30,13 +30,13 @@ export const EtfComparison = ({
   const currencySymbol = region === 'USD' ? '$' : region === 'CAD' ? 'C$' : '$';
   
   return (
-    <Card className="bg-card mb-6 border-0 shadow">
-      <CardHeader className="card-header flex flex-row items-center justify-between px-4 py-3 bg-[#1C2938]">
+    <Card className="mb-6 border-0 shadow bg-[#0A1929]">
+      <CardHeader className="card-header flex flex-row items-center justify-between px-4 py-3 bg-[#111E2E]">
         <h3 className="text-left">ETF Benchmark - {etfSymbol} Top {limit} Holdings</h3>
       </CardHeader>
       <div className="overflow-x-auto p-0">
         <table className="min-w-full divide-y divide-gray-800 data-table">
-          <thead className="bg-[#141C25]">
+          <thead>
             <tr>
               <th scope="col" className="px-3 py-2">Symbol</th>
               <th scope="col" className="px-3 py-2">Name</th>
@@ -47,7 +47,7 @@ export const EtfComparison = ({
               <th scope="col" className="px-3 py-2">Overweight/Underweight</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800 text-xs mono bg-[#0a101a]">
+          <tbody className="divide-y divide-gray-800 text-xs mono">
             {displayHoldings.map((holding) => (
               <tr key={holding.id}>
                 <td className="px-3 py-2 font-medium text-secondary">{holding.ticker}</td>
