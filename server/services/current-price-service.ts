@@ -55,22 +55,29 @@ class CurrentPriceService {
         modules: ['price', 'summaryDetail', 'defaultKeyStatistics']
       });
       
-      // Extract relevant price data
+      // Helper function to safely handle potentially empty numeric values
+      const safeNumericString = (value: any): string => {
+        // Return '0' for empty values or null/undefined to avoid database errors
+        if (value === undefined || value === null || value === '') return '0';
+        return value.toString();
+      };
+      
+      // Extract relevant price data with safe handling of numeric values
       const priceData = {
         symbol,
         region,
-        regularMarketPrice: result.price?.regularMarketPrice?.raw?.toString() || '',
-        regularMarketChange: result.price?.regularMarketChange?.raw?.toString() || '',
-        regularMarketChangePercent: result.price?.regularMarketChangePercent?.raw?.toString() || '',
-        regularMarketVolume: result.price?.regularMarketVolume?.raw?.toString() || '',
-        regularMarketDayHigh: result.price?.regularMarketDayHigh?.raw?.toString() || '',
-        regularMarketDayLow: result.price?.regularMarketDayLow?.raw?.toString() || '',
-        marketCap: result.price?.marketCap?.raw?.toString() || '',
-        trailingPE: result.summaryDetail?.trailingPE?.raw?.toString() || '',
-        forwardPE: result.summaryDetail?.forwardPE?.raw?.toString() || '',
-        dividendYield: result.summaryDetail?.dividendYield?.raw?.toString() || '',
-        fiftyTwoWeekHigh: result.summaryDetail?.fiftyTwoWeekHigh?.raw?.toString() || '',
-        fiftyTwoWeekLow: result.summaryDetail?.fiftyTwoWeekLow?.raw?.toString() || ''
+        regularMarketPrice: result.price?.regularMarketPrice?.raw ? safeNumericString(result.price.regularMarketPrice.raw) : '0',
+        regularMarketChange: result.price?.regularMarketChange?.raw ? safeNumericString(result.price.regularMarketChange.raw) : '0',
+        regularMarketChangePercent: result.price?.regularMarketChangePercent?.raw ? safeNumericString(result.price.regularMarketChangePercent.raw) : '0',
+        regularMarketVolume: result.price?.regularMarketVolume?.raw ? safeNumericString(result.price.regularMarketVolume.raw) : '0',
+        regularMarketDayHigh: result.price?.regularMarketDayHigh?.raw ? safeNumericString(result.price.regularMarketDayHigh.raw) : '0',
+        regularMarketDayLow: result.price?.regularMarketDayLow?.raw ? safeNumericString(result.price.regularMarketDayLow.raw) : '0',
+        marketCap: result.price?.marketCap?.raw ? safeNumericString(result.price.marketCap.raw) : '0',
+        trailingPE: result.summaryDetail?.trailingPE?.raw ? safeNumericString(result.summaryDetail.trailingPE.raw) : '0',
+        forwardPE: result.summaryDetail?.forwardPE?.raw ? safeNumericString(result.summaryDetail.forwardPE.raw) : '0',
+        dividendYield: result.summaryDetail?.dividendYield?.raw ? safeNumericString(result.summaryDetail.dividendYield.raw) : '0',
+        fiftyTwoWeekHigh: result.summaryDetail?.fiftyTwoWeekHigh?.raw ? safeNumericString(result.summaryDetail.fiftyTwoWeekHigh.raw) : '0',
+        fiftyTwoWeekLow: result.summaryDetail?.fiftyTwoWeekLow?.raw ? safeNumericString(result.summaryDetail.fiftyTwoWeekLow.raw) : '0'
       };
       
       return priceData;
