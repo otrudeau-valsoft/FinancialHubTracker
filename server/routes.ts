@@ -474,36 +474,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const regionUpper = region.toUpperCase();
       console.log(`API Request - Fetching historical prices for region: ${regionUpper}`);
       
-      // Simply use the storage instance's method for individual stock
-      console.log(`Using fallback to individual stock method for ${regionUpper} region`);
-      const appleData = await storage.getHistoricalPrices('AAPL', regionUpper);
-      console.log(`AAPL query returned ${appleData.length} results for region ${regionUpper}`);
+      // Extract query parameters
+      const startDateStr = req.query.startDate as string | undefined;
+      const endDateStr = req.query.endDate as string | undefined;
+      let startDate: Date | undefined;
+      let endDate: Date | undefined;
       
-      if (appleData.length > 0) {
-        return res.json(appleData);
+      if (startDateStr) {
+        startDate = new Date(startDateStr);
       }
       
-      // Fallback to direct SQL if needed
+      if (endDateStr) {
+        endDate = new Date(endDateStr);
+      }
+      
+      // Get stocks in this portfolio
+      const stocks = await storage.getPortfolioStocks(regionUpper);
+      console.log(`Found ${stocks.length} stocks in ${regionUpper} portfolio`);
+      
+      if (stocks.length === 0) {
+        console.log(`No stocks found in ${regionUpper} portfolio`);
+        return res.json([]);
+      }
+      
+      // Only get data for the first 3 stocks to avoid performance issues
+      const limitedStocks = stocks.slice(0, 3);
+      console.log(`Taking ${limitedStocks.length} stocks as a sample: ${limitedStocks.map(s => s.symbol).join(', ')}`);
+      
+      // For simplicity, just get MSFT data if it's in the portfolio
+      const msftStock = stocks.find(s => s.symbol.toUpperCase() === 'MSFT');
+      if (msftStock) {
+        console.log('Found MSFT in portfolio, fetching its historical data');
+        const msftData = await storage.getHistoricalPrices('MSFT', regionUpper, startDate, endDate);
+        console.log(`MSFT query returned ${msftData.length} results`);
+        
+        if (msftData.length > 0) {
+          return res.json(msftData);
+        }
+      }
+      
+      // Try AAPL as a fallback
+      const appleStock = stocks.find(s => s.symbol.toUpperCase() === 'AAPL');
+      if (appleStock) {
+        console.log('Found AAPL in portfolio, fetching its historical data');
+        const appleData = await storage.getHistoricalPrices('AAPL', regionUpper, startDate, endDate);
+        console.log(`AAPL query returned ${appleData.length} results`);
+        
+        if (appleData.length > 0) {
+          return res.json(appleData);
+        }
+      }
+      
+      // If no Apple data, try the first stock in the portfolio
+      if (limitedStocks.length > 0) {
+        const firstStock = limitedStocks[0];
+        console.log(`Trying first stock in portfolio: ${firstStock.symbol}`);
+        const stockData = await storage.getHistoricalPrices(firstStock.symbol, regionUpper, startDate, endDate);
+        console.log(`${firstStock.symbol} query returned ${stockData.length} results`);
+        
+        if (stockData.length > 0) {
+          return res.json(stockData);
+        }
+      }
+      
+      // If we still don't have data, try a raw SQL query
       try {
-        console.log(`Trying raw SQL query for region ${regionUpper}`);
+        console.log(`Attempting raw SQL query for region ${regionUpper}`);
         const { pool } = await import('./db');
         
-        // Use the raw pool query for simplicity
-        const rawResult = await pool.query(
+        const result = await pool.query(
           'SELECT * FROM historical_prices WHERE region = $1 ORDER BY date LIMIT 100',
           [regionUpper]
         );
         
-        console.log(`Raw SQL query returned ${rawResult.rows?.length || 0} results`);
+        console.log(`SQL query returned ${result.rows?.length || 0} rows`);
         
-        if (rawResult.rows && rawResult.rows.length > 0) {
-          return res.json(rawResult.rows);
+        if (result.rows && result.rows.length > 0) {
+          return res.json(result.rows);
         }
       } catch (sqlError) {
-        console.error("Raw SQL query error:", sqlError);
+        console.error("SQL error:", sqlError);
       }
       
       // If still no results, return empty array
+      console.log(`No historical prices found for region ${regionUpper}`);
       return res.json([]);
     } catch (error) {
       console.error("Error fetching historical prices by region:", error);
