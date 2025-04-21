@@ -461,7 +461,7 @@ export default function DataManagement() {
                 </CardContent>
                 <CardFooter className="bg-[#111E2E] border-t border-gray-800 text-xs text-gray-500">
                   <InfoIcon className="h-4 w-4 mr-2 text-gray-500" />
-                  Current prices update every {schedulerConfig.current_prices.intervalMinutes} minutes during market hours
+                  Current prices update every {schedulerConfig.current_prices.intervalMinutes} minutes during market hours (EST)
                 </CardFooter>
               </Card>
               
@@ -513,7 +513,7 @@ export default function DataManagement() {
                 </CardContent>
                 <CardFooter className="bg-[#111E2E] border-t border-gray-800 text-xs text-gray-500">
                   <InfoIcon className="h-4 w-4 mr-2 text-gray-500" />
-                  Historical prices update once daily at {schedulerConfig.historical_prices.timeOfDay}
+                  Historical prices update once daily at {schedulerConfig.historical_prices.timeOfDay} EST
                 </CardFooter>
               </Card>
             </>
