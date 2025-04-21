@@ -517,33 +517,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const regionUpper = region.toUpperCase();
       const { period, interval } = req.body;
       
-      console.log(`Fetching historical prices for portfolio: ${region}`);
+      console.log(`Fetching historical prices for portfolio: ${regionUpper}`);
       
-      // First check if we have symbols in the database for this region
-      const symbols = await historicalPriceService.getSymbolsByRegionDirectSql(regionUpper);
+      // Determine which table to query based on region
+      let tableName;
+      switch (regionUpper) {
+        case 'USD':
+          tableName = 'assets_us';
+          break;
+        case 'CAD':
+          tableName = 'assets_cad';
+          break;
+        case 'INTL':
+          tableName = 'assets_intl';
+          break;
+        default:
+          return res.status(400).json({ 
+            message: `Invalid region: ${region}. Must be USD, CAD, or INTL.`
+          });
+      }
+      
+      // Query for symbols directly using SQL for better control
+      const result = await db.execute(sql.raw(`SELECT symbol FROM ${tableName}`));
+      const symbols = result.rows.map(row => row.symbol);
       
       if (!symbols || symbols.length === 0) {
         return res.status(404).json({ 
-          message: `No symbols found for ${region} portfolio. Please import portfolio first.`
+          message: `No symbols found for ${regionUpper} portfolio. Please import portfolio first.`
         });
       }
       
-      console.log(`Found ${symbols.length} symbols for ${region} portfolio: ${symbols.join(', ')}`);
+      console.log(`Found ${symbols.length} symbols for ${regionUpper} portfolio`);
       
-      // Process one symbol at a time to avoid Yahoo Finance API rate limiting
+      // Process symbols with rate limiting to avoid Yahoo Finance API limits
       let successCount = 0;
       for (const symbol of symbols) {
-        // Use uppercase for Yahoo Finance
-        const yahooSymbol = symbol.toUpperCase();
-        
         try {
+          // Normalize symbol case for Yahoo Finance
+          const yahooSymbol = symbol.toUpperCase();
           console.log(`Processing ${yahooSymbol} (${regionUpper}) - ${successCount+1}/${symbols.length}`);
           
           const success = await historicalPriceService.fetchAndStoreHistoricalPrices(
             yahooSymbol,
             regionUpper,
-            period || '1mo', // Use shorter period for testing
-            interval || '1d'
+            period || '1mo', // Default to 1 month for testing/speed
+            interval || '1d'  // Default to daily data
           );
           
           if (success) {
@@ -556,50 +574,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Add a delay to avoid rate limiting
           await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (error) {
-          console.error(`Error processing ${yahooSymbol}:`, error);
+          console.error(`Error processing ${symbol}:`, error);
           // Continue to next symbol
         }
       }
       
-      if (successCount === 0) {
-        return res.status(404).json({ 
-          message: "Failed to update historical prices for any symbols in the portfolio"
-        });
-      }
-      
       return res.status(200).json({ 
-        message: `Successfully updated historical prices for ${successCount}/${symbols.length} stocks in ${region} portfolio`,
+        message: `Updated historical prices for ${successCount}/${symbols.length} symbols in ${regionUpper} portfolio`,
         successCount,
         totalSymbols: symbols.length
       });
     } catch (error) {
       console.error("Error updating historical prices for portfolio:", error);
-      
-      // Determine if it's a 'no data found' error
-      const errorMsg = (error as Error).message || '';
-      if (errorMsg.includes('No data found') || errorMsg.includes('Symbol not found')) {
-        return res.status(404).json({ 
-          message: "No historical data found for portfolio", 
-          error: errorMsg 
-        });
-      }
-      
       return res.status(500).json({ 
         message: "Failed to update historical prices for portfolio",
-        error: errorMsg
+        error: (error as Error).message
       });
     }
   });
   
-  // New endpoint to fetch historical prices for ALL portfolios (USD, CAD, INTL)
+  // Streamlined endpoint to fetch historical prices for ALL portfolios (USD, CAD, INTL)
   app.post("/api/historical-prices/fetch/all", async (req: Request, res: Response) => {
     try {
-      console.log("Initiating historical price collection for all portfolios (5 years daily data)");
+      const { period, interval } = req.body;
+      console.log("Initiating historical price collection for all portfolios");
       
-      const results = await historicalPriceService.updateAllHistoricalPrices('5y', '1d');
+      const regions = ['USD', 'CAD', 'INTL'];
+      const results = {};
+      
+      // Process each region portfolio
+      for (const region of regions) {
+        let tableName;
+        switch (region) {
+          case 'USD': tableName = 'assets_us'; break;
+          case 'CAD': tableName = 'assets_cad'; break;
+          case 'INTL': tableName = 'assets_intl'; break;
+        }
+        
+        // Query for symbols directly using SQL
+        const result = await db.execute(sql.raw(`SELECT symbol FROM ${tableName}`));
+        const symbols = result.rows.map(row => row.symbol);
+        
+        if (!symbols || symbols.length === 0) {
+          results[region] = { status: 'error', message: `No symbols found for ${region} portfolio` };
+          continue;
+        }
+        
+        // Track successful updates
+        let successCount = 0;
+        
+        // Process symbols with rate limiting
+        for (const symbol of symbols) {
+          try {
+            // Ensure symbol is treated as a string
+            const symbolStr = String(symbol);
+            const yahooSymbol = symbolStr.toUpperCase();
+            console.log(`Processing ${yahooSymbol} (${region}) - ${successCount+1}/${symbols.length}`);
+            
+            const success = await historicalPriceService.fetchAndStoreHistoricalPrices(
+              yahooSymbol,
+              region,
+              period || '1mo', // Default for testing
+              interval || '1d'
+            );
+            
+            if (success) {
+              successCount++;
+              console.log(`✓ Successfully updated ${yahooSymbol} (${region})`);
+            } else {
+              console.log(`✗ Failed to update ${yahooSymbol} (${region})`);
+            }
+            
+            // Add a delay to avoid rate limiting
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          } catch (error) {
+            console.error(`Error processing ${symbol}:`, error);
+            // Continue to next symbol
+          }
+        }
+        
+        results[region] = { 
+          status: 'success', 
+          message: `Updated ${successCount}/${symbols.length} symbols in ${region} portfolio`,
+          successCount,
+          totalSymbols: symbols.length
+        };
+      }
       
       return res.status(200).json({ 
-        message: "Historical price collection completed",
+        message: "Historical price collection completed for all portfolios",
         results
       });
     } catch (error) {
