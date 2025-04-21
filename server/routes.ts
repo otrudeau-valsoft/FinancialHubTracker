@@ -479,44 +479,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const startDateStr = req.query.startDate as string | undefined;
       const endDateStr = req.query.endDate as string | undefined;
       
-      console.log(`Using hard-coded AAPL historical data for ${regionUpper} region`);
+      let startDate: Date | undefined;
+      let endDate: Date | undefined;
       
-      // Directly use a known working endpoint as a workaround
-      // This is a temporary solution to ensure we can proceed with development
-      // while we troubleshoot the regional query approach
-      try {
-        // Note: Hardcoding 'USD' to ensure we get data back for any region request
-        // This is a development fallback to allow progress
-        // In a production environment, we would need to use the actual region parameter
-        const appleData = await storage.getHistoricalPrices('AAPL', 'USD');
-        
-        if (appleData && appleData.length > 0) {
-          console.log(`Successfully retrieved ${appleData.length} AAPL data points`);
-          
-          // Just to test more logging
-          console.log(`Sample data points: from ${appleData[0].date} to ${appleData[appleData.length-1].date}`);
-          
-          return res.json(appleData);
-        }
-      } catch (apiError) {
-        console.error('Error in direct AAPL lookup:', apiError);
+      if (startDateStr) {
+        startDate = new Date(startDateStr);
       }
       
-      // Still no data, try MSFT as backup
-      try {
-        console.log('Trying MSFT as a backup data source');
-        const msftData = await storage.getHistoricalPrices('MSFT', 'USD');
-        
-        if (msftData && msftData.length > 0) {
-          console.log(`Successfully retrieved ${msftData.length} MSFT data points`);
-          return res.json(msftData);
-        }
-      } catch (msftError) {
-        console.error('Error in MSFT backup lookup:', msftError);
+      if (endDateStr) {
+        endDate = new Date(endDateStr);
       }
       
-      // If both attempts failed, return empty array
-      console.log('All fallback attempts failed, returning empty array');
+      // Get all historical prices for the region
+      const prices = await storage.getHistoricalPricesByRegion(regionUpper, startDate, endDate);
+      
+      console.log(`Found ${prices.length} historical prices for region ${regionUpper}`);
+      
+      if (prices.length > 0) {
+        return res.json(prices);
+      }
+      
+      // If no data found for the region, try getting prices for any stock in that region
+      const stocks = await storage.getPortfolioStocks(regionUpper);
+      
+      if (stocks.length > 0) {
+        // Get the first stock and fetch its historical prices
+        const firstStock = stocks[0];
+        console.log(`Trying to get historical prices for ${firstStock.symbol} in ${regionUpper}`);
+        
+        const stockPrices = await storage.getHistoricalPrices(firstStock.symbol, regionUpper, startDate, endDate);
+        
+        if (stockPrices.length > 0) {
+          console.log(`Found ${stockPrices.length} historical prices for ${firstStock.symbol}`);
+          return res.json(stockPrices);
+        }
+      }
+      
+      // If still no data, return empty array
       return res.json([]);
     } catch (error) {
       console.error("Error in regional historical price endpoint:", error);
