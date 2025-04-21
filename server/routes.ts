@@ -1062,7 +1062,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Clear all data update logs
   app.delete("/api/data-updates/logs", async (_req: Request, res: Response) => {
     try {
-      await db.delete(dataUpdateLogs);
+      await db.delete(schedulerService.dataUpdateLogs);
       return res.json({ 
         success: true, 
         message: "All logs cleared successfully" 

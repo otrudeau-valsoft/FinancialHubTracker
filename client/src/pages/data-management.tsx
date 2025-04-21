@@ -459,15 +459,27 @@ export default function DataManagement() {
                 <Terminal className="mr-2 h-5 w-5 text-[#FFCA28]" />
                 SYSTEM LOGS
               </CardTitle>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => refetchLogs()}
-                className="h-7 border-[#1A304A] text-[#EFEFEF] bg-transparent hover:bg-[#1A304A] rounded-sm"
-              >
-                <RotateCw className="mr-2 h-3 w-3" />
-                REFRESH
-              </Button>
+              <div className="flex space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => clearLogsMutation.mutate()}
+                  disabled={clearLogsMutation.isPending || !updateLogs || updateLogs.length === 0}
+                  className="h-7 border-[#1A304A] text-[#EFEFEF] bg-transparent hover:bg-[#1A304A] rounded-sm"
+                >
+                  <Trash2 className="mr-2 h-3 w-3 text-[#F44336]" />
+                  CLEAR LOGS
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => refetchLogs()}
+                  className="h-7 border-[#1A304A] text-[#EFEFEF] bg-transparent hover:bg-[#1A304A] rounded-sm"
+                >
+                  <RotateCw className="mr-2 h-3 w-3" />
+                  REFRESH
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-0">
@@ -475,7 +487,7 @@ export default function DataManagement() {
               <div className="flex justify-center items-center h-64">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#38AAFD]"></div>
               </div>
-            ) : !updateLogs || updateLogs.length === 0 ? (
+            ) : !processedLogs || processedLogs.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-[#7A8999]">
                 <History className="h-12 w-12 mb-2 opacity-30" />
                 <p className="font-mono">NO UPDATE LOGS AVAILABLE</p>
@@ -484,7 +496,7 @@ export default function DataManagement() {
               <ScrollArea className="h-[400px] w-full">
                 <div className="p-3">
                   <div className="grid grid-cols-1 gap-0">
-                    {updateLogs.map((log: DataUpdateLog) => (
+                    {processedLogs.map((log: DataUpdateLog) => (
                       <div 
                         key={log.id} 
                         className="py-2 border-b border-[#1A304A] last:border-b-0"
