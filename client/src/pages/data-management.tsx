@@ -182,14 +182,56 @@ export default function DataManagement() {
   const extractProgress = (detailsJson: string) => {
     try {
       const details = JSON.parse(detailsJson);
+      
+      // If we have explicit progress data, use it
       if (details.progress && typeof details.progress === 'object') {
-        const { current, total } = details.progress;
-        if (typeof current === 'number' && typeof total === 'number') {
-          return { current, total, percent: Math.round((current / total) * 100) };
+        const current = details.progress.current || 0;
+        const total = details.progress.total || 1;
+        const percent = Math.round((current / total) * 100);
+        return { current, total, percent };
+      }
+      
+      // For current prices, check if we have results data with counts
+      if (details.results) {
+        let current = 0;
+        let total = 0;
+        
+        // Sum up success counts across all regions
+        Object.values(details.results).forEach((region: any) => {
+          if (region.successCount !== undefined && region.totalSymbols !== undefined) {
+            current += region.successCount;
+            total += region.totalSymbols;
+          }
+        });
+        
+        if (total > 0) {
+          return {
+            current,
+            total,
+            percent: Math.round((current / total) * 100)
+          };
         }
       }
+      
+      // For historical prices, look for symbols info in the message
+      if (details.message && typeof details.message === 'string') {
+        const match = details.message.match(/Processing (\w+) \((\w+)\) - (\d+)\/(\d+)/);
+        if (match) {
+          const current = parseInt(match[3]);
+          const total = parseInt(match[4]);
+          if (!isNaN(current) && !isNaN(total)) {
+            return {
+              current,
+              total,
+              percent: Math.round((current / total) * 100)
+            };
+          }
+        }
+      }
+      
       return null;
     } catch (e) {
+      console.error("Error parsing progress data:", e);
       return null;
     }
   };
