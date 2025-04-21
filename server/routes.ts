@@ -645,12 +645,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             totalSymbolCount += symbols.length;
             
             // Update the initial log with the new region we're processing
-            await schedulerService.logUpdate('historical_prices', 'In Progress', {
-              message: `Processing ${region} portfolio (0/${symbols.length} symbols)`,
-              region,
-              progress: { current: 0, total: totalSymbolCount },
-              timestamp: new Date().toISOString()
-            }, initialLog.id);
+            try {
+              await schedulerService.logUpdate('historical_prices', 'In Progress', {
+                message: `Processing ${region} portfolio (0/${symbols.length} symbols)`,
+                region,
+                progress: { current: 0, total: totalSymbolCount },
+                timestamp: new Date().toISOString()
+              }, initialLog && typeof initialLog.id === 'number' ? initialLog.id : undefined);
+            } catch (logError) {
+              console.error(`Error updating log for ${region} portfolio:`, logError);
+              // Continue processing even if logging fails
+            }
             
             // Process symbols with rate limiting
             for (const symbol of symbols) {
@@ -665,13 +670,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   // Calculate the overall progress across all portfolios
                   const overallProgress = totalSuccessCount + 1; // +1 for the current symbol being processed
                   
-                  await schedulerService.logUpdate('historical_prices', 'In Progress', {
-                    message: `Processing ${region} portfolio: ${yahooSymbol} (${successCount+1}/${symbols.length} symbols)`,
-                    region,
-                    symbol: yahooSymbol,
-                    progress: { current: overallProgress, total: totalSymbolCount },
-                    timestamp: new Date().toISOString()
-                  }, initialLog.id);
+                  try {
+                    await schedulerService.logUpdate('historical_prices', 'In Progress', {
+                      message: `Processing ${region} portfolio: ${yahooSymbol} (${successCount+1}/${symbols.length} symbols)`,
+                      region,
+                      symbol: yahooSymbol,
+                      progress: { current: overallProgress, total: totalSymbolCount },
+                      timestamp: new Date().toISOString()
+                    }, initialLog && typeof initialLog.id === 'number' ? initialLog.id : undefined);
+                  } catch (logError) {
+                    console.error(`Error updating progress log for ${yahooSymbol}:`, logError);
+                    // Continue processing even if logging fails
+                  }
                 }
                 
                 const success = await historicalPriceService.fetchAndStoreHistoricalPrices(
@@ -981,10 +991,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Starting current price update for all portfolios");
       
       // Create a log entry with 'In Progress' status
-      const inProgressLog = await schedulerService.logUpdate('current_prices', 'In Progress', {
-        message: "Starting current price update for all portfolios...",
-        timestamp: new Date().toISOString()
-      });
+      let inProgressLog = null;
+      try {
+        inProgressLog = await schedulerService.logUpdate('current_prices', 'In Progress', {
+          message: "Starting current price update for all portfolios...",
+          timestamp: new Date().toISOString()
+        });
+      } catch (logError) {
+        console.error("Failed to create initial 'In Progress' log:", logError);
+        // Continue processing even if logging fails
+      }
       
       const results = await currentPriceService.updateAllCurrentPrices();
       
@@ -992,11 +1008,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const successCount = Object.values(results).reduce((total, region: any) => total + (region.successCount || 0), 0);
       const totalSymbols = Object.values(results).reduce((total, region: any) => total + (region.totalSymbols || 0), 0);
       
-      await schedulerService.logUpdate('current_prices', 'Success', {
-        message: `Manual current price update completed - ${successCount}/${totalSymbols} symbols updated`,
-        timestamp: new Date().toISOString(),
-        results
-      });
+      try {
+        await schedulerService.logUpdate('current_prices', 'Success', {
+          message: `Manual current price update completed - ${successCount}/${totalSymbols} symbols updated`,
+          timestamp: new Date().toISOString(),
+          results
+        });
+      } catch (logError) {
+        console.error("Failed to create 'Success' log:", logError);
+        // Continue to return results even if logging fails
+      }
       
       return res.status(200).json({
         message: "Successfully updated current prices for all portfolios",
@@ -1006,10 +1027,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error updating current prices for all portfolios:", error);
       
       // Log the error in the data_update_logs table
-      await schedulerService.logUpdate('current_prices', 'Error', {
-        error: error instanceof Error ? error.message : String(error),
-        timestamp: new Date().toISOString()
-      });
+      try {
+        await schedulerService.logUpdate('current_prices', 'Error', {
+          message: "Failed to update current prices", 
+          error: error instanceof Error ? error.message : String(error),
+          timestamp: new Date().toISOString()
+        });
+      } catch (logError) {
+        console.error("Failed to create 'Error' log:", logError);
+        // Continue to return error even if logging fails
+      }
       
       return res.status(500).json({
         message: "Failed to update current prices for all portfolios",

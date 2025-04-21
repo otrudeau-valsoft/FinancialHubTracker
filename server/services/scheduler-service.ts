@@ -312,29 +312,40 @@ class SchedulerService {
     try {
       // If a Success log is being created, clean up any In Progress logs of the same type
       if (status === 'Success' && !logId) {
-        await db
-          .delete(dataUpdateLogs)
-          .where({ type, status: 'In Progress' });
-        
-        console.log(`Cleaned up In Progress logs for ${type}`);
+        try {
+          const deleteResult = await db
+            .delete(dataUpdateLogs)
+            .where({ type, status: 'In Progress' });
+          
+          console.log(`Cleaned up In Progress logs for ${type}`);
+        } catch (deleteError) {
+          console.error('Error cleaning up In Progress logs:', deleteError);
+          // Continue with the log creation even if cleanup fails
+        }
       }
       
       // Make sure details is properly stringified
       const detailsJson = typeof details === 'string' ? details : JSON.stringify(details);
       
       // If logId is provided, update the existing log entry
-      if (logId) {
-        const [result] = await db
-          .update(dataUpdateLogs)
-          .set({
-            status,
-            details: detailsJson,
-            // Intentionally not updating timestamp to preserve the original creation time
-          })
-          .where({ id: logId })
-          .returning();
-        
-        return result;
+      if (logId && typeof logId === 'number') {
+        try {
+          const [result] = await db
+            .update(dataUpdateLogs)
+            .set({
+              status,
+              details: detailsJson,
+              // Intentionally not updating timestamp to preserve the original creation time
+            })
+            .where({ id: logId })
+            .returning();
+          
+          return result;
+        } catch (updateError) {
+          console.error('Error updating log entry:', updateError);
+          // If update fails, create a new log instead
+          logId = undefined;
+        }
       }
       
       // Otherwise, create a new log entry
@@ -344,8 +355,13 @@ class SchedulerService {
         details: detailsJson,
       };
       
-      const [result] = await db.insert(dataUpdateLogs).values(logEntry).returning();
-      return result;
+      try {
+        const [result] = await db.insert(dataUpdateLogs).values(logEntry).returning();
+        return result;
+      } catch (insertError) {
+        console.error('Error inserting log entry:', insertError);
+        return null;
+      }
     } catch (error) {
       console.error('Failed to log update:', error);
       return null;

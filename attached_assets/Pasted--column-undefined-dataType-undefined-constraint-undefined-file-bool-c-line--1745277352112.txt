@@ -1,0 +1,83 @@
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'bool.c',
+  line: '151',
+  routine: 'boolin'
+}
+Processing SU.TO (CAD) - 1/20
+Failed to log update: error: invalid input syntax for type boolean: "{"id":34}"
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async SchedulerService.logUpdate (/home/runner/workspace/server/services/scheduler-service.ts:327:26)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:668:19) {
+  length: 136,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: "unnamed portal parameter $3 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'bool.c',
+  line: '151',
+  routine: 'boolin'
+}
+Fetching historical prices for SU.TO from 2020-04-21 to 2025-04-20
+Stored 1254 historical prices for SU.TO (CAD)
+✓ Successfully updated SU.TO (CAD)
+Processing TFII.TO (CAD) - 2/20
+Fetching historical prices for TFII.TO from 2020-04-21 to 2025-04-20
+Stored 1254 historical prices for TFII.TO (CAD)
+✓ Successfully updated TFII.TO (CAD)
+Processing VNP.TO (CAD) - 3/20
+Fetching historical prices for VNP.TO from 2020-04-21 to 2025-04-20
+Stored 1254 historical prices for VNP.TO (CAD)
+✓ Successfully updated VNP.TO (CAD)
+Processing CNR.TO (CAD) - 4/20
+Fetching historical prices for CNR.TO from 2020-04-21 to 2025-04-20
+Stored 1254 historical prices for CNR.TO (CAD)
+✓ Successfully updated CNR.TO (CAD)
+Processing ZGLD.TO (CAD) - 5/20
+Failed to log update: error: invalid input syntax for type boolean: "{"id":34}"
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async SchedulerService.logUpdate (/home/runner/workspace/server/services/scheduler-service.ts:327:26)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:668:19) {
+  length: 136,
+  severity: 'ERROR',
+  code: '22P02',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: "unnamed portal parameter $3 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'bool.c',
+  line: '151',
+  routine: 'boolin'
+}
+Fetching historical prices for ZGLD.TO from 2020-04-21 to 2025-04-20
+Stored 279 historical prices for ZGLD.TO (CAD)
+✓ Successfully updated ZGLD.TO (CAD)
+Processing SLF.TO (CAD) - 6/20
+Fetching historical prices for SLF.TO from 2020-04-21 to 2025-04-20
+Stored 1254 historical prices for SLF.TO (CAD)
+✓ Successfully updated SLF.TO (CAD)
+Processing TOU.TO (CAD) - 7/20
+Fetching historical prices for TOU.TO from 2020-04-21 to 2025-04-20
+Stored 1254 historical prices for TOU.TO (CAD)
+✓ Successfully updated TOU.TO (CAD)
