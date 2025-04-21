@@ -2,7 +2,6 @@ import yahooFinance from 'yahoo-finance2';
 import { storage } from '../storage';
 import { InsertHistoricalPrice } from '@shared/schema';
 import { DateTime } from 'luxon';
-import { Pool } from '@neondatabase/serverless';
 import { db } from '../db';
 import { sql } from 'drizzle-orm';
 

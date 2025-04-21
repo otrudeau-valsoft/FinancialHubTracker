@@ -548,12 +548,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         interval || '1d'
       );
       
+      if (successCount === 0) {
+        // No stocks were successfully updated
+        return res.status(404).json({ 
+          message: "No historical data found for portfolio"
+        });
+      }
+      
       return res.status(200).json({ 
         message: `Successfully updated historical prices for ${successCount} stocks in ${region} portfolio`
       });
     } catch (error) {
       console.error("Error updating historical prices for portfolio:", error);
-      return res.status(500).json({ message: "Failed to update historical prices for portfolio" });
+      
+      // Determine if it's a 'no data found' error
+      const errorMsg = (error as Error).message || '';
+      if (errorMsg.includes('No data found') || errorMsg.includes('Symbol not found')) {
+        return res.status(404).json({ 
+          message: "No historical data found for portfolio", 
+          error: errorMsg 
+        });
+      }
+      
+      return res.status(500).json({ 
+        message: "Failed to update historical prices for portfolio",
+        error: errorMsg
+      });
     }
   });
   
