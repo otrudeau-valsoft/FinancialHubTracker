@@ -1,6 +1,7 @@
 import { 
   users, type User, type InsertUser,
-  PortfolioRegion
+  PortfolioRegion,
+  historicalPrices, type HistoricalPrice, type InsertHistoricalPrice
 } from "@shared/schema";
 
 // Import compatibility types for transitioning
@@ -51,6 +52,13 @@ export interface IStorage {
   getPortfolioSummary(region: string): Promise<PortfolioSummary | undefined>;
   createPortfolioSummary(summary: InsertPortfolioSummary): Promise<PortfolioSummary>;
   updatePortfolioSummary(id: number, summary: Partial<InsertPortfolioSummary>): Promise<PortfolioSummary | undefined>;
+
+  // Historical price methods
+  getHistoricalPrices(symbol: string, region: string, startDate?: Date, endDate?: Date): Promise<HistoricalPrice[]>;
+  getHistoricalPricesByRegion(region: string, startDate?: Date, endDate?: Date): Promise<HistoricalPrice[]>;
+  createHistoricalPrice(price: InsertHistoricalPrice): Promise<HistoricalPrice>;
+  bulkCreateHistoricalPrices(prices: InsertHistoricalPrice[]): Promise<HistoricalPrice[]>;
+  deleteHistoricalPrices(symbol: string, region: string): Promise<boolean>;
 }
 
 // Import and export the database storage implementation

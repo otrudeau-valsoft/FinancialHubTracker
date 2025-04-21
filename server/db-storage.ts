@@ -935,4 +935,100 @@ export class DatabaseStorage implements IStorage {
       updatedAt: holding.updatedAt
     };
   }
+
+  // Historical price methods
+  async getHistoricalPrices(symbol: string, region: string, startDate?: Date, endDate?: Date): Promise<HistoricalPrice[]> {
+    try {
+      let query = db
+        .select()
+        .from(historicalPrices)
+        .where(and(
+          eq(historicalPrices.symbol, symbol),
+          eq(historicalPrices.region, region)
+        ));
+      
+      if (startDate) {
+        query = query.where(gte(historicalPrices.date, startDate));
+      }
+      
+      if (endDate) {
+        query = query.where(lte(historicalPrices.date, endDate));
+      }
+      
+      const prices = await query.orderBy(historicalPrices.date);
+      return prices;
+    } catch (error) {
+      console.error("Error in getHistoricalPrices:", error);
+      return [];
+    }
+  }
+
+  async getHistoricalPricesByRegion(region: string, startDate?: Date, endDate?: Date): Promise<HistoricalPrice[]> {
+    try {
+      let query = db
+        .select()
+        .from(historicalPrices)
+        .where(eq(historicalPrices.region, region));
+      
+      if (startDate) {
+        query = query.where(gte(historicalPrices.date, startDate));
+      }
+      
+      if (endDate) {
+        query = query.where(lte(historicalPrices.date, endDate));
+      }
+      
+      const prices = await query.orderBy(historicalPrices.date);
+      return prices;
+    } catch (error) {
+      console.error("Error in getHistoricalPricesByRegion:", error);
+      return [];
+    }
+  }
+
+  async createHistoricalPrice(price: InsertHistoricalPrice): Promise<HistoricalPrice> {
+    try {
+      const [createdPrice] = await db
+        .insert(historicalPrices)
+        .values(price)
+        .returning();
+      
+      return createdPrice;
+    } catch (error) {
+      console.error("Error in createHistoricalPrice:", error);
+      throw error;
+    }
+  }
+
+  async bulkCreateHistoricalPrices(prices: InsertHistoricalPrice[]): Promise<HistoricalPrice[]> {
+    if (prices.length === 0) return [];
+    
+    try {
+      const createdPrices = await db
+        .insert(historicalPrices)
+        .values(prices)
+        .returning();
+      
+      return createdPrices;
+    } catch (error) {
+      console.error("Error in bulkCreateHistoricalPrices:", error);
+      throw error;
+    }
+  }
+
+  async deleteHistoricalPrices(symbol: string, region: string): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(historicalPrices)
+        .where(and(
+          eq(historicalPrices.symbol, symbol),
+          eq(historicalPrices.region, region)
+        ));
+      
+      return true;
+    } catch (error) {
+      console.error("Error in deleteHistoricalPrices:", error);
+      return false;
+    }
+  }
 }
