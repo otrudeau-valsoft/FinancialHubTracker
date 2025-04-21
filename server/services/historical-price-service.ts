@@ -50,17 +50,22 @@ export class HistoricalPriceService {
 
       // Map Yahoo Finance data to our database schema
       const historicalPrices: InsertHistoricalPrice[] = result.quotes.map(quote => {
-        // Yahoo Finance timestamps are in milliseconds
-        const timestamp = quote.timestamp;
+        // Yahoo Finance data structure analysis
+        console.log(`Quote data sample: ${JSON.stringify(quote).substring(0, 200)}`);
+        
+        // Use Luxon to handle date conversion properly
         let date: Date;
         
-        if (timestamp) {
-          // If we have a valid timestamp, use it to create a date
-          date = new Date(timestamp);
+        if (quote.date) {
+          // If we have a date object, use it directly
+          date = new Date(quote.date);
+        } else if (quote.timestamp) {
+          // If we have a timestamp (in milliseconds), convert it
+          date = new Date(Number(quote.timestamp) * 1000); // Convert seconds to milliseconds if needed
         } else {
-          // Fallback to current date if timestamp is invalid
+          // Last resort fallback
           date = new Date();
-          console.warn(`Invalid timestamp for ${symbol} (${region}), using current date`);
+          console.warn(`No valid date or timestamp for ${symbol} (${region}), using current date`);
         }
         
         return {
