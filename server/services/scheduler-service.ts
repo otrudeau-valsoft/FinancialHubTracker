@@ -313,9 +313,11 @@ class SchedulerService {
       // If a Success log is being created, clean up any In Progress logs of the same type
       if (status === 'Success' && !logId) {
         try {
-          const deleteResult = await db
-            .delete(dataUpdateLogs)
-            .where({ type, status: 'In Progress' });
+          // Must use explicit equality comparison for type and status to avoid PostgreSQL type conversion errors
+          await db.execute(
+            `DELETE FROM "data_update_logs" WHERE "type" = $1 AND "status" = $2`,
+            [type, 'In Progress']
+          );
           
           console.log(`Cleaned up In Progress logs for ${type}`);
         } catch (deleteError) {
@@ -330,17 +332,15 @@ class SchedulerService {
       // If logId is provided, update the existing log entry
       if (logId && typeof logId === 'number') {
         try {
-          const [result] = await db
-            .update(dataUpdateLogs)
-            .set({
-              status,
-              details: detailsJson,
-              // Intentionally not updating timestamp to preserve the original creation time
-            })
-            .where({ id: logId })
-            .returning();
+          // Use raw SQL to avoid PostgreSQL type conversion issues
+          const result = await db.execute(
+            `UPDATE "data_update_logs" SET "status" = $1, "details" = $2 WHERE "id" = $3 RETURNING *`,
+            [status, detailsJson, logId]
+          );
           
-          return result;
+          if (result.rows && result.rows.length > 0) {
+            return result.rows[0];
+          }
         } catch (updateError) {
           console.error('Error updating log entry:', updateError);
           // If update fails, create a new log instead
