@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { PortfolioSummary } from "@/components/dashboard/portfolio-summary";
 import { AllocationChart } from "@/components/dashboard/allocation-chart";
