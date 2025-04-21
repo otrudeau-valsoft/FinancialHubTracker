@@ -60,8 +60,10 @@ export const EtfComparison = ({
                     {holding.inPortfolio ? 'In Portfolio' : 'Not Held'}
                   </Badge>
                 </td>
-                <td className={getProfitLossClass(holding.weightDifference)}>
-                  {holding.weightDifference > 0 ? '+' : ''}{holding.weightDifference.toFixed(2)}%
+                <td className={holding.weightDifference !== undefined ? getProfitLossClass(holding.weightDifference) : ''}>
+                  {holding.weightDifference !== undefined 
+                    ? `${holding.weightDifference > 0 ? '+' : ''}${holding.weightDifference.toFixed(2)}%` 
+                    : 'N/A'}
                 </td>
               </tr>
             ))}
