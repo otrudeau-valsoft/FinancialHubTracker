@@ -1,7 +1,7 @@
 import { db } from "../db";
 import { dataUpdateLogs, insertDataUpdateLogSchema } from "@shared/schema";
 import { InsertDataUpdateLog } from "@shared/schema";
-import { isWeekend, isWithinMarketHours } from "../util";
+import { isWeekend, isWithinMarketHours, toESTTime } from "../util";
 import { currentPriceService } from "./current-price-service";
 import { historicalPriceService } from "./historical-price-service";
 
@@ -114,7 +114,7 @@ class SchedulerService {
     console.log(`Starting current price scheduler with interval of ${intervalMinutes} minutes`);
 
     // Run immediately if within market hours
-    const estNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const estNow = toESTTime(new Date());
     console.log(`Current EST time: ${estNow.toLocaleString()}`);
     
     const { startTime, endTime, skipWeekends } = this.config.current_prices;
@@ -128,7 +128,7 @@ class SchedulerService {
     
     // Schedule regular updates
     this.currentPriceTimer = setInterval(() => {
-      const estNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+      const estNow = toESTTime(new Date());
       
       if (
         (!skipWeekends || !isWeekend(estNow)) && 
@@ -170,7 +170,7 @@ class SchedulerService {
       
       // Schedule daily runs
       this.historicalPriceTimer = setInterval(() => {
-        const estNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+        const estNow = toESTTime(new Date());
         if (!this.config.historical_prices.skipWeekends || !isWeekend(estNow)) {
           console.log(`Running scheduled historical price update at EST: ${estNow.toLocaleString()}`);
           this.updateHistoricalPrices();
@@ -200,7 +200,7 @@ class SchedulerService {
    */
   private calculateNextHistoricalPriceRunTime(): Date {
     // Get current time in EST timezone
-    const estNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const estNow = toESTTime(new Date());
     console.log(`Current EST time: ${estNow.toLocaleString()}`);
     
     const [hours, minutes] = this.config.historical_prices.timeOfDay.split(':').map(Number);
