@@ -135,30 +135,43 @@ export default function UsdPortfolio() {
   );
 
   return (
-    <div className="py-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-        {/* Top navigation */}
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-semibold">USD Portfolio</h1>
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center mr-4">
-              <span className="text-xs text-gray-400">Last update:</span>
-              <span className="ml-1 text-xs text-gray-300 mono">{lastUpdate.toLocaleString()}</span>
+    <div className="container mx-auto p-4 bg-[#061220]">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-[#EFEFEF] font-mono tracking-tight">USD PORTFOLIO</h1>
+        <div className="flex items-center space-x-2 mt-1">
+          <div className="h-1 w-12 bg-[#38AAFD]"></div>
+          <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">US EQUITY POSITIONS • MARKET DATA • PERFORMANCE METRICS</p>
+        </div>
+      </div>
+
+      <div className="mb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center">
+              <span className="text-xs text-[#7A8999] font-mono">LAST UPDATE:</span>
+              <span className="ml-1 text-xs text-[#EFEFEF] font-mono">{lastUpdate.toLocaleString()}</span>
             </div>
-            
+          </div>
+          
+          <div className="flex items-center space-x-2">
             <Button 
-              variant="outline" 
+              className="bg-[#38AAFD] hover:bg-[#1D90E0] text-white rounded-sm h-8 px-3 py-1"
               size="sm" 
               onClick={() => refreshPrices()}
               disabled={isRefreshing}
             >
               <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {isRefreshing ? 'Updating...' : 'Refresh Prices'}
+              {isRefreshing ? 'UPDATING...' : 'REFRESH PRICES'}
             </Button>
             
-            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+            <Button 
+              className="h-8 border-[#1A304A] text-[#EFEFEF] bg-transparent hover:bg-[#1A304A] rounded-sm" 
+              variant="outline" 
+              size="sm" 
+              onClick={() => fileInputRef.current?.click()}
+            >
               <Upload className="mr-2 h-4 w-4" />
-              Import Data
+              IMPORT DATA
             </Button>
             <input 
               type="file" 
@@ -169,8 +182,8 @@ export default function UsdPortfolio() {
             />
           </div>
         </div>
-        
-        {usdLoading ? (
+      
+      {usdLoading ? (
           <div className="text-center p-8">Loading USD portfolio data...</div>
         ) : (
           <>
@@ -219,9 +232,18 @@ export default function UsdPortfolio() {
               currentPrices={currentPrices || []}
             />
 
-            <h2 className="text-xl mb-4 mt-8">ETF Benchmark Comparison</h2>
+            <div className="mt-8 mb-4">
+              <h2 className="text-2xl font-bold text-[#EFEFEF] font-mono tracking-tight">ETF BENCHMARK COMPARISON</h2>
+              <div className="flex items-center space-x-2 mt-1 mb-3">
+                <div className="h-1 w-12 bg-[#FFCA28]"></div>
+                <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">SPY HOLDINGS • PORTFOLIO ALIGNMENT • WEIGHT DIFFERENTIALS</p>
+              </div>
+            </div>
+            
             {spyLoading ? (
-              <div className="text-center p-8 bg-[#0A1929] rounded-md">Loading ETF benchmark data...</div>
+              <div className="text-center p-8 bg-[#0A1524] border border-[#1A304A]">
+                <div className="text-[#7A8999] font-mono">LOADING ETF BENCHMARK DATA...</div>
+              </div>
             ) : (
               <EtfComparison 
                 holdings={spyComparisonData} 
