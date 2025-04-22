@@ -126,22 +126,30 @@ export default function UsdPortfolio() {
 
   return (
     <div className="container mx-auto p-4 bg-[#061220]">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-[#EFEFEF] font-mono tracking-tight">USD PORTFOLIO</h1>
-        <div className="flex items-center space-x-2 mt-1">
-          <div className="h-1 w-12 bg-[#38AAFD]"></div>
-          <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">US EQUITY POSITIONS • MARKET DATA • PERFORMANCE METRICS</p>
+      <div className="mb-6 flex justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-[#EFEFEF] font-mono tracking-tight">USD PORTFOLIO</h1>
+          <div className="flex items-center space-x-2 mt-1">
+            <div className="h-1 w-12 bg-[#38AAFD]"></div>
+            <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">US EQUITY POSITIONS • MARKET DATA • PERFORMANCE METRICS</p>
+          </div>
         </div>
-      </div>
-
-      <div className="mb-4">
-        <div className="flex flex-col">
+        
+        <div className="text-right">
           <div className="flex items-center">
             <span className="text-xs text-[#7A8999] font-mono">LAST REAL-TIME PRICE UPDATE:</span>
             <span className="ml-1 text-xs text-[#EFEFEF] font-mono">
               {updateLogs 
                 ? updateLogs.filter(log => log.type === 'current_prices' && log.status === 'Success').length > 0
-                  ? new Date(updateLogs.filter(log => log.type === 'current_prices' && log.status === 'Success')[0].timestamp).toLocaleString()
+                  ? new Date(updateLogs.filter(log => log.type === 'current_prices' && log.status === 'Success')[0].timestamp).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                  })
                   : 'Never updated'
                 : 'Loading...'}
             </span>
@@ -151,12 +159,23 @@ export default function UsdPortfolio() {
             <span className="ml-1 text-xs text-[#EFEFEF] font-mono">
               {updateLogs 
                 ? updateLogs.filter(log => log.type === 'historical_prices' && log.status === 'Success').length > 0
-                  ? new Date(updateLogs.filter(log => log.type === 'historical_prices' && log.status === 'Success')[0].timestamp).toLocaleString()
+                  ? new Date(updateLogs.filter(log => log.type === 'historical_prices' && log.status === 'Success')[0].timestamp).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                  })
                   : 'Never updated'
                 : 'Loading...'}
             </span>
           </div>
         </div>
+      </div>
+
+      <div className="mb-4">
       
       {usdLoading ? (
           <div className="text-center p-8">Loading USD portfolio data...</div>

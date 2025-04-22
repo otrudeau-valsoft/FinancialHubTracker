@@ -36,10 +36,8 @@ const samplePerformanceData = Array.from({ length: 180 }, (_, i) => {
 });
 
 export default function CadPortfolio() {
-  const fileInputRef = React.createRef<HTMLInputElement>();
-
   // Fetch CAD portfolio data
-  const { data: cadStocks, isLoading: cadLoading, refetch: refetchCadStocks } = useQuery({
+  const { data: cadStocks, isLoading: cadLoading } = useQuery({
     queryKey: ['/api/portfolios/CAD/stocks'],
     staleTime: 60000, // 1 minute
   });
@@ -61,35 +59,12 @@ export default function CadPortfolio() {
     queryKey: ['/api/current-prices/CAD'],
     staleTime: 60000, // 1 minute
   });
-
-  // Import portfolio data from CSV
-  const handleImportData = async (file: File) => {
-    try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const csvData = e.target?.result as string;
-        const parsed = parseCSV(csvData);
-        
-        if (parsed.data.length > 0) {
-          const formattedData = convertPortfolioData(parsed.data, 'CAD');
-          
-          // Send the formatted data to the server
-          await apiRequest('POST', '/api/portfolios/CAD/stocks/bulk', {
-            stocks: formattedData
-          });
-          
-          // Refetch data
-          refetchCadStocks();
-          
-          alert(`Successfully imported ${formattedData.length} stocks for CAD portfolio`);
-        }
-      };
-      reader.readAsText(file);
-    } catch (error) {
-      console.error("Error importing data:", error);
-      alert("Failed to import data. Please check the file format.");
-    }
-  };
+  
+  // Fetch update logs
+  const { data: updateLogs } = useQuery({
+    queryKey: ['/api/data-updates/logs'],
+    staleTime: 30000, // 30 seconds
+  });
   
   // Calculate metrics for CAD portfolio
   const cadAllocationByType = calculateAllocationByType(cadStocks || []);
@@ -110,42 +85,56 @@ export default function CadPortfolio() {
 
   return (
     <div className="container mx-auto p-4 bg-[#061220]">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-[#EFEFEF] font-mono tracking-tight">CAD PORTFOLIO</h1>
-        <div className="flex items-center space-x-2 mt-1">
-          <div className="h-1 w-12 bg-[#4CAF50]"></div>
-          <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">CANADIAN EQUITY POSITIONS • MARKET DATA • PERFORMANCE METRICS</p>
+      <div className="mb-6 flex justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-[#EFEFEF] font-mono tracking-tight">CAD PORTFOLIO</h1>
+          <div className="flex items-center space-x-2 mt-1">
+            <div className="h-1 w-12 bg-[#4CAF50]"></div>
+            <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">CANADIAN EQUITY POSITIONS • MARKET DATA • PERFORMANCE METRICS</p>
+          </div>
+        </div>
+        
+        <div className="text-right">
+          <div className="flex items-center">
+            <span className="text-xs text-[#7A8999] font-mono">LAST REAL-TIME PRICE UPDATE:</span>
+            <span className="ml-1 text-xs text-[#EFEFEF] font-mono">
+              {updateLogs 
+                ? updateLogs.filter(log => log.type === 'current_prices' && log.status === 'Success').length > 0
+                  ? new Date(updateLogs.filter(log => log.type === 'current_prices' && log.status === 'Success')[0].timestamp).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                  })
+                  : 'Never updated'
+                : 'Loading...'}
+            </span>
+          </div>
+          <div className="flex items-center mt-1">
+            <span className="text-xs text-[#7A8999] font-mono">LAST HISTORICAL DATA UPDATE:</span>
+            <span className="ml-1 text-xs text-[#EFEFEF] font-mono">
+              {updateLogs 
+                ? updateLogs.filter(log => log.type === 'historical_prices' && log.status === 'Success').length > 0
+                  ? new Date(updateLogs.filter(log => log.type === 'historical_prices' && log.status === 'Success')[0].timestamp).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                  })
+                  : 'Never updated'
+                : 'Loading...'}
+            </span>
+          </div>
         </div>
       </div>
 
       <div className="mb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center">
-              <span className="text-xs text-[#7A8999] font-mono">LAST UPDATE:</span>
-              <span className="ml-1 text-xs text-[#EFEFEF] font-mono">{new Date().toLocaleString()}</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Button 
-              className="h-8 border-[#1A304A] text-[#EFEFEF] bg-transparent hover:bg-[#1A304A] rounded-sm" 
-              variant="outline" 
-              size="sm" 
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              IMPORT DATA
-            </Button>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept=".csv" 
-              onChange={(e) => e.target.files && handleImportData(e.target.files[0])} 
-            />
-          </div>
-        </div>
       
       {cadLoading ? (
           <div className="text-center p-8 bg-[#0A1524] border border-[#1A304A]">

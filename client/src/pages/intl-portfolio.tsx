@@ -36,10 +36,8 @@ const samplePerformanceData = Array.from({ length: 180 }, (_, i) => {
 });
 
 export default function IntlPortfolio() {
-  const fileInputRef = React.createRef<HTMLInputElement>();
-
   // Fetch INTL portfolio data
-  const { data: intlStocks, isLoading: intlLoading, refetch: refetchIntlStocks } = useQuery({
+  const { data: intlStocks, isLoading: intlLoading } = useQuery({
     queryKey: ['/api/portfolios/INTL/stocks'],
     staleTime: 60000, // 1 minute
   });
@@ -60,6 +58,12 @@ export default function IntlPortfolio() {
   const { data: currentPrices } = useQuery({
     queryKey: ['/api/current-prices/INTL'],
     staleTime: 60000, // 1 minute
+  });
+  
+  // Fetch update logs
+  const { data: updateLogs } = useQuery({
+    queryKey: ['/api/data-updates/logs'],
+    staleTime: 30000, // 30 seconds
   });
 
   // Import portfolio data from CSV
@@ -103,40 +107,51 @@ export default function IntlPortfolio() {
 
   return (
     <div className="container mx-auto p-4 bg-[#061220]">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-[#EFEFEF] font-mono tracking-tight">INTERNATIONAL PORTFOLIO</h1>
-        <div className="flex items-center space-x-2 mt-1">
-          <div className="h-1 w-12 bg-[#FFCA28]"></div>
-          <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">INTERNATIONAL EQUITY POSITIONS • MARKET DATA • PERFORMANCE METRICS</p>
-        </div>
-      </div>
-
-      <div className="mb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center">
-              <span className="text-xs text-[#7A8999] font-mono">LAST UPDATE:</span>
-              <span className="ml-1 text-xs text-[#EFEFEF] font-mono">{new Date().toLocaleString()}</span>
-            </div>
+      <div className="mb-6 flex justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-[#EFEFEF] font-mono tracking-tight">INTERNATIONAL PORTFOLIO</h1>
+          <div className="flex items-center space-x-2 mt-1">
+            <div className="h-1 w-12 bg-[#FFCA28]"></div>
+            <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">INTERNATIONAL EQUITY POSITIONS • MARKET DATA • PERFORMANCE METRICS</p>
           </div>
-          
-          <div className="flex items-center space-x-2">
-            <Button 
-              className="h-8 border-[#1A304A] text-[#EFEFEF] bg-transparent hover:bg-[#1A304A] rounded-sm" 
-              variant="outline" 
-              size="sm" 
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              IMPORT DATA
-            </Button>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept=".csv" 
-              onChange={(e) => e.target.files && handleImportData(e.target.files[0])} 
-            />
+        </div>
+        
+        <div className="text-right">
+          <div className="flex items-center">
+            <span className="text-xs text-[#7A8999] font-mono">LAST REAL-TIME PRICE UPDATE:</span>
+            <span className="ml-1 text-xs text-[#EFEFEF] font-mono">
+              {updateLogs 
+                ? updateLogs.filter(log => log.type === 'current_prices' && log.status === 'Success').length > 0
+                  ? new Date(updateLogs.filter(log => log.type === 'current_prices' && log.status === 'Success')[0].timestamp).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                  })
+                  : 'Never updated'
+                : 'Loading...'}
+            </span>
+          </div>
+          <div className="flex items-center mt-1">
+            <span className="text-xs text-[#7A8999] font-mono">LAST HISTORICAL DATA UPDATE:</span>
+            <span className="ml-1 text-xs text-[#EFEFEF] font-mono">
+              {updateLogs 
+                ? updateLogs.filter(log => log.type === 'historical_prices' && log.status === 'Success').length > 0
+                  ? new Date(updateLogs.filter(log => log.type === 'historical_prices' && log.status === 'Success')[0].timestamp).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                  })
+                  : 'Never updated'
+                : 'Loading...'}
+            </span>
           </div>
         </div>
       </div>
