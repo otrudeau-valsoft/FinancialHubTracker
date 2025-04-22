@@ -136,6 +136,12 @@ export default function DataManagement() {
             groupKey = `${log.type}_${details.portfolios.join('_')}`;
           } else if (details.message && details.message.includes('all portfolios')) {
             groupKey = `${log.type}_all`;
+          } else if (details.region) {
+            // Group specific region updates with the main "all" update if it exists
+            if (details.message && details.message.includes('Completed')) {
+              // Instead of creating a separate key, use the main historical_prices key
+              groupKey = 'historical_prices';
+            }
           }
         }
         

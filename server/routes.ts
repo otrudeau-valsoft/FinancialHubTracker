@@ -601,10 +601,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { period, interval } = req.body;
       console.log("Initiating historical price collection for all portfolios");
       
+      // Track start time for execution duration
+      const startTime = new Date();
+      
       // Create a single log entry that we'll update throughout the process
       const initialLog = await schedulerService.logUpdate('historical_prices', 'In Progress', {
         message: `Starting historical price update for all portfolios...`,
         timestamp: new Date().toISOString(),
+        startTime: startTime.toISOString(),
         progress: { current: 0, total: 0 } // We'll update this as we go
       });
       
@@ -723,10 +727,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
           }
           
-          // Log the final completion
+          // Log the final completion with execution time
+          const endTime = new Date();
+          const executionTime = endTime.getTime() - startTime.getTime();
+          const minutes = Math.floor(executionTime / 60000);
+          const seconds = Math.floor((executionTime % 60000) / 1000);
+          
           await schedulerService.logUpdate('historical_prices', 'Success', {
-            message: `Manual historical price update completed - ${totalSuccessCount}/${totalSymbolCount} symbols updated across all portfolios`,
+            message: `Manual historical price update completed - ${totalSuccessCount}/${totalSymbolCount} symbols updated across all portfolios (${minutes}m ${seconds}s)`,
             results,
+            startTime: startTime.toISOString(),
+            endTime: endTime.toISOString(),
+            executionTime: { minutes, seconds, totalMs: executionTime },
             timestamp: new Date().toISOString()
           });
           
@@ -990,11 +1002,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Starting current price update for all portfolios");
       
+      // Track start time for execution duration
+      const startTime = new Date();
+      
       // Create a log entry with 'In Progress' status
       let inProgressLog = null;
       try {
         inProgressLog = await schedulerService.logUpdate('current_prices', 'In Progress', {
           message: "Starting current price update for all portfolios...",
+          startTime: startTime.toISOString(),
           timestamp: new Date().toISOString()
         });
       } catch (logError) {
