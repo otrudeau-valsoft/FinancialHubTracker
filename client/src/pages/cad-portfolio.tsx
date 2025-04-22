@@ -187,16 +187,7 @@ export default function CadPortfolio() {
               currentPrices={currentPrices || []}
             />
             
-            <div className="mt-8 mb-4">
-              <div className="flex items-center">
-                <BarChart3 className="mr-2 h-5 w-5 text-[#38AAFD]" />
-                <h2 className="text-lg font-bold text-[#EFEFEF] font-mono">ETF BENCHMARK COMPARISON</h2>
-              </div>
-              <div className="flex items-center space-x-2 mt-1 mb-3">
-                <div className="h-1 w-12 bg-[#38AAFD]"></div>
-                <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">XIC HOLDINGS • PORTFOLIO ALIGNMENT • WEIGHT DIFFERENTIALS</p>
-              </div>
-            </div>
+            <div className="mt-8 mb-4"></div>
             
             {!xicLoading && xicComparisonData.length > 0 ? (
               <EtfComparison 

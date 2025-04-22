@@ -1,6 +1,7 @@
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, getProfitLossClass } from "@/lib/financial";
+import { BarChart2 } from "lucide-react";
 
 interface EtfHolding {
   id: number;
@@ -31,8 +32,17 @@ export const EtfComparison = ({
   
   return (
     <Card className="mb-6 border-0 shadow bg-[#0A1929]">
-      <CardHeader className="card-header flex flex-row items-center justify-between px-4 py-3 bg-[#111E2E]">
-        <h3 className="text-left">ETF Benchmark - {etfSymbol} Top {limit} Holdings</h3>
+      <CardHeader className="card-header flex flex-col px-4 py-3 bg-[#111E2E]">
+        <div className="flex items-center">
+          <BarChart2 className="h-5 w-5 mr-2 text-[#38AAFD]" />
+          <h3 className="text-left font-mono text-[#EFEFEF]">ETF BENCHMARK COMPARISON</h3>
+        </div>
+        <div className="flex items-center space-x-2 mt-1">
+          <div className="h-1 w-12 bg-[#38AAFD]"></div>
+          <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">
+            {etfSymbol} TOP {limit} HOLDINGS • PORTFOLIO ALIGNMENT • WEIGHT DIFFERENTIALS
+          </p>
+        </div>
       </CardHeader>
       <div className="overflow-x-auto p-0">
         <table className="min-w-full divide-y divide-gray-800 data-table">
