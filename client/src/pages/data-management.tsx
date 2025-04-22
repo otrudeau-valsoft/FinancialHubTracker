@@ -129,19 +129,30 @@ export default function DataManagement() {
         // or "all portfolios" operations
         let groupKey = log.type;
         
+        // Parse log details to extract more information
+        const details = JSON.parse(log.details || '{}');
+          
+        // Check if this is an "all portfolios" update
+        const isAllPortfolios = details.message && details.message.includes('all portfolios');
+        
         if (log.type === 'historical_prices') {
-          // Try to extract if this is for all portfolios or specific one
-          const details = JSON.parse(log.details || '{}');
-          if (details.portfolios) {
+          if (isAllPortfolios) {
+            // For "all portfolios" updates, use a special key
+            groupKey = `${log.type}_all`;
+          } else if (details.portfolios) {
+            // For specific portfolio groups
             groupKey = `${log.type}_${details.portfolios.join('_')}`;
-          } else if (details.message && details.message.includes('all portfolios')) {
+          } else if (details.region) {
+            // For individual region updates, group under a region-specific key
+            groupKey = `${log.type}_region_${details.region}`;
+          }
+        } else if (log.type === 'current_prices') {
+          if (isAllPortfolios) {
+            // For "all portfolios" updates, use a special key
             groupKey = `${log.type}_all`;
           } else if (details.region) {
-            // Group specific region updates with the main "all" update if it exists
-            if (details.message && details.message.includes('Completed')) {
-              // Instead of creating a separate key, use the main historical_prices key
-              groupKey = 'historical_prices';
-            }
+            // For individual region updates, group under a region-specific key
+            groupKey = `${log.type}_region_${details.region}`;
           }
         }
         
@@ -162,7 +173,34 @@ export default function DataManagement() {
     // For each operation group, consolidate logs
     const consolidatedLogs = [];
     
-    Object.values(operationGroups).forEach((logs: DataUpdateLog[]) => {
+    // Check if we have a successful "all portfolios" update for historical prices
+    const hasAllPortfoliosHistoricalPrices = Object.keys(operationGroups).some(key => 
+      key === 'historical_prices_all' && 
+      operationGroups[key].some(log => log.status === 'Success')
+    );
+    
+    // Check if we have a successful "all portfolios" update for current prices
+    const hasAllPortfoliosCurrentPrices = Object.keys(operationGroups).some(key => 
+      key === 'current_prices_all' && 
+      operationGroups[key].some(log => log.status === 'Success')
+    );
+    
+    // Filter out individual region updates if we have an "all portfolios" update
+    const filteredGroups = Object.entries(operationGroups).filter(([key, logs]) => {
+      // If we have a successful "all portfolios" update for historical prices, skip region-specific historical logs
+      if (hasAllPortfoliosHistoricalPrices && key.startsWith('historical_prices_region_')) {
+        return false;
+      }
+      
+      // If we have a successful "all portfolios" update for current prices, skip region-specific current price logs
+      if (hasAllPortfoliosCurrentPrices && key.startsWith('current_prices_region_')) {
+        return false;
+      }
+      
+      return true;
+    });
+    
+    filteredGroups.forEach(([_, logs]) => {
       // Sort logs by timestamp descending (newest first)
       logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       
@@ -465,39 +503,11 @@ export default function DataManagement() {
               <div className="font-mono text-xs space-y-2">
                 <div className="flex justify-between">
                   <span className="text-[#7A8999]">MODE:</span>
-                  <span className="text-[#EFEFEF]">INCREMENTAL</span>
+                  <span className="text-[#EFEFEF]">ALL PORTFOLIOS</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[#7A8999]">REGIONS:</span>
-                  <div className="grid grid-cols-3 gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => updateHistoricalPricesMutation.mutate('USD')}
-                      disabled={updateHistoricalPricesMutation.isPending || updateAllHistoricalPricesMutation.isPending}
-                      className="h-6 px-2 text-xs border-[#1A304A] text-[#EFEFEF] bg-[#0D1C30] hover:bg-[#1A304A]"
-                    >
-                      USD
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => updateHistoricalPricesMutation.mutate('CAD')}
-                      disabled={updateHistoricalPricesMutation.isPending || updateAllHistoricalPricesMutation.isPending}
-                      className="h-6 px-2 text-xs border-[#1A304A] text-[#EFEFEF] bg-[#0D1C30] hover:bg-[#1A304A]"
-                    >
-                      CAD
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => updateHistoricalPricesMutation.mutate('INTL')}
-                      disabled={updateHistoricalPricesMutation.isPending || updateAllHistoricalPricesMutation.isPending}
-                      className="h-6 px-2 text-xs border-[#1A304A] text-[#EFEFEF] bg-[#0D1C30] hover:bg-[#1A304A]"
-                    >
-                      INTL
-                    </Button>
-                  </div>
+                  <span className="text-[#EFEFEF]">USD | CAD | INTL</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[#7A8999]">SCHEDULED:</span>
