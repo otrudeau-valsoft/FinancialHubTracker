@@ -7,7 +7,7 @@ import { AlertsList } from "@/components/dashboard/alerts-list";
 import { PortfolioTable } from "@/components/dashboard/portfolio-table";
 import { EtfComparison } from "@/components/dashboard/etf-comparison";
 import { Button } from "@/components/ui/button";
-import { Upload, Download, RefreshCw } from "lucide-react";
+import { Upload, Download, RefreshCw, BarChart3 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   calculateAllocationByType, 
@@ -227,7 +227,10 @@ export default function UsdPortfolio() {
             />
 
             <div className="mt-8 mb-4">
-              <h2 className="text-2xl font-bold text-[#EFEFEF] font-mono tracking-tight">ETF BENCHMARK COMPARISON</h2>
+              <div className="flex items-center">
+                <BarChart3 className="mr-2 h-5 w-5 text-[#FFCA28]" />
+                <h2 className="text-lg font-bold text-[#EFEFEF] font-mono">ETF BENCHMARK COMPARISON</h2>
+              </div>
               <div className="flex items-center space-x-2 mt-1 mb-3">
                 <div className="h-1 w-12 bg-[#FFCA28]"></div>
                 <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">SPY HOLDINGS • PORTFOLIO ALIGNMENT • WEIGHT DIFFERENTIALS</p>
