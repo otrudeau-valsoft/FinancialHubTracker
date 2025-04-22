@@ -32,16 +32,16 @@ export const PortfolioSummary = ({
   const currencySymbol = region === 'USD' ? '$' : region === 'CAD' ? 'C$' : '$';
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6">
       {/* Portfolio Value Card */}
       <Card className="border-0 shadow bg-[#0A1929]">
-        <CardHeader className="card-header px-4 py-3 bg-[#111E2E]">
+        <CardHeader className="card-header px-2 py-2 bg-[#111E2E]">
           <div className="flex items-center">
-            <DollarSign className="h-5 w-5 mr-2 text-[#4CAF50]" />
+            <DollarSign className="h-4 w-4 mr-1 text-[#4CAF50]" />
             <h3 className="text-left font-mono text-[#EFEFEF] text-xs">PORTFOLIO VALUE</h3>
           </div>
         </CardHeader>
-        <CardContent className="p-4">
+        <CardContent className="p-2">
           <div className="flex items-baseline">
             <span className="text-2xl font-semibold mono">{formatCurrency(summary.value, currencySymbol)}</span>
             <span className={`ml-2 text-xs mono ${getProfitLossClass(summary.dailyChangePercent)}`}>
@@ -56,13 +56,13 @@ export const PortfolioSummary = ({
       
       {/* Cash Position Card */}
       <Card className="border-0 shadow bg-[#0A1929]">
-        <CardHeader className="card-header px-4 py-3 bg-[#111E2E]">
+        <CardHeader className="card-header px-2 py-2 bg-[#111E2E]">
           <div className="flex items-center">
-            <Banknote className="h-5 w-5 mr-2 text-[#FDD835]" />
+            <Banknote className="h-4 w-4 mr-1 text-[#FDD835]" />
             <h3 className="text-left font-mono text-[#EFEFEF] text-xs">CASH POSITION</h3>
           </div>
         </CardHeader>
-        <CardContent className="p-4">
+        <CardContent className="p-2">
           <div className="flex items-baseline">
             <span className="text-2xl font-semibold mono">{formatCurrency(summary.cashPosition, currencySymbol)}</span>
             <span className="ml-2 text-xs mono text-gray-400">{summary.cashPositionPercent.toFixed(2)}% of NAV</span>
@@ -75,13 +75,13 @@ export const PortfolioSummary = ({
       
       {/* Performance Card */}
       <Card className="border-0 shadow bg-[#0A1929]">
-        <CardHeader className="card-header px-4 py-3 bg-[#111E2E]">
+        <CardHeader className="card-header px-2 py-2 bg-[#111E2E]">
           <div className="flex items-center">
-            <TrendingUp className="h-5 w-5 mr-2 text-[#2196F3]" />
+            <TrendingUp className="h-4 w-4 mr-1 text-[#2196F3]" />
             <h3 className="text-left font-mono text-[#EFEFEF] text-xs">YTD PERFORMANCE</h3>
           </div>
         </CardHeader>
-        <CardContent className="p-4">
+        <CardContent className="p-2">
           <div className="flex items-baseline">
             <span className={`text-2xl font-semibold mono ${getProfitLossClass(summary.ytdPerformance)}`}>
               {formatPercentage(summary.ytdPerformance)}
@@ -98,13 +98,13 @@ export const PortfolioSummary = ({
       
       {/* Alerts Card */}
       <Card className="border-0 shadow bg-[#0A1929]">
-        <CardHeader className="card-header px-4 py-3 bg-[#111E2E]">
+        <CardHeader className="card-header px-2 py-2 bg-[#111E2E]">
           <div className="flex items-center">
-            <Bell className="h-5 w-5 mr-2 text-[#FF5722]" />
+            <Bell className="h-4 w-4 mr-1 text-[#FF5722]" />
             <h3 className="text-left font-mono text-[#EFEFEF] text-xs">ACTIVE ALERTS</h3>
           </div>
         </CardHeader>
-        <CardContent className="p-4">
+        <CardContent className="p-2">
           <div className="flex items-baseline">
             <span className="text-2xl font-semibold mono">{summary.activeAlerts}</span>
             <span className="ml-2 text-xs mono text-loss">{summary.criticalAlerts} critical</span>
