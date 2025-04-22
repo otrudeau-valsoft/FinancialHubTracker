@@ -121,9 +121,6 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
         </div>
         <div className="flex items-center space-x-2 mt-1">
           <div className="h-1 w-12 bg-[#4CAF50]"></div>
-          <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">
-            PORTFOLIO POSITIONS • MARKET VALUES • PERFORMANCE METRICS
-          </p>
         </div>
       </CardHeader>
       <div className="overflow-x-auto">

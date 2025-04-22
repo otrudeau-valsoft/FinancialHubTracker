@@ -41,9 +41,6 @@ export const AllocationChart = ({ typeAllocation, ratingAllocation }: Allocation
         </div>
         <div className="flex items-center space-x-2 mt-1">
           <div className="h-1 w-12 bg-[#FFD700]"></div>
-          <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">
-            INVESTMENT TYPES • RATING DISTRIBUTION • CLASSIFICATION BREAKDOWN
-          </p>
         </div>
       </CardHeader>
       <CardContent className="p-4 bg-[#0A1929]">

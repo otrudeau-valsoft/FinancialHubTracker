@@ -39,9 +39,6 @@ export const EtfComparison = ({
         </div>
         <div className="flex items-center space-x-2 mt-1">
           <div className="h-1 w-12 bg-[#38AAFD]"></div>
-          <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">
-            {etfSymbol} TOP {limit} HOLDINGS • PORTFOLIO ALIGNMENT • WEIGHT DIFFERENTIALS
-          </p>
         </div>
       </CardHeader>
       <div className="overflow-x-auto p-0">
