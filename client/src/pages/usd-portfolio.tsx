@@ -37,32 +37,22 @@ const samplePerformanceData = Array.from({ length: 180 }, (_, i) => {
 });
 
 export default function UsdPortfolio() {
-  const fileInputRef = React.createRef<HTMLInputElement>();
-  const queryClient = useQueryClient();
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
-
   // Fetch USD portfolio data
-  const { data: usdStocks, isLoading: usdLoading, refetch: refetchUsdStocks } = useQuery({
+  const { data: usdStocks, isLoading: usdLoading } = useQuery({
     queryKey: ['/api/portfolios/USD/stocks'],
     staleTime: 60000, // 1 minute
   });
   
   // Fetch current prices
-  const { data: currentPrices, isLoading: pricesLoading, refetch: refetchPrices } = useQuery({
+  const { data: currentPrices } = useQuery({
     queryKey: ['/api/current-prices/USD'],
     staleTime: 60000, // 1 minute
   });
   
-  // Mutation for refreshing prices
-  const { mutate: refreshPrices, isPending: isRefreshing } = useMutation({
-    mutationFn: async () => {
-      return await apiRequest('POST', '/api/current-prices/fetch/portfolio/USD', {});
-    },
-    onSuccess: () => {
-      setLastUpdate(new Date());
-      refetchPrices();
-      refetchUsdStocks();
-    }
+  // Fetch update logs
+  const { data: updateLogs } = useQuery({
+    queryKey: ['/api/data-updates/logs'],
+    staleTime: 30000, // 30 seconds
   });
   
   // Fetch alerts
@@ -145,41 +135,26 @@ export default function UsdPortfolio() {
       </div>
 
       <div className="mb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center">
-              <span className="text-xs text-[#7A8999] font-mono">LAST UPDATE:</span>
-              <span className="ml-1 text-xs text-[#EFEFEF] font-mono">{lastUpdate.toLocaleString()}</span>
-            </div>
+        <div className="flex flex-col">
+          <div className="flex items-center">
+            <span className="text-xs text-[#7A8999] font-mono">LAST REAL-TIME PRICE UPDATE:</span>
+            <span className="ml-1 text-xs text-[#EFEFEF] font-mono">
+              {updateLogs 
+                ? updateLogs.filter(log => log.type === 'current_prices' && log.status === 'Success').length > 0
+                  ? new Date(updateLogs.filter(log => log.type === 'current_prices' && log.status === 'Success')[0].timestamp).toLocaleString()
+                  : 'Never updated'
+                : 'Loading...'}
+            </span>
           </div>
-          
-          <div className="flex items-center space-x-2">
-            <Button 
-              className="bg-[#38AAFD] hover:bg-[#1D90E0] text-white rounded-sm h-8 px-3 py-1"
-              size="sm" 
-              onClick={() => refreshPrices()}
-              disabled={isRefreshing}
-            >
-              <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {isRefreshing ? 'UPDATING...' : 'REFRESH PRICES'}
-            </Button>
-            
-            <Button 
-              className="h-8 border-[#1A304A] text-[#EFEFEF] bg-transparent hover:bg-[#1A304A] rounded-sm" 
-              variant="outline" 
-              size="sm" 
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              IMPORT DATA
-            </Button>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept=".csv" 
-              onChange={(e) => e.target.files && handleImportData(e.target.files[0])} 
-            />
+          <div className="flex items-center mt-1">
+            <span className="text-xs text-[#7A8999] font-mono">LAST HISTORICAL DATA UPDATE:</span>
+            <span className="ml-1 text-xs text-[#EFEFEF] font-mono">
+              {updateLogs 
+                ? updateLogs.filter(log => log.type === 'historical_prices' && log.status === 'Success').length > 0
+                  ? new Date(updateLogs.filter(log => log.type === 'historical_prices' && log.status === 'Success')[0].timestamp).toLocaleString()
+                  : 'Never updated'
+                : 'Loading...'}
+            </span>
           </div>
         </div>
       
