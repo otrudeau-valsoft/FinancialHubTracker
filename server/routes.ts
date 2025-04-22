@@ -1022,8 +1022,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const minutes = Math.floor(executionTime / 60000);
           const seconds = Math.floor((executionTime % 60000) / 1000);
           
+          const { region } = req.params;
+          const regionUpper = region.toUpperCase();
           await schedulerService.logUpdate('current_prices', 'Error', {
-            message: `Error updating current prices for ${region.toUpperCase()} portfolio (${minutes}m ${seconds}s): ${(error as Error).message}`,
+            message: `Error updating current prices for ${regionUpper} portfolio (${minutes}m ${seconds}s): ${(error as Error).message}`,
             startTime: startTime.toISOString(),
             endTime: endTime.toISOString(),
             executionTime: { minutes, seconds, totalMs: executionTime },
@@ -1031,8 +1033,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         } else {
           // If startTime is not defined, log without execution time
+          const { region } = req.params;
+          const regionUpper = region.toUpperCase();
           await schedulerService.logUpdate('current_prices', 'Error', {
-            message: `Error updating current prices for ${region.toUpperCase()} portfolio: ${(error as Error).message}`,
+            message: `Error updating current prices for ${regionUpper} portfolio: ${(error as Error).message}`,
             error: (error as Error).message
           });
         }
@@ -1134,20 +1138,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Log the error in the data_update_logs table
       try {
-        // Calculate execution time until error
-        const endTime = new Date();
-        const executionTime = endTime.getTime() - startTime.getTime();
-        const minutes = Math.floor(executionTime / 60000);
-        const seconds = Math.floor((executionTime % 60000) / 1000);
-        
-        await schedulerService.logUpdate('current_prices', 'Error', {
-          message: `Failed to update current prices (${minutes}m ${seconds}s)`, 
-          error: error instanceof Error ? error.message : String(error),
-          startTime: startTime.toISOString(),
-          endTime: endTime.toISOString(),
-          executionTime: { minutes, seconds, totalMs: executionTime },
-          timestamp: new Date().toISOString()
-        });
+        // Make sure startTime exists in this scope
+        if (typeof startTime !== 'undefined') {
+          // Calculate execution time until error
+          const endTime = new Date();
+          const executionTime = endTime.getTime() - startTime.getTime();
+          const minutes = Math.floor(executionTime / 60000);
+          const seconds = Math.floor((executionTime % 60000) / 1000);
+          
+          await schedulerService.logUpdate('current_prices', 'Error', {
+            message: `Failed to update current prices (${minutes}m ${seconds}s)`, 
+            error: error instanceof Error ? error.message : String(error),
+            startTime: startTime.toISOString(),
+            endTime: endTime.toISOString(),
+            executionTime: { minutes, seconds, totalMs: executionTime },
+            timestamp: new Date().toISOString()
+          });
+        } else {
+          // If startTime is not defined, log without execution time
+          await schedulerService.logUpdate('current_prices', 'Error', {
+            message: `Failed to update current prices`, 
+            error: error instanceof Error ? error.message : String(error),
+            timestamp: new Date().toISOString()
+          });
+        }
       } catch (logError) {
         console.error("Failed to create 'Error' log:", logError);
         // Continue to return error even if logging fails
