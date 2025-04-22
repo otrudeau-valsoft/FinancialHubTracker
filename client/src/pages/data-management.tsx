@@ -493,7 +493,7 @@ export default function DataManagement() {
                   ) : (
                     <>
                       <RotateCw className="mr-2 h-4 w-4" />
-                      UPDATE ALL HISTORY
+                      UPDATE ALL HISTORICAL DATA
                     </>
                   )}
                 </Button>
