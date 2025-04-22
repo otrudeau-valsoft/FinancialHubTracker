@@ -339,6 +339,8 @@ export default function DataManagement() {
       if (details.error) {
         return details.error;
       }
+      
+      // Always show message as is - it should already contain execution time
       return details.message || JSON.stringify(details, null, 2);
     } catch (e) {
       return detailsJson;

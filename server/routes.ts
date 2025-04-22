@@ -967,15 +967,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Fetching current prices for portfolio: ${regionUpper}`);
       
+      // Track start time for execution duration
+      const startTime = new Date();
+      
+      // Create a log entry with 'In Progress' status
+      let inProgressLog = null;
+      try {
+        inProgressLog = await schedulerService.logUpdate('current_prices', 'In Progress', {
+          message: `Starting current price update for ${regionUpper} portfolio...`,
+          startTime: startTime.toISOString(),
+          timestamp: new Date().toISOString()
+        });
+      } catch (logError) {
+        console.error("Failed to create initial 'In Progress' log:", logError);
+        // Continue processing even if logging fails
+      }
+      
       const result = await currentPriceService.updatePortfolioCurrentPrices(regionUpper);
       
+      // Calculate execution time
+      const endTime = new Date();
+      const executionTime = endTime.getTime() - startTime.getTime();
+      const minutes = Math.floor(executionTime / 60000);
+      const seconds = Math.floor((executionTime % 60000) / 1000);
+      
+      // Log the success
+      try {
+        await schedulerService.logUpdate('current_prices', 'Success', {
+          message: `Manual current price update completed - ${result.successCount}/${result.totalSymbols} symbols updated in ${regionUpper} portfolio (${minutes}m ${seconds}s)`,
+          startTime: startTime.toISOString(),
+          endTime: endTime.toISOString(),
+          executionTime: { minutes, seconds, totalMs: executionTime },
+          result
+        });
+      } catch (logError) {
+        console.error("Failed to create 'Success' log:", logError);
+      }
+      
       return res.status(200).json({
-        message: `Updated current prices for ${result.successCount}/${result.totalSymbols} symbols in ${regionUpper} portfolio`,
+        message: `Updated current prices for ${result.successCount}/${result.totalSymbols} symbols in ${regionUpper} portfolio (${minutes}m ${seconds}s)`,
         successCount: result.successCount,
-        totalSymbols: result.totalSymbols
+        totalSymbols: result.totalSymbols,
+        executionTime: { minutes, seconds, totalMs: executionTime }
       });
     } catch (error) {
       console.error("Error updating current prices for portfolio:", error);
+      
+      // Log the error with execution time if possible
+      try {
+        // Make sure startTime exists in this scope
+        if (typeof startTime !== 'undefined') {
+          const endTime = new Date();
+          const executionTime = endTime.getTime() - startTime.getTime();
+          const minutes = Math.floor(executionTime / 60000);
+          const seconds = Math.floor((executionTime % 60000) / 1000);
+          
+          await schedulerService.logUpdate('current_prices', 'Error', {
+            message: `Error updating current prices for ${region.toUpperCase()} portfolio (${minutes}m ${seconds}s): ${(error as Error).message}`,
+            startTime: startTime.toISOString(),
+            endTime: endTime.toISOString(),
+            executionTime: { minutes, seconds, totalMs: executionTime },
+            error: (error as Error).message
+          });
+        } else {
+          // If startTime is not defined, log without execution time
+          await schedulerService.logUpdate('current_prices', 'Error', {
+            message: `Error updating current prices for ${region.toUpperCase()} portfolio: ${(error as Error).message}`,
+            error: (error as Error).message
+          });
+        }
+      } catch (logError) {
+        console.error("Failed to create 'Error' log:", logError);
+      }
+      
       return res.status(500).json({
         message: "Failed to update current prices for portfolio",
         error: (error as Error).message
