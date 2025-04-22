@@ -74,9 +74,13 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
   
   return (
     <Card className="mb-6 border-0 shadow bg-[#0A1929]">
-      <CardHeader className="card-header flex flex-row items-center justify-between px-4 py-3 bg-[#111E2E]">
-        <h3 className="text-left">{region} Portfolio Holdings</h3>
-        <div className="flex space-x-2">
+      <CardHeader className="card-header flex flex-col px-4 py-3 bg-[#111E2E]">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <Filter className="h-5 w-5 mr-2 text-[#4CAF50]" />
+            <h3 className="text-left font-mono text-[#EFEFEF]">{region} PORTFOLIO HOLDINGS</h3>
+          </div>
+          <div className="flex space-x-2">
           <Button 
             variant="ghost" 
             size="sm" 
@@ -113,6 +117,13 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
             <div className="w-3 h-3 rounded-full bg-[#9C27B0] mr-1"></div>
             Cycl
           </Button>
+        </div>
+        </div>
+        <div className="flex items-center space-x-2 mt-1">
+          <div className="h-1 w-12 bg-[#4CAF50]"></div>
+          <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">
+            PORTFOLIO POSITIONS • MARKET VALUES • PERFORMANCE METRICS
+          </p>
         </div>
       </CardHeader>
       <div className="overflow-x-auto">

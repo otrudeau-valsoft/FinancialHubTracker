@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { getStockTypeColor } from "@/lib/utils";
+import { PieChart } from "lucide-react";
 
 interface AllocationChartProps {
   typeAllocation: {
@@ -33,9 +34,17 @@ export const AllocationChart = ({ typeAllocation, ratingAllocation }: Allocation
   
   return (
     <Card className="mb-6 border-0 shadow bg-[#0A1929]">
-      <CardHeader className="card-header flex flex-row items-center justify-between px-4 py-3 bg-[#111E2E]">
-        <h3 className="text-left">Portfolio Allocation</h3>
-        <div className="text-xs text-gray-400">By classification</div>
+      <CardHeader className="card-header flex flex-col px-4 py-3 bg-[#111E2E]">
+        <div className="flex items-center">
+          <PieChart className="h-5 w-5 mr-2 text-[#FFD700]" />
+          <h3 className="text-left font-mono text-[#EFEFEF]">PORTFOLIO ALLOCATION</h3>
+        </div>
+        <div className="flex items-center space-x-2 mt-1">
+          <div className="h-1 w-12 bg-[#FFD700]"></div>
+          <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">
+            INVESTMENT TYPES • RATING DISTRIBUTION • CLASSIFICATION BREAKDOWN
+          </p>
+        </div>
       </CardHeader>
       <CardContent className="p-4 bg-[#0A1929]">
         <div className="flex flex-col h-full justify-center items-center space-y-3">
