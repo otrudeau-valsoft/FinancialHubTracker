@@ -744,9 +744,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
         } catch (error) {
           console.error("Error in asynchronous historical price update:", error);
+          // Calculate execution time until error
+          const endTime = new Date();
+          const executionTime = endTime.getTime() - startTime.getTime();
+          const minutes = Math.floor(executionTime / 60000);
+          const seconds = Math.floor((executionTime % 60000) / 1000);
+          
           await schedulerService.logUpdate('historical_prices', 'Error', {
-            message: `Error updating historical prices: ${(error as Error).message}`,
+            message: `Error updating historical prices: ${(error as Error).message} (${minutes}m ${seconds}s)`,
             error: (error as Error).message,
+            startTime: startTime.toISOString(),
+            endTime: endTime.toISOString(),
+            executionTime: { minutes, seconds, totalMs: executionTime },
             timestamp: new Date().toISOString()
           });
         }
@@ -755,10 +764,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error initiating historical prices update for all portfolios:", error);
       
-      // Log the error
+      // Log the error with time info
+      const endTime = new Date();
+      const executionTime = endTime.getTime() - startTime.getTime();
+      const minutes = Math.floor(executionTime / 60000);
+      const seconds = Math.floor((executionTime % 60000) / 1000);
+      
       await schedulerService.logUpdate('historical_prices', 'Error', {
-        message: `Failed to initiate historical price update: ${(error as Error).message}`,
+        message: `Failed to initiate historical price update: ${(error as Error).message} (${minutes}m ${seconds}s)`,
         error: (error as Error).message,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        executionTime: { minutes, seconds, totalMs: executionTime },
         timestamp: new Date().toISOString()
       });
       
@@ -1025,9 +1042,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const totalSymbols = Object.values(results).reduce((total, region: any) => total + (region.totalSymbols || 0), 0);
       
       try {
+        // Calculate execution time
+        const endTime = new Date();
+        const executionTime = endTime.getTime() - startTime.getTime();
+        const minutes = Math.floor(executionTime / 60000);
+        const seconds = Math.floor((executionTime % 60000) / 1000);
+        
         await schedulerService.logUpdate('current_prices', 'Success', {
-          message: `Manual current price update completed - ${successCount}/${totalSymbols} symbols updated`,
+          message: `Manual current price update completed - ${successCount}/${totalSymbols} symbols updated (${minutes}m ${seconds}s)`,
           timestamp: new Date().toISOString(),
+          startTime: startTime.toISOString(),
+          endTime: endTime.toISOString(),
+          executionTime: { minutes, seconds, totalMs: executionTime },
           results
         });
       } catch (logError) {
@@ -1044,9 +1070,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Log the error in the data_update_logs table
       try {
+        // Calculate execution time until error
+        const endTime = new Date();
+        const executionTime = endTime.getTime() - startTime.getTime();
+        const minutes = Math.floor(executionTime / 60000);
+        const seconds = Math.floor((executionTime % 60000) / 1000);
+        
         await schedulerService.logUpdate('current_prices', 'Error', {
-          message: "Failed to update current prices", 
+          message: `Failed to update current prices (${minutes}m ${seconds}s)`, 
           error: error instanceof Error ? error.message : String(error),
+          startTime: startTime.toISOString(),
+          endTime: endTime.toISOString(),
+          executionTime: { minutes, seconds, totalMs: executionTime },
           timestamp: new Date().toISOString()
         });
       } catch (logError) {
