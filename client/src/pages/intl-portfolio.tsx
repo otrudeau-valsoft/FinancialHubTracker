@@ -102,20 +102,33 @@ export default function IntlPortfolio() {
     : [];
 
   return (
-    <div className="py-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-        {/* Top navigation */}
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-semibold">International Portfolio</h1>
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center mr-4">
-              <span className="text-xs text-gray-400">Last update:</span>
-              <span className="ml-1 text-xs text-gray-300 mono">{new Date().toLocaleString()}</span>
+    <div className="container mx-auto p-4 bg-[#061220]">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-[#EFEFEF] font-mono tracking-tight">INTERNATIONAL PORTFOLIO</h1>
+        <div className="flex items-center space-x-2 mt-1">
+          <div className="h-1 w-12 bg-[#FFCA28]"></div>
+          <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">INTERNATIONAL EQUITY POSITIONS • MARKET DATA • PERFORMANCE METRICS</p>
+        </div>
+      </div>
+
+      <div className="mb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center">
+              <span className="text-xs text-[#7A8999] font-mono">LAST UPDATE:</span>
+              <span className="ml-1 text-xs text-[#EFEFEF] font-mono">{new Date().toLocaleString()}</span>
             </div>
-            
-            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Button 
+              className="h-8 border-[#1A304A] text-[#EFEFEF] bg-transparent hover:bg-[#1A304A] rounded-sm" 
+              variant="outline" 
+              size="sm" 
+              onClick={() => fileInputRef.current?.click()}
+            >
               <Upload className="mr-2 h-4 w-4" />
-              Import Data
+              IMPORT DATA
             </Button>
             <input 
               type="file" 
@@ -126,63 +139,78 @@ export default function IntlPortfolio() {
             />
           </div>
         </div>
-        
-        {intlLoading ? (
-          <div className="text-center p-8">Loading International portfolio data...</div>
-        ) : (
-          <>
-            <PortfolioSummary 
-              region="INTL"
-              summary={{
-                value: intlStats.totalValue,
-                dailyChange: intlStats.dailyChange,
-                dailyChangePercent: intlStats.dailyChangePercent,
-                benchmarkDiff: 0.18, // Vs ACWX
-                cashPosition: intlStats.cashValue,
-                cashPositionPercent: intlStats.cashPercent,
-                ytdPerformance: intlStats.ytdPerformance,
-                ytdPerformanceValue: intlStats.ytdValue,
-                benchmarkPerformance: 5.46, // ACWX YTD
-                activeAlerts: alerts?.filter(a => a.isActive && intlStocks?.find(s => s.symbol === a.symbol)).length || 0,
-                criticalAlerts: alerts?.filter(a => a.isActive && a.severity === 'critical' && intlStocks?.find(s => s.symbol === a.symbol)).length || 0
-              }}
+      </div>
+      
+      {intlLoading ? (
+        <div className="text-center p-8 bg-[#0A1524] border border-[#1A304A]">
+          <div className="text-[#7A8999] font-mono">LOADING INTERNATIONAL PORTFOLIO DATA...</div>
+        </div>
+      ) : (
+        <>
+          <PortfolioSummary 
+            region="INTL"
+            summary={{
+              value: intlStats.totalValue,
+              dailyChange: intlStats.dailyChange,
+              dailyChangePercent: intlStats.dailyChangePercent,
+              benchmarkDiff: 0.18, // Vs ACWX
+              cashPosition: intlStats.cashValue,
+              cashPositionPercent: intlStats.cashPercent,
+              ytdPerformance: intlStats.ytdPerformance,
+              ytdPerformanceValue: intlStats.ytdValue,
+              benchmarkPerformance: 5.46, // ACWX YTD
+              activeAlerts: alerts?.filter(a => a.isActive && intlStocks?.find(s => s.symbol === a.symbol)).length || 0,
+              criticalAlerts: alerts?.filter(a => a.isActive && a.severity === 'critical' && intlStocks?.find(s => s.symbol === a.symbol)).length || 0
+            }}
+            benchmark="ACWX"
+          />
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <AllocationChart 
+              typeAllocation={intlAllocationByType} 
+              ratingAllocation={intlAllocationByRating} 
+            />
+            
+            <PerformanceChart 
+              portfolioData={samplePerformanceData}
+              timeRanges={["1W", "1M", "YTD", "1Y"]}
               benchmark="ACWX"
             />
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-              <AllocationChart 
-                typeAllocation={intlAllocationByType} 
-                ratingAllocation={intlAllocationByRating} 
-              />
-              
-              <PerformanceChart 
-                portfolioData={samplePerformanceData}
-                timeRanges={["1W", "1M", "YTD", "1Y"]}
-                benchmark="ACWX"
-              />
-              
-              <AlertsList 
-                alerts={alerts?.filter(a => 
-                  intlStocks?.find(s => s.symbol === a.symbol) && a.isActive
-                ) || []} 
-              />
-            </div>
-            
-            <PortfolioTable 
-              stocks={intlStocks || []} 
-              region="INTL" 
+            <AlertsList 
+              alerts={alerts?.filter(a => 
+                intlStocks?.find(s => s.symbol === a.symbol) && a.isActive
+              ) || []} 
             />
-            
-            {!acwxLoading && acwxComparisonData.length > 0 && (
-              <EtfComparison 
-                holdings={acwxComparisonData} 
-                etfSymbol="ACWX" 
-                region="INTL"
-              />
-            )}
-          </>
-        )}
-      </div>
+          </div>
+          
+          <PortfolioTable 
+            stocks={intlStocks || []} 
+            region="INTL"
+            currentPrices={currentPrices || []}
+          />
+          
+          <div className="mt-8 mb-4">
+            <h2 className="text-2xl font-bold text-[#EFEFEF] font-mono tracking-tight">ETF BENCHMARK COMPARISON</h2>
+            <div className="flex items-center space-x-2 mt-1 mb-3">
+              <div className="h-1 w-12 bg-[#FFCA28]"></div>
+              <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">ACWX HOLDINGS • PORTFOLIO ALIGNMENT • WEIGHT DIFFERENTIALS</p>
+            </div>
+          </div>
+          
+          {!acwxLoading && acwxComparisonData.length > 0 ? (
+            <EtfComparison 
+              holdings={acwxComparisonData} 
+              etfSymbol="ACWX" 
+              region="INTL"
+            />
+          ) : (
+            <div className="text-center p-8 bg-[#0A1524] border border-[#1A304A]">
+              <div className="text-[#7A8999] font-mono">LOADING ETF BENCHMARK DATA...</div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
