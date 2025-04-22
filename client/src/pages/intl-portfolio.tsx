@@ -78,7 +78,7 @@ export default function IntlPortfolio() {
 
   return (
     <div className="container mx-auto p-4 bg-[#061220]">
-      <div className="mb-6 flex justify-between">
+      <div className="mb-6">
         <div>
           <h1 className="text-3xl font-bold text-[#EFEFEF] font-mono tracking-tight">INTERNATIONAL PORTFOLIO</h1>
           <div className="flex items-center space-x-2 mt-1">
@@ -86,44 +86,43 @@ export default function IntlPortfolio() {
             <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">INTERNATIONAL EQUITY POSITIONS • MARKET DATA • PERFORMANCE METRICS</p>
           </div>
         </div>
-        
-        <div className="text-right">
-          <div className="flex items-center">
-            <span className="text-xs text-[#7A8999] font-mono">LAST REAL-TIME PRICE UPDATE:</span>
-            <span className="ml-1 text-xs text-[#EFEFEF] font-mono">
-              {updateLogs 
-                ? updateLogs.filter(log => log.type === 'current_prices' && log.status === 'Success').length > 0
-                  ? new Date(updateLogs.filter(log => log.type === 'current_prices' && log.status === 'Success')[0].timestamp).toLocaleString('en-US', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                  })
-                  : 'Never updated'
-                : 'Loading...'}
-            </span>
-          </div>
-          <div className="flex items-center mt-1">
-            <span className="text-xs text-[#7A8999] font-mono">LAST HISTORICAL DATA UPDATE:</span>
-            <span className="ml-1 text-xs text-[#EFEFEF] font-mono">
-              {updateLogs 
-                ? updateLogs.filter(log => log.type === 'historical_prices' && log.status === 'Success').length > 0
-                  ? new Date(updateLogs.filter(log => log.type === 'historical_prices' && log.status === 'Success')[0].timestamp).toLocaleString('en-US', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                  })
-                  : 'Never updated'
-                : 'Loading...'}
-            </span>
-          </div>
+      </div>
+      
+      {/* Floating status bubble */}
+      <div className="fixed bottom-4 right-4 z-50 bg-[#0A1929] border border-[#1A304A] rounded-md shadow-lg p-2 text-[0.65rem] max-w-[220px]">
+        <div className="flex items-center">
+          <div className="w-2 h-2 bg-[#4CAF50] rounded-full mr-1"></div>
+          <span className="text-[#7A8999] font-mono">PRICES:</span>
+          <span className="ml-1 text-[#EFEFEF] font-mono truncate">
+            {updateLogs 
+              ? updateLogs.filter(log => log.type === 'current_prices' && log.status === 'Success').length > 0
+                ? new Date(updateLogs.filter(log => log.type === 'current_prices' && log.status === 'Success')[0].timestamp).toLocaleString('en-US', {
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false
+                })
+                : 'Never'
+              : '...'}
+          </span>
+        </div>
+        <div className="flex items-center mt-1">
+          <div className="w-2 h-2 bg-[#2196F3] rounded-full mr-1"></div>
+          <span className="text-[#7A8999] font-mono">HISTORY:</span>
+          <span className="ml-1 text-[#EFEFEF] font-mono truncate">
+            {updateLogs 
+              ? updateLogs.filter(log => log.type === 'historical_prices' && log.status === 'Success').length > 0
+                ? new Date(updateLogs.filter(log => log.type === 'historical_prices' && log.status === 'Success')[0].timestamp).toLocaleString('en-US', {
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false
+                })
+                : 'Never'
+              : '...'}
+          </span>
         </div>
       </div>
       
