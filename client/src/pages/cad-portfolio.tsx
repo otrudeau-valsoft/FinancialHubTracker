@@ -55,6 +55,12 @@ export default function CadPortfolio() {
     queryKey: ['/api/etfs/XIC/holdings/top/10'],
     staleTime: 3600000, // 1 hour
   });
+  
+  // Fetch current prices
+  const { data: currentPrices } = useQuery({
+    queryKey: ['/api/current-prices/CAD'],
+    staleTime: 60000, // 1 minute
+  });
 
   // Import portfolio data from CSV
   const handleImportData = async (file: File) => {
@@ -103,20 +109,33 @@ export default function CadPortfolio() {
   );
 
   return (
-    <div className="py-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-        {/* Top navigation */}
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-semibold">CAD Portfolio</h1>
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center mr-4">
-              <span className="text-xs text-gray-400">Last update:</span>
-              <span className="ml-1 text-xs text-gray-300 mono">{new Date().toLocaleString()}</span>
+    <div className="container mx-auto p-4 bg-[#061220]">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-[#EFEFEF] font-mono tracking-tight">CAD PORTFOLIO</h1>
+        <div className="flex items-center space-x-2 mt-1">
+          <div className="h-1 w-12 bg-[#4CAF50]"></div>
+          <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">CANADIAN EQUITY POSITIONS • MARKET DATA • PERFORMANCE METRICS</p>
+        </div>
+      </div>
+
+      <div className="mb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center">
+              <span className="text-xs text-[#7A8999] font-mono">LAST UPDATE:</span>
+              <span className="ml-1 text-xs text-[#EFEFEF] font-mono">{new Date().toLocaleString()}</span>
             </div>
-            
-            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Button 
+              className="h-8 border-[#1A304A] text-[#EFEFEF] bg-transparent hover:bg-[#1A304A] rounded-sm" 
+              variant="outline" 
+              size="sm" 
+              onClick={() => fileInputRef.current?.click()}
+            >
               <Upload className="mr-2 h-4 w-4" />
-              Import Data
+              IMPORT DATA
             </Button>
             <input 
               type="file" 
@@ -127,9 +146,11 @@ export default function CadPortfolio() {
             />
           </div>
         </div>
-        
-        {cadLoading ? (
-          <div className="text-center p-8">Loading CAD portfolio data...</div>
+      
+      {cadLoading ? (
+          <div className="text-center p-8 bg-[#0A1524] border border-[#1A304A]">
+            <div className="text-[#7A8999] font-mono">LOADING CAD PORTFOLIO DATA...</div>
+          </div>
         ) : (
           <>
             <PortfolioSummary 
@@ -174,14 +195,27 @@ export default function CadPortfolio() {
             <PortfolioTable 
               stocks={cadStocks || []} 
               region="CAD" 
+              currentPrices={currentPrices || []}
             />
             
-            {!xicLoading && xicComparisonData.length > 0 && (
+            <div className="mt-8 mb-4">
+              <h2 className="text-2xl font-bold text-[#EFEFEF] font-mono tracking-tight">ETF BENCHMARK COMPARISON</h2>
+              <div className="flex items-center space-x-2 mt-1 mb-3">
+                <div className="h-1 w-12 bg-[#FFCA28]"></div>
+                <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">XIC HOLDINGS • PORTFOLIO ALIGNMENT • WEIGHT DIFFERENTIALS</p>
+              </div>
+            </div>
+            
+            {!xicLoading && xicComparisonData.length > 0 ? (
               <EtfComparison 
                 holdings={xicComparisonData} 
                 etfSymbol="XIC" 
                 region="CAD"
               />
+            ) : (
+              <div className="text-center p-8 bg-[#0A1524] border border-[#1A304A]">
+                <div className="text-[#7A8999] font-mono">LOADING ETF BENCHMARK DATA...</div>
+              </div>
             )}
           </>
         )}

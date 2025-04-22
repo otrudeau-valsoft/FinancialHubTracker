@@ -55,6 +55,12 @@ export default function IntlPortfolio() {
     queryKey: ['/api/etfs/ACWX/holdings/top/10'],
     staleTime: 3600000, // 1 hour
   });
+  
+  // Fetch current prices
+  const { data: currentPrices } = useQuery({
+    queryKey: ['/api/current-prices/INTL'],
+    staleTime: 60000, // 1 minute
+  });
 
   // Import portfolio data from CSV
   const handleImportData = async (file: File) => {
