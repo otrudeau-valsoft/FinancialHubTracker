@@ -66,35 +66,6 @@ export default function IntlPortfolio() {
     staleTime: 30000, // 30 seconds
   });
 
-  // Import portfolio data from CSV
-  const handleImportData = async (file: File) => {
-    try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const csvData = e.target?.result as string;
-        const parsed = parseCSV(csvData);
-        
-        if (parsed.data.length > 0) {
-          const formattedData = convertPortfolioData(parsed.data, 'INTL');
-          
-          // Send the formatted data to the server
-          await apiRequest('POST', '/api/portfolios/INTL/stocks/bulk', {
-            stocks: formattedData
-          });
-          
-          // Refetch data
-          refetchIntlStocks();
-          
-          alert(`Successfully imported ${formattedData.length} stocks for INTL portfolio`);
-        }
-      };
-      reader.readAsText(file);
-    } catch (error) {
-      console.error("Error importing data:", error);
-      alert("Failed to import data. Please check the file format.");
-    }
-  };
-  
   // Calculate metrics for INTL portfolio
   const intlAllocationByType = calculateAllocationByType(intlStocks || []);
   const intlAllocationByRating = calculateAllocationByRating(intlStocks || []);
