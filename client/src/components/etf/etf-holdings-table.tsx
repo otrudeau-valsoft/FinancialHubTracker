@@ -90,7 +90,7 @@ export const EtfHoldingsTable = ({
                   <td>{holding.ticker}</td>
                   <td>{holding.name}</td>
                   <td>{holding.sector}</td>
-                  <td>{holding.weight?.toFixed(2)}%</td>
+                  <td>{typeof holding.weight === 'number' ? holding.weight.toFixed(2) : parseFloat(String(holding.weight)).toFixed(2)}%</td>
                   <td>{formatCurrency(holding.price, holding.currency || currencySymbol)}</td>
                   <td>{formatCurrency(holding.marketValue, currencySymbol)}</td>
                   {showLocation && <td>{holding.location || '-'}</td>}
