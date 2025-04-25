@@ -1206,24 +1206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upgrade/Downgrade History Routes
-  app.get("/api/upgrade-downgrade/:symbol/:region", async (req: Request, res: Response) => {
-    try {
-      const { symbol, region } = req.params;
-      const regionUpper = region.toUpperCase();
-      
-      console.log(`Fetching upgrade/downgrade history for ${symbol} in ${regionUpper} region`);
-      
-      const history = await storage.getUpgradeDowngradeHistory(symbol, regionUpper);
-      return res.json(history);
-    } catch (error) {
-      console.error(`Error fetching upgrade/downgrade history for ${req.params.symbol}:`, error);
-      return res.status(500).json({ 
-        message: "Failed to fetch upgrade/downgrade history",
-        error: (error as Error).message
-      });
-    }
-  });
-
+  // Regional endpoints (must come before stock-specific endpoints to avoid routing conflicts)
   app.get("/api/upgrade-downgrade/region/:region", async (req: Request, res: Response) => {
     try {
       const { region } = req.params;
@@ -1242,7 +1225,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/upgrade-downgrade/fetch/:symbol/:region", async (req: Request, res: Response) => {
+  app.post("/api/upgrade-downgrade/fetch/region/:region", async (req: Request, res: Response) => {
+    try {
+      const { region } = req.params;
+      const regionUpper = region.toUpperCase();
+      
+      console.log(`Initiating bulk fetch of upgrade/downgrade history for ${regionUpper} region`);
+      
+      // Respond to client immediately to prevent timeout
+      res.status(202).json({ 
+        message: `Started bulk import of upgrade/downgrade history for ${regionUpper} region stocks`,
+        status: "processing"
+      });
+      
+      // Import the service for fetching upgrade/downgrade history
+      const { importRegionUpgradeDowngradeHistory } = await import('../scripts/import-upgrade-downgrade');
+      
+      // Run the import process asynchronously
+      (async () => {
+        try {
+          const result = await importRegionUpgradeDowngradeHistory(regionUpper);
+          console.log(`Completed bulk upgrade/downgrade import for ${regionUpper} region:`, result);
+        } catch (error) {
+          console.error(`Error in bulk upgrade/downgrade import for ${regionUpper} region:`, error);
+        }
+      })();
+      
+    } catch (error) {
+      console.error(`Error initiating bulk upgrade/downgrade data import for ${req.params.region}:`, error);
+      return res.status(500).json({ 
+        message: "Failed to initiate bulk upgrade/downgrade data import",
+        error: (error as Error).message
+      });
+    }
+  });
+
+  // Stock-specific endpoints
+  app.get("/api/upgrade-downgrade/stock/:symbol/:region", async (req: Request, res: Response) => {
+    try {
+      const { symbol, region } = req.params;
+      const regionUpper = region.toUpperCase();
+      
+      console.log(`Fetching upgrade/downgrade history for ${symbol} in ${regionUpper} region`);
+      
+      const history = await storage.getUpgradeDowngradeHistory(symbol, regionUpper);
+      return res.json(history);
+    } catch (error) {
+      console.error(`Error fetching upgrade/downgrade history for ${req.params.symbol}:`, error);
+      return res.status(500).json({ 
+        message: "Failed to fetch upgrade/downgrade history",
+        error: (error as Error).message
+      });
+    }
+  });
+
+  app.post("/api/upgrade-downgrade/fetch/stock/:symbol/:region", async (req: Request, res: Response) => {
     try {
       const { symbol, region } = req.params;
       const regionUpper = region.toUpperCase();
