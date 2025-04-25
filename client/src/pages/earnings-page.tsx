@@ -1000,34 +1000,34 @@ export default function EarningsPage() {
   }, [currentQuarterIndex]);
 
   return (
-    <div className="container mx-auto p-4 bg-[#061220]">
-      <div className="mb-6">
+    <div className="container mx-auto p-2 sm:p-4 bg-[#061220]">
+      <div className="mb-4 sm:mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-[#EFEFEF] font-mono tracking-tight">EARNINGS CENTER</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#EFEFEF] font-mono tracking-tight">EARNINGS CENTER</h1>
           <div className="flex items-center space-x-2 mt-1">
             <div className="h-1 w-12 bg-[#E91E63]"></div>
-            <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">EARNINGS CALENDAR • HEATMAP • INTAKES • ANALYSIS</p>
+            <p className="text-[#C0C0C0] text-xs sm:text-sm font-mono tracking-tighter whitespace-nowrap overflow-x-auto no-scrollbar">EARNINGS CALENDAR • HEATMAP • INTAKES • ANALYSIS</p>
           </div>
         </div>
       </div>
 
       <Tabs value={activeTab} className="w-full" onValueChange={setActiveTab}>
-        <TabsList className={`grid ${selectedStock ? 'grid-cols-4' : 'grid-cols-3'} mb-4 bg-[#0A1929]`}>
-          <TabsTrigger value="calendar" className="font-mono text-xs">
-            <Calendar className="h-4 w-4 mr-2" />
-            EARNINGS CALENDAR
+        <TabsList className={`grid ${selectedStock ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'} mb-3 sm:mb-4 bg-[#0A1929]`}>
+          <TabsTrigger value="calendar" className="font-mono text-[10px] sm:text-xs">
+            <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <span className="hidden xs:inline">EARNINGS</span> CALENDAR
           </TabsTrigger>
-          <TabsTrigger value="heatmap" className="font-mono text-xs">
-            <BarChart3 className="h-4 w-4 mr-2" />
-            EARNINGS HEATMAP
+          <TabsTrigger value="heatmap" className="font-mono text-[10px] sm:text-xs">
+            <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <span className="hidden xs:inline">EARNINGS</span> HEATMAP
           </TabsTrigger>
-          <TabsTrigger value="intakes" className="font-mono text-xs">
-            <FileSpreadsheet className="h-4 w-4 mr-2" />
-            EARNINGS INTAKES
+          <TabsTrigger value="intakes" className="font-mono text-[10px] sm:text-xs">
+            <FileSpreadsheet className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <span className="hidden xs:inline">EARNINGS</span> INTAKES
           </TabsTrigger>
           {selectedStock && (
-            <TabsTrigger value="stock-detail" className="font-mono text-xs">
-              <LineChart className="h-4 w-4 mr-2" />
+            <TabsTrigger value="stock-detail" className="font-mono text-[10px] sm:text-xs col-span-2 sm:col-span-1">
+              <LineChart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               STOCK DETAIL
             </TabsTrigger>
           )}
@@ -1075,22 +1075,22 @@ export default function EarningsPage() {
         <TabsContent value="heatmap" className="space-y-4">
           {/* Main Earnings Season Header with Quarter Navigation */}
           <Card className="border-0 shadow bg-[#0A1929]">
-            <CardHeader className="card-header px-4 py-3 bg-[#111E2E] flex justify-between items-center">
-              <div className="flex items-center space-x-4">
+            <CardHeader className="card-header px-2 sm:px-4 py-2 sm:py-3 bg-[#111E2E] flex justify-between items-center">
+              <div className="flex items-center space-x-2 sm:space-x-4">
                 {/* Previous Quarter Arrow */}
                 <button 
                   onClick={previousQuarter}
                   className={`p-1 rounded-full ${currentQuarterIndex < quarters.length - 1 ? 'hover:bg-[#1A304A] text-[#E91E63]' : 'text-[#384b62] cursor-not-allowed'}`}
                   disabled={currentQuarterIndex >= quarters.length - 1}
                 >
-                  <ChevronLeft className="h-5 w-5" />
+                  <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
                 
                 {/* Current Quarter Title */}
                 <div className="flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2 text-[#E91E63]" />
-                  <h3 className="text-left font-mono text-[#EFEFEF] text-sm">
-                    EARNINGS SEASON - {quarters[currentQuarterIndex].quarter}
+                  <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-[#E91E63]" />
+                  <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-sm whitespace-nowrap">
+                    <span className="hidden xs:inline">EARNINGS SEASON -</span> {quarters[currentQuarterIndex].quarter}
                   </h3>
                 </div>
                 
@@ -1100,29 +1100,29 @@ export default function EarningsPage() {
                   className={`p-1 rounded-full ${currentQuarterIndex > 0 ? 'hover:bg-[#1A304A] text-[#E91E63]' : 'text-[#384b62] cursor-not-allowed'}`}
                   disabled={currentQuarterIndex <= 0}
                 >
-                  <ChevronRight className="h-5 w-5" />
+                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
               </div>
               
               <div className="flex items-center">
-                <Filter className="h-4 w-4 mr-1 text-[#7A8999]" />
-                <span className="text-xs font-mono text-[#7A8999]">FILTER</span>
+                <Filter className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-[#7A8999]" />
+                <span className="text-[10px] sm:text-xs font-mono text-[#7A8999]">FILTER</span>
               </div>
             </CardHeader>
           </Card>
           
           {/* Earnings Statistics Section */}
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
             {/* EPS Stats */}
             <Card className="border-0 shadow bg-[#0A1929]">
-              <CardHeader className="card-header px-3 py-2 bg-[#111E2E]">
+              <CardHeader className="card-header px-2 sm:px-3 py-1 sm:py-2 bg-[#111E2E]">
                 <div className="flex items-center">
-                  <BarChart className="h-4 w-4 mr-1 text-[#4CAF50]" />
-                  <h3 className="text-left font-mono text-[#EFEFEF] text-xs">EPS</h3>
+                  <BarChart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-[#4CAF50]" />
+                  <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">EPS</h3>
                 </div>
               </CardHeader>
-              <CardContent className="p-2">
-                <div className="grid grid-cols-2 gap-1 text-xs font-mono">
+              <CardContent className="p-1 sm:p-2">
+                <div className="grid grid-cols-2 gap-1 text-[10px] sm:text-xs font-mono">
                   <div className="bg-[#4CAF50] text-white p-1 rounded text-center">
                     Beat <span className="font-bold">{currentQuarterData.stats.eps.beat}</span>
                   </div>
@@ -1138,14 +1138,14 @@ export default function EarningsPage() {
 
             {/* Revenue Stats */}
             <Card className="border-0 shadow bg-[#0A1929]">
-              <CardHeader className="card-header px-3 py-2 bg-[#111E2E]">
+              <CardHeader className="card-header px-2 sm:px-3 py-1 sm:py-2 bg-[#111E2E]">
                 <div className="flex items-center">
-                  <TrendingUp className="h-4 w-4 mr-1 text-[#2196F3]" />
-                  <h3 className="text-left font-mono text-[#EFEFEF] text-xs">REVENUE</h3>
+                  <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-[#2196F3]" />
+                  <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">REVENUE</h3>
                 </div>
               </CardHeader>
-              <CardContent className="p-2">
-                <div className="grid grid-cols-2 gap-1 text-xs font-mono">
+              <CardContent className="p-1 sm:p-2">
+                <div className="grid grid-cols-2 gap-1 text-[10px] sm:text-xs font-mono">
                   <div className="bg-[#4CAF50] text-white p-1 rounded text-center">
                     Beat <span className="font-bold">{currentQuarterData.stats.revenue.beat}</span>
                   </div>
@@ -1161,22 +1161,22 @@ export default function EarningsPage() {
 
             {/* Guidance Stats */}
             <Card className="border-0 shadow bg-[#0A1929]">
-              <CardHeader className="card-header px-3 py-2 bg-[#111E2E]">
+              <CardHeader className="card-header px-2 sm:px-3 py-1 sm:py-2 bg-[#111E2E]">
                 <div className="flex items-center">
-                  <FileText className="h-4 w-4 mr-1 text-[#FFCA28]" />
-                  <h3 className="text-left font-mono text-[#EFEFEF] text-xs">GUIDANCE</h3>
+                  <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-[#FFCA28]" />
+                  <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">GUIDANCE</h3>
                 </div>
               </CardHeader>
-              <CardContent className="p-2">
-                <div className="grid grid-cols-2 gap-1 text-xs font-mono">
+              <CardContent className="p-1 sm:p-2">
+                <div className="grid grid-cols-2 gap-1 text-[10px] sm:text-xs font-mono">
                   <div className="bg-[#4CAF50] text-white p-1 rounded text-center">
-                    Increased <span className="font-bold">{currentQuarterData.stats.guidance.increased}</span>
+                    Up <span className="font-bold">{currentQuarterData.stats.guidance.increased}</span>
                   </div>
                   <div className="bg-[#FFD700] text-black p-1 rounded text-center">
-                    Maintain <span className="font-bold">{currentQuarterData.stats.guidance.maintain}</span>
+                    Flat <span className="font-bold">{currentQuarterData.stats.guidance.maintain}</span>
                   </div>
                   <div className="bg-[#FF5252] text-white p-1 rounded text-center col-span-2">
-                    Reduced <span className="font-bold">{currentQuarterData.stats.guidance.reduced}</span>
+                    Down <span className="font-bold">{currentQuarterData.stats.guidance.reduced}</span>
                   </div>
                 </div>
               </CardContent>
@@ -1184,22 +1184,22 @@ export default function EarningsPage() {
 
             {/* Earnings Score Stats */}
             <Card className="border-0 shadow bg-[#0A1929]">
-              <CardHeader className="card-header px-3 py-2 bg-[#111E2E]">
+              <CardHeader className="card-header px-2 sm:px-3 py-1 sm:py-2 bg-[#111E2E]">
                 <div className="flex items-center">
-                  <Sparkles className="h-4 w-4 mr-1 text-[#E91E63]" />
-                  <h3 className="text-left font-mono text-[#EFEFEF] text-xs">EARNING SCORE</h3>
+                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-[#E91E63]" />
+                  <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">SCORE</h3>
                 </div>
               </CardHeader>
-              <CardContent className="p-2">
-                <div className="grid grid-cols-2 gap-1 text-xs font-mono">
+              <CardContent className="p-1 sm:p-2">
+                <div className="grid grid-cols-2 gap-1 text-[10px] sm:text-xs font-mono">
                   <div className="bg-[#4CAF50] text-white p-1 rounded text-center">
-                    Great/Good <span className="font-bold">{currentQuarterData.stats.earningScore.greatGood}</span>
+                    Good <span className="font-bold">{currentQuarterData.stats.earningScore.greatGood}</span>
                   </div>
                   <div className="bg-[#FFD700] text-black p-1 rounded text-center">
-                    Not So Bad <span className="font-bold">{currentQuarterData.stats.earningScore.notSoBad}</span>
+                    Okay <span className="font-bold">{currentQuarterData.stats.earningScore.notSoBad}</span>
                   </div>
                   <div className="bg-[#FF5252] text-white p-1 rounded text-center col-span-2">
-                    Ugly <span className="font-bold">{currentQuarterData.stats.earningScore.ugly}</span>
+                    Bad <span className="font-bold">{currentQuarterData.stats.earningScore.ugly}</span>
                   </div>
                 </div>
               </CardContent>
@@ -1208,11 +1208,11 @@ export default function EarningsPage() {
           
           {/* Earnings Heatmap Table - Simplified Version */}
           <Card className="border-0 shadow bg-[#0A1929]">
-            <CardHeader className="card-header px-4 py-3 bg-[#111E2E] flex justify-between items-center">
+            <CardHeader className="card-header px-2 sm:px-4 py-2 sm:py-3 bg-[#111E2E] flex justify-between items-center">
               <div className="flex items-center">
-                <PieChart className="h-5 w-5 mr-2 text-[#38AAFD]" />
-                <h3 className="text-left font-mono text-[#EFEFEF] text-sm">
-                  EARNINGS DETAILS - {quarters[currentQuarterIndex].quarter}
+                <PieChart className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-[#38AAFD]" />
+                <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-sm whitespace-nowrap">
+                  <span className="hidden xs:inline">EARNINGS DETAILS -</span> {quarters[currentQuarterIndex].quarter}
                 </h3>
               </div>
             </CardHeader>
@@ -1220,17 +1220,17 @@ export default function EarningsPage() {
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="text-xs h-8 border-b border-[#0F1A2A] bg-[#0D1F32]">
-                      <th className="px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">TICKER</th>
-                      <th className="px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">ISSUER NAME</th>
-                      <th className="px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">CONSENSUS</th>
-                      <th className="px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">LAST</th>
-                      <th className="px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">EPS</th>
-                      <th className="px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">REV</th>
-                      <th className="px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">GUIDANCE</th>
-                      <th className="px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">SCORE</th>
-                      <th className="px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">MKT REACTION</th>
-                      <th className="px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">COMMENTARY</th>
+                    <tr className="text-[10px] sm:text-xs h-8 border-b border-[#0F1A2A] bg-[#0D1F32]">
+                      <th className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">TICKER</th>
+                      <th className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">ISSUER NAME</th>
+                      <th className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">CONS</th>
+                      <th className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">LAST</th>
+                      <th className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">EPS</th>
+                      <th className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">REV</th>
+                      <th className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">GUIDE</th>
+                      <th className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">SCORE</th>
+                      <th className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">MKT</th>
+                      <th className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">NOTE</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1244,37 +1244,37 @@ export default function EarningsPage() {
                         }}
                         title="Click to view historical earnings performance"
                       >
-                        <td className="px-3 py-0 text-left whitespace-nowrap">
+                        <td className="px-2 sm:px-3 py-0 text-left whitespace-nowrap">
                           <div className="flex items-center">
-                            <span className="font-mono text-[#38AAFD] font-medium text-xs tracking-wide">{item.ticker}</span>
-                            <Info className="ml-1 h-3 w-3 text-[#E91E63] opacity-50" />
+                            <span className="font-mono text-[#38AAFD] font-medium text-[10px] sm:text-xs tracking-wide">{item.ticker}</span>
+                            <Info className="ml-1 h-2 w-2 sm:h-3 sm:w-3 text-[#E91E63] opacity-50" />
                           </div>
                         </td>
-                        <td className="px-3 py-0 text-left font-mono text-[#EFEFEF] text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '180px', textOverflow: 'ellipsis' }}>
+                        <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '100px', textOverflow: 'ellipsis' }}>
                           {item.issuerName}
                         </td>
-                        <td className="px-3 py-0 text-center whitespace-nowrap">
-                          <span className={`${getConsensusColor(item.consensusRecommendation)}`}>{item.consensusRecommendation}</span>
+                        <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                          <span className={`text-[10px] sm:text-xs ${getConsensusColor(item.consensusRecommendation)}`}>{item.consensusRecommendation}</span>
                         </td>
-                        <td className="px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">${item.last.toFixed(1)}</td>
-                        <td className="px-3 py-0 text-center whitespace-nowrap">
-                          <span className={`${getEpsColor(item.eps)}`}>{item.eps}</span>
+                        <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-[10px] sm:text-xs whitespace-nowrap">${item.last.toFixed(1)}</td>
+                        <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                          <span className={`text-[10px] sm:text-xs ${getEpsColor(item.eps)}`}>{item.eps}</span>
                         </td>
-                        <td className="px-3 py-0 text-center whitespace-nowrap">
-                          <span className={`${getEpsColor(item.rev)}`}>{item.rev}</span>
+                        <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                          <span className={`text-[10px] sm:text-xs ${getEpsColor(item.rev)}`}>{item.rev}</span>
                         </td>
-                        <td className="px-3 py-0 text-center whitespace-nowrap">
-                          <span className={`${getGuidanceColor(item.guidance)}`}>{item.guidance}</span>
+                        <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                          <span className={`text-[10px] sm:text-xs ${getGuidanceColor(item.guidance)}`}>{item.guidance}</span>
                         </td>
-                        <td className="px-3 py-0 text-center whitespace-nowrap">
-                          <span className={`${getScoreColor(item.earningsScore)}`}>{item.earningsScore}</span>
+                        <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                          <span className={`text-[10px] sm:text-xs ${getScoreColor(item.earningsScore)}`}>{item.earningsScore}</span>
                         </td>
-                        <td className="px-3 py-0 text-right whitespace-nowrap">
-                          <span className={`inline-block font-mono ${item.mktReaction >= 0 ? 'bg-[#4CAF50] text-white' : 'bg-[#FF5252] text-white'} px-3 py-0.5 rounded-full text-[11px] font-medium`}>
+                        <td className="px-2 sm:px-3 py-0 text-right whitespace-nowrap">
+                          <span className={`inline-block font-mono ${item.mktReaction >= 0 ? 'bg-[#4CAF50] text-white' : 'bg-[#FF5252] text-white'} px-2 sm:px-3 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium`}>
                             {item.mktReaction >= 0 ? '+' : ''}{item.mktReaction.toFixed(1)}%
                           </span>
                         </td>
-                        <td className="px-3 py-0 text-left font-mono text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '140px', textOverflow: 'ellipsis' }}>
+                        <td className="px-2 sm:px-3 py-0 text-left font-mono text-[10px] sm:text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '80px', textOverflow: 'ellipsis' }}>
                           <span className={`${getReactionCommentaryColor(item.mktReactionCommentary)}`}>{item.mktReactionCommentary}</span>
                         </td>
                       </tr>
@@ -1286,26 +1286,26 @@ export default function EarningsPage() {
           </Card>
           
           {/* Simple Legend */}
-          <div className="flex flex-wrap gap-4 text-xs font-mono text-[#7A8999]">
+          <div className="flex flex-wrap gap-x-3 gap-y-2 sm:gap-4 text-[10px] sm:text-xs font-mono text-[#7A8999]">
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-[#4CAF50] rounded-sm"></div>
-              <span>Beat / Increased / Good</span>
+              <div className="h-2 w-2 sm:h-3 sm:w-3 bg-[#4CAF50] rounded-sm"></div>
+              <span>Beat/Up/Good</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-[#FFD700] rounded-sm"></div>
-              <span>In-Line / Maintain / Not So Bad</span>
+              <div className="h-2 w-2 sm:h-3 sm:w-3 bg-[#FFD700] rounded-sm"></div>
+              <span>In-Line/Flat/Okay</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-[#FF5252] rounded-sm"></div>
-              <span>Miss / Reduced / Ugly</span>
+              <div className="h-2 w-2 sm:h-3 sm:w-3 bg-[#FF5252] rounded-sm"></div>
+              <span>Miss/Down/Bad</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-[#38AAFD] rounded-sm"></div>
-              <span>Abnormal Reaction</span>
+              <div className="h-2 w-2 sm:h-3 sm:w-3 bg-[#38AAFD] rounded-sm"></div>
+              <span>Abnormal</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-[#FF5252] rounded-sm"></div>
-              <span>Explosive Reaction</span>
+              <div className="h-2 w-2 sm:h-3 sm:w-3 bg-[#FF5252] rounded-sm"></div>
+              <span>Explosive</span>
             </div>
           </div>
         </TabsContent>
@@ -1367,58 +1367,58 @@ export default function EarningsPage() {
             <>
               {/* Stock Header with Back Button */}
               <Card className="border-0 shadow bg-[#0A1929]">
-                <CardHeader className="card-header px-4 py-3 bg-[#111E2E] flex justify-between items-center">
-                  <div className="flex items-center space-x-4">
+                <CardHeader className="card-header px-2 sm:px-4 py-2 sm:py-3 bg-[#111E2E] flex justify-between items-center">
+                  <div className="flex items-center space-x-2 sm:space-x-4">
                     <button 
                       onClick={handleBackToHeatmap}
                       className="p-1 rounded-full hover:bg-[#1A304A] text-[#E91E63]"
                     >
-                      <ArrowLeft className="h-5 w-5" />
+                      <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                     </button>
                     
                     <div className="flex items-center">
-                      <LineChart className="h-5 w-5 mr-2 text-[#E91E63]" />
-                      <h3 className="text-left font-mono text-[#EFEFEF] text-sm">
-                        EARNINGS HISTORY - {selectedStock}
+                      <LineChart className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-[#E91E63]" />
+                      <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-sm whitespace-nowrap">
+                        <span className="hidden xs:inline">EARNINGS HISTORY -</span> {selectedStock}
                       </h3>
                     </div>
                   </div>
                   
                   <div className="flex items-center">
-                    <span className="text-xs font-mono text-[#38AAFD]">{selectedStockInfo?.issuerName}</span>
+                    <span className="text-[10px] sm:text-xs font-mono text-[#38AAFD] truncate max-w-[120px] sm:max-w-none">{selectedStockInfo?.issuerName}</span>
                   </div>
                 </CardHeader>
               </Card>
               
               {/* Stock Summary Card */}
               <Card className="border-0 shadow bg-[#0A1929]">
-                <CardHeader className="card-header px-4 py-3 bg-[#111E2E]">
+                <CardHeader className="card-header px-2 sm:px-4 py-2 sm:py-3 bg-[#111E2E]">
                   <div className="flex items-center">
-                    <PieChart className="h-5 w-5 mr-2 text-[#38AAFD]" />
-                    <h3 className="text-left font-mono text-[#EFEFEF] text-sm">
+                    <PieChart className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-[#38AAFD]" />
+                    <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-sm">
                       LATEST QUARTER SUMMARY
                     </h3>
                   </div>
                 </CardHeader>
-                <CardContent className="p-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div className="bg-[#0D2237] p-3 rounded">
-                      <div className="text-[#7A8999] text-xs font-mono">LAST PRICE</div>
-                      <div className="text-[#EFEFEF] text-lg font-mono mt-1">${selectedStockInfo?.last.toFixed(2)}</div>
+                <CardContent className="p-2 sm:p-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+                    <div className="bg-[#0D2237] p-2 sm:p-3 rounded">
+                      <div className="text-[#7A8999] text-[10px] sm:text-xs font-mono">LAST PRICE</div>
+                      <div className="text-[#EFEFEF] text-base sm:text-lg font-mono mt-1">${selectedStockInfo?.last.toFixed(2)}</div>
                     </div>
-                    <div className="bg-[#0D2237] p-3 rounded">
-                      <div className="text-[#7A8999] text-xs font-mono">CONSENSUS</div>
-                      <div className="text-[#EFEFEF] text-lg font-mono mt-1">{selectedStockInfo?.consensusRecommendation}</div>
+                    <div className="bg-[#0D2237] p-2 sm:p-3 rounded">
+                      <div className="text-[#7A8999] text-[10px] sm:text-xs font-mono">CONSENSUS</div>
+                      <div className="text-[#EFEFEF] text-base sm:text-lg font-mono mt-1">{selectedStockInfo?.consensusRecommendation}</div>
                     </div>
-                    <div className="bg-[#0D2237] p-3 rounded">
-                      <div className="text-[#7A8999] text-xs font-mono">YTD CHANGE</div>
-                      <div className={`text-lg font-mono mt-1 ${selectedStockInfo?.price.ytd >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
+                    <div className="bg-[#0D2237] p-2 sm:p-3 rounded">
+                      <div className="text-[#7A8999] text-[10px] sm:text-xs font-mono">YTD CHANGE</div>
+                      <div className={`text-base sm:text-lg font-mono mt-1 ${selectedStockInfo?.price.ytd >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
                         {selectedStockInfo?.price.ytd >= 0 ? '+' : ''}{selectedStockInfo?.price.ytd.toFixed(1)}%
                       </div>
                     </div>
-                    <div className="bg-[#0D2237] p-3 rounded">
-                      <div className="text-[#7A8999] text-xs font-mono">52-WEEK LEVEL</div>
-                      <div className="text-[#EFEFEF] text-lg font-mono mt-1">{selectedStockInfo?.price.pctOf52w.toFixed(1)}%</div>
+                    <div className="bg-[#0D2237] p-2 sm:p-3 rounded">
+                      <div className="text-[#7A8999] text-[10px] sm:text-xs font-mono">52-WEEK LEVEL</div>
+                      <div className="text-[#EFEFEF] text-base sm:text-lg font-mono mt-1">{selectedStockInfo?.price.pctOf52w.toFixed(1)}%</div>
                     </div>
                   </div>
                 </CardContent>
