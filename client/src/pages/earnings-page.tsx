@@ -17,126 +17,30 @@ import {
   FileText,
   Sparkles,
   PieChart,
-  Filter,
-  ArrowUpRight
+  Filter
 } from "lucide-react";
 import {
   ResponsiveContainer,
   Tooltip as RechartsTooltip,
   Cell,
-  ScatterChart,
-  Scatter,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Rectangle,
   Treemap
 } from "recharts";
 
+// Data for the treemap visualization based on the screenshot
+const mockTreemapData = [
+  { name: 'AAPL', size: 1500, value: 1500, marketReaction: 4.2 },
+  { name: 'MSFT', size: 1200, value: 1200, marketReaction: 3.1 },
+  { name: 'NVDA', size: 2000, value: 2000, marketReaction: 7.5 },
+  { name: 'META', size: 1800, value: 1800, marketReaction: 6.2 },
+  { name: 'TSLA', size: 700, value: 700, marketReaction: -5.2 },
+  { name: 'UNH', size: 900, value: 900, marketReaction: -7.9 },
+  { name: 'JPM', size: 280, value: 280, marketReaction: 1.8 },
+  { name: 'BCH', size: 350, value: 350, marketReaction: 5.5 },
+  { name: 'MCJ', size: 650, value: 650, marketReaction: -6.4 }
+];
+
 // Mock data for earnings heatmap based on screenshot
 const mockEarningsHeatmapData = [
-  {
-    ticker: "AAPL",
-    issuerName: "APPLE INC",
-    consensusRecommendation: "Buy",
-    last: 178.5,
-    price: {
-      earningsRate: 14.1,
-      ytd: 2.5,
-      pctOf52w: 68.3
-    },
-    eps: "Beat",
-    rev: "Beat",
-    guidance: "Maintain",
-    earningsScore: "Good",
-    mktReaction: 3.8,
-    mktReactionCommentary: "Normal"
-  },
-  {
-    ticker: "MSFT",
-    issuerName: "MICROSOFT CORP",
-    consensusRecommendation: "Strong Buy",
-    last: 423.4,
-    price: {
-      earningsRate: 22.7,
-      ytd: 12.8,
-      pctOf52w: 87.5
-    },
-    eps: "Beat",
-    rev: "Beat",
-    guidance: "Increased",
-    earningsScore: "Great",
-    mktReaction: 7.8,
-    mktReactionCommentary: "Abnormal"
-  },
-  {
-    ticker: "NVDA",
-    issuerName: "NVIDIA CORP",
-    consensusRecommendation: "Strong Buy",
-    last: 889.7,
-    price: {
-      earningsRate: 38.5,
-      ytd: 80.2,
-      pctOf52w: 92.6
-    },
-    eps: "Beat",
-    rev: "Beat",
-    guidance: "Increased",
-    earningsScore: "Great",
-    mktReaction: 14.5,
-    mktReactionCommentary: "Explosive"
-  },
-  {
-    ticker: "AMZN",
-    issuerName: "AMAZON.COM INC",
-    consensusRecommendation: "Buy",
-    last: 183.5,
-    price: {
-      earningsRate: 18.2,
-      ytd: 9.7,
-      pctOf52w: 79.3
-    },
-    eps: "Beat",
-    rev: "In-Line",
-    guidance: "Maintain",
-    earningsScore: "Good",
-    mktReaction: 2.3,
-    mktReactionCommentary: "Normal"
-  },
-  {
-    ticker: "GOOGL",
-    issuerName: "ALPHABET INC CLASS A",
-    consensusRecommendation: "Buy",
-    last: 162.1,
-    price: {
-      earningsRate: 15.3,
-      ytd: 14.2,
-      pctOf52w: 85.4
-    },
-    eps: "Beat", 
-    rev: "Beat",
-    guidance: "Maintain",
-    earningsScore: "Good",
-    mktReaction: 5.2,
-    mktReactionCommentary: "Abnormal"
-  },
-  {
-    ticker: "META",
-    issuerName: "META PLATFORMS INC",
-    consensusRecommendation: "Buy",
-    last: 521.4,
-    price: {
-      earningsRate: 27.1,
-      ytd: 49.8,
-      pctOf52w: 94.2
-    },
-    eps: "Beat",
-    rev: "Beat",
-    guidance: "Increased",
-    earningsScore: "Great",
-    mktReaction: 11.2,
-    mktReactionCommentary: "Explosive"
-  },
   {
     ticker: "BCH",
     issuerName: "RICHFIELD HARDWARE CORP",
@@ -155,7 +59,7 @@ const mockEarningsHeatmapData = [
     mktReactionCommentary: "Abnormal"
   },
   {
-    ticker: "JPM",
+    ticker: "JPM.us",
     issuerName: "JPMORGAN CHASE & CO",
     consensusRecommendation: "Buy",
     last: 252.4,
@@ -172,7 +76,7 @@ const mockEarningsHeatmapData = [
     mktReactionCommentary: "Normal"
   },
   {
-    ticker: "ASML",
+    ticker: "ASML.us",
     issuerName: "ASML HOLDING NV REG SHS",
     consensusRecommendation: "Strong Buy",
     last: 714.0,
@@ -189,7 +93,7 @@ const mockEarningsHeatmapData = [
     mktReactionCommentary: "Normal"
   },
   {
-    ticker: "UNH",
+    ticker: "UNH.us",
     issuerName: "UNITEDHEALTH GROUP INC (DEL)",
     consensusRecommendation: "Strong Buy",
     last: 488.7,
@@ -206,41 +110,7 @@ const mockEarningsHeatmapData = [
     mktReactionCommentary: "Abnormal"
   },
   {
-    ticker: "TSLA",
-    issuerName: "TESLA INC",
-    consensusRecommendation: "Hold",
-    last: 183.0,
-    price: {
-      earningsRate: -8.2,
-      ytd: -26.4,
-      pctOf52w: 42.3
-    },
-    eps: "Miss",
-    rev: "Miss",
-    guidance: "Reduced",
-    earningsScore: "Ugly",
-    mktReaction: -12.5,
-    mktReactionCommentary: "Explosive"
-  },
-  {
-    ticker: "INTC",
-    issuerName: "INTEL CORP",
-    consensusRecommendation: "Hold",
-    last: 32.7,
-    price: {
-      earningsRate: -15.3,
-      ytd: -34.8,
-      pctOf52w: 38.7
-    },
-    eps: "Miss",
-    rev: "Miss",
-    guidance: "Reduced",
-    earningsScore: "Ugly",
-    mktReaction: -9.2,
-    mktReactionCommentary: "Abnormal"
-  },
-  {
-    ticker: "MCJ",
+    ticker: "MCJ.r",
     issuerName: "MCJ",
     consensusRecommendation: "Buy",
     last: 605.1,
@@ -291,7 +161,6 @@ const mockUpcomingEarnings = [
   { ticker: "META", company: "Meta Platforms Inc", date: "2025-05-01", time: "AMC", eps: 4.32 }
 ];
 
-// Earnings color codes based on the screenshot
 // Using the same color scheme as other pages
 const getEpsColor = (value: string) => {
   switch (value) {
@@ -496,12 +365,12 @@ export default function EarningsPage() {
             </Card>
           </div>
 
-          {/* Visual Earnings Heatmap */}
+          {/* Earnings Heatmap Treemap Visualization */}
           <Card className="border-0 shadow bg-[#0A1929]">
             <CardHeader className="card-header px-4 py-3 bg-[#111E2E] flex justify-between items-center">
               <div className="flex items-center">
                 <BarChart3 className="h-5 w-5 mr-2 text-[#E91E63]" />
-                <h3 className="text-left font-mono text-[#EFEFEF] text-sm">EARNINGS SEASON HEATMAP - Q4 2024</h3>
+                <h3 className="text-left font-mono text-[#EFEFEF] text-sm">EARNINGS SEASON - Q1 2025</h3>
               </div>
               <div className="flex items-center">
                 <Filter className="h-4 w-4 mr-1 text-[#7A8999]" />
@@ -509,82 +378,27 @@ export default function EarningsPage() {
               </div>
             </CardHeader>
             <CardContent className="p-4">
-              <div className="w-full h-[400px]">
+              <div className="w-full h-[500px] bg-[#0A1929]">
                 <ResponsiveContainer width="100%" height="100%">
                   <Treemap
-                    data={mockEarningsHeatmapData.map(item => ({
-                      name: item.ticker,
-                      value: Math.max(item.last * Math.abs(item.mktReaction), 100),
-                      ticker: item.ticker,
-                      eps: item.eps,
-                      rev: item.rev,
-                      earningsScore: item.earningsScore,
-                      guidance: item.guidance,
-                      mktReaction: item.mktReaction,
-                      issuerName: item.issuerName,
-                      ytd: item.price.ytd,
-                      last: item.last
-                    }))}
-                    dataKey="value"
-                    aspectRatio={4 / 3}
-                    stroke="#1A304A"
+                    data={mockTreemapData}
+                    dataKey="size"
+                    aspectRatio={16 / 9}
+                    stroke="#061220"
+                    fill="#061220"
+                    animationDuration={500}
                   >
-                    {mockEarningsHeatmapData.map((item, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={item.mktReaction >= 0 ? 
-                          (item.mktReaction > 5 ? '#388E3C' : '#4CAF50') : 
-                          (item.mktReaction < -5 ? '#D32F2F' : '#FF5252')}
-                      />
-                    ))}
-                    <RechartsTooltip
+                    <RechartsTooltip 
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           const data = payload[0].payload;
                           return (
-                            <div className="bg-[#0A1929] border border-[#1A304A] rounded p-3 shadow-md text-xs font-mono">
-                              <div className="font-bold text-lg text-[#38AAFD]">{data.name}</div>
-                              <div className="text-[#EFEFEF] mb-2">{data.issuerName}</div>
-                              <div className="grid grid-cols-2 gap-2 mt-1">
-                                <div>
-                                  <span className="text-[#7A8999]">Price: </span>
-                                  <span className="font-bold text-[#EFEFEF]">${data.last.toFixed(2)}</span>
-                                </div>
-                                <div>
-                                  <span className="text-[#7A8999]">YTD: </span>
-                                  <span className={`font-bold ${data.ytd >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
-                                    {data.ytd >= 0 ? '+' : ''}{data.ytd.toFixed(1)}%
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-[#7A8999]">EPS: </span>
-                                  <span className={`font-bold ${data.eps === 'Beat' ? 'text-[#4CAF50]' : data.eps === 'Miss' ? 'text-[#FF5252]' : 'text-[#FFD700]'}`}>
-                                    {data.eps}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-[#7A8999]">Revenue: </span>
-                                  <span className={`font-bold ${data.rev === 'Beat' ? 'text-[#4CAF50]' : data.rev === 'Miss' ? 'text-[#FF5252]' : 'text-[#FFD700]'}`}>
-                                    {data.rev}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-[#7A8999]">Guidance: </span>
-                                  <span className={`font-bold ${data.guidance === 'Increased' ? 'text-[#4CAF50]' : data.guidance === 'Reduced' ? 'text-[#FF5252]' : 'text-[#FFD700]'}`}>
-                                    {data.guidance}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-[#7A8999]">Score: </span>
-                                  <span className={`font-bold ${data.earningsScore === 'Good' || data.earningsScore === 'Great' ? 'text-[#4CAF50]' : data.earningsScore === 'Ugly' ? 'text-[#FF5252]' : 'text-[#FFD700]'}`}>
-                                    {data.earningsScore}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="mt-2 pt-2 border-t border-[#1A304A]">
-                                <span className="text-[#EFEFEF]">Market Reaction: </span>
-                                <span className={`font-bold text-lg ${data.mktReaction >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
-                                  {data.mktReaction >= 0 ? '+' : ''}{data.mktReaction.toFixed(1)}%
+                            <div className="bg-[#0A1929] border border-[#1A304A] rounded p-2 shadow-md text-xs font-mono">
+                              <div className="font-bold text-[#38AAFD]">{data.name}</div>
+                              <div className="mt-1">
+                                <span className="text-[#7A8999]">Market Reaction: </span>
+                                <span className={`font-bold ${data.marketReaction >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
+                                  {data.marketReaction >= 0 ? '+' : ''}{data.marketReaction.toFixed(1)}%
                                 </span>
                               </div>
                             </div>
@@ -593,16 +407,63 @@ export default function EarningsPage() {
                         return null;
                       }}
                     />
+                    {mockTreemapData.map((entry, index) => {
+                      // Color determination based on market reaction
+                      let fillColor;
+                      
+                      if (entry.marketReaction >= 5) {
+                        fillColor = "#4CAF50"; // Strong positive (dark green)
+                      } else if (entry.marketReaction > 0) {
+                        fillColor = "#8BC34A"; // Positive (light green)
+                      } else if (entry.marketReaction > -5) {
+                        fillColor = "#FF5252"; // Negative (light red)
+                      } else {
+                        fillColor = "#D32F2F"; // Strong negative (dark red)
+                      }
+
+                      // Special cases based on the screenshot
+                      if (entry.name === 'AAPL') fillColor = "#1E88E5";  // Blue
+                      if (entry.name === 'MSFT') fillColor = "#42A5F5";  // Light blue
+                      if (entry.name === 'NVDA') fillColor = "#26A69A";  // Teal
+                      if (entry.name === 'META') fillColor = "#9CCC65";  // Light green
+                      if (entry.name === 'UNH') fillColor = "#303F9F";   // Navy blue
+                      if (entry.name === 'TSLA') fillColor = "#7986CB";  // Periwinkle
+                      if (entry.name === 'MCJ') fillColor = "#9575CD";   // Purple
+                      if (entry.name === 'BCH') fillColor = "#FFB74D";   // Orange
+                      if (entry.name === 'JPM') fillColor = "#FF8A65";   // Salmon
+                      
+                      return (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={fillColor}
+                        >
+                          <text 
+                            x="50%" 
+                            y="50%" 
+                            textAnchor="middle" 
+                            dominantBaseline="middle"
+                            className="font-mono font-bold text-black"
+                            style={{ 
+                              fontSize: entry.size > 1000 ? 16 : 12,
+                              fill: ["AAPL", "MSFT", "NVDA", "META", "BCH"].includes(entry.name) ? "black" : "white",
+                              pointerEvents: "none"
+                            }}
+                          >
+                            {entry.name}
+                          </text>
+                        </Cell>
+                      );
+                    })}
                   </Treemap>
                 </ResponsiveContainer>
               </div>
-              <div className="flex justify-between items-center mt-4 text-xs font-mono text-[#7A8999]">
+              <div className="mt-4 flex justify-between items-center text-xs font-mono text-[#7A8999]">
                 <div className="flex items-center">
-                  <div className="h-3 w-3 rounded-sm bg-[#388E3C] mr-1"></div>
+                  <div className="h-3 w-3 rounded-sm bg-[#4CAF50] mr-1"></div>
                   <span>Strong Positive &gt; +5%</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="h-3 w-3 rounded-sm bg-[#4CAF50] mr-1"></div>
+                  <div className="h-3 w-3 rounded-sm bg-[#8BC34A] mr-1"></div>
                   <span>Positive &lt; +5%</span>
                 </div>
                 <div className="flex items-center">
@@ -613,52 +474,6 @@ export default function EarningsPage() {
                   <div className="h-3 w-3 rounded-sm bg-[#D32F2F] mr-1"></div>
                   <span>Strong Negative &lt; -5%</span>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          {/* Traditional Earnings Table */}
-          <Card className="border-0 shadow bg-[#0A1929]">
-            <CardHeader className="card-header px-4 py-3 bg-[#111E2E] flex justify-between items-center">
-              <div className="flex items-center">
-                <PieChart className="h-5 w-5 mr-2 text-[#38AAFD]" />
-                <h3 className="text-left font-mono text-[#EFEFEF] text-sm">EARNINGS DETAILS</h3>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="text-xs border-b border-[#1A304A] bg-[#0D2237]">
-                      <th className="p-2 text-left font-mono text-[#7A8999]">TICKER</th>
-                      <th className="p-2 text-left font-mono text-[#7A8999]">ISSUER NAME</th>
-                      <th className="p-2 text-left font-mono text-[#7A8999]">CONSENSUS</th>
-                      <th className="p-2 text-right font-mono text-[#7A8999]">LAST</th>
-                      <th className="p-2 text-center font-mono text-[#7A8999]">EPS</th>
-                      <th className="p-2 text-center font-mono text-[#7A8999]">REV</th>
-                      <th className="p-2 text-center font-mono text-[#7A8999]">GUIDANCE</th>
-                      <th className="p-2 text-center font-mono text-[#7A8999]">SCORE</th>
-                      <th className="p-2 text-right font-mono text-[#7A8999]">MKT REACTION</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {mockEarningsHeatmapData.map((item, index) => (
-                      <tr key={index} className="border-b border-[#1A304A] hover:bg-[#0F2542]">
-                        <td className="p-2 text-left font-mono text-[#38AAFD] text-xs">{item.ticker}</td>
-                        <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.issuerName}</td>
-                        <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.consensusRecommendation}</td>
-                        <td className="p-2 text-right font-mono text-[#EFEFEF] text-xs">{item.last.toFixed(1)}</td>
-                        <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.eps)}`}>{item.eps}</td>
-                        <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.rev)}`}>{item.rev}</td>
-                        <td className={`p-2 text-center font-mono text-xs ${getGuidanceColor(item.guidance)}`}>{item.guidance}</td>
-                        <td className={`p-2 text-center font-mono text-xs ${getScoreColor(item.earningsScore)}`}>{item.earningsScore}</td>
-                        <td className={`p-2 text-right font-mono text-xs ${item.mktReaction >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
-                          {item.mktReaction >= 0 ? '+' : ''}{item.mktReaction.toFixed(1)}%
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
               </div>
             </CardContent>
           </Card>
