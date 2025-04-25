@@ -11,6 +11,7 @@ import IntlPortfolio from "@/pages/intl-portfolio";
 import MatrixRulesPage from "@/pages/matrix-rules";
 import EtfHoldings from "@/pages/etf-holdings";
 import DataManagement from "@/pages/data-management";
+import EarningsPage from "@/pages/earnings-page";
 import { Header } from "@/components/layout/header";
 
 function Router() {
@@ -28,6 +29,7 @@ function Router() {
             <Route path="/matrix-rules" component={MatrixRulesPage} />
             <Route path="/etf-holdings" component={EtfHoldings} />
             <Route path="/data-management" component={DataManagement} />
+            <Route path="/earnings" component={EarningsPage} />
             <Route component={NotFound} />
           </Switch>
         </main>

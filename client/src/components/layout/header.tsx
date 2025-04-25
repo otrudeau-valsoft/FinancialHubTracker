@@ -62,6 +62,13 @@ export function Header() {
         >
           Data Management
         </button>
+        
+        <button 
+          onClick={() => navigate("/earnings")} 
+          className={`text-gray-300 hover:text-white px-2 py-1 rounded ${location === '/earnings' ? 'bg-blue-900/30' : ''}`}
+        >
+          Earnings
+        </button>
       </nav>
     </header>
   );
