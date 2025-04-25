@@ -199,23 +199,29 @@ export default function CadPortfolio() {
               cashShares={cashHolding?.quantity || 0}
             />
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-              <AllocationChart 
-                typeAllocation={cadAllocationByType} 
-                ratingAllocation={cadAllocationByRating} 
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6">
+              <div className="md:col-span-2 lg:col-span-1 flex flex-col">
+                <AllocationChart 
+                  typeAllocation={cadAllocationByType} 
+                  ratingAllocation={cadAllocationByRating} 
+                />
+              </div>
               
-              <PerformanceChart 
-                portfolioData={samplePerformanceData}
-                timeRanges={["1W", "1M", "YTD", "1Y"]}
-                benchmark="XIC"
-              />
+              <div className="md:col-span-2 lg:col-span-1 flex flex-col">
+                <PerformanceChart 
+                  portfolioData={samplePerformanceData}
+                  timeRanges={["1W", "1M", "YTD", "1Y"]}
+                  benchmark="XIC"
+                />
+              </div>
               
-              <AlertsList 
-                alerts={alerts?.filter(a => 
-                  cadStocks?.find(s => s.symbol === a.symbol) && a.isActive
-                ) || []} 
-              />
+              <div className="flex flex-col">
+                <AlertsList 
+                  alerts={alerts?.filter(a => 
+                    cadStocks?.find(s => s.symbol === a.symbol) && a.isActive
+                  ) || []} 
+                />
+              </div>
             </div>
             
             <PortfolioTable 

@@ -1000,12 +1000,21 @@ export default function EarningsPage() {
   }, [currentQuarterIndex]);
 
   return (
-    <div className="container mx-auto p-2 sm:p-4 bg-[#061220]">
+    <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4 bg-[#061220]">
       <div className="mb-4 sm:mb-6">
-        <div>
-          <h1 className="text-lg sm:text-xl font-medium text-[#EFEFEF] font-mono tracking-tight">EARNINGS CENTER</h1>
-          <div className="flex mt-1">
-            <div className="h-0.5 w-8 bg-[#E91E63]"></div>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-base sm:text-xl font-medium text-[#EFEFEF] font-mono tracking-tight">EARNINGS CENTER</h1>
+            <div className="flex mt-1">
+              <div className="h-0.5 w-8 bg-[#E91E63]"></div>
+            </div>
+          </div>
+          <div className="hidden sm:flex items-center gap-2 text-[10px] bg-[#0B1728]/80 px-2.5 py-1 rounded-md border border-[#1A304A]">
+            <div className="flex items-center">
+              <div className="w-1.5 h-1.5 bg-[#4CAF50] rounded-full mr-1"></div>
+              <span className="text-[#7A8999] font-mono">LATEST Q:</span>
+              <span className="ml-1 text-[#EFEFEF] font-mono">Q4 2024</span>
+            </div>
           </div>
         </div>
       </div>
