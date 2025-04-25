@@ -1043,11 +1043,11 @@ export default function EarningsPage() {
 
         {/* EARNINGS CALENDAR */}
         <TabsContent value="calendar" className="mt-4">
-          <Card className="border-0 shadow bg-[#0A1929]">
-            <CardHeader className="card-header px-4 py-3 bg-[#111E2E] flex justify-between items-center">
+          <Card className="border-0 shadow bg-[#0A1929] rounded-none border border-[#1A304A]">
+            <CardHeader className="card-header px-3 py-2 sm:px-4 sm:py-3 bg-[#0D1C30] border-b border-[#1A304A] flex justify-between items-center">
               <div className="flex items-center">
-                <CalendarIcon className="h-5 w-5 mr-2 text-[#E91E63]" />
-                <h3 className="text-left font-mono text-[#EFEFEF] text-sm">UPCOMING EARNINGS CALENDAR - Q2 2025</h3>
+                <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#E91E63]" />
+                <h3 className="text-left font-mono text-[#EFEFEF] text-xs sm:text-sm">UPCOMING EARNINGS CALENDAR - Q2 2025</h3>
               </div>
             </CardHeader>
             <CardContent className="p-4">
@@ -1122,8 +1122,8 @@ export default function EarningsPage() {
           {/* Earnings Statistics Section */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
             {/* EPS Stats */}
-            <Card className="border-0 shadow bg-[#0A1929]">
-              <CardHeader className="card-header px-2 sm:px-3 py-1 sm:py-2 bg-[#111E2E]">
+            <Card className="border-0 shadow bg-[#0A1929] rounded-none border border-[#1A304A]">
+              <CardHeader className="card-header px-2 sm:px-3 py-1 sm:py-2 bg-[#0D1C30] border-b border-[#1A304A]">
                 <div className="flex items-center">
                   <BarChart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-[#4CAF50]" />
                   <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">EPS</h3>
@@ -1145,8 +1145,8 @@ export default function EarningsPage() {
             </Card>
 
             {/* Revenue Stats */}
-            <Card className="border-0 shadow bg-[#0A1929]">
-              <CardHeader className="card-header px-2 sm:px-3 py-1 sm:py-2 bg-[#111E2E]">
+            <Card className="border-0 shadow bg-[#0A1929] rounded-none border border-[#1A304A]">
+              <CardHeader className="card-header px-2 sm:px-3 py-1 sm:py-2 bg-[#0D1C30] border-b border-[#1A304A]">
                 <div className="flex items-center">
                   <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-[#2196F3]" />
                   <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">REVENUE</h3>
@@ -1168,8 +1168,8 @@ export default function EarningsPage() {
             </Card>
 
             {/* Guidance Stats */}
-            <Card className="border-0 shadow bg-[#0A1929]">
-              <CardHeader className="card-header px-2 sm:px-3 py-1 sm:py-2 bg-[#111E2E]">
+            <Card className="border-0 shadow bg-[#0A1929] rounded-none border border-[#1A304A]">
+              <CardHeader className="card-header px-2 sm:px-3 py-1 sm:py-2 bg-[#0D1C30] border-b border-[#1A304A]">
                 <div className="flex items-center">
                   <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-[#FFCA28]" />
                   <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">GUIDANCE</h3>
