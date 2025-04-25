@@ -87,10 +87,9 @@ export default function CadPortfolio() {
     <div className="container mx-auto p-4 bg-[#061220]">
       <div className="mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-[#EFEFEF] font-mono tracking-tight">CAD PORTFOLIO</h1>
-          <div className="flex items-center space-x-2 mt-1">
-            <div className="h-1 w-12 bg-[#4CAF50]"></div>
-            <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">CANADIAN EQUITY POSITIONS • MARKET DATA • PERFORMANCE METRICS</p>
+          <h1 className="text-lg sm:text-xl font-medium text-[#EFEFEF] font-mono tracking-tight">CAD PORTFOLIO</h1>
+          <div className="flex mt-1">
+            <div className="h-0.5 w-8 bg-[#4CAF50]"></div>
           </div>
         </div>
       </div>

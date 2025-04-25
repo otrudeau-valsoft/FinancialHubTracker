@@ -1003,10 +1003,10 @@ export default function EarningsPage() {
     <div className="container mx-auto p-2 sm:p-4 bg-[#061220]">
       <div className="mb-4 sm:mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#EFEFEF] font-mono tracking-tight">EARNINGS CENTER</h1>
-          <div className="flex items-center space-x-2 mt-1">
-            <div className="h-1 w-12 bg-[#E91E63]"></div>
-            <p className="text-[#C0C0C0] text-xs sm:text-sm font-mono tracking-tighter whitespace-nowrap overflow-x-auto no-scrollbar">EARNINGS CALENDAR • HEATMAP • INTAKES • ANALYSIS</p>
+          <h2 className="text-sm sm:text-base font-mono tracking-tight text-[#C0C0C0] mb-1">EARNINGS SEASON - {quarters[currentQuarterIndex].quarter}</h2>
+          <h1 className="text-lg sm:text-xl font-medium text-[#EFEFEF] font-mono tracking-tight">EARNINGS CENTER</h1>
+          <div className="flex mt-1">
+            <div className="h-0.5 w-8 bg-[#E91E63]"></div>
           </div>
         </div>
       </div>
