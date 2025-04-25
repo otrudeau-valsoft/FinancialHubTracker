@@ -475,28 +475,29 @@ export default function DataManagement() {
           </Card>
 
           <Card className="bg-[#0A1524] border border-[#1A304A] rounded-none shadow-lg">
-            <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-3">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-[#EFEFEF] text-lg font-mono flex items-center">
-                  <LineChart className="mr-2 h-5 w-5 text-[#4CAF50]" />
+            <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-2 sm:p-3">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
+                <CardTitle className="text-[#EFEFEF] text-base sm:text-lg font-mono flex items-center">
+                  <LineChart className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-[#4CAF50]" />
                   HISTORICAL DATA
                 </CardTitle>
                 <Button 
                   variant="default" 
                   onClick={() => updateAllHistoricalPricesMutation.mutate()}
                   disabled={updateHistoricalPricesMutation.isPending || updateAllHistoricalPricesMutation.isPending}
-                  className="bg-[#4CAF50] hover:bg-[#388E3C] text-white rounded-sm h-8 px-3 py-1"
+                  className="bg-[#4CAF50] hover:bg-[#388E3C] text-white rounded-sm h-8 px-2 sm:px-3 py-1 text-xs sm:text-sm w-full sm:w-auto"
                   size="sm"
                 >
                   {updateAllHistoricalPricesMutation.isPending ? (
                     <>
-                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      <div className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                       RUNNING
                     </>
                   ) : (
                     <>
-                      <RotateCw className="mr-2 h-4 w-4" />
-                      UPDATE ALL HISTORICAL DATA
+                      <RotateCw className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">UPDATE ALL HISTORICAL DATA</span>
+                      <span className="inline sm:hidden">UPDATE HISTORY</span>
                     </>
                   )}
                 </Button>
@@ -529,10 +530,10 @@ export default function DataManagement() {
 
         {/* Update Logs Section */}
         <Card className="bg-[#0A1524] border border-[#1A304A] rounded-none shadow-lg">
-          <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-3">
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-[#EFEFEF] text-lg font-mono flex items-center">
-                <Terminal className="mr-2 h-5 w-5 text-[#FFCA28]" />
+          <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-2 sm:p-3">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
+              <CardTitle className="text-[#EFEFEF] text-base sm:text-lg font-mono flex items-center">
+                <Terminal className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-[#FFCA28]" />
                 SYSTEM LOGS
               </CardTitle>
               <div className="flex space-x-2">
@@ -541,19 +542,21 @@ export default function DataManagement() {
                   size="sm"
                   onClick={() => clearLogsMutation.mutate()}
                   disabled={clearLogsMutation.isPending || !updateLogs || updateLogs.length === 0}
-                  className="h-7 border-[#1A304A] text-[#EFEFEF] bg-transparent hover:bg-[#1A304A] rounded-sm"
+                  className="h-7 border-[#1A304A] text-[#EFEFEF] bg-transparent hover:bg-[#1A304A] rounded-sm text-xs"
                 >
-                  <Trash2 className="mr-2 h-3 w-3 text-[#F44336]" />
-                  CLEAR LOGS
+                  <Trash2 className="mr-1 sm:mr-2 h-3 w-3 text-[#F44336]" />
+                  <span className="hidden xs:inline">CLEAR LOGS</span>
+                  <span className="inline xs:hidden">CLEAR</span>
                 </Button>
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={() => refetchLogs()}
-                  className="h-7 border-[#1A304A] text-[#EFEFEF] bg-transparent hover:bg-[#1A304A] rounded-sm"
+                  className="h-7 border-[#1A304A] text-[#EFEFEF] bg-transparent hover:bg-[#1A304A] rounded-sm text-xs"
                 >
-                  <RotateCw className="mr-2 h-3 w-3" />
-                  REFRESH
+                  <RotateCw className="mr-1 sm:mr-2 h-3 w-3" />
+                  <span className="hidden xs:inline">REFRESH</span>
+                  <span className="inline xs:hidden">REFRESH</span>
                 </Button>
               </div>
             </div>
@@ -577,17 +580,17 @@ export default function DataManagement() {
                         key={log.id} 
                         className="py-2 border-b border-[#1A304A] last:border-b-0"
                       >
-                        <div className="flex justify-between items-start mb-1">
-                          <div className="flex items-center">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1 sm:gap-0 mb-1">
+                          <div className="flex flex-wrap items-center gap-1">
                             {log.type === 'current_prices' ? (
-                              <BarChart4 className="h-4 w-4 mr-2 text-[#38AAFD]" />
+                              <BarChart4 className="h-4 w-4 text-[#38AAFD] flex-shrink-0" />
                             ) : (
-                              <LineChart className="h-4 w-4 mr-2 text-[#4CAF50]" />
+                              <LineChart className="h-4 w-4 text-[#4CAF50] flex-shrink-0" />
                             )}
-                            <span className="font-mono text-sm text-[#EFEFEF]">
+                            <span className="font-mono text-xs sm:text-sm text-[#EFEFEF] mr-1">
                               {log.type === 'current_prices' ? 'CURRENT PRICES' : 'HISTORICAL PRICES'}
                             </span>
-                            <span className={`ml-2 px-2 py-0.5 text-xs font-mono ${
+                            <span className={`px-2 py-0.5 text-xs font-mono ${
                               log.status === 'Success' ? 'bg-[#0D3A21] text-[#4CAF50]' : 
                               log.status === 'In Progress' ? 'bg-[#3A2F10] text-[#FFCA28]' : 
                               'bg-[#3A1A1A] text-[#F44336]'
@@ -610,11 +613,11 @@ export default function DataManagement() {
                               )}
                             </span>
                           </div>
-                          <span className="text-xs font-mono text-[#7A8999]">
+                          <span className="text-xs font-mono text-[#7A8999] ml-6 sm:ml-0 mt-1 sm:mt-0">
                             {formatDistanceToNow(new Date(log.timestamp), { addSuffix: true }).toUpperCase()}
                           </span>
                         </div>
-                        <div className="ml-6 mt-1 text-xs font-mono text-[#C0C0C0] bg-[#081120] p-2 rounded-none border-l-2 border-[#1A304A]">
+                        <div className="ml-4 sm:ml-6 mt-1 text-xs font-mono text-[#C0C0C0] bg-[#081120] p-2 rounded-none border-l-2 border-[#1A304A]">
                           {formatDetails(log.details)}
                           
                           {/* Progress bar for In Progress status */}
@@ -653,10 +656,10 @@ export default function DataManagement() {
           ) : schedulerConfig && (
             <>
               <Card className="bg-[#0A1524] border border-[#1A304A] rounded-none shadow-lg">
-                <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-3">
+                <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-2 sm:p-3">
                   <div className="flex justify-between items-center">
-                    <CardTitle className="text-[#EFEFEF] text-lg font-mono flex items-center">
-                      <BarChart4 className="mr-2 h-5 w-5 text-[#38AAFD]" />
+                    <CardTitle className="text-[#EFEFEF] text-base sm:text-lg font-mono flex items-center">
+                      <BarChart4 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-[#38AAFD]" />
                       CURRENT PRICES
                     </CardTitle>
                     <div className="bg-[#38AAFD]/20 text-[#38AAFD] text-xs px-2 py-0.5 font-mono rounded-sm">
@@ -664,15 +667,16 @@ export default function DataManagement() {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="p-3 pt-4">
+                <CardContent className="p-2 sm:p-3 pt-3 sm:pt-4">
                   <div className="font-mono text-xs space-y-2">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center">
                       <span className="text-[#7A8999]">SCHEDULER:</span>
                       <Switch 
                         id="current-price-enabled" 
                         checked={schedulerConfig.current_prices.enabled} 
                         onCheckedChange={(checked) => handleToggleScheduler('current_prices', checked)}
                         disabled={updateSchedulerConfigMutation.isPending}
+                        className="scale-90 sm:scale-100"
                       />
                     </div>
                     <div className="flex justify-between">
@@ -705,10 +709,10 @@ export default function DataManagement() {
               </Card>
               
               <Card className="bg-[#0A1524] border border-[#1A304A] rounded-none shadow-lg">
-                <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-3">
+                <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-2 sm:p-3">
                   <div className="flex justify-between items-center">
-                    <CardTitle className="text-[#EFEFEF] text-lg font-mono flex items-center">
-                      <LineChart className="mr-2 h-5 w-5 text-[#4CAF50]" />
+                    <CardTitle className="text-[#EFEFEF] text-base sm:text-lg font-mono flex items-center">
+                      <LineChart className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-[#4CAF50]" />
                       HISTORICAL DATA
                     </CardTitle>
                     <div className="bg-[#4CAF50]/20 text-[#4CAF50] text-xs px-2 py-0.5 font-mono rounded-sm">
@@ -716,15 +720,16 @@ export default function DataManagement() {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="p-3 pt-4">
+                <CardContent className="p-2 sm:p-3 pt-3 sm:pt-4">
                   <div className="font-mono text-xs space-y-2">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center">
                       <span className="text-[#7A8999]">SCHEDULER:</span>
                       <Switch 
                         id="hist-price-enabled" 
                         checked={schedulerConfig.historical_prices.enabled} 
                         onCheckedChange={(checked) => handleToggleScheduler('historical_prices', checked)}
                         disabled={updateSchedulerConfigMutation.isPending}
+                        className="scale-90 sm:scale-100"
                       />
                     </div>
                     <div className="flex justify-between">
