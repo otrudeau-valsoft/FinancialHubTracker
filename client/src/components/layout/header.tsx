@@ -23,13 +23,10 @@ export function Header() {
   
   return (
     <header className="h-12 bg-[#0A1929] border-b border-gray-800 flex items-center justify-between px-2 sm:px-4 shadow-sm">
-      {/* Desktop AlphaGen Logo - Only visible on larger screens */}
+      {/* Desktop spacer */}
       <div className="hidden md:flex items-center mr-6">
         <div className="flex items-center">
-          <span className="text-[#E91E63] font-mono text-base font-bold tracking-tight">ALPHA</span>
-          <span className="text-[#38AAFD] font-mono text-base font-bold tracking-tight">GEN</span>
-          <span className="text-[#4CAF50] text-xs ml-1 opacity-80">&#x2713;</span>
-          <div className="h-3 mx-4 w-px bg-gray-700"></div>
+          <div className="h-3 mx-4 w-px bg-gray-700 invisible"></div>
         </div>
       </div>
       
@@ -93,12 +90,10 @@ export function Header() {
         </button>
       </nav>
       
-      {/* Mobile View - App Title */}
+      {/* Mobile View - Spacer */}
       <div className="md:hidden flex items-center">
         <div className="flex items-center">
-          <span className="text-[#E91E63] font-mono text-sm font-bold tracking-tight">ALPHA</span>
-          <span className="text-[#38AAFD] font-mono text-sm font-bold tracking-tight">GEN</span>
-          <span className="text-[#4CAF50] text-xs ml-1 opacity-80">&#x2713;</span>
+          <span className="text-transparent">SPACER</span>
         </div>
       </div>
       
