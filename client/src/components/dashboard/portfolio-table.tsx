@@ -127,23 +127,23 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
         <table className="min-w-full divide-y divide-gray-800 data-table">
           <thead>
             <tr>
-              <th scope="col">Symbol</th>
-              <th scope="col">Company</th>
-              <th scope="col">Type</th>
-              <th scope="col">Rating</th>
-              <th scope="col">Book Price</th>
-              <th scope="col">Market Price</th>
-              <th scope="col">Qty</th>
-              <th scope="col">NAV</th>
-              <th scope="col">Weight</th>
-              <th scope="col">Daily %</th>
-              <th scope="col">MTD %</th>
-              <th scope="col">YTD %</th>
-              <th scope="col">P&L</th>
-              <th scope="col">Next ER</th>
+              <th scope="col" className="px-3 py-2">Symbol</th>
+              <th scope="col" className="px-3 py-2">Company</th>
+              <th scope="col" className="px-3 py-2">Type</th>
+              <th scope="col" className="px-3 py-2">Rating</th>
+              <th scope="col" className="px-3 py-2">Book Price</th>
+              <th scope="col" className="px-3 py-2">Market Price</th>
+              <th scope="col" className="px-3 py-2">Qty</th>
+              <th scope="col" className="px-3 py-2">NAV</th>
+              <th scope="col" className="px-3 py-2">Weight</th>
+              <th scope="col" className="px-3 py-2">Daily %</th>
+              <th scope="col" className="px-3 py-2">MTD %</th>
+              <th scope="col" className="px-3 py-2">YTD %</th>
+              <th scope="col" className="px-3 py-2">P&L</th>
+              <th scope="col" className="px-3 py-2">Next ER</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800">
+          <tbody className="divide-y divide-gray-800 text-xs mono">
             {filteredStocks.map((stock) => {
               // Find current price data for this stock
               const currentPrice = prices.find(p => p.symbol === stock.symbol);
@@ -155,18 +155,18 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
               
               return (
                 <tr key={stock.id}>
-                  <td className="mono font-medium">{stock.symbol}</td>
-                  <td>{stock.company}</td>
-                  <td>
+                  <td className="px-3 py-2 font-medium text-secondary">{stock.symbol}</td>
+                  <td className="px-3 py-2">{stock.company}</td>
+                  <td className="px-3 py-2">
                     <Badge variant="outline" className={`text-xs px-2.5 py-0.5 rounded-full ${getStockTypeBackground(stock.stockType)}`}>
                       {stock.stockType}
                     </Badge>
                   </td>
-                  <td className="text-center">
+                  <td className="px-3 py-2 text-center">
                     <span className={`rating ${getRatingClass(stock.rating)}`}>{stock.rating}</span>
                   </td>
-                  <td className="mono">{formatCurrency(stock.price, currencySymbol)}</td>
-                  <td className="mono">
+                  <td className="px-3 py-2">{formatCurrency(stock.price, currencySymbol)}</td>
+                  <td className="px-3 py-2">
                     {marketPrice ? (
                       <TooltipProvider>
                         <Tooltip>
@@ -187,22 +187,22 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                       <span className="text-gray-500">--</span>
                     )}
                   </td>
-                  <td className="mono">{stock.quantity}</td>
-                  <td className="mono">{formatCurrency(stock.nav, currencySymbol)}</td>
-                  <td className="mono">{stock.portfolioWeight?.toFixed(1)}%</td>
-                  <td className={`mono ${getProfitLossClass(marketChange || stock.dailyChange)}`}>
+                  <td className="px-3 py-2">{stock.quantity}</td>
+                  <td className="px-3 py-2">{formatCurrency(stock.nav, currencySymbol)}</td>
+                  <td className="px-3 py-2">{stock.portfolioWeight?.toFixed(1)}%</td>
+                  <td className={`px-3 py-2 ${getProfitLossClass(marketChange || stock.dailyChange)}`}>
                     {marketChange ? formatPercentage(marketChange) : formatPercentage(stock.dailyChange)}
                   </td>
-                  <td className={`mono ${getProfitLossClass(stock.mtdChange)}`}>
+                  <td className={`px-3 py-2 ${getProfitLossClass(stock.mtdChange)}`}>
                     {formatPercentage(stock.mtdChange)}
                   </td>
-                  <td className={`mono ${getProfitLossClass(stock.ytdChange)}`}>
+                  <td className={`px-3 py-2 ${getProfitLossClass(stock.ytdChange)}`}>
                     {formatPercentage(stock.ytdChange)}
                   </td>
-                  <td className={`mono ${getProfitLossClass(stock.profitLoss)}`}>
+                  <td className={`px-3 py-2 ${getProfitLossClass(stock.profitLoss)}`}>
                     {formatCurrency(stock.profitLoss, currencySymbol)}
                   </td>
-                  <td className="mono">{stock.nextEarningsDate || '-'}</td>
+                  <td className="px-3 py-2">{stock.nextEarningsDate || '-'}</td>
                 </tr>
               );
             })}
