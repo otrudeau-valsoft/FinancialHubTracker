@@ -28,7 +28,37 @@ export async function importUpgradeDowngradeHistory(symbol: string, region: stri
     
     // Get history items
     const history = result.upgradeDowngradeHistory.history;
-    console.log(`Found ${history.length} upgrade/downgrade history items for ${symbol}`);
+    console.log(`Found ${history.length} total upgrade/downgrade history items for ${symbol}`);
+    
+    // Define the one year cutoff date
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    
+    // Filter history to only include items from the last year
+    const filteredHistory = history.filter(item => {
+      if (!item.epochGradeDate) return false;
+      
+      try {
+        // Parse the date properly based on the format
+        const epoch = item.epochGradeDate > 10000000000 
+          ? item.epochGradeDate // already in milliseconds
+          : item.epochGradeDate * 1000; // convert seconds to milliseconds
+          
+        const gradeDate = new Date(epoch);
+        
+        // Check if date is valid and within the last year
+        const currentYear = new Date().getFullYear();
+        if (gradeDate.getFullYear() > currentYear + 10 || gradeDate.getFullYear() < 1990) {
+          return false;
+        }
+        
+        return gradeDate >= oneYearAgo;
+      } catch (e) {
+        return false;
+      }
+    });
+    
+    console.log(`Filtered to ${filteredHistory.length} upgrade/downgrade history items within the last year for ${symbol}`);
     
     // Delete existing records for this symbol in this region
     await db.delete(upgradeDowngradeHistory)
@@ -39,8 +69,8 @@ export async function importUpgradeDowngradeHistory(symbol: string, region: stri
         )
       );
     
-    // Process each history item
-    for (const item of history) {
+    // Process each filtered history item
+    for (const item of filteredHistory) {
       // Convert epoch to date if available
       let gradeDate = null;
       if (item.epochGradeDate) {
@@ -83,7 +113,7 @@ export async function importUpgradeDowngradeHistory(symbol: string, region: stri
       });
     }
     
-    console.log(`Successfully imported ${history.length} upgrade/downgrade history items for ${symbol}`);
+    console.log(`Successfully imported ${filteredHistory.length} upgrade/downgrade history items for ${symbol}`);
   } catch (error) {
     console.error(`Error importing upgrade/downgrade history for ${symbol}:`, error);
     throw error;
