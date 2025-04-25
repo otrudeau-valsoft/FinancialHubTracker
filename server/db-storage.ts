@@ -1,4 +1,10 @@
-import { db } from './db';
+import { db, sanitizeForDb } from './db';
+import { desc } from 'drizzle-orm';
+import { 
+  etfHoldingsSPY, 
+  etfHoldingsXIC, 
+  etfHoldingsACWX 
+} from '../shared/schema';
 
 /**
  * DatabaseStorage class provides a simplified API for database operations
@@ -64,24 +70,134 @@ export class DatabaseStorage {
    * Get ETF holdings for a specific symbol
    */
   async getEtfHoldings(symbol: string, limit?: number) {
-    // Placeholder for actual implementation
-    return [];
+    try {
+      const upperSymbol = symbol.toUpperCase();
+      let query;
+      
+      // Determine the table based on the ETF symbol
+      if (upperSymbol === 'SPY') {
+        if (limit) {
+          query = db.query.etfHoldingsSPY.findMany({
+            orderBy: [desc(etfHoldingsSPY.weight)],
+            limit: parseInt(limit.toString())
+          });
+        } else {
+          query = db.query.etfHoldingsSPY.findMany({
+            orderBy: [desc(etfHoldingsSPY.weight)]
+          });
+        }
+      } else if (upperSymbol === 'XIC') {
+        if (limit) {
+          query = db.query.etfHoldingsXIC.findMany({
+            orderBy: [desc(etfHoldingsXIC.weight)],
+            limit: parseInt(limit.toString())
+          });
+        } else {
+          query = db.query.etfHoldingsXIC.findMany({
+            orderBy: [desc(etfHoldingsXIC.weight)]
+          });
+        }
+      } else if (upperSymbol === 'ACWX') {
+        if (limit) {
+          query = db.query.etfHoldingsACWX.findMany({
+            orderBy: [desc(etfHoldingsACWX.weight)],
+            limit: parseInt(limit.toString())
+          });
+        } else {
+          query = db.query.etfHoldingsACWX.findMany({
+            orderBy: [desc(etfHoldingsACWX.weight)]
+          });
+        }
+      } else {
+        // Default or unsupported ETF symbol
+        return [];
+      }
+      
+      // Execute the query and calculate NAV
+      const holdings = await query;
+      
+      // Calculate NAV (price * quantity) for each holding
+      return holdings.map(holding => ({
+        ...holding,
+        nav: parseFloat(holding.price?.toString() || '0') * parseFloat(holding.quantity?.toString() || '0')
+      }));
+    } catch (error) {
+      console.error(`Error retrieving ETF holdings for ${symbol}:`, error);
+      return [];
+    }
+  }
+  
+  /**
+   * Get top ETF holdings
+   */
+  async getTopEtfHoldings(etfSymbol: string, limit: number) {
+    return this.getEtfHoldings(etfSymbol, limit);
   }
   
   /**
    * Create a new ETF holding
    */
   async createEtfHolding(data: any) {
-    // Placeholder for actual implementation
-    return { ...data, id: 1 };
+    try {
+      const { etfSymbol, ...holdingData } = data;
+      const upperSymbol = etfSymbol.toUpperCase();
+      
+      // Insert into the appropriate table based on the ETF symbol
+      if (upperSymbol === 'SPY') {
+        const [result] = await db.insert(etfHoldingsSPY).values(sanitizeForDb(holdingData)).returning();
+        return result;
+      } else if (upperSymbol === 'XIC') {
+        const [result] = await db.insert(etfHoldingsXIC).values(sanitizeForDb(holdingData)).returning();
+        return result;
+      } else if (upperSymbol === 'ACWX') {
+        const [result] = await db.insert(etfHoldingsACWX).values(sanitizeForDb(holdingData)).returning();
+        return result;
+      } else {
+        throw new Error(`Unsupported ETF symbol: ${upperSymbol}`);
+      }
+    } catch (error) {
+      console.error(`Error creating ETF holding:`, error);
+      throw error;
+    }
   }
   
   /**
    * Bulk import ETF holdings
    */
   async bulkCreateEtfHoldings(data: any[]) {
-    // Placeholder for actual implementation
-    return data.map((item, index) => ({ ...item, id: index + 1 }));
+    if (!data || data.length === 0) {
+      return [];
+    }
+    
+    try {
+      // Get the ETF symbol from the first item (assuming all items are for the same ETF)
+      const etfSymbol = data[0].etfSymbol?.toUpperCase();
+      
+      if (!etfSymbol) {
+        throw new Error('ETF symbol is required for bulk import');
+      }
+      
+      // Map the data to the appropriate format, removing etfSymbol property
+      const holdingsData = data.map(({ etfSymbol: _, ...item }) => sanitizeForDb(item));
+      
+      let result = [];
+      
+      // Insert into the appropriate table based on the ETF symbol
+      if (etfSymbol === 'SPY') {
+        result = await db.insert(etfHoldingsSPY).values(holdingsData).returning();
+      } else if (etfSymbol === 'XIC') {
+        result = await db.insert(etfHoldingsXIC).values(holdingsData).returning();
+      } else if (etfSymbol === 'ACWX') {
+        result = await db.insert(etfHoldingsACWX).values(holdingsData).returning();
+      } else {
+        throw new Error(`Unsupported ETF symbol: ${etfSymbol}`);
+      }
+      
+      return result;
+    } catch (error) {
+      console.error(`Error bulk importing ETF holdings:`, error);
+      throw error;
+    }
   }
   
   /**
@@ -316,13 +432,7 @@ export class DatabaseStorage {
     return true;
   }
 
-  /**
-   * Get top ETF holdings
-   */
-  async getTopEtfHoldings(etfSymbol: string, limit: number) {
-    // Placeholder for actual implementation
-    return [];
-  }
+  // This method was replaced by the earlier getTopEtfHoldings implementation
 
   /**
    * Get a matrix rule by ID
