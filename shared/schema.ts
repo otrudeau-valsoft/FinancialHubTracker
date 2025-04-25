@@ -324,3 +324,88 @@ export const insertUpgradeDowngradeHistorySchema = createInsertSchema(upgradeDow
 
 export type InsertUpgradeDowngradeHistory = z.infer<typeof insertUpgradeDowngradeHistorySchema>;
 export type UpgradeDowngradeHistory = typeof upgradeDowngradeHistory.$inferSelect;
+
+// Earnings Data Tables
+
+// Earnings Results (Actuals)
+export const earningsResults = pgTable("earnings_results", {
+  id: serial("id").primaryKey(),
+  symbol: text("symbol").notNull(),
+  region: text("region").notNull(), // USD, CAD, INTL
+  quarter: text("quarter").notNull(), // E.g., "Q1 2025"
+  fiscalQuarter: text("fiscal_quarter"), // E.g., "Q2" (company's fiscal quarter)
+  fiscalYear: text("fiscal_year"), // E.g., "2025" (company's fiscal year)
+  reportDate: date("report_date").notNull(),
+  epsActual: numeric("eps_actual"),
+  epsEstimate: numeric("eps_estimate"),
+  epsSurprise: numeric("eps_surprise"), // Difference between actual and estimate
+  epsSurprisePercent: numeric("eps_surprise_percent"), // Percentage surprise
+  revenueActual: numeric("revenue_actual"),
+  revenueEstimate: numeric("revenue_estimate"),
+  revenueSurprise: numeric("revenue_surprise"),
+  revenueSurprisePercent: numeric("revenue_surprise_percent"),
+  earningsScore: text("earnings_score"), // "Good", "Okay", "Bad"
+  marketReaction: numeric("market_reaction"), // Stock price % change after earnings
+  guidance: text("guidance"), // "Raised", "Maintained", "Lowered", "None"
+  guidanceDetails: text("guidance_details"), // Additional information about guidance
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEarningsResultSchema = createInsertSchema(earningsResults).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertEarningsResult = z.infer<typeof insertEarningsResultSchema>;
+export type EarningsResult = typeof earningsResults.$inferSelect;
+
+// Earnings Estimates (Future)
+export const earningsEstimates = pgTable("earnings_estimates", {
+  id: serial("id").primaryKey(),
+  symbol: text("symbol").notNull(),
+  region: text("region").notNull(), // USD, CAD, INTL
+  period: text("period").notNull(), // e.g., "0q" (current quarter), "+1q" (next quarter), "0y" (current year)
+  fiscalQuarter: text("fiscal_quarter"), // Company's fiscal quarter (if applicable)
+  fiscalYear: text("fiscal_year"), // Company's fiscal year
+  expectedReportDate: date("expected_report_date"),
+  consensusEPS: numeric("consensus_eps"), // Average EPS estimate
+  lowEPS: numeric("low_eps"), // Lowest EPS estimate
+  highEPS: numeric("high_eps"), // Highest EPS estimate
+  epsNumAnalysts: integer("eps_num_analysts"), // Number of analysts providing EPS estimates
+  consensusRevenue: numeric("consensus_revenue"), // Average revenue estimate
+  lowRevenue: numeric("low_revenue"), // Lowest revenue estimate
+  highRevenue: numeric("high_revenue"), // Highest revenue estimate
+  revenueNumAnalysts: integer("revenue_num_analysts"), // Number of analysts providing revenue estimates
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEarningsEstimateSchema = createInsertSchema(earningsEstimates).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertEarningsEstimate = z.infer<typeof insertEarningsEstimateSchema>;
+export type EarningsEstimate = typeof earningsEstimates.$inferSelect;
+
+// Analyst Recommendations
+export const analystRecommendations = pgTable("analyst_recommendations", {
+  id: serial("id").primaryKey(),
+  symbol: text("symbol").notNull(),
+  region: text("region").notNull(), // USD, CAD, INTL
+  period: text("period").notNull(), // e.g., "0m" (current month), "-1m" (1 month ago), "-3m" (3 months ago)
+  strongBuy: integer("strong_buy"), // Number of strong buy recommendations
+  buy: integer("buy"), // Number of buy recommendations
+  hold: integer("hold"), // Number of hold recommendations
+  underperform: integer("underperform"), // Number of underperform/sell recommendations
+  sell: integer("sell"), // Number of strong sell recommendations
+  scoreValue: numeric("score_value"), // Numeric score (e.g., from 1-5) based on recommendations
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertAnalystRecommendationSchema = createInsertSchema(analystRecommendations).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertAnalystRecommendation = z.infer<typeof insertAnalystRecommendationSchema>;
+export type AnalystRecommendation = typeof analystRecommendations.$inferSelect;

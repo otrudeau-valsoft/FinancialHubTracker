@@ -1,14 +1,23 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertMatrixRuleSchema, insertAlertSchema, insertPortfolioSummarySchema, dataUpdateLogs } from "@shared/schema";
+import { 
+  insertMatrixRuleSchema, 
+  insertAlertSchema, 
+  insertPortfolioSummarySchema, 
+  dataUpdateLogs,
+  earningsResults,
+  earningsEstimates,
+  analystRecommendations
+} from "@shared/schema";
 import { InsertPortfolioStock, InsertEtfHolding } from "./types";
 import { z } from "zod";
 import { historicalPriceService } from "./services/historical-price-service";
 import { currentPriceService } from "./services/current-price-service";
 import { schedulerService } from "./services/scheduler-service";
 import { db } from "./db";
-import { sql, eq } from "drizzle-orm";
+import { sql, eq, and, desc } from "drizzle-orm";
+import { spawn } from "child_process";
 
 // Define validation schemas for the compatibility types
 const insertPortfolioStockSchema = z.object({
