@@ -48,6 +48,7 @@ interface PortfolioStock {
   profitLoss?: number;
   nextEarningsDate?: string;
   sector?: string;
+  pbr?: number; // Price-to-Book Ratio
 }
 
 interface PortfolioTableProps {
@@ -85,6 +86,7 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
     rating: stock.rating,
     quantity: stock.quantity,
     price: stock.price,
+    pbr: stock.pbr,
     sector: stock.sector || 'Technology' // Default sector if not available
   }));
   
@@ -127,6 +129,7 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                 <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">MKT PRICE</th>
                 <th scope="col" className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">QTY</th>
                 <th scope="col" className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">NAV</th>
+                <th scope="col" className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">PBR</th>
                 <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">WEIGHT</th>
                 <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">DAILY %</th>
                 <th scope="col" className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">MTD %</th>
@@ -188,6 +191,7 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                     </td>
                     <td className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{stock.quantity}</td>
                     <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{formatCurrency(stock.nav, currencySymbol)}</td>
+                    <td className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{stock.pbr !== undefined ? stock.pbr.toFixed(2) : '--'}</td>
                     <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{typeof stock.portfolioWeight === 'number' ? stock.portfolioWeight.toFixed(1) : '0.0'}%</td>
                     <td className="px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
                       <span className={marketChange || stock.dailyChange > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>

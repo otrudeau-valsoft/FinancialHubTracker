@@ -221,6 +221,7 @@ export class DatabaseStorage {
               sector: stock.sector,
               quantity: stock.quantity,
               price: stock.price || 0,
+              pbr: stock.pbr || null,
               updatedAt: new Date()
             }));
             
@@ -239,6 +240,7 @@ export class DatabaseStorage {
               sector: stock.sector,
               quantity: stock.quantity,
               price: stock.price || 0,
+              pbr: stock.pbr || null,
               updatedAt: new Date()
             }));
             
@@ -256,6 +258,7 @@ export class DatabaseStorage {
               sector: stock.sector,
               quantity: stock.quantity,
               price: stock.price || 0,
+              pbr: stock.pbr || null,
               updatedAt: new Date()
             }));
             
