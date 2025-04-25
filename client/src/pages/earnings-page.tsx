@@ -19,7 +19,10 @@ import {
   PieChart,
   Filter,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  LineChart,
+  ArrowLeft,
+  Info
 } from "lucide-react";
 
 // Define a type for the earnings heatmap data structure
@@ -808,6 +811,7 @@ const quarters = [
 export default function EarningsPage() {
   const [activeTab, setActiveTab] = useState("heatmap");
   const [currentQuarterIndex, setCurrentQuarterIndex] = useState(0); // Start with Q4 2024
+  const [selectedStock, setSelectedStock] = useState<string | null>(null);
   
   // Get the current quarter and its data
   const currentQuarter = quarters[currentQuarterIndex].quarter;
@@ -831,6 +835,47 @@ export default function EarningsPage() {
     }
   };
   
+  // Function to select a stock for detailed view
+  const handleSelectStock = (ticker: string) => {
+    console.log(`Selected stock: ${ticker}`);
+    setSelectedStock(ticker);
+    setActiveTab("stock-detail");
+  };
+  
+  // Function to clear selected stock and go back
+  const handleBackToHeatmap = () => {
+    setSelectedStock(null);
+    setActiveTab("heatmap");
+  };
+  
+  // Find stock data across all quarters
+  const getStockAcrossQuarters = (ticker: string) => {
+    const stockData: Array<{
+      quarter: string;
+      data: EarningsHeatmapDataItem | undefined;
+    }> = [];
+    
+    quarters.forEach(q => {
+      const quarterDataObj = quarterData[q.quarter];
+      const stockInQuarter = quarterDataObj.heatmapData.find(
+        (item: EarningsHeatmapDataItem) => item.ticker === ticker
+      );
+      
+      stockData.push({
+        quarter: q.quarter,
+        data: stockInQuarter
+      });
+    });
+    
+    return stockData.filter(item => item.data);
+  };
+  
+  // Get data for selected stock if any
+  const selectedStockData = selectedStock ? getStockAcrossQuarters(selectedStock) : [];
+  const selectedStockInfo = selectedStock && selectedStockData.length > 0 
+    ? selectedStockData[0].data 
+    : null;
+  
   // This useEffect would typically fetch data for the selected quarter
   React.useEffect(() => {
     console.log(`Loading data for: ${quarters[currentQuarterIndex].quarter}`);
@@ -850,8 +895,8 @@ export default function EarningsPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="heatmap" className="w-full" onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-3 mb-4 bg-[#0A1929]">
+      <Tabs value={activeTab} className="w-full" onValueChange={setActiveTab}>
+        <TabsList className={`grid ${selectedStock ? 'grid-cols-4' : 'grid-cols-3'} mb-4 bg-[#0A1929]`}>
           <TabsTrigger value="calendar" className="font-mono text-xs">
             <Calendar className="h-4 w-4 mr-2" />
             EARNINGS CALENDAR
@@ -864,6 +909,12 @@ export default function EarningsPage() {
             <FileSpreadsheet className="h-4 w-4 mr-2" />
             EARNINGS INTAKES
           </TabsTrigger>
+          {selectedStock && (
+            <TabsTrigger value="stock-detail" className="font-mono text-xs">
+              <LineChart className="h-4 w-4 mr-2" />
+              STOCK DETAIL
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* EARNINGS CALENDAR */}
@@ -1068,8 +1119,18 @@ export default function EarningsPage() {
                   </thead>
                   <tbody>
                     {currentQuarterData.heatmapData.map((item: EarningsHeatmapDataItem, index: number) => (
-                      <tr key={index} className="border-b border-[#1A304A] hover:bg-[#0F2542]">
-                        <td className="p-2 text-left font-mono text-[#38AAFD] text-xs">{item.ticker}</td>
+                      <tr 
+                        key={index} 
+                        className="border-b border-[#1A304A] hover:bg-[#0F2542] cursor-pointer"
+                        onClick={() => handleSelectStock(item.ticker)}
+                        title="Click to view historical earnings performance"
+                      >
+                        <td className="p-2 text-left font-mono text-[#38AAFD] text-xs">
+                          <div className="flex items-center">
+                            <span>{item.ticker}</span>
+                            <Info className="ml-1 h-3 w-3 text-[#E91E63] opacity-50" />
+                          </div>
+                        </td>
                         <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.issuerName}</td>
                         <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.consensusRecommendation}</td>
                         <td className="p-2 text-right font-mono text-[#EFEFEF] text-xs">{item.last.toFixed(1)}</td>
@@ -1165,6 +1226,151 @@ export default function EarningsPage() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* STOCK DETAIL VIEW */}
+        <TabsContent value="stock-detail" className="space-y-4">
+          {selectedStockInfo && (
+            <>
+              {/* Stock Header with Back Button */}
+              <Card className="border-0 shadow bg-[#0A1929]">
+                <CardHeader className="card-header px-4 py-3 bg-[#111E2E] flex justify-between items-center">
+                  <div className="flex items-center space-x-4">
+                    <button 
+                      onClick={handleBackToHeatmap}
+                      className="p-1 rounded-full hover:bg-[#1A304A] text-[#E91E63]"
+                    >
+                      <ArrowLeft className="h-5 w-5" />
+                    </button>
+                    
+                    <div className="flex items-center">
+                      <LineChart className="h-5 w-5 mr-2 text-[#E91E63]" />
+                      <h3 className="text-left font-mono text-[#EFEFEF] text-sm">
+                        EARNINGS HISTORY - {selectedStock}
+                      </h3>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <span className="text-xs font-mono text-[#38AAFD]">{selectedStockInfo?.issuerName}</span>
+                  </div>
+                </CardHeader>
+              </Card>
+              
+              {/* Stock Summary Card */}
+              <Card className="border-0 shadow bg-[#0A1929]">
+                <CardHeader className="card-header px-4 py-3 bg-[#111E2E]">
+                  <div className="flex items-center">
+                    <PieChart className="h-5 w-5 mr-2 text-[#38AAFD]" />
+                    <h3 className="text-left font-mono text-[#EFEFEF] text-sm">
+                      LATEST QUARTER SUMMARY
+                    </h3>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="bg-[#0D2237] p-3 rounded">
+                      <div className="text-[#7A8999] text-xs font-mono">LAST PRICE</div>
+                      <div className="text-[#EFEFEF] text-lg font-mono mt-1">${selectedStockInfo?.last.toFixed(2)}</div>
+                    </div>
+                    <div className="bg-[#0D2237] p-3 rounded">
+                      <div className="text-[#7A8999] text-xs font-mono">CONSENSUS</div>
+                      <div className="text-[#EFEFEF] text-lg font-mono mt-1">{selectedStockInfo?.consensusRecommendation}</div>
+                    </div>
+                    <div className="bg-[#0D2237] p-3 rounded">
+                      <div className="text-[#7A8999] text-xs font-mono">YTD CHANGE</div>
+                      <div className={`text-lg font-mono mt-1 ${selectedStockInfo?.price.ytd >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
+                        {selectedStockInfo?.price.ytd >= 0 ? '+' : ''}{selectedStockInfo?.price.ytd.toFixed(1)}%
+                      </div>
+                    </div>
+                    <div className="bg-[#0D2237] p-3 rounded">
+                      <div className="text-[#7A8999] text-xs font-mono">52-WEEK LEVEL</div>
+                      <div className="text-[#EFEFEF] text-lg font-mono mt-1">{selectedStockInfo?.price.pctOf52w.toFixed(1)}%</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Historical Earnings Detail Table */}
+              <Card className="border-0 shadow bg-[#0A1929]">
+                <CardHeader className="card-header px-4 py-3 bg-[#111E2E]">
+                  <div className="flex items-center">
+                    <LineChart className="h-5 w-5 mr-2 text-[#38AAFD]" />
+                    <h3 className="text-left font-mono text-[#EFEFEF] text-sm">
+                      QUARTERLY EARNINGS PERFORMANCE
+                    </h3>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="text-xs border-b border-[#1A304A] bg-[#0D2237]">
+                          <th className="p-2 text-left font-mono text-[#7A8999]">QUARTER</th>
+                          <th className="p-2 text-center font-mono text-[#7A8999]">EPS</th>
+                          <th className="p-2 text-center font-mono text-[#7A8999]">REVENUE</th>
+                          <th className="p-2 text-center font-mono text-[#7A8999]">GUIDANCE</th>
+                          <th className="p-2 text-center font-mono text-[#7A8999]">SCORE</th>
+                          <th className="p-2 text-right font-mono text-[#7A8999]">MKT REACTION</th>
+                          <th className="p-2 text-left font-mono text-[#7A8999]">COMMENTARY</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedStockData.map((item, index) => (
+                          item.data && (
+                            <tr key={index} className="border-b border-[#1A304A] hover:bg-[#0F2542]">
+                              <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.quarter}</td>
+                              <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.data.eps)}`}>{item.data.eps}</td>
+                              <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.data.rev)}`}>{item.data.rev}</td>
+                              <td className={`p-2 text-center font-mono text-xs ${getGuidanceColor(item.data.guidance)}`}>{item.data.guidance}</td>
+                              <td className={`p-2 text-center font-mono text-xs ${getScoreColor(item.data.earningsScore)}`}>{item.data.earningsScore}</td>
+                              <td className={`p-2 text-right font-mono text-xs ${item.data.mktReaction >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
+                                {item.data.mktReaction >= 0 ? '+' : ''}{item.data.mktReaction.toFixed(1)}%
+                              </td>
+                              <td className={`p-2 text-left font-mono text-xs ${getReactionCommentaryColor(item.data.mktReactionCommentary)}`}>
+                                {item.data.mktReactionCommentary}
+                              </td>
+                            </tr>
+                          )
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Visual Charts Section - Placeholder */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="border-0 shadow bg-[#0A1929]">
+                  <CardHeader className="card-header px-4 py-3 bg-[#111E2E]">
+                    <div className="flex items-center">
+                      <BarChart className="h-5 w-5 mr-2 text-[#4CAF50]" />
+                      <h3 className="text-left font-mono text-[#EFEFEF] text-sm">
+                        EARNINGS TREND
+                      </h3>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-4 flex justify-center items-center bg-[#0D2237] h-[200px]">
+                    <span className="text-[#7A8999] text-sm font-mono">EARNINGS GROWTH CHART</span>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border-0 shadow bg-[#0A1929]">
+                  <CardHeader className="card-header px-4 py-3 bg-[#111E2E]">
+                    <div className="flex items-center">
+                      <TrendingUp className="h-5 w-5 mr-2 text-[#38AAFD]" />
+                      <h3 className="text-left font-mono text-[#EFEFEF] text-sm">
+                        PRICE REACTION HISTORY
+                      </h3>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-4 flex justify-center items-center bg-[#0D2237] h-[200px]">
+                    <span className="text-[#7A8999] text-sm font-mono">PRICE REACTION CHART</span>
+                  </CardContent>
+                </Card>
+              </div>
+            </>
+          )}
         </TabsContent>
       </Tabs>
       
