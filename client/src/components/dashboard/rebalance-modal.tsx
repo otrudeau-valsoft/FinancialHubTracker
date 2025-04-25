@@ -30,10 +30,10 @@ interface RebalanceModalProps {
 }
 
 // Stock Type Options
-const stockTypeOptions = ['Compounder', 'Catalyst', 'Cyclical', 'Cash'];
+const stockTypeOptions = ['Compounder', 'Catalyst', 'Cyclical', 'Cash', 'ETF'];
 
 // Rating Options
-const ratingOptions = ['1', '2', '3', '4'];
+const ratingOptions = ['1', '2', '3', '4', 'Cash', 'ETF'];
 
 // Sector Options 
 const sectorOptions = [
@@ -48,6 +48,8 @@ const sectorOptions = [
   'Consumer Staples',
   'Materials',
   'Real Estate',
+  'Cash',
+  'ETF',
   'Other'
 ];
 
