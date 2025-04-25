@@ -189,6 +189,23 @@ const quarterData: Record<string, {
   "Q3 2024": {
     heatmapData: [
       {
+        ticker: "BCH",
+        issuerName: "RICHFIELD HARDWARE CORP",
+        consensusRecommendation: "Hold",
+        last: 31.2,
+        price: {
+          earningsRate: 12.3,
+          ytd: -15.8,
+          pctOf52w: 38.6
+        },
+        eps: "Beat",
+        rev: "In-Line",
+        guidance: "Maintain",
+        earningsScore: "Not So Bad",
+        mktReaction: 2.8,
+        mktReactionCommentary: "Normal"
+      },
+      {
         ticker: "MSFT",
         issuerName: "MICROSOFT CORP",
         consensusRecommendation: "Strong Buy",
@@ -301,6 +318,23 @@ const quarterData: Record<string, {
   // Q2 2024 Data
   "Q2 2024": {
     heatmapData: [
+      {
+        ticker: "BCH",
+        issuerName: "RICHFIELD HARDWARE CORP",
+        consensusRecommendation: "Hold",
+        last: 30.8,
+        price: {
+          earningsRate: -2.5,
+          ytd: -22.7,
+          pctOf52w: 35.2
+        },
+        eps: "Miss",
+        rev: "Miss",
+        guidance: "Reduced",
+        earningsScore: "Ugly",
+        mktReaction: -7.9,
+        mktReactionCommentary: "Abnormal"
+      },
       {
         ticker: "CVX",
         issuerName: "CHEVRON CORP",
@@ -415,6 +449,23 @@ const quarterData: Record<string, {
   "Q1 2024": {
     heatmapData: [
       {
+        ticker: "BCH",
+        issuerName: "RICHFIELD HARDWARE CORP",
+        consensusRecommendation: "Hold",
+        last: 32.1,
+        price: {
+          earningsRate: 5.3,
+          ytd: -18.2,
+          pctOf52w: 39.7
+        },
+        eps: "In-Line",
+        rev: "In-Line",
+        guidance: "Maintain",
+        earningsScore: "Not So Bad",
+        mktReaction: 1.2,
+        mktReactionCommentary: "Normal"
+      },
+      {
         ticker: "BAC",
         issuerName: "BANK OF AMERICA CORP",
         consensusRecommendation: "Hold",
@@ -527,6 +578,23 @@ const quarterData: Record<string, {
   // Q4 2023 Data
   "Q4 2023": {
     heatmapData: [
+      {
+        ticker: "BCH",
+        issuerName: "RICHFIELD HARDWARE CORP",
+        consensusRecommendation: "Hold",
+        last: 29.7,
+        price: {
+          earningsRate: -2.3,
+          ytd: -8.5,
+          pctOf52w: 38.7
+        },
+        eps: "Miss",
+        rev: "Miss",
+        guidance: "Reduced",
+        earningsScore: "Ugly",
+        mktReaction: -11.2,
+        mktReactionCommentary: "Abnormal"
+      },
       {
         ticker: "MSFT",
         issuerName: "MICROSOFT CORP",
@@ -850,23 +918,47 @@ export default function EarningsPage() {
   
   // Find stock data across all quarters
   const getStockAcrossQuarters = (ticker: string) => {
+    // Create entries for all quarters we want to check
+    const allQuartersToCheck = [
+      "Q4 2024", "Q3 2024", "Q2 2024", "Q1 2024", 
+      "Q4 2023", "Q3 2023", "Q2 2023", "Q1 2023",
+      "Q4 2022", "Q3 2022", "Q2 2022", "Q1 2022"
+    ];
+    
     const stockData: Array<{
       quarter: string;
       data: EarningsHeatmapDataItem | undefined;
     }> = [];
     
-    quarters.forEach(q => {
-      const quarterDataObj = quarterData[q.quarter];
-      const stockInQuarter = quarterDataObj.heatmapData.find(
-        (item: EarningsHeatmapDataItem) => item.ticker === ticker
-      );
-      
-      stockData.push({
-        quarter: q.quarter,
-        data: stockInQuarter
-      });
+    // Loop through all quarters, not just the ones visible in the dropdown
+    allQuartersToCheck.forEach(quarter => {
+      if (quarterData[quarter]) {
+        const quarterDataObj = quarterData[quarter];
+        // Try to find the stock data for this ticker in this quarter
+        const stockInQuarter = quarterDataObj.heatmapData.find(
+          (item: EarningsHeatmapDataItem) => 
+            // Check for exact match or suffixed match (.us, etc)
+            item.ticker === ticker || 
+            item.ticker.startsWith(ticker + '.') ||
+            // Some tickers might be formatted slightly differently
+            item.ticker.replace('.us', '') === ticker ||
+            item.ticker.replace('.r', '') === ticker
+        );
+        
+        stockData.push({
+          quarter,
+          data: stockInQuarter
+        });
+      } else {
+        // If we don't have data for this quarter, just push the quarter with no data
+        stockData.push({
+          quarter,
+          data: undefined
+        });
+      }
     });
     
+    // Filter out quarters where we don't have data for this stock
     return stockData.filter(item => item.data);
   };
   
