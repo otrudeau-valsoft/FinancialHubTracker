@@ -139,6 +139,30 @@ export class DatabaseStorage {
     // Placeholder for actual implementation
     return [];
   }
+  
+  /**
+   * Get matrix rules by action type
+   */
+  async getMatrixRules(actionType: string) {
+    // Placeholder for actual implementation
+    return [];
+  }
+  
+  /**
+   * Create a matrix rule
+   */
+  async createMatrixRule(data: any) {
+    // Placeholder for actual implementation
+    return { ...data, id: 1 };
+  }
+  
+  /**
+   * Bulk import matrix rules
+   */
+  async bulkImportMatrixRules(data: any[]) {
+    // Placeholder for actual implementation
+    return data.map((item, index) => ({ ...item, id: index + 1 }));
+  }
 }
 
 // Export a singleton instance

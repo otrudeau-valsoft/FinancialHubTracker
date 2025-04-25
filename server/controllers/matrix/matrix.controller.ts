@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { storage } from '../../storage';
+import { storage } from '../../db-storage';
 import { z } from 'zod';
 
 /**
