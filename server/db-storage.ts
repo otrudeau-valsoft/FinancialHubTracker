@@ -1,9 +1,13 @@
 import { db, sanitizeForDb } from './db';
-import { desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { 
   etfHoldingsSPY, 
   etfHoldingsXIC, 
-  etfHoldingsACWX 
+  etfHoldingsACWX,
+  assetsUS,
+  assetsCAD,
+  assetsINTL,
+  currentPrices
 } from '../shared/schema';
 
 /**
@@ -14,16 +18,113 @@ export class DatabaseStorage {
    * Get portfolio stocks for a specific region
    */
   async getPortfolioStocks(region: string) {
-    // Placeholder for actual implementation
-    return [];
+    try {
+      let result = [];
+      const upperRegion = region.toUpperCase();
+      
+      if (upperRegion === 'USD') {
+        // Query the assets_us table
+        result = await db.select().from(assetsUS);
+      } else if (upperRegion === 'CAD') {
+        // Query the assets_cad table
+        result = await db.select().from(assetsCAD);
+      } else if (upperRegion === 'INTL') {
+        // Query the assets_intl table
+        result = await db.select().from(assetsINTL);
+      } else {
+        throw new Error(`Unknown region: ${region}`);
+      }
+      
+      // Get current prices for all symbols in this region
+      const symbols = result.map(stock => stock.symbol);
+      const priceData = await this.getCurrentPrices(upperRegion);
+      
+      // Map to expected format with price data
+      return result.map(stock => {
+        // Find the matching price info
+        const priceInfo = priceData.find(p => p.symbol === stock.symbol) || null;
+        
+        // Extract values safely with type checking
+        const price = priceInfo ? Number(priceInfo.regularMarketPrice) : 0;
+        const quantity = Number(stock.quantity || 0);
+        const nav = price * quantity;
+        const dailyChange = priceInfo ? Number(priceInfo.regularMarketChangePercent) : 0;
+        
+        return {
+          id: stock.id,
+          symbol: stock.symbol,
+          company: stock.company,
+          region: upperRegion,
+          sector: stock.sector || null,
+          stockType: stock.stockType || '',
+          rating: stock.stockRating || '',
+          price: price.toString(),
+          quantity: quantity.toString(),
+          nav: nav.toString(),
+          portfolioWeight: 0, // Will be calculated on the client
+          dailyChange: dailyChange.toString(),
+          nextEarningsDate: stock.nextEarningsDate || null,
+          updatedAt: stock.updatedAt || new Date()
+        };
+      });
+    } catch (error) {
+      console.error(`Error getting portfolio stocks for ${region}:`, error);
+      throw error;
+    }
   }
-  
+
   /**
    * Get a specific portfolio stock by ID
    */
   async getPortfolioStock(id: number, region?: string) {
-    // Placeholder for actual implementation
-    return null;
+    try {
+      if (!region) {
+        throw new Error('Region is required');
+      }
+      
+      const upperRegion = region.toUpperCase();
+      let result;
+      
+      if (upperRegion === 'USD') {
+        [result] = await db.select().from(assetsUS).where(eq(assetsUS.id, id));
+      } else if (upperRegion === 'CAD') {
+        [result] = await db.select().from(assetsCAD).where(eq(assetsCAD.id, id));
+      } else if (upperRegion === 'INTL') {
+        [result] = await db.select().from(assetsINTL).where(eq(assetsINTL.id, id));
+      } else {
+        throw new Error(`Unknown region: ${region}`);
+      }
+      
+      if (!result) {
+        return null;
+      }
+      
+      // Get current price for the stock
+      const priceData = await this.getCurrentPrice(result.symbol, upperRegion);
+      const price = priceData?.regularMarketPrice || 0;
+      const quantity = parseFloat(result.quantity?.toString() || '0');
+      const nav = price * quantity;
+      
+      return {
+        id: result.id,
+        symbol: result.symbol,
+        company: result.company,
+        region: upperRegion,
+        sector: result.sector || null,
+        stockType: result.stockType || '',
+        rating: result.stockRating || '',
+        price: price.toString(),
+        quantity: quantity.toString(),
+        nav: nav.toString(),
+        portfolioWeight: 0, // Will be calculated on the client
+        dailyChange: priceData ? Number(priceData.regularMarketChangePercent).toString() : '0',
+        nextEarningsDate: result.nextEarningsDate || null,
+        updatedAt: result.updatedAt || new Date()
+      };
+    } catch (error) {
+      console.error(`Error getting portfolio stock ${id} for ${region}:`, error);
+      throw error;
+    }
   }
   
   /**
@@ -364,16 +465,37 @@ export class DatabaseStorage {
    * Get current prices
    */
   async getCurrentPrices(region: string) {
-    // Placeholder for actual implementation
-    return [];
+    try {
+      const upperRegion = region.toUpperCase();
+      const prices = await db.select().from(currentPrices)
+        .where(eq(currentPrices.region, upperRegion));
+      return prices;
+    } catch (error) {
+      console.error(`Error getting current prices for ${region}:`, error);
+      return [];
+    }
   }
 
   /**
    * Get current price
    */
   async getCurrentPrice(symbol: string, region: string) {
-    // Placeholder for actual implementation
-    return null;
+    try {
+      const upperRegion = region.toUpperCase();
+      const upperSymbol = symbol.toUpperCase();
+      
+      // Use and() to combine multiple conditions
+      const prices = await db.select().from(currentPrices)
+        .where(
+          eq(currentPrices.region, upperRegion),
+          eq(currentPrices.symbol, upperSymbol)
+        );
+      
+      return prices.length > 0 ? prices[0] : null;
+    } catch (error) {
+      console.error(`Error getting current price for ${symbol} in ${region}:`, error);
+      return null;
+    }
   }
 
   /**

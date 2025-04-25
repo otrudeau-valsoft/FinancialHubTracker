@@ -105,7 +105,9 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
           <tbody className="font-mono text-xs">
             {filteredStocks.map((stock) => {
               // Find current price data for this stock
-              const currentPrice = prices.find(p => p.symbol === stock.symbol);
+              const currentPrice = Array.isArray(prices) 
+                ? prices.find((p: CurrentPrice) => p.symbol === stock.symbol) 
+                : undefined;
               const marketPrice = currentPrice ? parseFloat(currentPrice.regularMarketPrice) : null;
               const marketChange = currentPrice ? parseFloat(currentPrice.regularMarketChangePercent) : null;
               
@@ -153,7 +155,7 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                   </td>
                   <td className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{stock.quantity}</td>
                   <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{formatCurrency(stock.nav, currencySymbol)}</td>
-                  <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{stock.portfolioWeight?.toFixed(1)}%</td>
+                  <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{typeof stock.portfolioWeight === 'number' ? stock.portfolioWeight.toFixed(1) : '0.0'}%</td>
                   <td className="px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
                     <span className={marketChange || stock.dailyChange > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
                       {marketChange ? formatPercentage(marketChange) : formatPercentage(stock.dailyChange)}
@@ -170,9 +172,14 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                     </span>
                   </td>
                   <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
-                    <span className={stock.profitLoss > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
-                      {formatCurrency(stock.profitLoss, currencySymbol)}
-                    </span>
+                    {stock.profitLoss !== undefined && (
+                      <span className={stock.profitLoss > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
+                        {formatCurrency(stock.profitLoss, currencySymbol)}
+                      </span>
+                    )}
+                    {stock.profitLoss === undefined && (
+                      <span className="text-[#7A8999]">--</span>
+                    )}
                   </td>
                   <td className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] text-xs whitespace-nowrap">{stock.nextEarningsDate || '-'}</td>
                 </tr>
