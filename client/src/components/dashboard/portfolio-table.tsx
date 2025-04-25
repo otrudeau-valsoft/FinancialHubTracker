@@ -5,8 +5,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { formatCurrency, formatPercentage, getProfitLossClass } from "@/lib/financial";
 import { getStockTypeBackground, getRatingClass } from "@/lib/utils";
 import { useState } from "react";
-import { List, Filter, AlertTriangle } from "lucide-react";
+import { List, Filter, AlertTriangle, InfoIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 
 interface CurrentPrice {
   id: number;
@@ -113,7 +114,12 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
               
               return (
                 <tr key={stock.id} className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542]">
-                  <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#38AAFD] text-xs font-medium whitespace-nowrap">{stock.symbol}</td>
+                  <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#38AAFD] text-xs font-medium whitespace-nowrap">
+                    <Link href={`/stock/${stock.symbol}?region=${region}`} className="flex items-center gap-1 hover:underline">
+                      {stock.symbol}
+                      <InfoIcon size={11} className="text-[#38AAFD] opacity-70" />
+                    </Link>
+                  </td>
                   <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '120px', textOverflow: 'ellipsis' }}>{stock.company}</td>
                   <td className="px-2 sm:px-3 py-0 text-center">
                     <span className={`inline-block font-mono px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium ${getStockTypeBackground(stock.stockType)}`}>
