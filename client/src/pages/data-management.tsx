@@ -406,11 +406,22 @@ export default function DataManagement() {
   };
   
   return (
-    <div className="container mx-auto p-2 sm:p-4 bg-[#061220]">
-      <div className="mb-3 sm:mb-4">
-        <h1 className="text-lg sm:text-xl font-medium text-[#EFEFEF] font-mono tracking-tight">DATA MANAGEMENT</h1>
-        <div className="flex mt-1">
-          <div className="h-0.5 w-8 bg-[#FFCA28]"></div>
+    <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4 bg-[#061220]">
+      <div className="mb-4 sm:mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-base sm:text-xl font-medium text-[#EFEFEF] font-mono tracking-tight">DATA MANAGEMENT</h1>
+            <div className="flex mt-1">
+              <div className="h-0.5 w-8 bg-[#FFCA28]"></div>
+            </div>
+          </div>
+          <div className="hidden sm:flex items-center gap-2 text-[10px] bg-[#0B1728]/80 px-2.5 py-1 rounded-md border border-[#1A304A]">
+            <div className="flex items-center">
+              <div className="w-1.5 h-1.5 bg-[#4CAF50] rounded-full mr-1"></div>
+              <span className="text-[#7A8999] font-mono">SCHEDULER:</span>
+              <span className="ml-1 text-[#EFEFEF] font-mono">ACTIVE</span>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -647,7 +658,7 @@ export default function DataManagement() {
         </Card>
         
         {/* Scheduler Configuration Section */}
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           {configLoading ? (
             <div className="col-span-2 flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#38AAFD]"></div>
