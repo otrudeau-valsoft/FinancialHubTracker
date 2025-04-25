@@ -11,7 +11,7 @@ const router = Router();
  * This endpoint is for development and testing purposes.
  * It populates the database with sample data for holdings and portfolios.
  * 
- * @route POST /api/populate-data
+ * @route POST /api/data-management/populate-data
  */
 router.post('/', asyncHandler(async (req: Request, res: Response) => {
   const result = await populateData();
