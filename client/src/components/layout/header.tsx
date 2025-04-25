@@ -43,6 +43,13 @@ export function Header() {
         </div>
         
         <button 
+          onClick={() => navigate("/earnings")} 
+          className={`text-gray-300 hover:text-white px-2 py-1 rounded ${location === '/earnings' ? 'bg-blue-900/30' : ''}`}
+        >
+          Earnings
+        </button>
+        
+        <button 
           onClick={() => navigate("/matrix-rules")} 
           className={`text-gray-300 hover:text-white px-2 py-1 rounded ${location === '/matrix-rules' ? 'bg-blue-900/30' : ''}`}
         >
@@ -61,13 +68,6 @@ export function Header() {
           className={`text-gray-300 hover:text-white px-2 py-1 rounded ${location === '/data-management' ? 'bg-blue-900/30' : ''}`}
         >
           Data Management
-        </button>
-        
-        <button 
-          onClick={() => navigate("/earnings")} 
-          className={`text-gray-300 hover:text-white px-2 py-1 rounded ${location === '/earnings' ? 'bg-blue-900/30' : ''}`}
-        >
-          Earnings
         </button>
       </nav>
     </header>
