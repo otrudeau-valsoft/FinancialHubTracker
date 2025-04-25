@@ -34,17 +34,10 @@ export const AllocationChart = ({ typeAllocation, ratingAllocation }: Allocation
   
   return (
     <Card className="mb-6 border-0 shadow bg-[#0A1929] rounded-none border border-[#1A304A]">
-      <CardHeader className="card-header px-3 py-2 sm:px-4 sm:py-3 bg-[#0D1C30] border-b border-[#1A304A]">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <PieChart className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#FFD700]" />
-            <h3 className="text-left font-mono text-[#EFEFEF] text-xs sm:text-sm">PORTFOLIO ALLOCATION</h3>
-          </div>
-          <div className="flex space-x-1">
-            <span className="bg-[#FFD700]/20 text-[#FFD700] px-2 py-0.5 text-[10px] sm:text-xs font-mono rounded-sm">
-              ALLOCATION
-            </span>
-          </div>
+      <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+        <div className="w-full flex items-center justify-between">
+          <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">ALLOCATION</h3>
+          <div className="h-1 w-8 bg-[#FFD700]"></div>
         </div>
       </CardHeader>
       <CardContent className="p-3 sm:p-4 bg-[#0A1929]">

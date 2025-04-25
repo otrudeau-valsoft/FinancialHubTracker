@@ -32,15 +32,10 @@ export const EtfComparison = ({
   
   return (
     <Card className="mb-6 border-0 shadow bg-[#0A1929] rounded-none border border-[#1A304A]">
-      <CardHeader className="card-header px-3 py-2 sm:px-4 sm:py-3 bg-[#0D1C30] border-b border-[#1A304A]">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <BarChart2 className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 text-[#38AAFD]" />
-            <h3 className="text-left font-mono text-[#EFEFEF] text-xs sm:text-sm">ETF BENCHMARK COMPARISON</h3>
-          </div>
-          <Badge className="bg-[#38AAFD]/20 text-[#38AAFD] px-2 py-0.5 text-[10px] sm:text-xs font-mono rounded-sm">
-            {etfSymbol}
-          </Badge>
+      <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+        <div className="w-full flex items-center justify-between">
+          <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">ETF COMPARISON</h3>
+          <div className="h-1 w-8 bg-[#38AAFD]"></div>
         </div>
       </CardHeader>
       <div className="overflow-x-auto p-0">
