@@ -44,7 +44,30 @@ export async function importUpgradeDowngradeHistory(symbol: string, region: stri
       // Convert epoch to date if available
       let gradeDate = null;
       if (item.epochGradeDate) {
-        gradeDate = new Date(item.epochGradeDate * 1000);
+        // Yahoo Finance returns epochGradeDate in milliseconds, not seconds
+        // We need to handle this correctly to prevent date conversion issues
+        try {
+          // First save the epoch as a string to avoid integer overflow
+          const epochString = item.epochGradeDate.toString();
+          
+          // Parse the date properly based on the format
+          // Most timestamps will be in milliseconds, but checking in case
+          const epoch = item.epochGradeDate > 10000000000 
+            ? item.epochGradeDate // already in milliseconds
+            : item.epochGradeDate * 1000; // convert seconds to milliseconds
+            
+          gradeDate = new Date(epoch);
+          
+          // Sanity check - if date is far in the future or past, set to null
+          const currentYear = new Date().getFullYear();
+          if (gradeDate.getFullYear() > currentYear + 10 || gradeDate.getFullYear() < 1990) {
+            console.warn(`Invalid date detected for ${symbol}: ${gradeDate.toISOString()}`);
+            gradeDate = null;
+          }
+        } catch (e) {
+          console.warn(`Error converting date for ${symbol}:`, e);
+          gradeDate = null;
+        }
       }
       
       // Insert into database
@@ -55,7 +78,7 @@ export async function importUpgradeDowngradeHistory(symbol: string, region: stri
         toGrade: item.toGrade || 'Unknown',
         fromGrade: item.fromGrade || null,
         action: item.action || 'Unknown',
-        epochGradeDate: item.epochGradeDate ? Math.floor(item.epochGradeDate) : null, // Ensure it's an integer
+        epochGradeDate: item.epochGradeDate ? item.epochGradeDate.toString() : null, // Store as string
         gradeDate: gradeDate,
       });
     }
