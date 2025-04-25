@@ -143,40 +143,41 @@ const mockUpcomingEarnings = [
 ];
 
 // Earnings color codes based on the screenshot
+// Using the same color scheme as other pages
 const getEpsColor = (value: string) => {
   switch (value) {
-    case "Beat": return "bg-[#90EE90] text-black";
-    case "In-Line": return "bg-[#FFFFA0] text-black";
-    case "Miss": return "bg-[#FFC0CB] text-black";
-    default: return "bg-gray-100 text-black";
+    case "Beat": return "bg-[#4CAF50] text-white";
+    case "In-Line": return "bg-[#FFD700] text-black";
+    case "Miss": return "bg-[#FF5252] text-white";
+    default: return "bg-[#1A304A] text-[#EFEFEF]";
   }
 };
 
 const getGuidanceColor = (value: string) => {
   switch (value) {
-    case "Increased": return "bg-[#90EE90] text-black";
-    case "Maintain": return "bg-[#FFFFA0] text-black";
-    case "Reduced": return "bg-[#FFC0CB] text-black";
-    default: return "bg-gray-100 text-black";
+    case "Increased": return "bg-[#4CAF50] text-white";
+    case "Maintain": return "bg-[#FFD700] text-black";
+    case "Reduced": return "bg-[#FF5252] text-white";
+    default: return "bg-[#1A304A] text-[#EFEFEF]";
   }
 };
 
 const getScoreColor = (value: string) => {
   switch (value) {
     case "Good":
-    case "Great": return "bg-[#90EE90] text-black";
-    case "Not So Bad": return "bg-[#FFFFA0] text-black";
-    case "Ugly": return "bg-[#FFC0CB] text-black";
-    default: return "bg-gray-100 text-black";
+    case "Great": return "bg-[#4CAF50] text-white";
+    case "Not So Bad": return "bg-[#FFD700] text-black";
+    case "Ugly": return "bg-[#FF5252] text-white";
+    default: return "bg-[#1A304A] text-[#EFEFEF]";
   }
 };
 
 const getReactionCommentaryColor = (value: string) => {
   switch (value) {
-    case "Normal": return "text-[#CD853F]";
-    case "Abnormal": return "text-[#1E90FF]";
-    case "Explosive": return "text-[#FF4500]";
-    default: return "text-gray-400";
+    case "Normal": return "text-[#FFD700]"; // Gold color for normal
+    case "Abnormal": return "text-[#38AAFD]"; // Blue color for abnormal
+    case "Explosive": return "text-[#FF5252]"; // Red color for explosive
+    default: return "text-[#7A8999]";
   }
 };
 
@@ -263,13 +264,13 @@ export default function EarningsPage() {
               </CardHeader>
               <CardContent className="p-2">
                 <div className="grid grid-cols-2 gap-1 text-xs font-mono">
-                  <div className="bg-[#90EE90] text-black p-1 rounded text-center">
+                  <div className="bg-[#4CAF50] text-white p-1 rounded text-center">
                     Beat <span className="font-bold">{mockEarningsStats.eps.beat}</span>
                   </div>
-                  <div className="bg-[#FFFFA0] text-black p-1 rounded text-center">
+                  <div className="bg-[#FFD700] text-black p-1 rounded text-center">
                     In-Line <span className="font-bold">{mockEarningsStats.eps.inLine}</span>
                   </div>
-                  <div className="bg-[#FFC0CB] text-black p-1 rounded text-center col-span-2">
+                  <div className="bg-[#FF5252] text-white p-1 rounded text-center col-span-2">
                     Miss <span className="font-bold">{mockEarningsStats.eps.miss}</span>
                   </div>
                 </div>
@@ -286,13 +287,13 @@ export default function EarningsPage() {
               </CardHeader>
               <CardContent className="p-2">
                 <div className="grid grid-cols-2 gap-1 text-xs font-mono">
-                  <div className="bg-[#90EE90] text-black p-1 rounded text-center">
+                  <div className="bg-[#4CAF50] text-white p-1 rounded text-center">
                     Beat <span className="font-bold">{mockEarningsStats.revenue.beat}</span>
                   </div>
-                  <div className="bg-[#FFFFA0] text-black p-1 rounded text-center">
+                  <div className="bg-[#FFD700] text-black p-1 rounded text-center">
                     In-Line <span className="font-bold">{mockEarningsStats.revenue.inLine}</span>
                   </div>
-                  <div className="bg-[#FFC0CB] text-black p-1 rounded text-center col-span-2">
+                  <div className="bg-[#FF5252] text-white p-1 rounded text-center col-span-2">
                     Miss <span className="font-bold">{mockEarningsStats.revenue.miss}</span>
                   </div>
                 </div>
@@ -309,13 +310,13 @@ export default function EarningsPage() {
               </CardHeader>
               <CardContent className="p-2">
                 <div className="grid grid-cols-2 gap-1 text-xs font-mono">
-                  <div className="bg-[#90EE90] text-black p-1 rounded text-center">
+                  <div className="bg-[#4CAF50] text-white p-1 rounded text-center">
                     Increased <span className="font-bold">{mockEarningsStats.guidance.increased}</span>
                   </div>
-                  <div className="bg-[#FFFFA0] text-black p-1 rounded text-center">
+                  <div className="bg-[#FFD700] text-black p-1 rounded text-center">
                     Maintain <span className="font-bold">{mockEarningsStats.guidance.maintain}</span>
                   </div>
-                  <div className="bg-[#FFC0CB] text-black p-1 rounded text-center col-span-2">
+                  <div className="bg-[#FF5252] text-white p-1 rounded text-center col-span-2">
                     Reduced <span className="font-bold">{mockEarningsStats.guidance.reduced}</span>
                   </div>
                 </div>
@@ -332,13 +333,13 @@ export default function EarningsPage() {
               </CardHeader>
               <CardContent className="p-2">
                 <div className="grid grid-cols-2 gap-1 text-xs font-mono">
-                  <div className="bg-[#90EE90] text-black p-1 rounded text-center">
+                  <div className="bg-[#4CAF50] text-white p-1 rounded text-center">
                     Great/Good <span className="font-bold">{mockEarningsStats.earningScore.greatGood}</span>
                   </div>
-                  <div className="bg-[#FFFFA0] text-black p-1 rounded text-center">
+                  <div className="bg-[#FFD700] text-black p-1 rounded text-center">
                     Not So Bad <span className="font-bold">{mockEarningsStats.earningScore.notSoBad}</span>
                   </div>
-                  <div className="bg-[#FFC0CB] text-black p-1 rounded text-center col-span-2">
+                  <div className="bg-[#FF5252] text-white p-1 rounded text-center col-span-2">
                     Ugly <span className="font-bold">{mockEarningsStats.earningScore.ugly}</span>
                   </div>
                 </div>
