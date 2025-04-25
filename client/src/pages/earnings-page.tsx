@@ -828,32 +828,32 @@ const mockUpcomingEarnings = [
   { ticker: "META", company: "Meta Platforms Inc", date: "2025-05-01", time: "AMC", eps: 4.32 }
 ];
 
-// Using the same color scheme as other pages
+// Using glassomorphic color scheme for a modern look
 const getEpsColor = (value: string) => {
   switch (value) {
-    case "Beat": return "bg-[#4CAF50] text-white";
-    case "In-Line": return "bg-[#FFD700] text-black";
-    case "Miss": return "bg-[#FF5252] text-white";
-    default: return "bg-[#1A304A] text-[#EFEFEF]";
+    case "Beat": return "bg-[rgba(76,175,80,0.2)] text-[#4CAF50] border border-[rgba(76,175,80,0.3)] backdrop-blur-sm";
+    case "In-Line": return "bg-[rgba(255,215,0,0.15)] text-[#FFD700] border border-[rgba(255,215,0,0.3)] backdrop-blur-sm";
+    case "Miss": return "bg-[rgba(255,82,82,0.15)] text-[#FF5252] border border-[rgba(255,82,82,0.3)] backdrop-blur-sm";
+    default: return "bg-[rgba(26,48,74,0.4)] text-[#EFEFEF] border border-[rgba(26,48,74,0.5)] backdrop-blur-sm";
   }
 };
 
 const getGuidanceColor = (value: string) => {
   switch (value) {
-    case "Increased": return "bg-[#4CAF50] text-white";
-    case "Maintain": return "bg-[#FFD700] text-black";
-    case "Reduced": return "bg-[#FF5252] text-white";
-    default: return "bg-[#1A304A] text-[#EFEFEF]";
+    case "Increased": return "bg-[rgba(76,175,80,0.2)] text-[#4CAF50] border border-[rgba(76,175,80,0.3)] backdrop-blur-sm";
+    case "Maintain": return "bg-[rgba(255,215,0,0.15)] text-[#FFD700] border border-[rgba(255,215,0,0.3)] backdrop-blur-sm";
+    case "Reduced": return "bg-[rgba(255,82,82,0.15)] text-[#FF5252] border border-[rgba(255,82,82,0.3)] backdrop-blur-sm";
+    default: return "bg-[rgba(26,48,74,0.4)] text-[#EFEFEF] border border-[rgba(26,48,74,0.5)] backdrop-blur-sm";
   }
 };
 
 const getScoreColor = (value: string) => {
   switch (value) {
     case "Good":
-    case "Great": return "bg-[#4CAF50] text-white";
-    case "Not So Bad": return "bg-[#FFD700] text-black";
-    case "Ugly": return "bg-[#FF5252] text-white";
-    default: return "bg-[#1A304A] text-[#EFEFEF]";
+    case "Great": return "bg-[rgba(76,175,80,0.2)] text-[#4CAF50] border border-[rgba(76,175,80,0.3)] backdrop-blur-sm";
+    case "Not So Bad": return "bg-[rgba(255,215,0,0.15)] text-[#FFD700] border border-[rgba(255,215,0,0.3)] backdrop-blur-sm";
+    case "Ugly": return "bg-[rgba(255,82,82,0.15)] text-[#FF5252] border border-[rgba(255,82,82,0.3)] backdrop-blur-sm";
+    default: return "bg-[rgba(26,48,74,0.4)] text-[#EFEFEF] border border-[rgba(26,48,74,0.5)] backdrop-blur-sm";
   }
 };
 
@@ -866,50 +866,27 @@ const getReactionCommentaryColor = (value: string) => {
   }
 };
 
-// Helper function to get background color for heatmap row
+// Helper function to get subtle highlight for heatmap row
 const getHeatmapRowColor = (item: EarningsHeatmapDataItem) => {
-  // Base color
-  let r = 10, g = 25, b = 41;
-  let a = 0.15;
-  
-  // Add color based on earnings performance
-  if (item.earningsScore === "Great") {
-    g += 100; // More green for great earnings
-    a = 0.3;
-  } else if (item.earningsScore === "Good") {
-    g += 70; // Some green for good earnings
-    a = 0.25;
-  } else if (item.earningsScore === "Not So Bad") {
-    r += 60; g += 60; // Yellowish for not so bad
-    a = 0.2;
+  // Simplify to use only very subtle highlighting
+  if (item.earningsScore === "Great" || item.earningsScore === "Good") {
+    return "0, 100, 0, 0.04"; // Very subtle green
   } else if (item.earningsScore === "Ugly") {
-    r += 100; // More red for ugly earnings
-    a = 0.3;
+    return "100, 0, 0, 0.04"; // Very subtle red
+  } else {
+    return "0, 0, 0, 0"; // No highlight
   }
-  
-  // Adjust based on market reaction
-  if (item.mktReaction >= 5) {
-    g += 50; // Very positive reaction
-  } else if (item.mktReaction >= 2) {
-    g += 30; // Positive reaction
-  } else if (item.mktReaction <= -5) {
-    r += 50; // Very negative reaction
-  } else if (item.mktReaction <= -2) {
-    r += 30; // Negative reaction
-  }
-  
-  return `${r}, ${g}, ${b}, ${a}`;
 };
 
-// Helper function to get color for consensus recommendation
+// Helper function to get color for consensus recommendation (glassomorphic style)
 const getConsensusColor = (value: string) => {
   switch (value) {
-    case "Strong Buy": return "bg-[#00C853] text-white";
-    case "Buy": return "bg-[#4CAF50] text-white";
-    case "Hold": return "bg-[#FFD700] text-black";
+    case "Strong Buy": return "bg-[rgba(0,200,83,0.2)] text-[#00C853] border border-[rgba(0,200,83,0.3)] backdrop-blur-sm";
+    case "Buy": return "bg-[rgba(76,175,80,0.2)] text-[#4CAF50] border border-[rgba(76,175,80,0.3)] backdrop-blur-sm";
+    case "Hold": return "bg-[rgba(255,215,0,0.15)] text-[#FFD700] border border-[rgba(255,215,0,0.3)] backdrop-blur-sm";
     case "Underperform": 
-    case "Sell": return "bg-[#FF5252] text-white";
-    default: return "bg-[#1A304A] text-[#EFEFEF]";
+    case "Sell": return "bg-[rgba(255,82,82,0.15)] text-[#FF5252] border border-[rgba(255,82,82,0.3)] backdrop-blur-sm";
+    default: return "bg-[rgba(26,48,74,0.4)] text-[#EFEFEF] border border-[rgba(26,48,74,0.5)] backdrop-blur-sm";
   }
 };
 
@@ -1229,7 +1206,7 @@ export default function EarningsPage() {
             </Card>
           </div>
           
-          {/* Earnings Heatmap Table - Modern Version */}
+          {/* Earnings Heatmap Table - Simplified Version */}
           <Card className="border-0 shadow bg-[#0A1929]">
             <CardHeader className="card-header px-4 py-3 bg-[#111E2E] flex justify-between items-center">
               <div className="flex items-center">
@@ -1243,17 +1220,17 @@ export default function EarningsPage() {
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="text-xs border-b-2 border-[#1A304A] bg-[#0D2237] sticky top-0 z-10">
-                      <th className="p-3 text-left font-mono text-[#7A8999] font-bold">TICKER</th>
-                      <th className="p-3 text-left font-mono text-[#7A8999] font-bold">ISSUER NAME</th>
-                      <th className="p-3 text-center font-mono text-[#7A8999] font-bold">CONSENSUS</th>
-                      <th className="p-3 text-right font-mono text-[#7A8999] font-bold">LAST</th>
-                      <th className="p-3 text-center font-mono text-[#7A8999] font-bold">EPS</th>
-                      <th className="p-3 text-center font-mono text-[#7A8999] font-bold">REV</th>
-                      <th className="p-3 text-center font-mono text-[#7A8999] font-bold">GUIDANCE</th>
-                      <th className="p-3 text-center font-mono text-[#7A8999] font-bold">SCORE</th>
-                      <th className="p-3 text-right font-mono text-[#7A8999] font-bold">MKT REACTION</th>
-                      <th className="p-3 text-left font-mono text-[#7A8999] font-bold">COMMENTARY</th>
+                    <tr className="text-xs border-b border-[#1A304A] bg-[#0D2237]">
+                      <th className="p-2 text-left font-mono text-[#7A8999]">TICKER</th>
+                      <th className="p-2 text-left font-mono text-[#7A8999]">ISSUER NAME</th>
+                      <th className="p-2 text-left font-mono text-[#7A8999]">CONSENSUS</th>
+                      <th className="p-2 text-right font-mono text-[#7A8999]">LAST</th>
+                      <th className="p-2 text-center font-mono text-[#7A8999]">EPS</th>
+                      <th className="p-2 text-center font-mono text-[#7A8999]">REV</th>
+                      <th className="p-2 text-center font-mono text-[#7A8999]">GUIDANCE</th>
+                      <th className="p-2 text-center font-mono text-[#7A8999]">SCORE</th>
+                      <th className="p-2 text-right font-mono text-[#7A8999]">MKT REACTION</th>
+                      <th className="p-2 text-left font-mono text-[#7A8999]">COMMENTARY</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1261,51 +1238,51 @@ export default function EarningsPage() {
                       <tr 
                         key={index} 
                         onClick={() => handleSelectStock(item.ticker)}
-                        className="border-b border-t border-[#1A304A] hover:bg-[#0F2542] cursor-pointer transition-colors duration-150"
+                        className="border-b border-[#1A304A] hover:bg-[#0F2542] cursor-pointer"
                         style={{
                           background: `linear-gradient(90deg, rgba(10, 25, 41, 0.9) 0%, rgba(${getHeatmapRowColor(item)}) 100%)`
                         }}
                         title="Click to view historical earnings performance"
                       >
-                        <td className="p-3 text-left font-mono text-[#38AAFD] text-xs">
-                          <div className="flex items-center space-x-1">
-                            <span className="font-bold">{item.ticker}</span>
-                            <Info className="h-3 w-3 text-[#E91E63] opacity-70" />
+                        <td className="p-2 text-left font-mono text-[#38AAFD] text-xs">
+                          <div className="flex items-center">
+                            <span>{item.ticker}</span>
+                            <Info className="ml-1 h-3 w-3 text-[#E91E63] opacity-50" />
                           </div>
                         </td>
-                        <td className="p-3 text-left font-mono text-[#EFEFEF] text-xs">{item.issuerName}</td>
-                        <td className="p-3 text-center font-mono text-xs">
-                          <span className={`inline-block px-2 py-1 rounded ${getConsensusColor(item.consensusRecommendation)}`}>
+                        <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.issuerName}</td>
+                        <td className="p-2 text-center font-mono text-xs">
+                          <span className={`inline-block px-2 py-1 rounded-sm ${getConsensusColor(item.consensusRecommendation)}`}>
                             {item.consensusRecommendation}
                           </span>
                         </td>
-                        <td className="p-3 text-right font-mono text-[#EFEFEF] text-xs font-bold">${item.last.toFixed(1)}</td>
-                        <td className="p-3 text-center">
-                          <span className={`inline-block px-2 py-1 rounded text-xs font-mono ${getEpsColor(item.eps)}`}>
+                        <td className="p-2 text-right font-mono text-[#EFEFEF] text-xs">${item.last.toFixed(1)}</td>
+                        <td className="p-2 text-center">
+                          <span className={`inline-block px-2 py-1 rounded-sm ${getEpsColor(item.eps)}`}>
                             {item.eps}
                           </span>
                         </td>
-                        <td className="p-3 text-center">
-                          <span className={`inline-block px-2 py-1 rounded text-xs font-mono ${getEpsColor(item.rev)}`}>
+                        <td className="p-2 text-center">
+                          <span className={`inline-block px-2 py-1 rounded-sm ${getEpsColor(item.rev)}`}>
                             {item.rev}
                           </span>
                         </td>
-                        <td className="p-3 text-center">
-                          <span className={`inline-block px-2 py-1 rounded text-xs font-mono ${getGuidanceColor(item.guidance)}`}>
+                        <td className="p-2 text-center">
+                          <span className={`inline-block px-2 py-1 rounded-sm ${getGuidanceColor(item.guidance)}`}>
                             {item.guidance}
                           </span>
                         </td>
-                        <td className="p-3 text-center">
-                          <span className={`inline-block px-2 py-1 rounded text-xs font-mono ${getScoreColor(item.earningsScore)}`}>
+                        <td className="p-2 text-center">
+                          <span className={`inline-block px-2 py-1 rounded-sm ${getScoreColor(item.earningsScore)}`}>
                             {item.earningsScore}
                           </span>
                         </td>
-                        <td className={`p-3 text-right font-mono text-xs font-bold`}>
-                          <span className={`inline-block px-2 py-1 rounded ${item.mktReaction >= 0 ? 'bg-[rgba(76,175,80,0.2)] text-[#4CAF50]' : 'bg-[rgba(255,82,82,0.2)] text-[#FF5252]'}`}>
+                        <td className="p-2 text-right">
+                          <span className={`inline-block px-2 py-1 rounded-sm ${item.mktReaction >= 0 ? 'bg-[rgba(76,175,80,0.2)] text-[#4CAF50] border border-[rgba(76,175,80,0.3)]' : 'bg-[rgba(255,82,82,0.15)] text-[#FF5252] border border-[rgba(255,82,82,0.3)]'}`}>
                             {item.mktReaction >= 0 ? '+' : ''}{item.mktReaction.toFixed(1)}%
                           </span>
                         </td>
-                        <td className={`p-3 text-left font-mono text-xs font-medium ${getReactionCommentaryColor(item.mktReactionCommentary)}`}>
+                        <td className={`p-2 text-left font-mono text-xs ${getReactionCommentaryColor(item.mktReactionCommentary)}`}>
                           {item.mktReactionCommentary}
                         </td>
                       </tr>
@@ -1316,26 +1293,26 @@ export default function EarningsPage() {
             </CardContent>
           </Card>
           
-          {/* Legend */}
+          {/* Legend with Glassomorphic Style */}
           <div className="flex flex-wrap gap-4 text-xs font-mono text-[#7A8999]">
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-[#4CAF50] rounded-sm"></div>
+              <div className="h-3 w-3 bg-[rgba(76,175,80,0.2)] border border-[rgba(76,175,80,0.3)] rounded-sm"></div>
               <span>Beat / Increased / Good</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-[#FFD700] rounded-sm"></div>
+              <div className="h-3 w-3 bg-[rgba(255,215,0,0.15)] border border-[rgba(255,215,0,0.3)] rounded-sm"></div>
               <span>In-Line / Maintain / Not So Bad</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-[#FF5252] rounded-sm"></div>
+              <div className="h-3 w-3 bg-[rgba(255,82,82,0.15)] border border-[rgba(255,82,82,0.3)] rounded-sm"></div>
               <span>Miss / Reduced / Ugly</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-[#38AAFD] rounded-sm"></div>
+              <div className="h-3 w-3 bg-[rgba(56,170,253,0.15)] border border-[rgba(56,170,253,0.3)] rounded-sm"></div>
               <span>Abnormal Reaction</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-[#FF5252] rounded-sm"></div>
+              <div className="h-3 w-3 bg-[rgba(255,82,82,0.15)] border border-[rgba(255,82,82,0.3)] rounded-sm"></div>
               <span>Explosive Reaction</span>
             </div>
           </div>
@@ -1488,12 +1465,30 @@ export default function EarningsPage() {
                               <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.quarter}</td>
                               <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.data.consensusRecommendation}</td>
                               <td className="p-2 text-right font-mono text-[#EFEFEF] text-xs">${item.data.last.toFixed(1)}</td>
-                              <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.data.eps)}`}>{item.data.eps}</td>
-                              <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.data.rev)}`}>{item.data.rev}</td>
-                              <td className={`p-2 text-center font-mono text-xs ${getGuidanceColor(item.data.guidance)}`}>{item.data.guidance}</td>
-                              <td className={`p-2 text-center font-mono text-xs ${getScoreColor(item.data.earningsScore)}`}>{item.data.earningsScore}</td>
-                              <td className={`p-2 text-right font-mono text-xs ${item.data.mktReaction >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
-                                {item.data.mktReaction >= 0 ? '+' : ''}{item.data.mktReaction.toFixed(1)}%
+                              <td className="p-2 text-center">
+                                <span className={`inline-block px-2 py-1 rounded-sm ${getEpsColor(item.data.eps)}`}>
+                                  {item.data.eps}
+                                </span>
+                              </td>
+                              <td className="p-2 text-center">
+                                <span className={`inline-block px-2 py-1 rounded-sm ${getEpsColor(item.data.rev)}`}>
+                                  {item.data.rev}
+                                </span>
+                              </td>
+                              <td className="p-2 text-center">
+                                <span className={`inline-block px-2 py-1 rounded-sm ${getGuidanceColor(item.data.guidance)}`}>
+                                  {item.data.guidance}
+                                </span>
+                              </td>
+                              <td className="p-2 text-center">
+                                <span className={`inline-block px-2 py-1 rounded-sm ${getScoreColor(item.data.earningsScore)}`}>
+                                  {item.data.earningsScore}
+                                </span>
+                              </td>
+                              <td className="p-2 text-right">
+                                <span className={`inline-block px-2 py-1 rounded-sm ${item.data.mktReaction >= 0 ? 'bg-[rgba(76,175,80,0.2)] text-[#4CAF50] border border-[rgba(76,175,80,0.3)]' : 'bg-[rgba(255,82,82,0.15)] text-[#FF5252] border border-[rgba(255,82,82,0.3)]'}`}>
+                                  {item.data.mktReaction >= 0 ? '+' : ''}{item.data.mktReaction.toFixed(1)}%
+                                </span>
                               </td>
                               <td className={`p-2 text-left font-mono text-xs ${getReactionCommentaryColor(item.data.mktReactionCommentary)}`}>
                                 {item.data.mktReactionCommentary}
