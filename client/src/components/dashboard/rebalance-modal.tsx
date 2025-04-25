@@ -125,7 +125,7 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
       return await apiRequest(
         'POST',
         `/api/portfolios/${region}/rebalance`,
-        stocks
+        { stocks }
       );
     },
     onSuccess: () => {
