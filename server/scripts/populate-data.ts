@@ -146,7 +146,10 @@ async function populateETFHoldings() {
   
   // Insert SPY holdings
   for (const holding of spyHoldings) {
-    await db.insert(etfHoldingsSPY).values(holding);
+    await db.insert(etfHoldingsSPY).values({
+      ...holding,
+      updatedAt: new Date()
+    });
   }
   console.log(`Inserted ${spyHoldings.length} SPY holdings`);
   
@@ -289,7 +292,10 @@ async function populateETFHoldings() {
   
   // Insert XIC holdings
   for (const holding of xicHoldings) {
-    await db.insert(etfHoldingsXIC).values(holding);
+    await db.insert(etfHoldingsXIC).values({
+      ...holding,
+      updatedAt: new Date()
+    });
   }
   console.log(`Inserted ${xicHoldings.length} XIC holdings`);
   
@@ -432,7 +438,10 @@ async function populateETFHoldings() {
   
   // Insert ACWX holdings
   for (const holding of acwxHoldings) {
-    await db.insert(etfHoldingsACWX).values(holding);
+    await db.insert(etfHoldingsACWX).values({
+      ...holding,
+      updatedAt: new Date()
+    });
   }
   console.log(`Inserted ${acwxHoldings.length} ACWX holdings`);
 }
@@ -554,7 +563,10 @@ async function populatePortfolios() {
   
   // Insert US stocks
   for (const stock of usStocks) {
-    await db.insert(assetsUS).values(stock);
+    await db.insert(assetsUS).values({
+      ...stock,
+      updatedAt: new Date()
+    });
   }
   console.log(`Inserted ${usStocks.length} USD portfolio stocks`);
   
@@ -664,7 +676,10 @@ async function populatePortfolios() {
   
   // Insert CAD stocks
   for (const stock of cadStocks) {
-    await db.insert(assetsCAD).values(stock);
+    await db.insert(assetsCAD).values({
+      ...stock,
+      updatedAt: new Date()
+    });
   }
   console.log(`Inserted ${cadStocks.length} CAD portfolio stocks`);
   
@@ -774,7 +789,10 @@ async function populatePortfolios() {
   
   // Insert INTL stocks
   for (const stock of intlStocks) {
-    await db.insert(assetsINTL).values(stock);
+    await db.insert(assetsINTL).values({
+      ...stock,
+      updatedAt: new Date()
+    });
   }
   console.log(`Inserted ${intlStocks.length} INTL portfolio stocks`);
 }

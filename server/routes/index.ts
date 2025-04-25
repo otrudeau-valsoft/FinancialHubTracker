@@ -6,6 +6,7 @@ import alertsRoutes from './alerts/alerts.routes';
 import priceRoutes from './price/price.routes';
 import dataRoutes from './data/data.routes';
 import upgradeDowngradeRoutes from './upgrade-downgrade/upgrade-downgrade.routes';
+import populateDataRoutes from './data-management/populate-data.routes';
 import apiHealthRoutes from './api-health.routes';
 
 const router = Router();
@@ -30,6 +31,9 @@ router.use('/scheduler', dataRoutes);
 
 // Upgrade/downgrade routes
 router.use('/upgrade-downgrade', upgradeDowngradeRoutes);
+
+// Data population route for development
+router.use('/populate-data', populateDataRoutes);
 
 // Direct query routes (for debugging)
 router.get('/direct-query/:symbol/:region', (req, res) => {
