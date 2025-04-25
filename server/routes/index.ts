@@ -7,6 +7,7 @@ import priceRoutes from './price/price.routes';
 import dataRoutes from './data/data.routes';
 import upgradeDowngradeRoutes from './upgrade-downgrade/upgrade-downgrade.routes';
 import dataManagementRoutes from './data-management';
+import schedulerRoutes from './scheduler/scheduler.routes';
 import apiHealthRoutes from './api-health.routes';
 
 const router = Router();
@@ -25,9 +26,11 @@ router.use('/historical-prices', priceRoutes);
 // Current prices routes
 router.use('/current-prices', priceRoutes);
 
-// Data update and scheduler routes
+// Data update routes
 router.use('/data-updates', dataRoutes);
-router.use('/scheduler', dataRoutes);
+
+// Scheduler routes
+router.use('/scheduler', schedulerRoutes);
 
 // Upgrade/downgrade routes
 router.use('/upgrade-downgrade', upgradeDowngradeRoutes);

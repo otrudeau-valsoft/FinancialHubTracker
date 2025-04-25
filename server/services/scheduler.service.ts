@@ -1,307 +1,213 @@
-// Helper functions for EST time conversion
-function getCurrentESTDate(): Date {
-  const date = new Date();
-  return new Date(date.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-}
+import { db } from '../db';
+import { storage } from '../db-storage';
+import { AppError } from '../middleware/error-handler';
+import { Express } from 'express';
 
-function getESTFormattedTime(): string {
-  return new Date().toLocaleString('en-US', { 
-    timeZone: 'America/New_York',
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric',
-    hour12: true
-  });
-}
-
-/**
- * Configuration for different scheduler operations
- */
-export interface SchedulerConfig {
+// Task interface for all scheduled tasks
+interface ScheduledTask {
+  id: string;
+  name: string;
+  description: string;
+  cronExpression?: string;
+  intervalMs?: number;
+  lastRun?: Date;
+  isRunning: boolean;
   enabled: boolean;
-  interval: number; // in minutes
-  lastRun?: string;
-  nextRun?: string;
+  execute: () => Promise<any>;
 }
 
-/**
- * Service status and configuration
- */
-export interface SchedulerStatus {
-  current_prices: SchedulerConfig;
-  historical_prices: SchedulerConfig;
-}
-
-// Default service configuration
-const defaultConfig: SchedulerStatus = {
-  current_prices: {
+// List of available scheduled tasks
+const scheduledTasks: ScheduledTask[] = [
+  {
+    id: 'current-prices-update',
+    name: 'Update Current Prices',
+    description: 'Fetch and update current prices for all portfolio stocks',
+    intervalMs: 5 * 60 * 1000, // 5 minutes
+    isRunning: false,
     enabled: true,
-    interval: 10, // 10 minutes
-    lastRun: undefined,
-    nextRun: undefined
+    execute: async () => {
+      console.log('[Scheduler] Executing current prices update task');
+      
+      // This is just a stub - implementation will be added later
+      const regions = ['USD', 'CAD', 'INTL'];
+      let updatedCount = 0;
+      
+      for (const region of regions) {
+        try {
+          // In real implementation, we would fetch current prices from Yahoo Finance
+          console.log(`[Scheduler] Updating current prices for ${region} portfolio`);
+          // await updateCurrentPricesForRegion(region);
+          updatedCount++;
+        } catch (error) {
+          console.error(`[Scheduler] Error updating prices for ${region}:`, error);
+        }
+      }
+      
+      return { updatedRegions: updatedCount };
+    }
   },
-  historical_prices: {
-    enabled: true,
-    interval: 24 * 60, // daily
-    lastRun: undefined,
-    nextRun: undefined
+  {
+    id: 'historical-prices-update',
+    name: 'Update Historical Prices',
+    description: 'Fetch and update historical prices for all portfolio stocks',
+    intervalMs: 24 * 60 * 60 * 1000, // Once a day
+    isRunning: false,
+    enabled: false, // Disabled by default
+    execute: async () => {
+      console.log('[Scheduler] Executing historical prices update task');
+      
+      // This is just a stub - implementation will be added later
+      return { updated: false, message: 'Not implemented yet' };
+    }
+  }
+];
+
+// Dictionary to store interval handles
+const taskIntervals: Record<string, NodeJS.Timeout> = {};
+
+// Task history for logging purposes
+const taskHistory: Array<{
+  taskId: string;
+  timestamp: Date;
+  success: boolean;
+  result: any;
+}> = [];
+
+// Get task by ID
+export const getTaskById = (taskId: string): ScheduledTask | undefined => {
+  return scheduledTasks.find(task => task.id === taskId);
+};
+
+// Get all tasks
+export const getAllTasks = (): ScheduledTask[] => {
+  return scheduledTasks.map(task => ({
+    ...task,
+    execute: undefined // Remove the function reference for serialization
+  })) as any;
+};
+
+// Get task history
+export const getTaskHistory = (): typeof taskHistory => {
+  return taskHistory;
+};
+
+// Start a specific task by ID
+export const startTask = async (taskId: string): Promise<any> => {
+  const task = getTaskById(taskId);
+  
+  if (!task) {
+    throw new AppError(`Task with ID ${taskId} not found`, 404);
+  }
+  
+  if (task.isRunning) {
+    throw new AppError(`Task ${task.name} is already running`, 400);
+  }
+  
+  try {
+    task.isRunning = true;
+    task.lastRun = new Date();
+    
+    const result = await task.execute();
+    
+    // Log successful execution
+    taskHistory.unshift({
+      taskId: task.id,
+      timestamp: new Date(),
+      success: true,
+      result
+    });
+    
+    // Limit history size
+    if (taskHistory.length > 100) {
+      taskHistory.pop();
+    }
+    
+    return { 
+      status: 'success', 
+      taskId: task.id, 
+      result 
+    };
+  } catch (error) {
+    // Log failed execution
+    taskHistory.unshift({
+      taskId: task.id,
+      timestamp: new Date(),
+      success: false,
+      result: error
+    });
+    
+    throw new AppError(`Task execution failed: ${error instanceof Error ? error.message : String(error)}`, 500);
+  } finally {
+    task.isRunning = false;
   }
 };
 
-// Current configuration
-let schedulerConfig: SchedulerStatus = { ...defaultConfig };
-
-// Timers for scheduled tasks
-let currentPriceTimer: NodeJS.Timeout | null = null;
-let historicalPriceTimer: NodeJS.Timeout | null = null;
-
-// Service log entries
-export interface LogEntry {
-  id: number;
-  type: string;
-  message: string;
-  timestamp: string;
-  status: 'success' | 'error' | 'info';
-  details?: any;
-}
-
-// In-memory log storage
-const logs: LogEntry[] = [];
-let logCounter = 0;
-
-/**
- * Add a log entry
- */
-export function addLog(
-  type: string,
-  message: string,
-  status: 'success' | 'error' | 'info' = 'info',
-  details?: any
-): LogEntry {
-  const log: LogEntry = {
-    id: ++logCounter,
-    type,
-    message,
-    timestamp: new Date().toISOString(),
-    status,
-    details
-  };
-  logs.push(log);
+// Enable or disable a task
+export const setTaskEnabled = (taskId: string, enabled: boolean): void => {
+  const task = getTaskById(taskId);
   
-  // Limit logs to last 500 entries
-  if (logs.length > 500) {
-    logs.shift();
+  if (!task) {
+    throw new AppError(`Task with ID ${taskId} not found`, 404);
   }
   
-  return log;
-}
-
-/**
- * Get all logs
- */
-export function getLogs(): LogEntry[] {
-  return [...logs].reverse(); // Return most recent first
-}
-
-/**
- * Clear all logs
- */
-export function clearLogs(): void {
-  logs.length = 0;
-  logCounter = 0;
-}
-
-/**
- * Get scheduler configuration
- */
-export function getSchedulerConfig(): SchedulerStatus {
-  return { ...schedulerConfig };
-}
-
-/**
- * Update scheduler configuration
- */
-export function updateSchedulerConfig(
-  type: 'current_prices' | 'historical_prices',
-  config: Partial<SchedulerConfig>
-): SchedulerStatus {
-  // Update config
-  schedulerConfig[type] = {
-    ...schedulerConfig[type],
-    ...config
-  };
+  task.enabled = enabled;
   
-  // Restart scheduler
-  if (type === 'current_prices' && currentPriceTimer) {
-    clearTimeout(currentPriceTimer);
-    startCurrentPriceScheduler();
-  } else if (type === 'historical_prices' && historicalPriceTimer) {
-    clearTimeout(historicalPriceTimer);
-    startHistoricalPriceScheduler();
+  if (!enabled && taskIntervals[taskId]) {
+    clearInterval(taskIntervals[taskId]);
+    delete taskIntervals[taskId];
+  } else if (enabled && task.intervalMs && !taskIntervals[taskId]) {
+    scheduleTask(task);
   }
-  
-  addLog(
-    'scheduler_config',
-    `Updated ${type} scheduler configuration`,
-    'success',
-    config
-  );
-  
-  return { ...schedulerConfig };
-}
+};
 
-/**
- * Calculate next run time for historical prices
- * Runs at 5pm EST every day
- */
-function calculateNextHistoricalRunTime(): Date {
-  const now = getCurrentESTDate();
-  const targetHour = 17; // 5pm
-  
-  let nextRun = new Date(now);
-  nextRun.setHours(targetHour, 0, 0, 0);
-  
-  // If it's already past target time, schedule for next day
-  if (now.getHours() >= targetHour) {
-    nextRun.setDate(nextRun.getDate() + 1);
-  }
-  
-  return nextRun;
-}
-
-/**
- * Start current price scheduler
- */
-function startCurrentPriceScheduler(): void {
-  const { enabled, interval } = schedulerConfig.current_prices;
-  
-  if (!enabled) {
-    addLog('current_prices', 'Current price scheduler is disabled');
+// Schedule a task to run at its defined interval
+const scheduleTask = (task: ScheduledTask): void => {
+  if (!task.intervalMs) {
+    console.warn(`[Scheduler] Task ${task.id} has no interval defined`);
     return;
   }
   
-  // Log current EST time
-  console.log('Current EST time:', getESTFormattedTime());
+  console.log(`[Scheduler] Scheduling task ${task.name} to run every ${task.intervalMs / 1000} seconds`);
   
-  // Update configuration with current time
-  schedulerConfig.current_prices.lastRun = new Date().toISOString();
-  
-  // Start the timer
-  const intervalMs = interval * 60 * 1000;
-  currentPriceTimer = setTimeout(() => {
-    // Add a log entry for the scheduled run
-    addLog(
-      'current_prices',
-      `Scheduled current price update triggered`,
-      'info'
-    );
-    
-    // Restart the scheduler (this creates a recurring schedule)
-    startCurrentPriceScheduler();
-  }, intervalMs);
-  
-  // Calculate and set next run time
-  const nextRun = new Date(Date.now() + intervalMs);
-  schedulerConfig.current_prices.nextRun = nextRun.toISOString();
-  
-  addLog(
-    'current_prices',
-    `Starting current price scheduler with interval of ${interval} minutes`,
-    'info'
-  );
-}
-
-/**
- * Start historical price scheduler
- */
-function startHistoricalPriceScheduler(): void {
-  const { enabled } = schedulerConfig.historical_prices;
-  
-  if (!enabled) {
-    addLog('historical_prices', 'Historical price scheduler is disabled');
-    return;
+  // Clear any existing interval
+  if (taskIntervals[task.id]) {
+    clearInterval(taskIntervals[task.id]);
   }
   
-  // Calculate next run time (5pm EST)
-  const nextRun = calculateNextHistoricalRunTime();
-  const now = getCurrentESTDate();
-  
-  // Log current and next run times
-  console.log('Current EST time:', getESTFormattedTime());
-  console.log('Next historical price update scheduled for EST:', nextRun.toLocaleString('en-US', { 
-    timeZone: 'America/New_York' 
-  }));
-  
-  // Calculate delay until next run
-  const delay = nextRun.getTime() - now.getTime();
-  
-  // Start the timer
-  historicalPriceTimer = setTimeout(() => {
-    // Add a log entry for the scheduled run
-    addLog(
-      'historical_prices',
-      `Scheduled historical price update triggered`,
-      'info'
-    );
+  // Create new interval
+  taskIntervals[task.id] = setInterval(async () => {
+    if (task.isRunning) {
+      console.log(`[Scheduler] Task ${task.name} is already running, skipping this run`);
+      return;
+    }
     
-    // Update last run time
-    schedulerConfig.historical_prices.lastRun = new Date().toISOString();
-    
-    // Restart the scheduler (this creates a recurring schedule)
-    startHistoricalPriceScheduler();
-  }, delay);
-  
-  // Update configuration
-  schedulerConfig.historical_prices.nextRun = nextRun.toISOString();
-  
-  addLog(
-    'historical_prices',
-    `Scheduling historical price update at EST: ${nextRun.toLocaleString('en-US', { 
-      timeZone: 'America/New_York' 
-    })}`,
-    'info'
-  );
-}
+    try {
+      await startTask(task.id);
+    } catch (error) {
+      console.error(`[Scheduler] Error running scheduled task ${task.name}:`, error);
+    }
+  }, task.intervalMs);
+};
 
-/**
- * Initialize the scheduler service
- */
-export async function initSchedulerService(): Promise<void> {
-  // Start current price scheduler
-  startCurrentPriceScheduler();
+// Initialize the scheduler service
+export const initSchedulerService = (app: Express): void => {
+  console.log('Initializing scheduler service...');
   
-  // Start historical price scheduler
-  startHistoricalPriceScheduler();
+  // Schedule all enabled tasks
+  scheduledTasks.forEach(task => {
+    if (task.enabled && task.intervalMs) {
+      scheduleTask(task);
+    }
+  });
   
-  // Add initial log entry
-  addLog('scheduler', 'Scheduler service initialized', 'success');
-}
-
-/**
- * Shutdown the scheduler service
- */
-export function shutdownSchedulerService(): void {
-  // Clear all timers
-  if (currentPriceTimer) {
-    clearTimeout(currentPriceTimer);
-    currentPriceTimer = null;
-  }
+  // Make scheduler methods available to the routes
+  app.locals.scheduler = {
+    getTaskById,
+    getAllTasks,
+    getTaskHistory,
+    startTask,
+    setTaskEnabled
+  };
   
-  if (historicalPriceTimer) {
-    clearTimeout(historicalPriceTimer);
-    historicalPriceTimer = null;
-  }
-  
-  addLog('scheduler', 'Scheduler service shutdown', 'info');
-}
-
-// Make logs and config available for controller
-export const schedulerService = {
-  getLogs,
-  clearLogs,
-  getSchedulerConfig,
-  updateSchedulerConfig
+  console.log(`Scheduler service initialized with ${scheduledTasks.length} tasks`);
 };
