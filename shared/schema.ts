@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, numeric, timestamp, json, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, numeric, timestamp, json, date, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -312,7 +312,7 @@ export const upgradeDowngradeHistory = pgTable("upgrade_downgrade_history", {
   toGrade: text("to_grade").notNull(), // New rating (e.g., "Buy", "Strong Buy", "Underperform", etc.)
   fromGrade: text("from_grade"), // Previous rating
   action: text("action").notNull(), // "up" (upgrade), "down" (downgrade), "init" (initiate), "main" (maintain), "reit" (reiterate)
-  epochGradeDate: integer("epoch_grade_date"), // Unix timestamp of grade date
+  epochGradeDate: varchar("epoch_grade_date"), // Unix timestamp as string to avoid integer overflow
   gradeDate: date("grade_date"), // Formatted date
   createdAt: timestamp("created_at").defaultNow(),
 });

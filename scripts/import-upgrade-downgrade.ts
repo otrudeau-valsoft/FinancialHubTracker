@@ -1,4 +1,4 @@
-import * as yahooFinance from 'yahoo-finance2';
+import yahooFinance from 'yahoo-finance2';
 import { eq, and, sql } from 'drizzle-orm';
 import { db } from '../server/db';
 import { upgradeDowngradeHistory } from '../shared/schema';
@@ -55,7 +55,7 @@ export async function importUpgradeDowngradeHistory(symbol: string, region: stri
         toGrade: item.toGrade || 'Unknown',
         fromGrade: item.fromGrade || null,
         action: item.action || 'Unknown',
-        epochGradeDate: item.epochGradeDate || null,
+        epochGradeDate: item.epochGradeDate ? Math.floor(item.epochGradeDate) : null, // Ensure it's an integer
         gradeDate: gradeDate,
       });
     }
