@@ -1046,22 +1046,22 @@ export default function EarningsPage() {
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="text-xs border-b border-[#1A304A] bg-[#0D2237]">
-                      <th className="p-2 text-left font-mono text-[#7A8999]">DATE</th>
-                      <th className="p-2 text-left font-mono text-[#7A8999]">TICKER</th>
-                      <th className="p-2 text-left font-mono text-[#7A8999]">COMPANY</th>
-                      <th className="p-2 text-left font-mono text-[#7A8999]">TIME</th>
-                      <th className="p-2 text-right font-mono text-[#7A8999]">EST. EPS</th>
+                    <tr className="text-xs h-8 border-b border-[#0F1A2A] bg-[#0D1F32]">
+                      <th className="px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">DATE</th>
+                      <th className="px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">TICKER</th>
+                      <th className="px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">COMPANY</th>
+                      <th className="px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">TIME</th>
+                      <th className="px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">EST. EPS</th>
                     </tr>
                   </thead>
                   <tbody>
                     {mockUpcomingEarnings.map((item, index) => (
-                      <tr key={index} className="border-b border-[#1A304A] hover:bg-[#0F2542]">
-                        <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.date}</td>
-                        <td className="p-2 text-left font-mono text-[#38AAFD] text-xs">{item.ticker}</td>
-                        <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.company}</td>
-                        <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.time}</td>
-                        <td className="p-2 text-right font-mono text-[#EFEFEF] text-xs">${item.eps.toFixed(2)}</td>
+                      <tr key={index} className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542]">
+                        <td className="px-3 py-0 text-left font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{item.date}</td>
+                        <td className="px-3 py-0 text-left font-mono text-[#38AAFD] text-xs font-medium whitespace-nowrap">{item.ticker}</td>
+                        <td className="px-3 py-0 text-left font-mono text-[#EFEFEF] text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '200px', textOverflow: 'ellipsis' }}>{item.company}</td>
+                        <td className="px-3 py-0 text-left font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{item.time}</td>
+                        <td className="px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">${item.eps.toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1220,17 +1220,17 @@ export default function EarningsPage() {
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="text-xs border-b border-[#1A304A] bg-[#0D2237]">
-                      <th className="p-2 text-left font-mono text-[#7A8999]">TICKER</th>
-                      <th className="p-2 text-left font-mono text-[#7A8999]">ISSUER NAME</th>
-                      <th className="p-2 text-left font-mono text-[#7A8999]">CONSENSUS</th>
-                      <th className="p-2 text-right font-mono text-[#7A8999]">LAST</th>
-                      <th className="p-2 text-center font-mono text-[#7A8999]">EPS</th>
-                      <th className="p-2 text-center font-mono text-[#7A8999]">REV</th>
-                      <th className="p-2 text-center font-mono text-[#7A8999]">GUIDANCE</th>
-                      <th className="p-2 text-center font-mono text-[#7A8999]">SCORE</th>
-                      <th className="p-2 text-right font-mono text-[#7A8999]">MKT REACTION</th>
-                      <th className="p-2 text-left font-mono text-[#7A8999]">COMMENTARY</th>
+                    <tr className="text-xs h-8 border-b border-[#0F1A2A] bg-[#0D1F32]">
+                      <th className="px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">TICKER</th>
+                      <th className="px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">ISSUER NAME</th>
+                      <th className="px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">CONSENSUS</th>
+                      <th className="px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">LAST</th>
+                      <th className="px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">EPS</th>
+                      <th className="px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">REV</th>
+                      <th className="px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">GUIDANCE</th>
+                      <th className="px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">SCORE</th>
+                      <th className="px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">MKT REACTION</th>
+                      <th className="px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">COMMENTARY</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1238,42 +1238,44 @@ export default function EarningsPage() {
                       <tr 
                         key={index} 
                         onClick={() => handleSelectStock(item.ticker)}
-                        className="border-b border-[#1A304A] hover:bg-[#0F2542] cursor-pointer"
+                        className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542] cursor-pointer"
                         style={{
-                          background: `linear-gradient(90deg, rgba(10, 25, 41, 0.9) 0%, rgba(${getHeatmapRowColor(item)}) 100%)`
+                          background: `linear-gradient(90deg, rgba(10, 25, 41, 0.95) 0%, rgba(${getHeatmapRowColor(item)}) 100%)`
                         }}
                         title="Click to view historical earnings performance"
                       >
-                        <td className="p-2 text-left font-mono text-[#38AAFD] text-xs">
+                        <td className="px-3 py-0 text-left whitespace-nowrap">
                           <div className="flex items-center">
-                            <span>{item.ticker}</span>
+                            <span className="font-mono text-[#38AAFD] font-medium text-xs tracking-wide">{item.ticker}</span>
                             <Info className="ml-1 h-3 w-3 text-[#E91E63] opacity-50" />
                           </div>
                         </td>
-                        <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.issuerName}</td>
-                        <td className={`p-2 text-left font-mono text-xs ${getConsensusColor(item.consensusRecommendation)}`}>
-                          {item.consensusRecommendation}
+                        <td className="px-3 py-0 text-left font-mono text-[#EFEFEF] text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '180px', textOverflow: 'ellipsis' }}>
+                          {item.issuerName}
                         </td>
-                        <td className="p-2 text-right font-mono text-[#EFEFEF] text-xs">${item.last.toFixed(1)}</td>
-                        <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.eps)}`}>
-                          {item.eps}
+                        <td className="px-3 py-0 text-center whitespace-nowrap">
+                          <span className={`${getConsensusColor(item.consensusRecommendation)}`}>{item.consensusRecommendation}</span>
                         </td>
-                        <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.rev)}`}>
-                          {item.rev}
+                        <td className="px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">${item.last.toFixed(1)}</td>
+                        <td className="px-3 py-0 text-center whitespace-nowrap">
+                          <span className={`${getEpsColor(item.eps)}`}>{item.eps}</span>
                         </td>
-                        <td className={`p-2 text-center font-mono text-xs ${getGuidanceColor(item.guidance)}`}>
-                          {item.guidance}
+                        <td className="px-3 py-0 text-center whitespace-nowrap">
+                          <span className={`${getEpsColor(item.rev)}`}>{item.rev}</span>
                         </td>
-                        <td className={`p-2 text-center font-mono text-xs ${getScoreColor(item.earningsScore)}`}>
-                          {item.earningsScore}
+                        <td className="px-3 py-0 text-center whitespace-nowrap">
+                          <span className={`${getGuidanceColor(item.guidance)}`}>{item.guidance}</span>
                         </td>
-                        <td className="p-2 text-right">
+                        <td className="px-3 py-0 text-center whitespace-nowrap">
+                          <span className={`${getScoreColor(item.earningsScore)}`}>{item.earningsScore}</span>
+                        </td>
+                        <td className="px-3 py-0 text-right whitespace-nowrap">
                           <span className={`inline-block font-mono ${item.mktReaction >= 0 ? 'bg-[#4CAF50] text-white' : 'bg-[#FF5252] text-white'} px-3 py-0.5 rounded-full text-[11px] font-medium`}>
                             {item.mktReaction >= 0 ? '+' : ''}{item.mktReaction.toFixed(1)}%
                           </span>
                         </td>
-                        <td className={`p-2 text-left font-mono text-xs ${getReactionCommentaryColor(item.mktReactionCommentary)}`}>
-                          {item.mktReactionCommentary}
+                        <td className="px-3 py-0 text-left font-mono text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '140px', textOverflow: 'ellipsis' }}>
+                          <span className={`${getReactionCommentaryColor(item.mktReactionCommentary)}`}>{item.mktReactionCommentary}</span>
                         </td>
                       </tr>
                     ))}
@@ -1436,44 +1438,46 @@ export default function EarningsPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
                       <thead>
-                        <tr className="text-xs border-b border-[#1A304A] bg-[#0D2237]">
-                          <th className="p-2 text-left font-mono text-[#7A8999]">QUARTER</th>
-                          <th className="p-2 text-left font-mono text-[#7A8999]">CONSENSUS</th>
-                          <th className="p-2 text-right font-mono text-[#7A8999]">LAST</th>
-                          <th className="p-2 text-center font-mono text-[#7A8999]">EPS</th>
-                          <th className="p-2 text-center font-mono text-[#7A8999]">REVENUE</th>
-                          <th className="p-2 text-center font-mono text-[#7A8999]">GUIDANCE</th>
-                          <th className="p-2 text-center font-mono text-[#7A8999]">SCORE</th>
-                          <th className="p-2 text-right font-mono text-[#7A8999]">MKT REACTION</th>
-                          <th className="p-2 text-left font-mono text-[#7A8999]">COMMENTARY</th>
+                        <tr className="text-xs h-8 border-b border-[#0F1A2A] bg-[#0D1F32]">
+                          <th className="px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">QUARTER</th>
+                          <th className="px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">CONSENSUS</th>
+                          <th className="px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">LAST</th>
+                          <th className="px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">EPS</th>
+                          <th className="px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">REVENUE</th>
+                          <th className="px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">GUIDANCE</th>
+                          <th className="px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">SCORE</th>
+                          <th className="px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">MKT REACTION</th>
+                          <th className="px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">COMMENTARY</th>
                         </tr>
                       </thead>
                       <tbody>
                         {selectedStockData.map((item, index) => (
                           item.data && (
-                            <tr key={index} className="border-b border-[#1A304A] hover:bg-[#0F2542]">
-                              <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.quarter}</td>
-                              <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.data.consensusRecommendation}</td>
-                              <td className="p-2 text-right font-mono text-[#EFEFEF] text-xs">${item.data.last.toFixed(1)}</td>
-                              <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.data.eps)}`}>
-                                {item.data.eps}
+                            <tr key={index} className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542]">
+                              <td className="px-3 py-0 text-left font-mono text-[#38AAFD] text-xs font-medium whitespace-nowrap">{item.quarter}</td>
+                              <td className="px-3 py-0 text-center whitespace-nowrap">
+                                <span className={`${getConsensusColor(item.data.consensusRecommendation)}`}>{item.data.consensusRecommendation}</span>
                               </td>
-                              <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.data.rev)}`}>
-                                {item.data.rev}
+                              <td className="px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">${item.data.last.toFixed(1)}</td>
+                              <td className="px-3 py-0 text-center whitespace-nowrap">
+                                <span className={`${getEpsColor(item.data.eps)}`}>{item.data.eps}</span>
                               </td>
-                              <td className={`p-2 text-center font-mono text-xs ${getGuidanceColor(item.data.guidance)}`}>
-                                {item.data.guidance}
+                              <td className="px-3 py-0 text-center whitespace-nowrap">
+                                <span className={`${getEpsColor(item.data.rev)}`}>{item.data.rev}</span>
                               </td>
-                              <td className={`p-2 text-center font-mono text-xs ${getScoreColor(item.data.earningsScore)}`}>
-                                {item.data.earningsScore}
+                              <td className="px-3 py-0 text-center whitespace-nowrap">
+                                <span className={`${getGuidanceColor(item.data.guidance)}`}>{item.data.guidance}</span>
                               </td>
-                              <td className="p-2 text-right">
+                              <td className="px-3 py-0 text-center whitespace-nowrap">
+                                <span className={`${getScoreColor(item.data.earningsScore)}`}>{item.data.earningsScore}</span>
+                              </td>
+                              <td className="px-3 py-0 text-right whitespace-nowrap">
                                 <span className={`inline-block font-mono ${item.data.mktReaction >= 0 ? 'bg-[#4CAF50] text-white' : 'bg-[#FF5252] text-white'} px-3 py-0.5 rounded-full text-[11px] font-medium`}>
                                   {item.data.mktReaction >= 0 ? '+' : ''}{item.data.mktReaction.toFixed(1)}%
                                 </span>
                               </td>
-                              <td className={`p-2 text-left font-mono text-xs ${getReactionCommentaryColor(item.data.mktReactionCommentary)}`}>
-                                {item.data.mktReactionCommentary}
+                              <td className="px-3 py-0 text-left whitespace-nowrap overflow-hidden" style={{ maxWidth: '140px', textOverflow: 'ellipsis' }}>
+                                <span className={`font-mono text-xs ${getReactionCommentaryColor(item.data.mktReactionCommentary)}`}>{item.data.mktReactionCommentary}</span>
                               </td>
                             </tr>
                           )
