@@ -1,5 +1,5 @@
 import { db, sanitizeForDb } from './db';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, and } from 'drizzle-orm';
 import { 
   etfHoldingsSPY, 
   etfHoldingsXIC, 
@@ -101,8 +101,8 @@ export class DatabaseStorage {
       
       // Get current price for the stock
       const priceData = await this.getCurrentPrice(result.symbol, upperRegion);
-      const price = priceData?.regularMarketPrice || 0;
-      const quantity = parseFloat(result.quantity?.toString() || '0');
+      const price = priceData ? Number(priceData.regularMarketPrice) : 0;
+      const quantity = Number(result.quantity || 0);
       const nav = price * quantity;
       
       return {
@@ -484,12 +484,12 @@ export class DatabaseStorage {
       const upperRegion = region.toUpperCase();
       const upperSymbol = symbol.toUpperCase();
       
-      // Use and() to combine multiple conditions
-      const prices = await db.select().from(currentPrices)
-        .where(
-          eq(currentPrices.region, upperRegion),
-          eq(currentPrices.symbol, upperSymbol)
-        );
+      // First filter by region
+      const regionPrices = await db.select().from(currentPrices)
+        .where(eq(currentPrices.region, upperRegion));
+      
+      // Then filter by symbol (in memory)
+      const prices = regionPrices.filter(p => p.symbol === upperSymbol);
       
       return prices.length > 0 ? prices[0] : null;
     } catch (error) {
@@ -502,32 +502,69 @@ export class DatabaseStorage {
    * Create a current price
    */
   async createCurrentPrice(data: any) {
-    // Placeholder for actual implementation
-    return { ...data, id: 1 };
+    try {
+      const [result] = await db.insert(currentPrices)
+        .values(sanitizeForDb(data))
+        .returning();
+      return result;
+    } catch (error) {
+      console.error(`Error creating current price:`, error);
+      throw error;
+    }
   }
 
   /**
    * Update a current price
    */
   async updateCurrentPrice(id: number, data: any) {
-    // Placeholder for actual implementation
-    return { ...data, id };
+    try {
+      const [result] = await db.update(currentPrices)
+        .set(sanitizeForDb(data))
+        .where(eq(currentPrices.id, id))
+        .returning();
+      return result;
+    } catch (error) {
+      console.error(`Error updating current price with id ${id}:`, error);
+      throw error;
+    }
   }
 
   /**
    * Delete a current price
    */
   async deleteCurrentPrice(id: number) {
-    // Placeholder for actual implementation
-    return true;
+    try {
+      await db.delete(currentPrices)
+        .where(eq(currentPrices.id, id));
+      return true;
+    } catch (error) {
+      console.error(`Error deleting current price with id ${id}:`, error);
+      throw error;
+    }
   }
 
   /**
    * Bulk create current prices
    */
   async bulkCreateCurrentPrices(data: any[]) {
-    // Placeholder for actual implementation
-    return data.map((item, index) => ({ ...item, id: index + 1 }));
+    if (!data || data.length === 0) {
+      return [];
+    }
+    
+    try {
+      // Sanitize data for database insertion
+      const sanitizedData = data.map(item => sanitizeForDb(item));
+      
+      // Insert all price records
+      const result = await db.insert(currentPrices)
+        .values(sanitizedData)
+        .returning();
+      
+      return result;
+    } catch (error) {
+      console.error(`Error bulk creating current prices:`, error);
+      throw error;
+    }
   }
 
   /**
