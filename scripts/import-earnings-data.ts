@@ -1,4 +1,4 @@
-import { quoteSummary } from 'yahoo-finance2';
+import yahooFinance from 'yahoo-finance2';
 import { db } from '../server/db';
 import { 
   earningsResults, 
@@ -13,7 +13,8 @@ import {
   InsertAnalystRecommendation
 } from '../shared/schema';
 import { eq, and } from 'drizzle-orm';
-import { luxon } from 'date-fns';
+
+const { quoteSummary } = yahooFinance;
 
 // Helper function to delay execution (rate limiting)
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -136,8 +137,8 @@ async function importEarningsData(symbol: string, region: string): Promise<void>
         // Calculate surprises
         const actualEPS = quarter.actual?.raw || null;
         const estimateEPS = quarter.estimate?.raw || null;
-        let epsSurprise = null;
-        let epsSurprisePercent = null;
+        let epsSurprise: number | null = null;
+        let epsSurprisePercent: number | null = null;
         
         if (actualEPS !== null && estimateEPS !== null && estimateEPS !== 0) {
           epsSurprise = actualEPS - estimateEPS;
