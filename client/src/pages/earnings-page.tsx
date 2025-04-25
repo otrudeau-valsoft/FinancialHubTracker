@@ -36,6 +36,108 @@ import {
 // Mock data for earnings heatmap based on screenshot
 const mockEarningsHeatmapData = [
   {
+    ticker: "AAPL",
+    issuerName: "APPLE INC",
+    consensusRecommendation: "Buy",
+    last: 178.5,
+    price: {
+      earningsRate: 14.1,
+      ytd: 2.5,
+      pctOf52w: 68.3
+    },
+    eps: "Beat",
+    rev: "Beat",
+    guidance: "Maintain",
+    earningsScore: "Good",
+    mktReaction: 3.8,
+    mktReactionCommentary: "Normal"
+  },
+  {
+    ticker: "MSFT",
+    issuerName: "MICROSOFT CORP",
+    consensusRecommendation: "Strong Buy",
+    last: 423.4,
+    price: {
+      earningsRate: 22.7,
+      ytd: 12.8,
+      pctOf52w: 87.5
+    },
+    eps: "Beat",
+    rev: "Beat",
+    guidance: "Increased",
+    earningsScore: "Great",
+    mktReaction: 7.8,
+    mktReactionCommentary: "Abnormal"
+  },
+  {
+    ticker: "NVDA",
+    issuerName: "NVIDIA CORP",
+    consensusRecommendation: "Strong Buy",
+    last: 889.7,
+    price: {
+      earningsRate: 38.5,
+      ytd: 80.2,
+      pctOf52w: 92.6
+    },
+    eps: "Beat",
+    rev: "Beat",
+    guidance: "Increased",
+    earningsScore: "Great",
+    mktReaction: 14.5,
+    mktReactionCommentary: "Explosive"
+  },
+  {
+    ticker: "AMZN",
+    issuerName: "AMAZON.COM INC",
+    consensusRecommendation: "Buy",
+    last: 183.5,
+    price: {
+      earningsRate: 18.2,
+      ytd: 9.7,
+      pctOf52w: 79.3
+    },
+    eps: "Beat",
+    rev: "In-Line",
+    guidance: "Maintain",
+    earningsScore: "Good",
+    mktReaction: 2.3,
+    mktReactionCommentary: "Normal"
+  },
+  {
+    ticker: "GOOGL",
+    issuerName: "ALPHABET INC CLASS A",
+    consensusRecommendation: "Buy",
+    last: 162.1,
+    price: {
+      earningsRate: 15.3,
+      ytd: 14.2,
+      pctOf52w: 85.4
+    },
+    eps: "Beat", 
+    rev: "Beat",
+    guidance: "Maintain",
+    earningsScore: "Good",
+    mktReaction: 5.2,
+    mktReactionCommentary: "Abnormal"
+  },
+  {
+    ticker: "META",
+    issuerName: "META PLATFORMS INC",
+    consensusRecommendation: "Buy",
+    last: 521.4,
+    price: {
+      earningsRate: 27.1,
+      ytd: 49.8,
+      pctOf52w: 94.2
+    },
+    eps: "Beat",
+    rev: "Beat",
+    guidance: "Increased",
+    earningsScore: "Great",
+    mktReaction: 11.2,
+    mktReactionCommentary: "Explosive"
+  },
+  {
     ticker: "BCH",
     issuerName: "RICHFIELD HARDWARE CORP",
     consensusRecommendation: "Hold",
@@ -53,7 +155,7 @@ const mockEarningsHeatmapData = [
     mktReactionCommentary: "Abnormal"
   },
   {
-    ticker: "JPM.us",
+    ticker: "JPM",
     issuerName: "JPMORGAN CHASE & CO",
     consensusRecommendation: "Buy",
     last: 252.4,
@@ -70,7 +172,7 @@ const mockEarningsHeatmapData = [
     mktReactionCommentary: "Normal"
   },
   {
-    ticker: "ASML.us",
+    ticker: "ASML",
     issuerName: "ASML HOLDING NV REG SHS",
     consensusRecommendation: "Strong Buy",
     last: 714.0,
@@ -87,7 +189,7 @@ const mockEarningsHeatmapData = [
     mktReactionCommentary: "Normal"
   },
   {
-    ticker: "UNH.us",
+    ticker: "UNH",
     issuerName: "UNITEDHEALTH GROUP INC (DEL)",
     consensusRecommendation: "Strong Buy",
     last: 488.7,
@@ -104,7 +206,41 @@ const mockEarningsHeatmapData = [
     mktReactionCommentary: "Abnormal"
   },
   {
-    ticker: "MCJ.r",
+    ticker: "TSLA",
+    issuerName: "TESLA INC",
+    consensusRecommendation: "Hold",
+    last: 183.0,
+    price: {
+      earningsRate: -8.2,
+      ytd: -26.4,
+      pctOf52w: 42.3
+    },
+    eps: "Miss",
+    rev: "Miss",
+    guidance: "Reduced",
+    earningsScore: "Ugly",
+    mktReaction: -12.5,
+    mktReactionCommentary: "Explosive"
+  },
+  {
+    ticker: "INTC",
+    issuerName: "INTEL CORP",
+    consensusRecommendation: "Hold",
+    last: 32.7,
+    price: {
+      earningsRate: -15.3,
+      ytd: -34.8,
+      pctOf52w: 38.7
+    },
+    eps: "Miss",
+    rev: "Miss",
+    guidance: "Reduced",
+    earningsScore: "Ugly",
+    mktReaction: -9.2,
+    mktReactionCommentary: "Abnormal"
+  },
+  {
+    ticker: "MCJ",
     issuerName: "MCJ",
     consensusRecommendation: "Buy",
     last: 605.1,
@@ -378,49 +514,76 @@ export default function EarningsPage() {
                   <Treemap
                     data={mockEarningsHeatmapData.map(item => ({
                       name: item.ticker,
-                      size: Math.abs(item.mktReaction) * 10,
-                      value: Math.abs(item.mktReaction) * 10,
+                      value: Math.max(item.last * Math.abs(item.mktReaction), 100),
+                      ticker: item.ticker,
                       eps: item.eps,
+                      rev: item.rev,
                       earningsScore: item.earningsScore,
+                      guidance: item.guidance,
                       mktReaction: item.mktReaction,
                       issuerName: item.issuerName,
                       ytd: item.price.ytd,
-                      colorIndex: item.mktReaction >= 0 ? 1 : 0
+                      last: item.last
                     }))}
-                    dataKey="size"
+                    dataKey="value"
                     aspectRatio={4 / 3}
                     stroke="#1A304A"
-                    fill="#1A304A"
                   >
+                    {mockEarningsHeatmapData.map((item, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={item.mktReaction >= 0 ? 
+                          (item.mktReaction > 5 ? '#388E3C' : '#4CAF50') : 
+                          (item.mktReaction < -5 ? '#D32F2F' : '#FF5252')}
+                      />
+                    ))}
                     <RechartsTooltip
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           const data = payload[0].payload;
                           return (
-                            <div className="bg-[#0A1929] border border-[#1A304A] rounded p-2 shadow-md text-xs font-mono">
-                              <div className="font-bold text-[#38AAFD]">{data.name}</div>
-                              <div className="text-[#EFEFEF]">{data.issuerName}</div>
-                              <div className="mt-1">
-                                <span className="text-[#7A8999]">EPS: </span>
-                                <span className={`font-bold ${data.eps === 'Beat' ? 'text-[#4CAF50]' : data.eps === 'Miss' ? 'text-[#FF5252]' : 'text-[#FFD700]'}`}>
-                                  {data.eps}
-                                </span>
+                            <div className="bg-[#0A1929] border border-[#1A304A] rounded p-3 shadow-md text-xs font-mono">
+                              <div className="font-bold text-lg text-[#38AAFD]">{data.name}</div>
+                              <div className="text-[#EFEFEF] mb-2">{data.issuerName}</div>
+                              <div className="grid grid-cols-2 gap-2 mt-1">
+                                <div>
+                                  <span className="text-[#7A8999]">Price: </span>
+                                  <span className="font-bold text-[#EFEFEF]">${data.last.toFixed(2)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[#7A8999]">YTD: </span>
+                                  <span className={`font-bold ${data.ytd >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
+                                    {data.ytd >= 0 ? '+' : ''}{data.ytd.toFixed(1)}%
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-[#7A8999]">EPS: </span>
+                                  <span className={`font-bold ${data.eps === 'Beat' ? 'text-[#4CAF50]' : data.eps === 'Miss' ? 'text-[#FF5252]' : 'text-[#FFD700]'}`}>
+                                    {data.eps}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-[#7A8999]">Revenue: </span>
+                                  <span className={`font-bold ${data.rev === 'Beat' ? 'text-[#4CAF50]' : data.rev === 'Miss' ? 'text-[#FF5252]' : 'text-[#FFD700]'}`}>
+                                    {data.rev}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-[#7A8999]">Guidance: </span>
+                                  <span className={`font-bold ${data.guidance === 'Increased' ? 'text-[#4CAF50]' : data.guidance === 'Reduced' ? 'text-[#FF5252]' : 'text-[#FFD700]'}`}>
+                                    {data.guidance}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-[#7A8999]">Score: </span>
+                                  <span className={`font-bold ${data.earningsScore === 'Good' || data.earningsScore === 'Great' ? 'text-[#4CAF50]' : data.earningsScore === 'Ugly' ? 'text-[#FF5252]' : 'text-[#FFD700]'}`}>
+                                    {data.earningsScore}
+                                  </span>
+                                </div>
                               </div>
-                              <div>
-                                <span className="text-[#7A8999]">Score: </span>
-                                <span className={`font-bold ${data.earningsScore === 'Good' ? 'text-[#4CAF50]' : data.earningsScore === 'Ugly' ? 'text-[#FF5252]' : 'text-[#FFD700]'}`}>
-                                  {data.earningsScore}
-                                </span>
-                              </div>
-                              <div>
-                                <span className="text-[#7A8999]">YTD: </span>
-                                <span className={`font-bold ${data.ytd >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
-                                  {data.ytd >= 0 ? '+' : ''}{data.ytd.toFixed(1)}%
-                                </span>
-                              </div>
-                              <div>
-                                <span className="text-[#7A8999]">Market Reaction: </span>
-                                <span className={`font-bold ${data.mktReaction >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
+                              <div className="mt-2 pt-2 border-t border-[#1A304A]">
+                                <span className="text-[#EFEFEF]">Market Reaction: </span>
+                                <span className={`font-bold text-lg ${data.mktReaction >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
                                   {data.mktReaction >= 0 ? '+' : ''}{data.mktReaction.toFixed(1)}%
                                 </span>
                               </div>
@@ -430,14 +593,6 @@ export default function EarningsPage() {
                         return null;
                       }}
                     />
-                    {mockEarningsHeatmapData.map((item, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={item.mktReaction >= 0 ? 
-                          (item.mktReaction > 5 ? '#388E3C' : '#4CAF50') : 
-                          (item.mktReaction < -5 ? '#D32F2F' : '#FF5252')}
-                      />
-                    ))}
                   </Treemap>
                 </ResponsiveContainer>
               </div>
