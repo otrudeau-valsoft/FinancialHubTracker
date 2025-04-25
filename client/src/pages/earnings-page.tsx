@@ -1307,6 +1307,8 @@ export default function EarningsPage() {
                       <thead>
                         <tr className="text-xs border-b border-[#1A304A] bg-[#0D2237]">
                           <th className="p-2 text-left font-mono text-[#7A8999]">QUARTER</th>
+                          <th className="p-2 text-left font-mono text-[#7A8999]">CONSENSUS</th>
+                          <th className="p-2 text-right font-mono text-[#7A8999]">LAST</th>
                           <th className="p-2 text-center font-mono text-[#7A8999]">EPS</th>
                           <th className="p-2 text-center font-mono text-[#7A8999]">REVENUE</th>
                           <th className="p-2 text-center font-mono text-[#7A8999]">GUIDANCE</th>
@@ -1320,6 +1322,8 @@ export default function EarningsPage() {
                           item.data && (
                             <tr key={index} className="border-b border-[#1A304A] hover:bg-[#0F2542]">
                               <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.quarter}</td>
+                              <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.data.consensusRecommendation}</td>
+                              <td className="p-2 text-right font-mono text-[#EFEFEF] text-xs">${item.data.last.toFixed(1)}</td>
                               <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.data.eps)}`}>{item.data.eps}</td>
                               <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.data.rev)}`}>{item.data.rev}</td>
                               <td className={`p-2 text-center font-mono text-xs ${getGuidanceColor(item.data.guidance)}`}>{item.data.guidance}</td>
