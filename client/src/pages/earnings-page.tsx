@@ -1003,7 +1003,6 @@ export default function EarningsPage() {
     <div className="container mx-auto p-2 sm:p-4 bg-[#061220]">
       <div className="mb-4 sm:mb-6">
         <div>
-          <h2 className="text-sm sm:text-base font-mono tracking-tight text-[#C0C0C0] mb-1">EARNINGS SEASON - {quarters[currentQuarterIndex].quarter}</h2>
           <h1 className="text-lg sm:text-xl font-medium text-[#EFEFEF] font-mono tracking-tight">EARNINGS CENTER</h1>
           <div className="flex mt-1">
             <div className="h-0.5 w-8 bg-[#E91E63]"></div>
@@ -1090,7 +1089,7 @@ export default function EarningsPage() {
                 <div className="flex items-center">
                   <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-[#E91E63]" />
                   <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-sm whitespace-nowrap">
-                    <span className="hidden xs:inline">EARNINGS SEASON -</span> {quarters[currentQuarterIndex].quarter}
+                    EARNINGS SEASON - {quarters[currentQuarterIndex].quarter}
                   </h3>
                 </div>
                 
