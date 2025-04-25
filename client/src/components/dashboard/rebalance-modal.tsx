@@ -75,10 +75,20 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
 
   // Handle adding a new stock
   const handleAddStock = () => {
-    if (!newSymbol || !newCompany || !newType || !newRating || newQuantity <= 0) {
+    if (!newSymbol || !newCompany || !newType || !newRating) {
       toast({
         title: 'Validation Error',
-        description: 'Please fill in all fields with valid values.',
+        description: 'Please fill in all required fields.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    // Special validation for quantity
+    if (newQuantity <= 0) {
+      toast({
+        title: 'Validation Error',
+        description: 'Quantity must be greater than 0.',
         variant: 'destructive'
       });
       return;
@@ -117,21 +127,46 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
   // Handle updating a stock in the list
   const handleUpdateStock = (index: number, field: keyof Stock, value: any) => {
     const updatedStocks = [...stocks];
-    updatedStocks[index] = {
-      ...updatedStocks[index],
-      [field]: field === 'quantity' ? Number(value) : value
-    };
+    
+    // Properly handle numeric fields
+    if (field === 'quantity' || field === 'price' || field === 'pbr') {
+      updatedStocks[index] = {
+        ...updatedStocks[index],
+        [field]: value === '' ? undefined : Number(value)
+      };
+    } else {
+      updatedStocks[index] = {
+        ...updatedStocks[index],
+        [field]: value
+      };
+    }
+    
     setStocks(updatedStocks);
   };
 
   // Save the rebalanced portfolio
   const savePortfolioMutation = useMutation({
     mutationFn: async () => {
+      // Ensure numeric values are properly set for API validation
+      const processedStocks = stocks.map(stock => {
+        const processed = { ...stock };
+        
+        // For Cash and ETF types, set default values for numeric fields
+        if (stock.stockType === 'Cash' || stock.stockType === 'ETF' || 
+            stock.rating === 'Cash' || stock.rating === 'ETF') {
+          // Set default values for required numeric fields
+          if (processed.price === undefined) processed.price = 0;
+          // Keep the stock quantity as is
+        }
+        
+        return processed;
+      });
+      
       // Delete all existing stocks and add new ones
       return await apiRequest(
         'POST',
         `/api/portfolios/${region}/rebalance`,
-        { stocks }
+        { stocks: processedStocks }
       );
     },
     onSuccess: () => {
