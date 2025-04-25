@@ -7,6 +7,7 @@ import { z } from "zod";
 import { historicalPriceService } from "./services/historical-price-service";
 import { currentPriceService } from "./services/current-price-service";
 import { schedulerService } from "./services/scheduler-service";
+import { earningsService } from "./services/earnings-service";
 import { db } from "./db";
 import { sql, eq } from "drizzle-orm";
 

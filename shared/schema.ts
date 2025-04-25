@@ -229,6 +229,36 @@ export const insertAlertSchema = createInsertSchema(alerts).omit({
 export type InsertAlert = z.infer<typeof insertAlertSchema>;
 export type Alert = typeof alerts.$inferSelect;
 
+// Earnings Consensus Schema
+export const earningsConsensus = pgTable("earnings_consensus", {
+  id: serial("id").primaryKey(),
+  symbol: text("symbol").notNull(),
+  region: text("region").notNull(), // USD, CAD, INTL
+  quarter: text("quarter").notNull(), // e.g., Q1 2025
+  reportDate: text("report_date"), // Expected or actual report date
+  epsEstimate: numeric("eps_estimate"), // Consensus EPS estimate
+  epsActual: numeric("eps_actual"), // Actual reported EPS
+  epsSurprise: numeric("eps_surprise"), // Difference between actual and estimate
+  epsSurprisePercent: numeric("eps_surprise_percent"), // Percentage surprise
+  revenueEstimate: numeric("revenue_estimate"), // Consensus revenue estimate
+  revenueActual: numeric("revenue_actual"), // Actual reported revenue
+  revenueSurprise: numeric("revenue_surprise"), // Difference between actual and estimate
+  revenueSurprisePercent: numeric("revenue_surprise_percent"), // Percentage surprise
+  earningsResult: text("earnings_result"), // Beat, Miss, In-line
+  consensusRecommendation: text("consensus_recommendation"), // e.g., Strong Buy, Buy, Hold, etc.
+  targetMeanPrice: numeric("target_mean_price"), // Mean price target
+  numberOfAnalysts: integer("number_of_analysts"), // Number of analysts covering
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEarningsConsensusSchema = createInsertSchema(earningsConsensus).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertEarningsConsensus = z.infer<typeof insertEarningsConsensusSchema>;
+export type EarningsConsensus = typeof earningsConsensus.$inferSelect;
+
 // Portfolio Performance Summary
 export const portfolioSummaries = pgTable("portfolio_summaries", {
   id: serial("id").primaryKey(),
