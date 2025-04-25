@@ -43,18 +43,25 @@ export const EtfHoldingsTable = ({
     : holdings;
   
   return (
-    <Card className="bg-card">
-      <CardHeader className="card-header flex justify-between items-center">
-        <h3>{etfSymbol} Holdings ({filteredHoldings.length} of {holdings.length})</h3>
-        <div className="flex items-center space-x-2">
-          <Search className="h-4 w-4 text-gray-400" />
-          <Input
-            type="text"
-            placeholder="Search holdings..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-8 w-64"
-          />
+    <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden rounded-md">
+      <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+        <div className="w-full flex items-center justify-between">
+          <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">
+            {etfSymbol} HOLDINGS ({filteredHoldings.length} of {holdings.length})
+          </h3>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="h-3 w-3 absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Search holdings..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-6 w-36 sm:w-48 text-[10px] pl-7 pr-2 py-1 bg-[#0D1C30] border-[#1A304A]"
+              />
+            </div>
+            <div className="h-1 w-8 bg-[#38AAFD]"></div>
+          </div>
         </div>
       </CardHeader>
       <div className="overflow-x-auto">

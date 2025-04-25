@@ -148,10 +148,15 @@ export default function MatrixRulesPage() {
               <div className="text-center p-8">Loading increase position rules...</div>
             ) : (
               <>
-                <Card className="bg-card mb-6">
-                  <CardHeader className="card-header flex justify-between items-center">
-                    <h3>Increase Position Rules</h3>
-                    <p className="text-xs text-gray-400">Rules to identify buy opportunities</p>
+                <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden rounded-md mb-6">
+                  <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+                    <div className="w-full flex items-center justify-between">
+                      <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">INCREASE POSITION RULES</h3>
+                      <div className="flex items-center gap-2">
+                        <p className="text-[10px] sm:text-xs text-gray-400">Buy opportunities</p>
+                        <div className="h-1 w-8 bg-[#4CAF50]"></div>
+                      </div>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     {increaseRulesByOrder.length > 0 ? (
@@ -198,10 +203,15 @@ export default function MatrixRulesPage() {
               <div className="text-center p-8">Loading decrease position rules...</div>
             ) : (
               <>
-                <Card className="bg-card mb-6">
-                  <CardHeader className="card-header flex justify-between items-center">
-                    <h3>Decrease Position Rules</h3>
-                    <p className="text-xs text-gray-400">Rules to identify sell opportunities</p>
+                <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden rounded-md mb-6">
+                  <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+                    <div className="w-full flex items-center justify-between">
+                      <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">DECREASE POSITION RULES</h3>
+                      <div className="flex items-center gap-2">
+                        <p className="text-[10px] sm:text-xs text-gray-400">Sell opportunities</p>
+                        <div className="h-1 w-8 bg-[#FF3D00]"></div>
+                      </div>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     {decreaseRulesByOrder.length > 0 ? (
@@ -244,9 +254,12 @@ export default function MatrixRulesPage() {
           </TabsContent>
         </Tabs>
 
-        <Card className="bg-card mb-6">
-          <CardHeader className="card-header">
-            <h3>How to Use Matrix Rules</h3>
+        <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden rounded-md mb-6">
+          <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+            <div className="w-full flex items-center justify-between">
+              <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">HOW TO USE MATRIX RULES</h3>
+              <div className="h-1 w-8 bg-[#FFD700]"></div>
+            </div>
           </CardHeader>
           <CardContent className="prose prose-invert max-w-none">
             <div className="text-sm">
