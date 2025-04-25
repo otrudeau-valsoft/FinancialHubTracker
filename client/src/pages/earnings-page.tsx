@@ -828,32 +828,32 @@ const mockUpcomingEarnings = [
   { ticker: "META", company: "Meta Platforms Inc", date: "2025-05-01", time: "AMC", eps: 4.32 }
 ];
 
-// Using simple color scheme consistent with portfolio table
+// Using button-like indicators for blend of new with retro terminal aesthetic
 const getEpsColor = (value: string) => {
   switch (value) {
-    case "Beat": return "text-[#4CAF50]";
-    case "In-Line": return "text-[#FFD700]";
-    case "Miss": return "text-[#FF5252]";
-    default: return "text-[#7A8999]";
+    case "Beat": return "bg-[#4CAF50] text-white px-2 py-0.5 rounded-sm";
+    case "In-Line": return "bg-[#FFD700] text-black px-2 py-0.5 rounded-sm";
+    case "Miss": return "bg-[#FF5252] text-white px-2 py-0.5 rounded-sm";
+    default: return "bg-[#1A304A] text-[#7A8999] px-2 py-0.5 rounded-sm";
   }
 };
 
 const getGuidanceColor = (value: string) => {
   switch (value) {
-    case "Increased": return "text-[#4CAF50]";
-    case "Maintain": return "text-[#FFD700]";
-    case "Reduced": return "text-[#FF5252]";
-    default: return "text-[#7A8999]";
+    case "Increased": return "bg-[#4CAF50] text-white px-2 py-0.5 rounded-sm";
+    case "Maintain": return "bg-[#FFD700] text-black px-2 py-0.5 rounded-sm";
+    case "Reduced": return "bg-[#FF5252] text-white px-2 py-0.5 rounded-sm";
+    default: return "bg-[#1A304A] text-[#7A8999] px-2 py-0.5 rounded-sm";
   }
 };
 
 const getScoreColor = (value: string) => {
   switch (value) {
     case "Good":
-    case "Great": return "text-[#4CAF50]";
-    case "Not So Bad": return "text-[#FFD700]";
-    case "Ugly": return "text-[#FF5252]";
-    default: return "text-[#7A8999]";
+    case "Great": return "bg-[#4CAF50] text-white px-2 py-0.5 rounded-sm";
+    case "Not So Bad": return "bg-[#FFD700] text-black px-2 py-0.5 rounded-sm";
+    case "Ugly": return "bg-[#FF5252] text-white px-2 py-0.5 rounded-sm";
+    default: return "bg-[#1A304A] text-[#7A8999] px-2 py-0.5 rounded-sm";
   }
 };
 
@@ -878,15 +878,15 @@ const getHeatmapRowColor = (item: EarningsHeatmapDataItem) => {
   }
 };
 
-// Helper function to get color for consensus recommendation
+// Helper function to get color for consensus recommendation with button-style
 const getConsensusColor = (value: string) => {
   switch (value) {
-    case "Strong Buy": return "text-[#00C853]";
-    case "Buy": return "text-[#4CAF50]";
-    case "Hold": return "text-[#FFD700]";
+    case "Strong Buy": return "bg-[#00C853] text-white px-2 py-0.5 rounded-sm";
+    case "Buy": return "bg-[#4CAF50] text-white px-2 py-0.5 rounded-sm";
+    case "Hold": return "bg-[#FFD700] text-black px-2 py-0.5 rounded-sm";
     case "Underperform": 
-    case "Sell": return "text-[#FF5252]";
-    default: return "text-[#7A8999]";
+    case "Sell": return "bg-[#FF5252] text-white px-2 py-0.5 rounded-sm";
+    default: return "bg-[#1A304A] text-[#7A8999] px-2 py-0.5 rounded-sm";
   }
 };
 
@@ -1267,8 +1267,10 @@ export default function EarningsPage() {
                         <td className={`p-2 text-center font-mono text-xs ${getScoreColor(item.earningsScore)}`}>
                           {item.earningsScore}
                         </td>
-                        <td className={`p-2 text-right font-mono text-xs ${item.mktReaction >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
-                          {item.mktReaction >= 0 ? '+' : ''}{item.mktReaction.toFixed(1)}%
+                        <td className="p-2 text-right">
+                          <span className={`inline-block font-mono text-xs ${item.mktReaction >= 0 ? 'bg-[#4CAF50] text-white' : 'bg-[#FF5252] text-white'} px-2 py-0.5 rounded-sm`}>
+                            {item.mktReaction >= 0 ? '+' : ''}{item.mktReaction.toFixed(1)}%
+                          </span>
                         </td>
                         <td className={`p-2 text-left font-mono text-xs ${getReactionCommentaryColor(item.mktReactionCommentary)}`}>
                           {item.mktReactionCommentary}
@@ -1465,8 +1467,10 @@ export default function EarningsPage() {
                               <td className={`p-2 text-center font-mono text-xs ${getScoreColor(item.data.earningsScore)}`}>
                                 {item.data.earningsScore}
                               </td>
-                              <td className={`p-2 text-right font-mono text-xs ${item.data.mktReaction >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
-                                {item.data.mktReaction >= 0 ? '+' : ''}{item.data.mktReaction.toFixed(1)}%
+                              <td className="p-2 text-right">
+                                <span className={`inline-block font-mono text-xs ${item.data.mktReaction >= 0 ? 'bg-[#4CAF50] text-white' : 'bg-[#FF5252] text-white'} px-2 py-0.5 rounded-sm`}>
+                                  {item.data.mktReaction >= 0 ? '+' : ''}{item.data.mktReaction.toFixed(1)}%
+                                </span>
                               </td>
                               <td className={`p-2 text-left font-mono text-xs ${getReactionCommentaryColor(item.data.mktReactionCommentary)}`}>
                                 {item.data.mktReactionCommentary}
