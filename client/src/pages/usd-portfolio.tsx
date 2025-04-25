@@ -125,18 +125,57 @@ export default function UsdPortfolio() {
   );
 
   return (
-    <div className="container mx-auto p-4 bg-[#061220]">
-      <div className="mb-6">
-        <div>
-          <h1 className="text-lg sm:text-xl font-medium text-[#EFEFEF] font-mono tracking-tight">USD PORTFOLIO</h1>
-          <div className="flex mt-1">
-            <div className="h-0.5 w-8 bg-[#38AAFD]"></div>
+    <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4 bg-[#061220]">
+      <div className="mb-4 sm:mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-base sm:text-xl font-medium text-[#EFEFEF] font-mono tracking-tight">USD PORTFOLIO</h1>
+            <div className="flex mt-1">
+              <div className="h-0.5 w-8 bg-[#38AAFD]"></div>
+            </div>
+          </div>
+          <div className="hidden sm:flex items-center gap-2 text-[10px] bg-[#0B1728]/80 px-2.5 py-1 rounded-md border border-[#1A304A]">
+            <div className="flex items-center">
+              <div className="w-1.5 h-1.5 bg-[#4CAF50] rounded-full mr-1"></div>
+              <span className="text-[#7A8999] font-mono">PRICES:</span>
+              <span className="ml-1 text-[#EFEFEF] font-mono">
+                {updateLogs 
+                  ? updateLogs.filter(log => log.type === 'current_prices' && log.status === 'Success').length > 0
+                    ? new Date(updateLogs.filter(log => log.type === 'current_prices' && log.status === 'Success')[0].timestamp).toLocaleString('en-US', {
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: false
+                    })
+                    : 'Never'
+                  : '...'}
+              </span>
+            </div>
+            <span className="text-gray-600">|</span>
+            <div className="flex items-center">
+              <div className="w-1.5 h-1.5 bg-[#2196F3] rounded-full mr-1"></div>
+              <span className="text-[#7A8999] font-mono">HISTORY:</span>
+              <span className="ml-1 text-[#EFEFEF] font-mono">
+                {updateLogs 
+                  ? updateLogs.filter(log => log.type === 'historical_prices' && log.status === 'Success').length > 0
+                    ? new Date(updateLogs.filter(log => log.type === 'historical_prices' && log.status === 'Success')[0].timestamp).toLocaleString('en-US', {
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: false
+                    })
+                    : 'Never'
+                  : '...'}
+              </span>
+            </div>
           </div>
         </div>
       </div>
       
-      {/* Floating status bubble */}
-      <div className="fixed bottom-4 right-4 z-50 bg-[#0A1929] border border-[#1A304A] rounded-md shadow-lg p-2 text-[0.65rem] max-w-[220px]">
+      {/* Floating status bubble (mobile only) */}
+      <div className="sm:hidden fixed bottom-4 right-4 z-50 bg-[#0A1929] border border-[#1A304A] rounded-md shadow-lg p-2 text-[0.65rem] max-w-[200px]">
         <div className="flex items-center">
           <div className="w-2 h-2 bg-[#4CAF50] rounded-full mr-1"></div>
           <span className="text-[#7A8999] font-mono">PRICES:</span>
@@ -199,23 +238,29 @@ export default function UsdPortfolio() {
               cashShares={cashHolding?.quantity || 0}
             />
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-              <AllocationChart 
-                typeAllocation={usdAllocationByType} 
-                ratingAllocation={usdAllocationByRating} 
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6">
+              <div className="md:col-span-2 lg:col-span-1 flex flex-col">
+                <AllocationChart 
+                  typeAllocation={usdAllocationByType} 
+                  ratingAllocation={usdAllocationByRating} 
+                />
+              </div>
               
-              <PerformanceChart 
-                portfolioData={samplePerformanceData}
-                timeRanges={["1W", "1M", "YTD", "1Y"]}
-                benchmark="SPY"
-              />
+              <div className="md:col-span-2 lg:col-span-1 flex flex-col">
+                <PerformanceChart 
+                  portfolioData={samplePerformanceData}
+                  timeRanges={["1W", "1M", "YTD", "1Y"]}
+                  benchmark="SPY"
+                />
+              </div>
               
-              <AlertsList 
-                alerts={alerts?.filter(a => 
-                  usdStocks?.find(s => s.symbol === a.symbol) && a.isActive
-                ) || []} 
-              />
+              <div className="flex flex-col">
+                <AlertsList 
+                  alerts={alerts?.filter(a => 
+                    usdStocks?.find(s => s.symbol === a.symbol) && a.isActive
+                  ) || []} 
+                />
+              </div>
             </div>
             
             <PortfolioTable 

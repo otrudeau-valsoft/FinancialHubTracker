@@ -32,64 +32,67 @@ export const PortfolioSummary = ({
   const currencySymbol = region === 'USD' ? '$' : region === 'CAD' ? 'C$' : '$';
   
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
       {/* Portfolio Value Card */}
-      <Card className="border-0 shadow bg-[#0A1929]">
-        <CardHeader className="card-header px-2 py-2 bg-[#111E2E]">
-          <div className="flex items-center">
-            <DollarSign className="h-4 w-4 mr-1 text-[#4CAF50]" />
-            <h3 className="text-left font-mono text-[#EFEFEF] text-xs">PORTFOLIO VALUE</h3>
+      <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden">
+        <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+          <div className="w-full flex items-center justify-between">
+            <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">VALUE</h3>
+            <div className="h-1 w-8 bg-[#4CAF50]"></div>
           </div>
         </CardHeader>
-        <CardContent className="p-2">
-          <div className="flex items-baseline">
-            <span className="text-2xl font-semibold mono">{formatCurrency(summary.value, currencySymbol)}</span>
-            <span className={`ml-2 text-xs mono ${getProfitLossClass(summary.dailyChangePercent)}`}>
+        <CardContent className="p-2 pt-1.5">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+            <span className="text-lg sm:text-xl font-semibold text-[#EFEFEF] mono">{formatCurrency(summary.value, currencySymbol)}</span>
+            <span className={`text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full ${summary.dailyChangePercent >= 0 ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
               {formatPercentage(summary.dailyChangePercent)}
             </span>
           </div>
-          <div className="text-xs text-gray-500 mt-1">
-            vs {benchmark}: <span className={`${getProfitLossClass(summary.benchmarkDiff)}`}>{formatPercentage(summary.benchmarkDiff)}</span>
+          <div className="text-[10px] sm:text-xs text-gray-400 mt-2 flex justify-between">
+            <span>vs {benchmark}:</span> 
+            <span className={`${getProfitLossClass(summary.benchmarkDiff)} font-medium`}>{formatPercentage(summary.benchmarkDiff)}</span>
           </div>
         </CardContent>
       </Card>
       
       {/* Cash Position Card */}
-      <Card className="border-0 shadow bg-[#0A1929]">
-        <CardHeader className="card-header px-2 py-2 bg-[#111E2E]">
-          <div className="flex items-center">
-            <Banknote className="h-4 w-4 mr-1 text-[#FDD835]" />
-            <h3 className="text-left font-mono text-[#EFEFEF] text-xs">CASH POSITION</h3>
+      <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden">
+        <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+          <div className="w-full flex items-center justify-between">
+            <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">CASH</h3>
+            <div className="h-1 w-8 bg-[#FDD835]"></div>
           </div>
         </CardHeader>
-        <CardContent className="p-2">
-          <div className="flex items-baseline">
-            <span className="text-2xl font-semibold mono">{formatCurrency(summary.cashPosition, currencySymbol)}</span>
-            <span className="ml-2 text-xs mono text-gray-400">{summary.cashPositionPercent.toFixed(2)}% of NAV</span>
+        <CardContent className="p-2 pt-1.5">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+            <span className="text-lg sm:text-xl font-semibold text-[#EFEFEF] mono">{formatCurrency(summary.cashPosition, currencySymbol)}</span>
+            <span className="text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full bg-blue-900/20 text-blue-400">{summary.cashPositionPercent.toFixed(1)}%</span>
           </div>
-          <div className="text-xs text-gray-500 mt-1">
-            {cashSymbol} ETF: <span className="mono">{cashShares} shares</span>
+          <div className="text-[10px] sm:text-xs text-gray-400 mt-2 flex justify-between">
+            <span>{cashSymbol}:</span> 
+            <span className="mono font-medium">{cashShares} shares</span>
           </div>
         </CardContent>
       </Card>
       
       {/* Performance Card */}
-      <Card className="border-0 shadow bg-[#0A1929]">
-        <CardHeader className="card-header px-2 py-2 bg-[#111E2E]">
-          <div className="flex items-center">
-            <TrendingUp className="h-4 w-4 mr-1 text-[#2196F3]" />
-            <h3 className="text-left font-mono text-[#EFEFEF] text-xs">YTD PERFORMANCE</h3>
+      <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden">
+        <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+          <div className="w-full flex items-center justify-between">
+            <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">YTD</h3>
+            <div className="h-1 w-8 bg-[#2196F3]"></div>
           </div>
         </CardHeader>
-        <CardContent className="p-2">
-          <div className="flex items-baseline">
-            <span className={`text-2xl font-semibold mono ${getProfitLossClass(summary.ytdPerformance)}`}>
+        <CardContent className="p-2 pt-1.5">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+            <span className={`text-lg sm:text-xl font-semibold mono ${getProfitLossClass(summary.ytdPerformance)}`}>
               {formatPercentage(summary.ytdPerformance)}
             </span>
-            <span className="ml-2 text-xs mono text-gray-400">{formatCurrency(summary.ytdPerformanceValue, currencySymbol)}</span>
+            <span className="text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full bg-blue-900/20 text-blue-400">{formatCurrency(summary.ytdPerformanceValue, currencySymbol)}</span>
           </div>
-          <div className="text-xs text-gray-500 mt-1">
-            {benchmark} (Benchmark): <span className={`mono ${getProfitLossClass(summary.benchmarkPerformance)}`}>
+          <div className="text-[10px] sm:text-xs text-gray-400 mt-2 flex justify-between">
+            <span>{benchmark}:</span> 
+            <span className={`mono font-medium ${getProfitLossClass(summary.benchmarkPerformance)}`}>
               {formatPercentage(summary.benchmarkPerformance)}
             </span>
           </div>
@@ -97,19 +100,26 @@ export const PortfolioSummary = ({
       </Card>
       
       {/* Alerts Card */}
-      <Card className="border-0 shadow bg-[#0A1929]">
-        <CardHeader className="card-header px-2 py-2 bg-[#111E2E]">
-          <div className="flex items-center">
-            <Bell className="h-4 w-4 mr-1 text-[#FF5722]" />
-            <h3 className="text-left font-mono text-[#EFEFEF] text-xs">ACTIVE ALERTS</h3>
+      <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden">
+        <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+          <div className="w-full flex items-center justify-between">
+            <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">ALERTS</h3>
+            <div className="h-1 w-8 bg-[#FF5722]"></div>
           </div>
         </CardHeader>
-        <CardContent className="p-2">
-          <div className="flex items-baseline">
-            <span className="text-2xl font-semibold mono">{summary.activeAlerts}</span>
-            <span className="ml-2 text-xs mono text-loss">{summary.criticalAlerts} critical</span>
+        <CardContent className="p-2 pt-1.5">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+            <span className="text-lg sm:text-xl font-semibold text-[#EFEFEF] mono">{summary.activeAlerts}</span>
+            {summary.criticalAlerts > 0 ? (
+              <span className="text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full bg-red-900/30 text-red-400">{summary.criticalAlerts} critical</span>
+            ) : (
+              <span className="text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full bg-green-900/30 text-green-400">All clear</span>
+            )}
           </div>
-          <div className="text-xs text-gray-500 mt-1">Based on matrix rules</div>
+          <div className="text-[10px] sm:text-xs text-gray-400 mt-2 flex justify-between">
+            <span>Matrix rules</span>
+            <span className="mono font-medium">{new Date().toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</span>
+          </div>
         </CardContent>
       </Card>
     </div>
