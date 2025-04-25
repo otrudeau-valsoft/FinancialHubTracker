@@ -13,6 +13,22 @@ export function Header() {
   const [location, navigate] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
+  // Mock data for market returns - in a real app, this would come from an API
+  const { data: marketData } = useQuery({
+    queryKey: ['market-data'],
+    queryFn: async () => {
+      // In a production app, this would fetch from your API
+      // For now, using mock data to demonstrate the UI
+      return {
+        sp500: { return: 0.32, positive: true },
+        tsx: { return: -0.18, positive: false },
+        acwx: { return: 0.21, positive: true }
+      };
+    },
+    // Refresh every 5 minutes
+    refetchInterval: 5 * 60 * 1000
+  });
+  
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
@@ -24,10 +40,48 @@ export function Header() {
   
   return (
     <header className="h-12 bg-gradient-to-r from-[#061220] to-[#0D1F32] border-b border-[#1A304A] flex items-center justify-between px-2 sm:px-4 shadow-md">
-      {/* Desktop spacer */}
-      <div className="hidden md:flex items-center mr-6">
+      {/* Market Indicators */}
+      <div className="hidden md:flex items-center mr-4 space-x-3">
         <div className="flex items-center">
-          <div className="h-3 mx-4 w-px bg-gray-700 invisible"></div>
+          <div className={`flex items-center text-[10px] font-mono space-x-1 py-0.5 px-1.5 rounded-full ${!marketData ? 'bg-blue-900/30 text-blue-400' : (marketData.sp500.positive ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400')}`}>
+            <span className="font-semibold">S&P500</span>
+            <span className="flex items-center">
+              {!marketData ? null : (
+                marketData.sp500.positive ? 
+                  <TrendingUp className="h-2.5 w-2.5 mr-0.5" /> : 
+                  <TrendingDown className="h-2.5 w-2.5 mr-0.5" />
+              )}
+              {!marketData ? '--' : `${marketData.sp500.return.toFixed(2)}%`}
+            </span>
+          </div>
+        </div>
+        
+        <div className="flex items-center">
+          <div className={`flex items-center text-[10px] font-mono space-x-1 py-0.5 px-1.5 rounded-full ${!marketData ? 'bg-blue-900/30 text-blue-400' : (marketData.tsx.positive ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400')}`}>
+            <span className="font-semibold">TSX</span>
+            <span className="flex items-center">
+              {!marketData ? null : (
+                marketData.tsx.positive ? 
+                  <TrendingUp className="h-2.5 w-2.5 mr-0.5" /> : 
+                  <TrendingDown className="h-2.5 w-2.5 mr-0.5" />
+              )}
+              {!marketData ? '--' : `${Math.abs(marketData.tsx.return).toFixed(2)}%`}
+            </span>
+          </div>
+        </div>
+        
+        <div className="flex items-center">
+          <div className={`flex items-center text-[10px] font-mono space-x-1 py-0.5 px-1.5 rounded-full ${!marketData ? 'bg-blue-900/30 text-blue-400' : (marketData.acwx.positive ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400')}`}>
+            <span className="font-semibold">ACWX</span>
+            <span className="flex items-center">
+              {!marketData ? null : (
+                marketData.acwx.positive ? 
+                  <TrendingUp className="h-2.5 w-2.5 mr-0.5" /> : 
+                  <TrendingDown className="h-2.5 w-2.5 mr-0.5" />
+              )}
+              {!marketData ? '--' : `${marketData.acwx.return.toFixed(2)}%`}
+            </span>
+          </div>
         </div>
       </div>
       
@@ -91,10 +145,48 @@ export function Header() {
         </button>
       </nav>
       
-      {/* Mobile View - Spacer */}
-      <div className="md:hidden flex items-center">
+      {/* Mobile View - Market Indicators */}
+      <div className="md:hidden flex items-center space-x-1">
         <div className="flex items-center">
-          <span className="text-transparent">SPACER</span>
+          <div className={`flex items-center text-[8px] font-mono py-0.5 px-1 rounded-full ${!marketData ? 'bg-blue-900/30 text-blue-400' : (marketData.sp500.positive ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400')}`}>
+            <span className="font-semibold">S&P</span>
+            <span>
+              {!marketData ? '--' : (
+                <>
+                  {marketData.sp500.positive ? '+' : ''}
+                  {marketData.sp500.return.toFixed(1)}%
+                </>
+              )}
+            </span>
+          </div>
+        </div>
+        
+        <div className="flex items-center">
+          <div className={`flex items-center text-[8px] font-mono py-0.5 px-1 rounded-full ${!marketData ? 'bg-blue-900/30 text-blue-400' : (marketData.tsx.positive ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400')}`}>
+            <span className="font-semibold">TSX</span>
+            <span>
+              {!marketData ? '--' : (
+                <>
+                  {marketData.tsx.positive ? '+' : ''}
+                  {marketData.tsx.return.toFixed(1)}%
+                </>
+              )}
+            </span>
+          </div>
+        </div>
+        
+        <div className="flex items-center">
+          <div className={`flex items-center text-[8px] font-mono py-0.5 px-1 rounded-full ${!marketData ? 'bg-blue-900/30 text-blue-400' : (marketData.acwx.positive ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400')}`}>
+            <span className="font-semibold">ACX</span>
+            <span>
+              {!marketData ? '--' : (
+                <>
+                  {marketData.acwx.positive ? '+' : ''}
+                  {marketData.acwx.return.toFixed(1)}%
+                </>
+              )}
+            </span>
+          </div>
         </div>
       </div>
       
@@ -171,7 +263,7 @@ export function Header() {
               
               <button 
                 onClick={() => navigateTo("/data-management")} 
-                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded text-xs font-mono ${location === '/data-management' ? 'bg-[#1A304A]' : ''}`}
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/data-management' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
               >
                 Data Management
               </button>
