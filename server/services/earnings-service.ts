@@ -1,4 +1,4 @@
-import { quoteSummary } from 'yahoo-finance2';
+import yahooFinance from 'yahoo-finance2';
 import { db } from '../db';
 import { eq, and, desc } from 'drizzle-orm';
 import { 
@@ -71,7 +71,7 @@ export class EarningsService {
       const adjustedSymbol = region === 'CAD' ? `${symbol}.TO` : symbol;
       
       // Fetch data from Yahoo Finance
-      const result = await quoteSummary(adjustedSymbol, {
+      const result = await yahooFinance.quoteSummary(adjustedSymbol, {
         modules: ['recommendationTrend', 'earnings', 'earningsTrend']
       });
 
