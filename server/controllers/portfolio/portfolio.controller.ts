@@ -183,7 +183,16 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
     rating: z.string().min(1, "Rating is required"),
     sector: z.string().optional(),
     quantity: z.number().min(0, "Quantity must be a positive number"),
-    price: z.number().optional(),
+    price: z.union([z.number(), z.string(), z.null(), z.undefined()]).optional().transform(val => 
+      // Convert string or null to number 
+      val === null || val === undefined ? undefined : 
+      typeof val === 'string' ? parseFloat(val) || 0 : val
+    ),
+    pbr: z.union([z.number(), z.string(), z.null(), z.undefined()]).optional().transform(val => 
+      // Convert string or null to number
+      val === null || val === undefined ? undefined : 
+      typeof val === 'string' ? parseFloat(val) || undefined : val
+    ),
   });
   
   const schema = z.object({
