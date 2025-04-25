@@ -19,25 +19,7 @@ import {
   PieChart,
   Filter
 } from "lucide-react";
-import {
-  ResponsiveContainer,
-  Tooltip as RechartsTooltip,
-  Cell,
-  Treemap
-} from "recharts";
-
-// Data for the treemap visualization based on the screenshot
-const mockTreemapData = [
-  { name: 'AAPL', size: 1500, value: 1500, marketReaction: 4.2 },
-  { name: 'MSFT', size: 1200, value: 1200, marketReaction: 3.1 },
-  { name: 'NVDA', size: 2000, value: 2000, marketReaction: 7.5 },
-  { name: 'META', size: 1800, value: 1800, marketReaction: 6.2 },
-  { name: 'TSLA', size: 700, value: 700, marketReaction: -5.2 },
-  { name: 'UNH', size: 900, value: 900, marketReaction: -7.9 },
-  { name: 'JPM', size: 280, value: 280, marketReaction: 1.8 },
-  { name: 'BCH', size: 350, value: 350, marketReaction: 5.5 },
-  { name: 'MCJ', size: 650, value: 650, marketReaction: -6.4 }
-];
+// No visualization libraries needed for table-only approach
 
 // Mock data for earnings heatmap based on screenshot
 const mockEarningsHeatmapData = [
