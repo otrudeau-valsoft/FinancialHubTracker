@@ -85,7 +85,7 @@ export function Header() {
       
       {/* Mobile View - App Title */}
       <div className="md:hidden flex items-center">
-        <span className="text-white font-mono text-sm">Investment Manager</span>
+        <span className="text-white font-mono text-sm">AlphaGen</span>
       </div>
       
       {/* Mobile Menu Toggle */}
