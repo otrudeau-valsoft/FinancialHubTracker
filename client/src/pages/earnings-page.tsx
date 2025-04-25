@@ -22,116 +22,729 @@ import {
   ChevronRight
 } from "lucide-react";
 
-// Mock data for earnings heatmap based on screenshot
-const mockEarningsHeatmapData = [
-  {
-    ticker: "BCH",
-    issuerName: "RICHFIELD HARDWARE CORP",
-    consensusRecommendation: "Hold",
-    last: 33.5,
-    price: {
-      earningsRate: 17.1,
-      ytd: -41.1,
-      pctOf52w: 44.3
-    },
-    eps: "Beat",
-    rev: "Beat",
-    guidance: "Maintain",
-    earningsScore: "Good",
-    mktReaction: 5.1,
-    mktReactionCommentary: "Abnormal"
-  },
-  {
-    ticker: "JPM.us",
-    issuerName: "JPMORGAN CHASE & CO",
-    consensusRecommendation: "Buy",
-    last: 252.4,
-    price: {
-      earningsRate: 12.7,
-      ytd: -5.5,
-      pctOf52w: 52.7
-    },
-    eps: "Beat",
-    rev: "Beat",
-    guidance: "Maintain",
-    earningsScore: "Good",
-    mktReaction: 0.5,
-    mktReactionCommentary: "Normal"
-  },
-  {
-    ticker: "ASML.us",
-    issuerName: "ASML HOLDING NV REG SHS",
-    consensusRecommendation: "Strong Buy",
-    last: 714.0,
-    price: {
-      earningsRate: 27.1,
-      ytd: 0.4,
-      pctOf52w: 74.8
-    },
-    eps: "Beat",
-    rev: "Beat",
-    guidance: "Maintain",
-    earningsScore: "Good",
-    mktReaction: 0.9,
-    mktReactionCommentary: "Normal"
-  },
-  {
-    ticker: "UNH.us",
-    issuerName: "UNITEDHEALTH GROUP INC (DEL)",
-    consensusRecommendation: "Strong Buy",
-    last: 488.7,
-    price: {
-      earningsRate: 16.4,
-      ytd: -4.4,
-      pctOf52w: 26.9
-    },
-    eps: "Beat",
-    rev: "In-Line",
-    guidance: "Maintain",
-    earningsScore: "Not So Bad",
-    mktReaction: 6.0,
-    mktReactionCommentary: "Abnormal"
-  },
-  {
-    ticker: "MCJ.r",
-    issuerName: "MCJ",
-    consensusRecommendation: "Buy",
-    last: 605.1,
-    price: {
-      earningsRate: 21.5,
-      ytd: -4.8,
-      pctOf52w: 12.4
-    },
-    eps: "Miss",
-    rev: "In-Line",
-    guidance: "Maintain",
-    earningsScore: "Not So Bad",
-    mktReaction: -5.8,
-    mktReactionCommentary: "Abnormal"
-  }
-];
+// Define a type for the earnings heatmap data structure
+type EarningsHeatmapDataItem = {
+  ticker: string;
+  issuerName: string;
+  consensusRecommendation: string;
+  last: number;
+  price: {
+    earningsRate: number;
+    ytd: number;
+    pctOf52w: number;
+  };
+  eps: string;
+  rev: string;
+  guidance: string;
+  earningsScore: string;
+  mktReaction: number;
+  mktReactionCommentary: string;
+};
 
-// Mock data for the earnings stats
-const mockEarningsStats = {
+type EarningsStats = {
   eps: {
-    beat: 26,
-    inLine: 8,
-    miss: 11
-  },
+    beat: number;
+    inLine: number;
+    miss: number;
+  };
   revenue: {
-    beat: 22,
-    inLine: 16,
-    miss: 6
-  },
+    beat: number;
+    inLine: number;
+    miss: number;
+  };
   guidance: {
-    increased: 3,
-    maintain: 40,
-    reduced: 2
-  },
+    increased: number;
+    maintain: number;
+    reduced: number;
+  };
   earningScore: {
-    greatGood: 31,
-    notSoBad: 13,
-    ugly: 1
+    greatGood: number;
+    notSoBad: number;
+    ugly: number;
+  };
+};
+
+// Quarter-specific mock data
+const quarterData: Record<string, {
+  heatmapData: EarningsHeatmapDataItem[],
+  stats: EarningsStats
+}> = {
+  // Q4 2024 Data
+  "Q4 2024": {
+    heatmapData: [
+      {
+        ticker: "BCH",
+        issuerName: "RICHFIELD HARDWARE CORP",
+        consensusRecommendation: "Hold",
+        last: 33.5,
+        price: {
+          earningsRate: 17.1,
+          ytd: -41.1,
+          pctOf52w: 44.3
+        },
+        eps: "Beat",
+        rev: "Beat",
+        guidance: "Maintain",
+        earningsScore: "Good",
+        mktReaction: 5.1,
+        mktReactionCommentary: "Abnormal"
+      },
+      {
+        ticker: "JPM.us",
+        issuerName: "JPMORGAN CHASE & CO",
+        consensusRecommendation: "Buy",
+        last: 252.4,
+        price: {
+          earningsRate: 12.7,
+          ytd: -5.5,
+          pctOf52w: 52.7
+        },
+        eps: "Beat",
+        rev: "Beat",
+        guidance: "Maintain",
+        earningsScore: "Good",
+        mktReaction: 0.5,
+        mktReactionCommentary: "Normal"
+      },
+      {
+        ticker: "ASML.us",
+        issuerName: "ASML HOLDING NV REG SHS",
+        consensusRecommendation: "Strong Buy",
+        last: 714.0,
+        price: {
+          earningsRate: 27.1,
+          ytd: 0.4,
+          pctOf52w: 74.8
+        },
+        eps: "Beat",
+        rev: "Beat",
+        guidance: "Maintain",
+        earningsScore: "Good",
+        mktReaction: 0.9,
+        mktReactionCommentary: "Normal"
+      },
+      {
+        ticker: "UNH.us",
+        issuerName: "UNITEDHEALTH GROUP INC (DEL)",
+        consensusRecommendation: "Strong Buy",
+        last: 488.7,
+        price: {
+          earningsRate: 16.4,
+          ytd: -4.4,
+          pctOf52w: 26.9
+        },
+        eps: "Beat",
+        rev: "In-Line",
+        guidance: "Maintain",
+        earningsScore: "Not So Bad",
+        mktReaction: 6.0,
+        mktReactionCommentary: "Abnormal"
+      },
+      {
+        ticker: "MCJ.r",
+        issuerName: "MCJ",
+        consensusRecommendation: "Buy",
+        last: 605.1,
+        price: {
+          earningsRate: 21.5,
+          ytd: -4.8,
+          pctOf52w: 12.4
+        },
+        eps: "Miss",
+        rev: "In-Line",
+        guidance: "Maintain",
+        earningsScore: "Not So Bad",
+        mktReaction: -5.8,
+        mktReactionCommentary: "Abnormal"
+      }
+    ],
+    stats: {
+      eps: {
+        beat: 26,
+        inLine: 8,
+        miss: 11
+      },
+      revenue: {
+        beat: 22,
+        inLine: 16,
+        miss: 6
+      },
+      guidance: {
+        increased: 3,
+        maintain: 40,
+        reduced: 2
+      },
+      earningScore: {
+        greatGood: 31,
+        notSoBad: 13,
+        ugly: 1
+      }
+    }
+  },
+
+  // Q3 2024 Data
+  "Q3 2024": {
+    heatmapData: [
+      {
+        ticker: "MSFT",
+        issuerName: "MICROSOFT CORP",
+        consensusRecommendation: "Strong Buy",
+        last: 415.8,
+        price: {
+          earningsRate: 8.3,
+          ytd: 14.7,
+          pctOf52w: 93.4
+        },
+        eps: "Beat",
+        rev: "Beat",
+        guidance: "Increased",
+        earningsScore: "Great",
+        mktReaction: 4.2,
+        mktReactionCommentary: "Normal"
+      },
+      {
+        ticker: "AAPL",
+        issuerName: "APPLE INC",
+        consensusRecommendation: "Buy",
+        last: 182.5,
+        price: {
+          earningsRate: 2.1,
+          ytd: -6.7,
+          pctOf52w: 71.8
+        },
+        eps: "In-Line",
+        rev: "In-Line",
+        guidance: "Maintain",
+        earningsScore: "Not So Bad",
+        mktReaction: -3.4,
+        mktReactionCommentary: "Normal"
+      },
+      {
+        ticker: "AMZN",
+        issuerName: "AMAZON.COM INC",
+        consensusRecommendation: "Strong Buy",
+        last: 178.2,
+        price: {
+          earningsRate: 11.6,
+          ytd: 22.3,
+          pctOf52w: 82.7
+        },
+        eps: "Beat",
+        rev: "Beat",
+        guidance: "Maintain",
+        earningsScore: "Good",
+        mktReaction: 7.9,
+        mktReactionCommentary: "Abnormal"
+      },
+      {
+        ticker: "NVDA",
+        issuerName: "NVIDIA CORP",
+        consensusRecommendation: "Strong Buy",
+        last: 879.5,
+        price: {
+          earningsRate: 37.2,
+          ytd: 81.3,
+          pctOf52w: 96.2
+        },
+        eps: "Beat",
+        rev: "Beat",
+        guidance: "Increased",
+        earningsScore: "Great",
+        mktReaction: 12.4,
+        mktReactionCommentary: "Explosive"
+      },
+      {
+        ticker: "META",
+        issuerName: "META PLATFORMS INC",
+        consensusRecommendation: "Buy",
+        last: 511.2,
+        price: {
+          earningsRate: 14.3,
+          ytd: 38.2,
+          pctOf52w: 87.5
+        },
+        eps: "Beat",
+        rev: "Beat",
+        guidance: "Maintain",
+        earningsScore: "Good",
+        mktReaction: 3.7,
+        mktReactionCommentary: "Normal"
+      }
+    ],
+    stats: {
+      eps: {
+        beat: 32,
+        inLine: 5,
+        miss: 8
+      },
+      revenue: {
+        beat: 28,
+        inLine: 12,
+        miss: 5
+      },
+      guidance: {
+        increased: 7,
+        maintain: 33,
+        reduced: 5
+      },
+      earningScore: {
+        greatGood: 34,
+        notSoBad: 10,
+        ugly: 1
+      }
+    }
+  },
+
+  // Q2 2024 Data
+  "Q2 2024": {
+    heatmapData: [
+      {
+        ticker: "CVX",
+        issuerName: "CHEVRON CORP",
+        consensusRecommendation: "Hold",
+        last: 162.8,
+        price: {
+          earningsRate: -4.7,
+          ytd: 2.1,
+          pctOf52w: 65.3
+        },
+        eps: "Miss",
+        rev: "Miss",
+        guidance: "Reduced",
+        earningsScore: "Ugly",
+        mktReaction: -7.3,
+        mktReactionCommentary: "Abnormal"
+      },
+      {
+        ticker: "JPM",
+        issuerName: "JPMORGAN CHASE & CO",
+        consensusRecommendation: "Buy",
+        last: 214.7,
+        price: {
+          earningsRate: 5.3,
+          ytd: 9.8,
+          pctOf52w: 79.2
+        },
+        eps: "Beat",
+        rev: "In-Line",
+        guidance: "Maintain",
+        earningsScore: "Good",
+        mktReaction: 2.1,
+        mktReactionCommentary: "Normal"
+      },
+      {
+        ticker: "WMT",
+        issuerName: "WALMART INC",
+        consensusRecommendation: "Buy",
+        last: 69.5,
+        price: {
+          earningsRate: 2.8,
+          ytd: 11.2,
+          pctOf52w: 83.7
+        },
+        eps: "Beat",
+        rev: "Beat",
+        guidance: "Increased",
+        earningsScore: "Good",
+        mktReaction: 5.4,
+        mktReactionCommentary: "Abnormal"
+      },
+      {
+        ticker: "PG",
+        issuerName: "PROCTER & GAMBLE CO",
+        consensusRecommendation: "Hold",
+        last: 172.1,
+        price: {
+          earningsRate: 1.2,
+          ytd: 8.5,
+          pctOf52w: 76.4
+        },
+        eps: "In-Line",
+        rev: "In-Line",
+        guidance: "Maintain",
+        earningsScore: "Not So Bad",
+        mktReaction: -0.8,
+        mktReactionCommentary: "Normal"
+      },
+      {
+        ticker: "TSLA",
+        issuerName: "TESLA INC",
+        consensusRecommendation: "Hold",
+        last: 215.3,
+        price: {
+          earningsRate: -13.7,
+          ytd: -22.4,
+          pctOf52w: 43.6
+        },
+        eps: "Miss",
+        rev: "Miss",
+        guidance: "Maintain",
+        earningsScore: "Ugly",
+        mktReaction: -12.5,
+        mktReactionCommentary: "Explosive"
+      }
+    ],
+    stats: {
+      eps: {
+        beat: 18,
+        inLine: 12,
+        miss: 15
+      },
+      revenue: {
+        beat: 17,
+        inLine: 15,
+        miss: 13
+      },
+      guidance: {
+        increased: 5,
+        maintain: 32,
+        reduced: 8
+      },
+      earningScore: {
+        greatGood: 24,
+        notSoBad: 15,
+        ugly: 6
+      }
+    }
+  },
+
+  // Q1 2024 Data
+  "Q1 2024": {
+    heatmapData: [
+      {
+        ticker: "BAC",
+        issuerName: "BANK OF AMERICA CORP",
+        consensusRecommendation: "Hold",
+        last: 37.8,
+        price: {
+          earningsRate: 1.2,
+          ytd: 3.5,
+          pctOf52w: 62.1
+        },
+        eps: "In-Line",
+        rev: "In-Line",
+        guidance: "Maintain",
+        earningsScore: "Not So Bad",
+        mktReaction: 0.3,
+        mktReactionCommentary: "Normal"
+      },
+      {
+        ticker: "JNJ",
+        issuerName: "JOHNSON & JOHNSON",
+        consensusRecommendation: "Hold",
+        last: 151.2,
+        price: {
+          earningsRate: -2.1,
+          ytd: -5.7,
+          pctOf52w: 55.3
+        },
+        eps: "In-Line",
+        rev: "Miss",
+        guidance: "Reduced",
+        earningsScore: "Not So Bad",
+        mktReaction: -3.8,
+        mktReactionCommentary: "Normal"
+      },
+      {
+        ticker: "PFE",
+        issuerName: "PFIZER INC",
+        consensusRecommendation: "Hold",
+        last: 27.3,
+        price: {
+          earningsRate: -8.5,
+          ytd: -12.3,
+          pctOf52w: 41.7
+        },
+        eps: "Miss",
+        rev: "Miss",
+        guidance: "Reduced",
+        earningsScore: "Ugly",
+        mktReaction: -9.2,
+        mktReactionCommentary: "Abnormal"
+      },
+      {
+        ticker: "KO",
+        issuerName: "COCA-COLA CO",
+        consensusRecommendation: "Buy",
+        last: 62.7,
+        price: {
+          earningsRate: 3.4,
+          ytd: 5.8,
+          pctOf52w: 72.6
+        },
+        eps: "Beat",
+        rev: "In-Line",
+        guidance: "Maintain",
+        earningsScore: "Good",
+        mktReaction: 2.1,
+        mktReactionCommentary: "Normal"
+      },
+      {
+        ticker: "INTC",
+        issuerName: "INTEL CORP",
+        consensusRecommendation: "Hold",
+        last: 33.8,
+        price: {
+          earningsRate: -12.1,
+          ytd: -17.5,
+          pctOf52w: 38.2
+        },
+        eps: "Miss",
+        rev: "Miss",
+        guidance: "Reduced",
+        earningsScore: "Ugly",
+        mktReaction: -15.7,
+        mktReactionCommentary: "Explosive"
+      }
+    ],
+    stats: {
+      eps: {
+        beat: 15,
+        inLine: 13,
+        miss: 17
+      },
+      revenue: {
+        beat: 13,
+        inLine: 17,
+        miss: 15
+      },
+      guidance: {
+        increased: 2,
+        maintain: 29,
+        reduced: 14
+      },
+      earningScore: {
+        greatGood: 22,
+        notSoBad: 17,
+        ugly: 6
+      }
+    }
+  },
+
+  // Q4 2023 Data
+  "Q4 2023": {
+    heatmapData: [
+      {
+        ticker: "MSFT",
+        issuerName: "MICROSOFT CORP",
+        consensusRecommendation: "Strong Buy", 
+        last: 378.5,
+        price: {
+          earningsRate: 11.2,
+          ytd: 5.3,
+          pctOf52w: 87.6
+        },
+        eps: "Beat",
+        rev: "Beat",
+        guidance: "Increased",
+        earningsScore: "Great",
+        mktReaction: 6.7,
+        mktReactionCommentary: "Abnormal"
+      },
+      {
+        ticker: "AAPL",
+        issuerName: "APPLE INC",
+        consensusRecommendation: "Buy",
+        last: 168.3,
+        price: {
+          earningsRate: 4.1,
+          ytd: 2.8,
+          pctOf52w: 75.3
+        },
+        eps: "Beat",
+        rev: "In-Line",
+        guidance: "Maintain",
+        earningsScore: "Good",
+        mktReaction: 2.5,
+        mktReactionCommentary: "Normal"
+      },
+      {
+        ticker: "V",
+        issuerName: "VISA INC",
+        consensusRecommendation: "Strong Buy",
+        last: 276.8,
+        price: {
+          earningsRate: 8.3,
+          ytd: 4.2,
+          pctOf52w: 82.4
+        },
+        eps: "Beat",
+        rev: "Beat",
+        guidance: "Maintain",
+        earningsScore: "Good",
+        mktReaction: 3.8,
+        mktReactionCommentary: "Normal"
+      },
+      {
+        ticker: "MA",
+        issuerName: "MASTERCARD INC",
+        consensusRecommendation: "Strong Buy",
+        last: 458.2,
+        price: {
+          earningsRate: 7.5,
+          ytd: 3.9,
+          pctOf52w: 79.8
+        },
+        eps: "Beat",
+        rev: "Beat",
+        guidance: "Maintain",
+        earningsScore: "Good",
+        mktReaction: 2.7,
+        mktReactionCommentary: "Normal"
+      },
+      {
+        ticker: "AMZN",
+        issuerName: "AMAZON.COM INC",
+        consensusRecommendation: "Strong Buy",
+        last: 152.7,
+        price: {
+          earningsRate: 13.8,
+          ytd: 7.2,
+          pctOf52w: 84.5
+        },
+        eps: "Beat",
+        rev: "Beat",
+        guidance: "Increased",
+        earningsScore: "Great",
+        mktReaction: 8.3,
+        mktReactionCommentary: "Abnormal"
+      }
+    ],
+    stats: {
+      eps: {
+        beat: 34,
+        inLine: 10,
+        miss: 6
+      },
+      revenue: {
+        beat: 31,
+        inLine: 12,
+        miss: 7
+      },
+      guidance: {
+        increased: 11,
+        maintain: 35,
+        reduced: 4
+      },
+      earningScore: {
+        greatGood: 36,
+        notSoBad: 12,
+        ugly: 2
+      }
+    }
+  },
+
+  // Q3 2023 Data
+  "Q3 2023": {
+    heatmapData: [
+      {
+        ticker: "XOM",
+        issuerName: "EXXON MOBIL CORP",
+        consensusRecommendation: "Hold",
+        last: 107.2,
+        price: {
+          earningsRate: -3.2,
+          ytd: -1.8,
+          pctOf52w: 65.1
+        },
+        eps: "Miss",
+        rev: "Miss",
+        guidance: "Maintain",
+        earningsScore: "Not So Bad",
+        mktReaction: -2.4,
+        mktReactionCommentary: "Normal"
+      },
+      {
+        ticker: "CVX",
+        issuerName: "CHEVRON CORP",
+        consensusRecommendation: "Hold",
+        last: 150.3,
+        price: {
+          earningsRate: -2.7,
+          ytd: -2.5,
+          pctOf52w: 63.7
+        },
+        eps: "Miss",
+        rev: "Miss",
+        guidance: "Reduced",
+        earningsScore: "Ugly",
+        mktReaction: -5.3,
+        mktReactionCommentary: "Abnormal"
+      },
+      {
+        ticker: "PG",
+        issuerName: "PROCTER & GAMBLE CO",
+        consensusRecommendation: "Buy",
+        last: 152.8,
+        price: {
+          earningsRate: 2.1,
+          ytd: 3.5,
+          pctOf52w: 72.4
+        },
+        eps: "Beat",
+        rev: "In-Line",
+        guidance: "Maintain",
+        earningsScore: "Good",
+        mktReaction: 1.7,
+        mktReactionCommentary: "Normal"
+      },
+      {
+        ticker: "JNJ",
+        issuerName: "JOHNSON & JOHNSON",
+        consensusRecommendation: "Hold",
+        last: 157.5,
+        price: {
+          earningsRate: 0.8,
+          ytd: 1.2,
+          pctOf52w: 68.3
+        },
+        eps: "In-Line",
+        rev: "In-Line",
+        guidance: "Maintain",
+        earningsScore: "Not So Bad",
+        mktReaction: 0.5,
+        mktReactionCommentary: "Normal"
+      },
+      {
+        ticker: "VZ",
+        issuerName: "VERIZON COMMUNICATIONS INC",
+        consensusRecommendation: "Hold",
+        last: 38.7,
+        price: {
+          earningsRate: -4.3,
+          ytd: -8.7,
+          pctOf52w: 54.1
+        },
+        eps: "Miss",
+        rev: "In-Line",
+        guidance: "Reduced",
+        earningsScore: "Not So Bad",
+        mktReaction: -3.8,
+        mktReactionCommentary: "Normal"
+      }
+    ],
+    stats: {
+      eps: {
+        beat: 21,
+        inLine: 16,
+        miss: 13
+      },
+      revenue: {
+        beat: 18,
+        inLine: 20,
+        miss: 12
+      },
+      guidance: {
+        increased: 4,
+        maintain: 38,
+        reduced: 8
+      },
+      earningScore: {
+        greatGood: 26,
+        notSoBad: 19,
+        ugly: 5
+      }
+    }
   }
 };
 
@@ -196,6 +809,10 @@ export default function EarningsPage() {
   const [activeTab, setActiveTab] = useState("heatmap");
   const [currentQuarterIndex, setCurrentQuarterIndex] = useState(0); // Start with Q4 2024
   
+  // Get the current quarter and its data
+  const currentQuarter = quarters[currentQuarterIndex].quarter;
+  const currentQuarterData = quarterData[currentQuarter];
+  
   // Function to navigate to previous quarter
   const previousQuarter = () => {
     if (currentQuarterIndex < quarters.length - 1) {
@@ -218,7 +835,7 @@ export default function EarningsPage() {
   React.useEffect(() => {
     console.log(`Loading data for: ${quarters[currentQuarterIndex].quarter}`);
     // In a real application, this would fetch data from the API for the selected quarter
-    // For now, we're just using the mock data
+    // For now, we're just using the mock data from quarterData
   }, [currentQuarterIndex]);
 
   return (
@@ -340,13 +957,13 @@ export default function EarningsPage() {
               <CardContent className="p-2">
                 <div className="grid grid-cols-2 gap-1 text-xs font-mono">
                   <div className="bg-[#4CAF50] text-white p-1 rounded text-center">
-                    Beat <span className="font-bold">{mockEarningsStats.eps.beat}</span>
+                    Beat <span className="font-bold">{currentQuarterData.stats.eps.beat}</span>
                   </div>
                   <div className="bg-[#FFD700] text-black p-1 rounded text-center">
-                    In-Line <span className="font-bold">{mockEarningsStats.eps.inLine}</span>
+                    In-Line <span className="font-bold">{currentQuarterData.stats.eps.inLine}</span>
                   </div>
                   <div className="bg-[#FF5252] text-white p-1 rounded text-center col-span-2">
-                    Miss <span className="font-bold">{mockEarningsStats.eps.miss}</span>
+                    Miss <span className="font-bold">{currentQuarterData.stats.eps.miss}</span>
                   </div>
                 </div>
               </CardContent>
@@ -363,13 +980,13 @@ export default function EarningsPage() {
               <CardContent className="p-2">
                 <div className="grid grid-cols-2 gap-1 text-xs font-mono">
                   <div className="bg-[#4CAF50] text-white p-1 rounded text-center">
-                    Beat <span className="font-bold">{mockEarningsStats.revenue.beat}</span>
+                    Beat <span className="font-bold">{currentQuarterData.stats.revenue.beat}</span>
                   </div>
                   <div className="bg-[#FFD700] text-black p-1 rounded text-center">
-                    In-Line <span className="font-bold">{mockEarningsStats.revenue.inLine}</span>
+                    In-Line <span className="font-bold">{currentQuarterData.stats.revenue.inLine}</span>
                   </div>
                   <div className="bg-[#FF5252] text-white p-1 rounded text-center col-span-2">
-                    Miss <span className="font-bold">{mockEarningsStats.revenue.miss}</span>
+                    Miss <span className="font-bold">{currentQuarterData.stats.revenue.miss}</span>
                   </div>
                 </div>
               </CardContent>
@@ -386,13 +1003,13 @@ export default function EarningsPage() {
               <CardContent className="p-2">
                 <div className="grid grid-cols-2 gap-1 text-xs font-mono">
                   <div className="bg-[#4CAF50] text-white p-1 rounded text-center">
-                    Increased <span className="font-bold">{mockEarningsStats.guidance.increased}</span>
+                    Increased <span className="font-bold">{currentQuarterData.stats.guidance.increased}</span>
                   </div>
                   <div className="bg-[#FFD700] text-black p-1 rounded text-center">
-                    Maintain <span className="font-bold">{mockEarningsStats.guidance.maintain}</span>
+                    Maintain <span className="font-bold">{currentQuarterData.stats.guidance.maintain}</span>
                   </div>
                   <div className="bg-[#FF5252] text-white p-1 rounded text-center col-span-2">
-                    Reduced <span className="font-bold">{mockEarningsStats.guidance.reduced}</span>
+                    Reduced <span className="font-bold">{currentQuarterData.stats.guidance.reduced}</span>
                   </div>
                 </div>
               </CardContent>
@@ -409,13 +1026,13 @@ export default function EarningsPage() {
               <CardContent className="p-2">
                 <div className="grid grid-cols-2 gap-1 text-xs font-mono">
                   <div className="bg-[#4CAF50] text-white p-1 rounded text-center">
-                    Great/Good <span className="font-bold">{mockEarningsStats.earningScore.greatGood}</span>
+                    Great/Good <span className="font-bold">{currentQuarterData.stats.earningScore.greatGood}</span>
                   </div>
                   <div className="bg-[#FFD700] text-black p-1 rounded text-center">
-                    Not So Bad <span className="font-bold">{mockEarningsStats.earningScore.notSoBad}</span>
+                    Not So Bad <span className="font-bold">{currentQuarterData.stats.earningScore.notSoBad}</span>
                   </div>
                   <div className="bg-[#FF5252] text-white p-1 rounded text-center col-span-2">
-                    Ugly <span className="font-bold">{mockEarningsStats.earningScore.ugly}</span>
+                    Ugly <span className="font-bold">{currentQuarterData.stats.earningScore.ugly}</span>
                   </div>
                 </div>
               </CardContent>
@@ -450,7 +1067,7 @@ export default function EarningsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {mockEarningsHeatmapData.map((item, index) => (
+                    {currentQuarterData.heatmapData.map((item: EarningsHeatmapDataItem, index: number) => (
                       <tr key={index} className="border-b border-[#1A304A] hover:bg-[#0F2542]">
                         <td className="p-2 text-left font-mono text-[#38AAFD] text-xs">{item.ticker}</td>
                         <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.issuerName}</td>
