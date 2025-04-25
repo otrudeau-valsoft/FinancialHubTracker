@@ -163,6 +163,214 @@ export class DatabaseStorage {
     // Placeholder for actual implementation
     return data.map((item, index) => ({ ...item, id: index + 1 }));
   }
+
+  /**
+   * Get all alerts
+   */
+  async getAlerts(activeOnly?: boolean) {
+    // Placeholder for actual implementation
+    return [];
+  }
+
+  /**
+   * Get an alert by ID
+   */
+  async getAlert(id: number) {
+    // Placeholder for actual implementation
+    return null;
+  }
+
+  /**
+   * Create a new alert
+   */
+  async createAlert(data: any) {
+    // Placeholder for actual implementation
+    return { ...data, id: 1 };
+  }
+
+  /**
+   * Update an alert
+   */
+  async updateAlert(id: number, data: any) {
+    // Placeholder for actual implementation
+    return { ...data, id };
+  }
+
+  /**
+   * Delete an alert
+   */
+  async deleteAlert(id: number) {
+    // Placeholder for actual implementation
+    return true;
+  }
+
+  /**
+   * Get historical prices
+   */
+  async getHistoricalPrices(symbol: string, region: string, startDate?: Date, endDate?: Date) {
+    // Placeholder for actual implementation
+    return [];
+  }
+
+  /**
+   * Get historical prices by region
+   */
+  async getHistoricalPricesByRegion(region: string, startDate?: Date, endDate?: Date) {
+    // Placeholder for actual implementation
+    return [];
+  }
+
+  /**
+   * Create a historical price
+   */
+  async createHistoricalPrice(data: any) {
+    // Placeholder for actual implementation
+    return { ...data, id: 1 };
+  }
+
+  /**
+   * Bulk create historical prices
+   */
+  async bulkCreateHistoricalPrices(data: any[]) {
+    // Placeholder for actual implementation
+    return data.map((item, index) => ({ ...item, id: index + 1 }));
+  }
+
+  /**
+   * Delete historical prices
+   */
+  async deleteHistoricalPrices(symbol: string, region: string) {
+    // Placeholder for actual implementation
+    return true;
+  }
+
+  /**
+   * Get current prices
+   */
+  async getCurrentPrices(region: string) {
+    // Placeholder for actual implementation
+    return [];
+  }
+
+  /**
+   * Get current price
+   */
+  async getCurrentPrice(symbol: string, region: string) {
+    // Placeholder for actual implementation
+    return null;
+  }
+
+  /**
+   * Create a current price
+   */
+  async createCurrentPrice(data: any) {
+    // Placeholder for actual implementation
+    return { ...data, id: 1 };
+  }
+
+  /**
+   * Update a current price
+   */
+  async updateCurrentPrice(id: number, data: any) {
+    // Placeholder for actual implementation
+    return { ...data, id };
+  }
+
+  /**
+   * Delete a current price
+   */
+  async deleteCurrentPrice(id: number) {
+    // Placeholder for actual implementation
+    return true;
+  }
+
+  /**
+   * Bulk create current prices
+   */
+  async bulkCreateCurrentPrices(data: any[]) {
+    // Placeholder for actual implementation
+    return data.map((item, index) => ({ ...item, id: index + 1 }));
+  }
+
+  /**
+   * Get ETF holding by ID
+   */
+  async getEtfHolding(id: number) {
+    // Placeholder for actual implementation
+    return null;
+  }
+
+  /**
+   * Update an ETF holding
+   */
+  async updateEtfHolding(id: number, data: any) {
+    // Placeholder for actual implementation
+    return { ...data, id };
+  }
+
+  /**
+   * Delete an ETF holding
+   */
+  async deleteEtfHolding(id: number) {
+    // Placeholder for actual implementation
+    return true;
+  }
+
+  /**
+   * Get top ETF holdings
+   */
+  async getTopEtfHoldings(etfSymbol: string, limit: number) {
+    // Placeholder for actual implementation
+    return [];
+  }
+
+  /**
+   * Get a matrix rule by ID
+   */
+  async getMatrixRule(id: number) {
+    // Placeholder for actual implementation
+    return null;
+  }
+
+  /**
+   * Update a matrix rule
+   */
+  async updateMatrixRule(id: number, data: any) {
+    // Placeholder for actual implementation
+    return { ...data, id };
+  }
+
+  /**
+   * Delete a matrix rule
+   */
+  async deleteMatrixRule(id: number) {
+    // Placeholder for actual implementation
+    return true;
+  }
+
+  /**
+   * Get user by ID
+   */
+  async getUser(id: number) {
+    // Placeholder for actual implementation
+    return null;
+  }
+
+  /**
+   * Get user by username
+   */
+  async getUserByUsername(username: string) {
+    // Placeholder for actual implementation
+    return null;
+  }
+
+  /**
+   * Create a user
+   */
+  async createUser(data: any) {
+    // Placeholder for actual implementation
+    return { ...data, id: 1 };
+  }
 }
 
 // Export a singleton instance
