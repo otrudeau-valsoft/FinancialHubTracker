@@ -5,9 +5,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { formatCurrency, formatPercentage, getProfitLossClass } from "@/lib/financial";
 import { getStockTypeBackground, getRatingClass } from "@/lib/utils";
 import { useState } from "react";
-import { List, Filter, AlertTriangle, InfoIcon } from "lucide-react";
+import { List, Filter, AlertTriangle, InfoIcon, BarChart4, Repeat } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { RebalanceModal } from "./rebalance-modal";
 
 interface CurrentPrice {
   id: number;
