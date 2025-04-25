@@ -828,32 +828,32 @@ const mockUpcomingEarnings = [
   { ticker: "META", company: "Meta Platforms Inc", date: "2025-05-01", time: "AMC", eps: 4.32 }
 ];
 
-// Using glassomorphic color scheme for a modern look
+// Using simple color scheme consistent with portfolio table
 const getEpsColor = (value: string) => {
   switch (value) {
-    case "Beat": return "bg-[rgba(76,175,80,0.2)] text-[#4CAF50] border border-[rgba(76,175,80,0.3)] backdrop-blur-sm";
-    case "In-Line": return "bg-[rgba(255,215,0,0.15)] text-[#FFD700] border border-[rgba(255,215,0,0.3)] backdrop-blur-sm";
-    case "Miss": return "bg-[rgba(255,82,82,0.15)] text-[#FF5252] border border-[rgba(255,82,82,0.3)] backdrop-blur-sm";
-    default: return "bg-[rgba(26,48,74,0.4)] text-[#EFEFEF] border border-[rgba(26,48,74,0.5)] backdrop-blur-sm";
+    case "Beat": return "text-[#4CAF50]";
+    case "In-Line": return "text-[#FFD700]";
+    case "Miss": return "text-[#FF5252]";
+    default: return "text-[#7A8999]";
   }
 };
 
 const getGuidanceColor = (value: string) => {
   switch (value) {
-    case "Increased": return "bg-[rgba(76,175,80,0.2)] text-[#4CAF50] border border-[rgba(76,175,80,0.3)] backdrop-blur-sm";
-    case "Maintain": return "bg-[rgba(255,215,0,0.15)] text-[#FFD700] border border-[rgba(255,215,0,0.3)] backdrop-blur-sm";
-    case "Reduced": return "bg-[rgba(255,82,82,0.15)] text-[#FF5252] border border-[rgba(255,82,82,0.3)] backdrop-blur-sm";
-    default: return "bg-[rgba(26,48,74,0.4)] text-[#EFEFEF] border border-[rgba(26,48,74,0.5)] backdrop-blur-sm";
+    case "Increased": return "text-[#4CAF50]";
+    case "Maintain": return "text-[#FFD700]";
+    case "Reduced": return "text-[#FF5252]";
+    default: return "text-[#7A8999]";
   }
 };
 
 const getScoreColor = (value: string) => {
   switch (value) {
     case "Good":
-    case "Great": return "bg-[rgba(76,175,80,0.2)] text-[#4CAF50] border border-[rgba(76,175,80,0.3)] backdrop-blur-sm";
-    case "Not So Bad": return "bg-[rgba(255,215,0,0.15)] text-[#FFD700] border border-[rgba(255,215,0,0.3)] backdrop-blur-sm";
-    case "Ugly": return "bg-[rgba(255,82,82,0.15)] text-[#FF5252] border border-[rgba(255,82,82,0.3)] backdrop-blur-sm";
-    default: return "bg-[rgba(26,48,74,0.4)] text-[#EFEFEF] border border-[rgba(26,48,74,0.5)] backdrop-blur-sm";
+    case "Great": return "text-[#4CAF50]";
+    case "Not So Bad": return "text-[#FFD700]";
+    case "Ugly": return "text-[#FF5252]";
+    default: return "text-[#7A8999]";
   }
 };
 
@@ -878,15 +878,15 @@ const getHeatmapRowColor = (item: EarningsHeatmapDataItem) => {
   }
 };
 
-// Helper function to get color for consensus recommendation (glassomorphic style)
+// Helper function to get color for consensus recommendation
 const getConsensusColor = (value: string) => {
   switch (value) {
-    case "Strong Buy": return "bg-[rgba(0,200,83,0.2)] text-[#00C853] border border-[rgba(0,200,83,0.3)] backdrop-blur-sm";
-    case "Buy": return "bg-[rgba(76,175,80,0.2)] text-[#4CAF50] border border-[rgba(76,175,80,0.3)] backdrop-blur-sm";
-    case "Hold": return "bg-[rgba(255,215,0,0.15)] text-[#FFD700] border border-[rgba(255,215,0,0.3)] backdrop-blur-sm";
+    case "Strong Buy": return "text-[#00C853]";
+    case "Buy": return "text-[#4CAF50]";
+    case "Hold": return "text-[#FFD700]";
     case "Underperform": 
-    case "Sell": return "bg-[rgba(255,82,82,0.15)] text-[#FF5252] border border-[rgba(255,82,82,0.3)] backdrop-blur-sm";
-    default: return "bg-[rgba(26,48,74,0.4)] text-[#EFEFEF] border border-[rgba(26,48,74,0.5)] backdrop-blur-sm";
+    case "Sell": return "text-[#FF5252]";
+    default: return "text-[#7A8999]";
   }
 };
 
@@ -1251,36 +1251,24 @@ export default function EarningsPage() {
                           </div>
                         </td>
                         <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.issuerName}</td>
-                        <td className="p-2 text-center font-mono text-xs">
-                          <span className={`inline-block px-2 py-1 rounded-sm ${getConsensusColor(item.consensusRecommendation)}`}>
-                            {item.consensusRecommendation}
-                          </span>
+                        <td className={`p-2 text-left font-mono text-xs ${getConsensusColor(item.consensusRecommendation)}`}>
+                          {item.consensusRecommendation}
                         </td>
                         <td className="p-2 text-right font-mono text-[#EFEFEF] text-xs">${item.last.toFixed(1)}</td>
-                        <td className="p-2 text-center">
-                          <span className={`inline-block px-2 py-1 rounded-sm ${getEpsColor(item.eps)}`}>
-                            {item.eps}
-                          </span>
+                        <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.eps)}`}>
+                          {item.eps}
                         </td>
-                        <td className="p-2 text-center">
-                          <span className={`inline-block px-2 py-1 rounded-sm ${getEpsColor(item.rev)}`}>
-                            {item.rev}
-                          </span>
+                        <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.rev)}`}>
+                          {item.rev}
                         </td>
-                        <td className="p-2 text-center">
-                          <span className={`inline-block px-2 py-1 rounded-sm ${getGuidanceColor(item.guidance)}`}>
-                            {item.guidance}
-                          </span>
+                        <td className={`p-2 text-center font-mono text-xs ${getGuidanceColor(item.guidance)}`}>
+                          {item.guidance}
                         </td>
-                        <td className="p-2 text-center">
-                          <span className={`inline-block px-2 py-1 rounded-sm ${getScoreColor(item.earningsScore)}`}>
-                            {item.earningsScore}
-                          </span>
+                        <td className={`p-2 text-center font-mono text-xs ${getScoreColor(item.earningsScore)}`}>
+                          {item.earningsScore}
                         </td>
-                        <td className="p-2 text-right">
-                          <span className={`inline-block px-2 py-1 rounded-sm ${item.mktReaction >= 0 ? 'bg-[rgba(76,175,80,0.2)] text-[#4CAF50] border border-[rgba(76,175,80,0.3)]' : 'bg-[rgba(255,82,82,0.15)] text-[#FF5252] border border-[rgba(255,82,82,0.3)]'}`}>
-                            {item.mktReaction >= 0 ? '+' : ''}{item.mktReaction.toFixed(1)}%
-                          </span>
+                        <td className={`p-2 text-right font-mono text-xs ${item.mktReaction >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
+                          {item.mktReaction >= 0 ? '+' : ''}{item.mktReaction.toFixed(1)}%
                         </td>
                         <td className={`p-2 text-left font-mono text-xs ${getReactionCommentaryColor(item.mktReactionCommentary)}`}>
                           {item.mktReactionCommentary}
@@ -1293,26 +1281,26 @@ export default function EarningsPage() {
             </CardContent>
           </Card>
           
-          {/* Legend with Glassomorphic Style */}
+          {/* Simple Legend */}
           <div className="flex flex-wrap gap-4 text-xs font-mono text-[#7A8999]">
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-[rgba(76,175,80,0.2)] border border-[rgba(76,175,80,0.3)] rounded-sm"></div>
+              <div className="h-3 w-3 bg-[#4CAF50] rounded-sm"></div>
               <span>Beat / Increased / Good</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-[rgba(255,215,0,0.15)] border border-[rgba(255,215,0,0.3)] rounded-sm"></div>
+              <div className="h-3 w-3 bg-[#FFD700] rounded-sm"></div>
               <span>In-Line / Maintain / Not So Bad</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-[rgba(255,82,82,0.15)] border border-[rgba(255,82,82,0.3)] rounded-sm"></div>
+              <div className="h-3 w-3 bg-[#FF5252] rounded-sm"></div>
               <span>Miss / Reduced / Ugly</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-[rgba(56,170,253,0.15)] border border-[rgba(56,170,253,0.3)] rounded-sm"></div>
+              <div className="h-3 w-3 bg-[#38AAFD] rounded-sm"></div>
               <span>Abnormal Reaction</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 bg-[rgba(255,82,82,0.15)] border border-[rgba(255,82,82,0.3)] rounded-sm"></div>
+              <div className="h-3 w-3 bg-[#FF5252] rounded-sm"></div>
               <span>Explosive Reaction</span>
             </div>
           </div>
@@ -1465,30 +1453,20 @@ export default function EarningsPage() {
                               <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.quarter}</td>
                               <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.data.consensusRecommendation}</td>
                               <td className="p-2 text-right font-mono text-[#EFEFEF] text-xs">${item.data.last.toFixed(1)}</td>
-                              <td className="p-2 text-center">
-                                <span className={`inline-block px-2 py-1 rounded-sm ${getEpsColor(item.data.eps)}`}>
-                                  {item.data.eps}
-                                </span>
+                              <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.data.eps)}`}>
+                                {item.data.eps}
                               </td>
-                              <td className="p-2 text-center">
-                                <span className={`inline-block px-2 py-1 rounded-sm ${getEpsColor(item.data.rev)}`}>
-                                  {item.data.rev}
-                                </span>
+                              <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.data.rev)}`}>
+                                {item.data.rev}
                               </td>
-                              <td className="p-2 text-center">
-                                <span className={`inline-block px-2 py-1 rounded-sm ${getGuidanceColor(item.data.guidance)}`}>
-                                  {item.data.guidance}
-                                </span>
+                              <td className={`p-2 text-center font-mono text-xs ${getGuidanceColor(item.data.guidance)}`}>
+                                {item.data.guidance}
                               </td>
-                              <td className="p-2 text-center">
-                                <span className={`inline-block px-2 py-1 rounded-sm ${getScoreColor(item.data.earningsScore)}`}>
-                                  {item.data.earningsScore}
-                                </span>
+                              <td className={`p-2 text-center font-mono text-xs ${getScoreColor(item.data.earningsScore)}`}>
+                                {item.data.earningsScore}
                               </td>
-                              <td className="p-2 text-right">
-                                <span className={`inline-block px-2 py-1 rounded-sm ${item.data.mktReaction >= 0 ? 'bg-[rgba(76,175,80,0.2)] text-[#4CAF50] border border-[rgba(76,175,80,0.3)]' : 'bg-[rgba(255,82,82,0.15)] text-[#FF5252] border border-[rgba(255,82,82,0.3)]'}`}>
-                                  {item.data.mktReaction >= 0 ? '+' : ''}{item.data.mktReaction.toFixed(1)}%
-                                </span>
+                              <td className={`p-2 text-right font-mono text-xs ${item.data.mktReaction >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
+                                {item.data.mktReaction >= 0 ? '+' : ''}{item.data.mktReaction.toFixed(1)}%
                               </td>
                               <td className={`p-2 text-left font-mono text-xs ${getReactionCommentaryColor(item.data.mktReactionCommentary)}`}>
                                 {item.data.mktReactionCommentary}
