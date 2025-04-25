@@ -406,41 +406,42 @@ export default function DataManagement() {
   };
   
   return (
-    <div className="container mx-auto p-4 bg-[#061220]">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-[#EFEFEF] font-mono tracking-tight">DATA MANAGEMENT</h1>
+    <div className="container mx-auto p-2 sm:p-4 bg-[#061220]">
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#EFEFEF] font-mono tracking-tight">DATA MANAGEMENT</h1>
         <div className="flex items-center space-x-2 mt-1">
           <div className="h-1 w-12 bg-[#FFCA28]"></div>
-          <p className="text-[#C0C0C0] text-sm font-mono tracking-tighter">MANAGE DATA UPDATES • REAL-TIME SCHEDULING • SYSTEM LOGS</p>
+          <p className="text-[#C0C0C0] text-xs sm:text-sm font-mono tracking-tighter truncate">MANAGE DATA UPDATES • REAL-TIME SCHEDULING • SYSTEM LOGS</p>
         </div>
       </div>
       
-      <div className="grid gap-4">
+      <div className="grid gap-3 sm:gap-4">
         {/* Update Panels - Top Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           <Card className="bg-[#0A1524] border border-[#1A304A] rounded-none shadow-lg">
-            <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-3">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-[#EFEFEF] text-lg font-mono flex items-center">
-                  <BarChart4 className="mr-2 h-5 w-5 text-[#38AAFD]" />
+            <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-2 sm:p-3">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
+                <CardTitle className="text-[#EFEFEF] text-base sm:text-lg font-mono flex items-center">
+                  <BarChart4 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-[#38AAFD]" />
                   REAL-TIME UPDATES
                 </CardTitle>
                 <Button 
                   variant="default" 
                   onClick={() => updateCurrentPricesMutation.mutate()}
                   disabled={updateCurrentPricesMutation.isPending}
-                  className="bg-[#38AAFD] hover:bg-[#1D90E0] text-white rounded-sm h-8 px-3 py-1"
+                  className="bg-[#38AAFD] hover:bg-[#1D90E0] text-white rounded-sm h-8 px-2 sm:px-3 py-1 text-xs sm:text-sm w-full sm:w-auto"
                   size="sm"
                 >
                   {updateCurrentPricesMutation.isPending ? (
                     <>
-                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      <div className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                       RUNNING
                     </>
                   ) : (
                     <>
-                      <RotateCw className="mr-2 h-4 w-4" />
-                      UPDATE CURRENT PRICES
+                      <RotateCw className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">UPDATE CURRENT PRICES</span>
+                      <span className="inline sm:hidden">UPDATE PRICES</span>
                     </>
                   )}
                 </Button>

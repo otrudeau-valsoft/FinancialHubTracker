@@ -23,6 +23,16 @@ export function Header() {
   
   return (
     <header className="h-12 bg-[#0A1929] border-b border-gray-800 flex items-center justify-between px-2 sm:px-4 shadow-sm">
+      {/* Desktop AlphaGen Logo - Only visible on larger screens */}
+      <div className="hidden md:flex items-center mr-6">
+        <div className="flex items-center">
+          <span className="text-[#E91E63] font-mono text-base font-bold tracking-tight">ALPHA</span>
+          <span className="text-[#38AAFD] font-mono text-base font-bold tracking-tight">GEN</span>
+          <span className="text-[#4CAF50] text-xs ml-1 opacity-80">&#x2713;</span>
+          <div className="h-3 mx-4 w-px bg-gray-700"></div>
+        </div>
+      </div>
+      
       {/* Desktop Navigation */}
       <nav className="hidden md:flex items-center space-x-4 lg:space-x-6 text-xs sm:text-sm">
         <div className="relative">
@@ -85,7 +95,11 @@ export function Header() {
       
       {/* Mobile View - App Title */}
       <div className="md:hidden flex items-center">
-        <span className="text-white font-mono text-sm">AlphaGen</span>
+        <div className="flex items-center">
+          <span className="text-[#E91E63] font-mono text-sm font-bold tracking-tight">ALPHA</span>
+          <span className="text-[#38AAFD] font-mono text-sm font-bold tracking-tight">GEN</span>
+          <span className="text-[#4CAF50] text-xs ml-1 opacity-80">&#x2713;</span>
+        </div>
       </div>
       
       {/* Mobile Menu Toggle */}
@@ -100,55 +114,72 @@ export function Header() {
       {mobileMenuOpen && (
         <div className="absolute top-12 left-0 right-0 bg-[#0A1929] border-b border-gray-800 z-50 md:hidden shadow-lg">
           <div className="flex flex-col p-2">
-            <div className="py-2 border-b border-gray-800">
-              <span className="text-gray-300 text-xs font-mono px-3 pb-1 block">PORTFOLIOS</span>
+            <div className="py-2 border-b border-[#0F1A2A]">
+              <div className="flex items-center mb-2">
+                <div className="h-3 w-3 bg-[#E91E63] rounded-sm mr-2"></div>
+                <span className="text-[#EFEFEF] text-xs font-mono font-semibold px-1 pb-1 block tracking-wide">PORTFOLIOS</span>
+              </div>
               <button 
                 onClick={() => navigateTo("/usd-portfolio")} 
-                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded text-sm ${location === '/usd-portfolio' ? 'bg-blue-900/30' : ''}`}
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded text-xs font-mono ${location === '/usd-portfolio' ? 'bg-[#1A304A]' : ''}`}
               >
                 USD Portfolio
               </button>
               <button 
                 onClick={() => navigateTo("/cad-portfolio")} 
-                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded text-sm ${location === '/cad-portfolio' ? 'bg-blue-900/30' : ''}`}
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded text-xs font-mono ${location === '/cad-portfolio' ? 'bg-[#1A304A]' : ''}`}
               >
                 CAD Portfolio
               </button>
               <button 
                 onClick={() => navigateTo("/intl-portfolio")} 
-                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded text-sm ${location === '/intl-portfolio' ? 'bg-blue-900/30' : ''}`}
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded text-xs font-mono ${location === '/intl-portfolio' ? 'bg-[#1A304A]' : ''}`}
               >
                 INTL Portfolio
               </button>
             </div>
             
-            <button 
-              onClick={() => navigateTo("/earnings")} 
-              className={`text-left text-gray-300 hover:text-white px-3 py-2 rounded text-sm ${location === '/earnings' ? 'bg-blue-900/30' : ''}`}
-            >
-              Earnings
-            </button>
+            <div className="border-b border-[#0F1A2A] py-2">
+              <div className="flex items-center mb-2">
+                <div className="h-3 w-3 bg-[#38AAFD] rounded-sm mr-2"></div>
+                <span className="text-[#EFEFEF] text-xs font-mono font-semibold px-1 pb-1 block tracking-wide">ANALYTICS</span>
+              </div>
+              
+              <button 
+                onClick={() => navigateTo("/earnings")} 
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded text-xs font-mono ${location === '/earnings' ? 'bg-[#1A304A]' : ''}`}
+              >
+                Earnings Center
+              </button>
+              
+              <button 
+                onClick={() => navigateTo("/matrix-rules")} 
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded text-xs font-mono ${location === '/matrix-rules' ? 'bg-[#1A304A]' : ''}`}
+              >
+                Matrix Rules
+              </button>
+              
+              <button 
+                onClick={() => navigateTo("/etf-holdings")} 
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded text-xs font-mono ${location === '/etf-holdings' ? 'bg-[#1A304A]' : ''}`}
+              >
+                ETF Holdings
+              </button>
+            </div>
             
-            <button 
-              onClick={() => navigateTo("/matrix-rules")} 
-              className={`text-left text-gray-300 hover:text-white px-3 py-2 rounded text-sm ${location === '/matrix-rules' ? 'bg-blue-900/30' : ''}`}
-            >
-              Matrix Rules
-            </button>
-            
-            <button 
-              onClick={() => navigateTo("/etf-holdings")} 
-              className={`text-left text-gray-300 hover:text-white px-3 py-2 rounded text-sm ${location === '/etf-holdings' ? 'bg-blue-900/30' : ''}`}
-            >
-              ETF Holdings
-            </button>
-            
-            <button 
-              onClick={() => navigateTo("/data-management")} 
-              className={`text-left text-gray-300 hover:text-white px-3 py-2 rounded text-sm ${location === '/data-management' ? 'bg-blue-900/30' : ''}`}
-            >
-              Data Management
-            </button>
+            <div className="pt-2">
+              <div className="flex items-center mb-2">
+                <div className="h-3 w-3 bg-[#4CAF50] rounded-sm mr-2"></div>
+                <span className="text-[#EFEFEF] text-xs font-mono font-semibold px-1 pb-1 block tracking-wide">SYSTEM</span>
+              </div>
+              
+              <button 
+                onClick={() => navigateTo("/data-management")} 
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded text-xs font-mono ${location === '/data-management' ? 'bg-[#1A304A]' : ''}`}
+              >
+                Data Management
+              </button>
+            </div>
           </div>
         </div>
       )}
