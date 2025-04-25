@@ -10,7 +10,8 @@ import {
   matrixRules, type MatrixRule, type InsertMatrixRule,
   alerts, type Alert, type InsertAlert,
   portfolioSummaries, type PortfolioSummary, type InsertPortfolioSummary,
-  currentPrices, type CurrentPrice, type InsertCurrentPrice
+  currentPrices, type CurrentPrice, type InsertCurrentPrice,
+  upgradeDowngradeHistory, type UpgradeDowngradeHistory, type InsertUpgradeDowngradeHistory
 } from "@shared/schema";
 import { db, sanitizeForDb } from "./db";
 import { eq, desc, and, sql, lt, gt, lte, gte, isNull, not } from "drizzle-orm";

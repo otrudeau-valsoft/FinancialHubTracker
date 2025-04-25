@@ -302,3 +302,25 @@ export const insertDataUpdateLogSchema = createInsertSchema(dataUpdateLogs).omit
 
 export type InsertDataUpdateLog = z.infer<typeof insertDataUpdateLogSchema>;
 export type DataUpdateLog = typeof dataUpdateLogs.$inferSelect;
+
+// Upgrade Downgrade History
+export const upgradeDowngradeHistory = pgTable("upgrade_downgrade_history", {
+  id: serial("id").primaryKey(),
+  symbol: text("symbol").notNull(),
+  region: text("region").notNull(), // USD, CAD, INTL
+  firm: text("firm").notNull(), // Analyst firm name
+  toGrade: text("to_grade").notNull(), // New rating (e.g., "Buy", "Strong Buy", "Underperform", etc.)
+  fromGrade: text("from_grade"), // Previous rating
+  action: text("action").notNull(), // "up" (upgrade), "down" (downgrade), "init" (initiate), "main" (maintain), "reit" (reiterate)
+  epochGradeDate: integer("epoch_grade_date"), // Unix timestamp of grade date
+  gradeDate: date("grade_date"), // Formatted date
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertUpgradeDowngradeHistorySchema = createInsertSchema(upgradeDowngradeHistory).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertUpgradeDowngradeHistory = z.infer<typeof insertUpgradeDowngradeHistorySchema>;
+export type UpgradeDowngradeHistory = typeof upgradeDowngradeHistory.$inferSelect;
