@@ -17,8 +17,21 @@ import {
   FileText,
   Sparkles,
   PieChart,
-  Filter
+  Filter,
+  ArrowUpRight
 } from "lucide-react";
+import {
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip,
+  Cell,
+  ScatterChart,
+  Scatter,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Rectangle,
+  Treemap
+} from "recharts";
 
 // Mock data for earnings heatmap based on screenshot
 const mockEarningsHeatmapData = [
@@ -347,16 +360,114 @@ export default function EarningsPage() {
             </Card>
           </div>
 
-          {/* Earnings Heatmap Table */}
+          {/* Visual Earnings Heatmap */}
           <Card className="border-0 shadow bg-[#0A1929]">
             <CardHeader className="card-header px-4 py-3 bg-[#111E2E] flex justify-between items-center">
               <div className="flex items-center">
                 <BarChart3 className="h-5 w-5 mr-2 text-[#E91E63]" />
-                <h3 className="text-left font-mono text-[#EFEFEF] text-sm">EARNINGS SEASON - Q4 2024</h3>
+                <h3 className="text-left font-mono text-[#EFEFEF] text-sm">EARNINGS SEASON HEATMAP - Q4 2024</h3>
               </div>
               <div className="flex items-center">
                 <Filter className="h-4 w-4 mr-1 text-[#7A8999]" />
                 <span className="text-xs font-mono text-[#7A8999]">FILTER</span>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="w-full h-[400px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <Treemap
+                    data={mockEarningsHeatmapData.map(item => ({
+                      name: item.ticker,
+                      size: Math.abs(item.mktReaction) * 10,
+                      value: Math.abs(item.mktReaction) * 10,
+                      eps: item.eps,
+                      earningsScore: item.earningsScore,
+                      mktReaction: item.mktReaction,
+                      issuerName: item.issuerName,
+                      ytd: item.price.ytd,
+                      colorIndex: item.mktReaction >= 0 ? 1 : 0
+                    }))}
+                    dataKey="size"
+                    aspectRatio={4 / 3}
+                    stroke="#1A304A"
+                    fill="#1A304A"
+                  >
+                    <RechartsTooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="bg-[#0A1929] border border-[#1A304A] rounded p-2 shadow-md text-xs font-mono">
+                              <div className="font-bold text-[#38AAFD]">{data.name}</div>
+                              <div className="text-[#EFEFEF]">{data.issuerName}</div>
+                              <div className="mt-1">
+                                <span className="text-[#7A8999]">EPS: </span>
+                                <span className={`font-bold ${data.eps === 'Beat' ? 'text-[#4CAF50]' : data.eps === 'Miss' ? 'text-[#FF5252]' : 'text-[#FFD700]'}`}>
+                                  {data.eps}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-[#7A8999]">Score: </span>
+                                <span className={`font-bold ${data.earningsScore === 'Good' ? 'text-[#4CAF50]' : data.earningsScore === 'Ugly' ? 'text-[#FF5252]' : 'text-[#FFD700]'}`}>
+                                  {data.earningsScore}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-[#7A8999]">YTD: </span>
+                                <span className={`font-bold ${data.ytd >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
+                                  {data.ytd >= 0 ? '+' : ''}{data.ytd.toFixed(1)}%
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-[#7A8999]">Market Reaction: </span>
+                                <span className={`font-bold ${data.mktReaction >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
+                                  {data.mktReaction >= 0 ? '+' : ''}{data.mktReaction.toFixed(1)}%
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    {mockEarningsHeatmapData.map((item, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={item.mktReaction >= 0 ? 
+                          (item.mktReaction > 5 ? '#388E3C' : '#4CAF50') : 
+                          (item.mktReaction < -5 ? '#D32F2F' : '#FF5252')}
+                      />
+                    ))}
+                  </Treemap>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex justify-between items-center mt-4 text-xs font-mono text-[#7A8999]">
+                <div className="flex items-center">
+                  <div className="h-3 w-3 rounded-sm bg-[#388E3C] mr-1"></div>
+                  <span>Strong Positive &gt; +5%</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="h-3 w-3 rounded-sm bg-[#4CAF50] mr-1"></div>
+                  <span>Positive &lt; +5%</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="h-3 w-3 rounded-sm bg-[#FF5252] mr-1"></div>
+                  <span>Negative &gt; -5%</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="h-3 w-3 rounded-sm bg-[#D32F2F] mr-1"></div>
+                  <span>Strong Negative &lt; -5%</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Traditional Earnings Table */}
+          <Card className="border-0 shadow bg-[#0A1929]">
+            <CardHeader className="card-header px-4 py-3 bg-[#111E2E] flex justify-between items-center">
+              <div className="flex items-center">
+                <PieChart className="h-5 w-5 mr-2 text-[#38AAFD]" />
+                <h3 className="text-left font-mono text-[#EFEFEF] text-sm">EARNINGS DETAILS</h3>
               </div>
             </CardHeader>
             <CardContent className="p-0">
@@ -366,17 +477,13 @@ export default function EarningsPage() {
                     <tr className="text-xs border-b border-[#1A304A] bg-[#0D2237]">
                       <th className="p-2 text-left font-mono text-[#7A8999]">TICKER</th>
                       <th className="p-2 text-left font-mono text-[#7A8999]">ISSUER NAME</th>
-                      <th className="p-2 text-left font-mono text-[#7A8999]">CONSENSUS RECOMMENDATION</th>
+                      <th className="p-2 text-left font-mono text-[#7A8999]">CONSENSUS</th>
                       <th className="p-2 text-right font-mono text-[#7A8999]">LAST</th>
-                      <th className="p-2 text-right font-mono text-[#7A8999]">EARNINGS RATE %</th>
-                      <th className="p-2 text-right font-mono text-[#7A8999]">YTD %</th>
-                      <th className="p-2 text-right font-mono text-[#7A8999]">% OF 52W HIGH-LOW</th>
                       <th className="p-2 text-center font-mono text-[#7A8999]">EPS</th>
                       <th className="p-2 text-center font-mono text-[#7A8999]">REV</th>
                       <th className="p-2 text-center font-mono text-[#7A8999]">GUIDANCE</th>
-                      <th className="p-2 text-center font-mono text-[#7A8999]">EARNINGS SCORE</th>
+                      <th className="p-2 text-center font-mono text-[#7A8999]">SCORE</th>
                       <th className="p-2 text-right font-mono text-[#7A8999]">MKT REACTION</th>
-                      <th className="p-2 text-left font-mono text-[#7A8999]">MKT REACTION COMMENTARY</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -386,20 +493,12 @@ export default function EarningsPage() {
                         <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.issuerName}</td>
                         <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.consensusRecommendation}</td>
                         <td className="p-2 text-right font-mono text-[#EFEFEF] text-xs">{item.last.toFixed(1)}</td>
-                        <td className="p-2 text-right font-mono text-[#EFEFEF] text-xs">{item.price.earningsRate.toFixed(1)}</td>
-                        <td className={`p-2 text-right font-mono text-xs ${item.price.ytd >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
-                          {item.price.ytd >= 0 ? '+' : ''}{item.price.ytd.toFixed(1)}%
-                        </td>
-                        <td className="p-2 text-right font-mono text-[#EFEFEF] text-xs">{item.price.pctOf52w.toFixed(1)}%</td>
                         <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.eps)}`}>{item.eps}</td>
                         <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.rev)}`}>{item.rev}</td>
                         <td className={`p-2 text-center font-mono text-xs ${getGuidanceColor(item.guidance)}`}>{item.guidance}</td>
                         <td className={`p-2 text-center font-mono text-xs ${getScoreColor(item.earningsScore)}`}>{item.earningsScore}</td>
                         <td className={`p-2 text-right font-mono text-xs ${item.mktReaction >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
                           {item.mktReaction >= 0 ? '+' : ''}{item.mktReaction.toFixed(1)}%
-                        </td>
-                        <td className={`p-2 text-left font-mono text-xs ${getReactionCommentaryColor(item.mktReactionCommentary)}`}>
-                          {item.mktReactionCommentary}
                         </td>
                       </tr>
                     ))}
