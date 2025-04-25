@@ -1231,4 +1231,83 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
+
+  // Upgrade/Downgrade History methods
+  async getUpgradeDowngradeHistory(symbol: string, region: string): Promise<UpgradeDowngradeHistory[]> {
+    try {
+      const history = await db.select()
+        .from(upgradeDowngradeHistory)
+        .where(
+          and(
+            eq(upgradeDowngradeHistory.symbol, symbol),
+            eq(upgradeDowngradeHistory.region, region)
+          )
+        )
+        .orderBy(desc(upgradeDowngradeHistory.gradeDate));
+      
+      return history;
+    } catch (error) {
+      console.error(`Error in getUpgradeDowngradeHistory for ${symbol}:`, error);
+      return [];
+    }
+  }
+
+  async getAllUpgradeDowngradeHistory(region: string): Promise<UpgradeDowngradeHistory[]> {
+    try {
+      const history = await db.select()
+        .from(upgradeDowngradeHistory)
+        .where(eq(upgradeDowngradeHistory.region, region))
+        .orderBy(desc(upgradeDowngradeHistory.gradeDate));
+      
+      return history;
+    } catch (error) {
+      console.error(`Error in getAllUpgradeDowngradeHistory for region ${region}:`, error);
+      return [];
+    }
+  }
+
+  async createUpgradeDowngradeHistory(item: InsertUpgradeDowngradeHistory): Promise<UpgradeDowngradeHistory> {
+    try {
+      const [created] = await db.insert(upgradeDowngradeHistory)
+        .values(sanitizeForDb(item))
+        .returning();
+      
+      return created;
+    } catch (error) {
+      console.error(`Error in createUpgradeDowngradeHistory for ${item.symbol}:`, error);
+      throw error;
+    }
+  }
+
+  async bulkCreateUpgradeDowngradeHistory(items: InsertUpgradeDowngradeHistory[]): Promise<UpgradeDowngradeHistory[]> {
+    if (items.length === 0) return [];
+    
+    try {
+      const created = await db.insert(upgradeDowngradeHistory)
+        .values(items.map(item => sanitizeForDb(item)))
+        .returning();
+      
+      return created;
+    } catch (error) {
+      console.error(`Error in bulkCreateUpgradeDowngradeHistory:`, error);
+      return [];
+    }
+  }
+
+  async deleteUpgradeDowngradeHistory(symbol: string, region: string): Promise<boolean> {
+    try {
+      await db.delete(upgradeDowngradeHistory)
+        .where(
+          and(
+            eq(upgradeDowngradeHistory.symbol, symbol),
+            eq(upgradeDowngradeHistory.region, region)
+          )
+        );
+      
+      return true;
+    } catch (error) {
+      console.error(`Error in deleteUpgradeDowngradeHistory for ${symbol}:`, error);
+      return false;
+    }
+  }
 }

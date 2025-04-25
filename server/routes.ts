@@ -1205,6 +1205,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Upgrade/Downgrade History Routes
+  app.get("/api/upgrade-downgrade/:symbol/:region", async (req: Request, res: Response) => {
+    try {
+      const { symbol, region } = req.params;
+      const regionUpper = region.toUpperCase();
+      
+      console.log(`Fetching upgrade/downgrade history for ${symbol} in ${regionUpper} region`);
+      
+      const history = await storage.getUpgradeDowngradeHistory(symbol, regionUpper);
+      return res.json(history);
+    } catch (error) {
+      console.error(`Error fetching upgrade/downgrade history for ${req.params.symbol}:`, error);
+      return res.status(500).json({ 
+        message: "Failed to fetch upgrade/downgrade history",
+        error: (error as Error).message
+      });
+    }
+  });
+
+  app.get("/api/upgrade-downgrade/region/:region", async (req: Request, res: Response) => {
+    try {
+      const { region } = req.params;
+      const regionUpper = region.toUpperCase();
+      
+      console.log(`Fetching all upgrade/downgrade history for ${regionUpper} region`);
+      
+      const history = await storage.getAllUpgradeDowngradeHistory(regionUpper);
+      return res.json(history);
+    } catch (error) {
+      console.error(`Error fetching upgrade/downgrade history for ${req.params.region} region:`, error);
+      return res.status(500).json({ 
+        message: "Failed to fetch regional upgrade/downgrade history",
+        error: (error as Error).message
+      });
+    }
+  });
+
+  app.post("/api/upgrade-downgrade/fetch/:symbol/:region", async (req: Request, res: Response) => {
+    try {
+      const { symbol, region } = req.params;
+      const regionUpper = region.toUpperCase();
+      
+      console.log(`Initiating fetch of upgrade/downgrade history for ${symbol} in ${regionUpper} region`);
+      
+      // Import the service for fetching upgrade/downgrade history
+      const { importUpgradeDowngradeHistory } = await import('../scripts/import-upgrade-downgrade');
+      
+      // Run the import function
+      await importUpgradeDowngradeHistory(symbol, regionUpper);
+      
+      // Get the updated history to return
+      const history = await storage.getUpgradeDowngradeHistory(symbol, regionUpper);
+      
+      return res.json({
+        message: `Successfully fetched upgrade/downgrade history for ${symbol} in ${regionUpper} region`,
+        count: history.length,
+        data: history
+      });
+    } catch (error) {
+      console.error(`Error fetching upgrade/downgrade data for ${req.params.symbol}:`, error);
+      return res.status(500).json({ 
+        message: "Failed to fetch upgrade/downgrade data",
+        error: (error as Error).message
+      });
+    }
+  });
+
   // Scheduler Configuration API
   app.get("/api/scheduler/config", async (_req: Request, res: Response) => {
     try {
