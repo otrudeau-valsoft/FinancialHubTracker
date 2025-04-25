@@ -62,7 +62,7 @@ export const bulkImportMatrixRules = async (req: Request, res: Response) => {
       priority: z.number().int().nullable().optional()
     });
     
-    const validRules = req.body.rules.map(rule => schema.parse(rule));
+    const validRules = req.body.rules.map((rule: unknown) => schema.parse(rule));
     const results = await storage.bulkImportMatrixRules(validRules);
     
     return res.json({

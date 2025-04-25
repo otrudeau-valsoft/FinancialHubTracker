@@ -1,5 +1,10 @@
 import { db } from '../db';
-import { etfHoldingsSPY, etfHoldingsXIC, etfHoldingsACWX, assetsUS, assetsCAD, assetsINTL } from '../../shared/schema';
+import { 
+  etfHoldingsSPY, etfHoldingsXIC, etfHoldingsACWX, 
+  assetsUS, assetsCAD, assetsINTL,
+  insertEtfHoldingsSPYSchema, insertEtfHoldingsXICSchema, insertEtfHoldingsACWXSchema,
+  insertAssetsUSSchema, insertAssetsCADSchema, insertAssetsINTLSchema
+} from '../../shared/schema';
 
 /**
  * Populate ETF holdings data
@@ -146,10 +151,24 @@ async function populateETFHoldings() {
   
   // Insert SPY holdings
   for (const holding of spyHoldings) {
-    await db.insert(etfHoldingsSPY).values({
-      ...holding,
-      updatedAt: new Date()
-    });
+    // Convert numeric values to strings as required by the schema
+    const data = {
+      ticker: holding.ticker,
+      name: holding.name,
+      sector: holding.sector,
+      assetClass: holding.assetClass,
+      marketValue: String(holding.marketValue),
+      weight: String(holding.weight),
+      price: String(holding.price),
+      quantity: String(holding.quantity),
+      location: holding.location,
+      exchange: holding.exchange,
+      currency: holding.currency
+    };
+    
+    // Validate with the insert schema
+    const validated = insertEtfHoldingsSPYSchema.parse(data);
+    await db.insert(etfHoldingsSPY).values(validated);
   }
   console.log(`Inserted ${spyHoldings.length} SPY holdings`);
   
@@ -292,10 +311,24 @@ async function populateETFHoldings() {
   
   // Insert XIC holdings
   for (const holding of xicHoldings) {
-    await db.insert(etfHoldingsXIC).values({
-      ...holding,
-      updatedAt: new Date()
-    });
+    // Convert numeric values to strings as required by the schema
+    const data = {
+      ticker: holding.ticker,
+      name: holding.name,
+      sector: holding.sector,
+      assetClass: holding.assetClass,
+      marketValue: String(holding.marketValue),
+      weight: String(holding.weight),
+      price: String(holding.price),
+      quantity: String(holding.quantity),
+      location: holding.location,
+      exchange: holding.exchange,
+      currency: holding.currency
+    };
+    
+    // Validate with the insert schema
+    const validated = insertEtfHoldingsXICSchema.parse(data);
+    await db.insert(etfHoldingsXIC).values(validated);
   }
   console.log(`Inserted ${xicHoldings.length} XIC holdings`);
   
@@ -438,10 +471,24 @@ async function populateETFHoldings() {
   
   // Insert ACWX holdings
   for (const holding of acwxHoldings) {
-    await db.insert(etfHoldingsACWX).values({
-      ...holding,
-      updatedAt: new Date()
-    });
+    // Convert numeric values to strings as required by the schema
+    const data = {
+      ticker: holding.ticker,
+      name: holding.name,
+      sector: holding.sector,
+      assetClass: holding.assetClass,
+      marketValue: String(holding.marketValue),
+      weight: String(holding.weight),
+      price: String(holding.price),
+      quantity: String(holding.quantity),
+      location: holding.location,
+      exchange: holding.exchange,
+      currency: holding.currency
+    };
+    
+    // Validate with the insert schema
+    const validated = insertEtfHoldingsACWXSchema.parse(data);
+    await db.insert(etfHoldingsACWX).values(validated);
   }
   console.log(`Inserted ${acwxHoldings.length} ACWX holdings`);
 }
@@ -563,10 +610,21 @@ async function populatePortfolios() {
   
   // Insert US stocks
   for (const stock of usStocks) {
-    await db.insert(assetsUS).values({
-      ...stock,
-      updatedAt: new Date()
-    });
+    // Convert numeric values to strings as required by the schema
+    const data = {
+      symbol: stock.symbol,
+      company: stock.company,
+      sector: stock.sector,
+      quantity: String(stock.quantity),
+      pbr: String(stock.pbr),
+      stockRating: stock.stockRating,
+      stockType: stock.stockType,
+      nextEarningsDate: stock.nextEarningsDate
+    };
+    
+    // Validate with the insert schema
+    const validated = insertAssetsUSSchema.parse(data);
+    await db.insert(assetsUS).values(validated);
   }
   console.log(`Inserted ${usStocks.length} USD portfolio stocks`);
   
@@ -676,10 +734,21 @@ async function populatePortfolios() {
   
   // Insert CAD stocks
   for (const stock of cadStocks) {
-    await db.insert(assetsCAD).values({
-      ...stock,
-      updatedAt: new Date()
-    });
+    // Convert numeric values to strings as required by the schema
+    const data = {
+      symbol: stock.symbol,
+      company: stock.company,
+      sector: stock.sector,
+      quantity: String(stock.quantity),
+      pbr: String(stock.pbr),
+      stockRating: stock.stockRating,
+      stockType: stock.stockType,
+      nextEarningsDate: stock.nextEarningsDate
+    };
+    
+    // Validate with the insert schema
+    const validated = insertAssetsCADSchema.parse(data);
+    await db.insert(assetsCAD).values(validated);
   }
   console.log(`Inserted ${cadStocks.length} CAD portfolio stocks`);
   
@@ -789,10 +858,21 @@ async function populatePortfolios() {
   
   // Insert INTL stocks
   for (const stock of intlStocks) {
-    await db.insert(assetsINTL).values({
-      ...stock,
-      updatedAt: new Date()
-    });
+    // Convert numeric values to strings as required by the schema
+    const data = {
+      symbol: stock.symbol,
+      company: stock.company,
+      sector: stock.sector,
+      quantity: String(stock.quantity),
+      pbr: String(stock.pbr),
+      stockRating: stock.stockRating,
+      stockType: stock.stockType,
+      nextEarningsDate: stock.nextEarningsDate
+    };
+    
+    // Validate with the insert schema
+    const validated = insertAssetsINTLSchema.parse(data);
+    await db.insert(assetsINTL).values(validated);
   }
   console.log(`Inserted ${intlStocks.length} INTL portfolio stocks`);
 }
