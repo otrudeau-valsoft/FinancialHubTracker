@@ -80,40 +80,7 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
           <div className="h-1 w-8 bg-[#4CAF50]"></div>
         </div>
       </CardHeader>
-      <div className="px-3 py-2 flex gap-1">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-sm ${filter === 'all' ? 'bg-[#1A304A] text-white' : 'text-[#7A8999] hover:bg-[#1A304A]/50 hover:text-white'}`}
-          onClick={() => setFilter('all')}
-        >
-          All
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-sm ${filter === 'comp' ? 'bg-blue-900/30 text-secondary' : 'text-[#7A8999] hover:bg-blue-900/20 hover:text-secondary'}`}
-          onClick={() => setFilter('comp')}
-        >
-          Comp
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-sm ${filter === 'cat' ? 'bg-yellow-900/30 text-[#FFC107]' : 'text-[#7A8999] hover:bg-yellow-900/20 hover:text-[#FFC107]'}`}
-          onClick={() => setFilter('cat')}
-        >
-          Cat
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-sm ${filter === 'cycl' ? 'bg-purple-900/30 text-[#9C27B0]' : 'text-[#7A8999] hover:bg-purple-900/20 hover:text-[#9C27B0]'}`}
-          onClick={() => setFilter('cycl')}
-        >
-          Cycl
-        </Button>
-      </div>
+
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>

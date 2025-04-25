@@ -63,24 +63,29 @@ export const PerformanceChart = ({
   }
   
   return (
-    <Card className="mb-6 border-0 shadow bg-[#0A1929]">
-      <CardHeader className="card-header flex flex-row items-center justify-between px-4 py-3 bg-[#111E2E]">
-        <h3 className="text-left">Performance vs {benchmark}</h3>
-        <div className="flex items-center space-x-2 text-xs">
-          {timeRanges.map(range => (
-            <button
-              key={range}
-              className={cn(
-                "text-gray-400 hover:text-white",
-                selectedRange === range && "text-secondary underline"
-              )}
-              onClick={() => setSelectedRange(range)}
-            >
-              {range}
-            </button>
-          ))}
+    <Card className="mb-6 border-0 shadow bg-[#0A1929] rounded-none border border-[#1A304A]">
+      <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+        <div className="w-full flex items-center justify-between">
+          <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">YTD</h3>
+          <div className="h-1 w-8 bg-[#2196F3]"></div>
         </div>
       </CardHeader>
+      <div className="px-3 py-2 flex gap-1">
+        {timeRanges.map(range => (
+          <button
+            key={range}
+            className={cn(
+              "text-[10px] sm:text-xs px-2 py-0.5 rounded-sm",
+              selectedRange === range 
+                ? "bg-[#1A304A] text-white" 
+                : "text-[#7A8999] hover:bg-[#1A304A]/50 hover:text-white"
+            )}
+            onClick={() => setSelectedRange(range)}
+          >
+            {range}
+          </button>
+        ))}
+      </div>
       <CardContent className="p-4 bg-[#0A1929]">
         <div className="h-[200px]">
           <ResponsiveContainer width="100%" height="100%">

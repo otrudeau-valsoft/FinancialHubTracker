@@ -31,9 +31,12 @@ export const MatrixRules = ({ increaseRules, decreaseRules }: MatrixRulesProps) 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
       {/* Increase Position Rules */}
-      <Card className="bg-card">
-        <CardHeader className="card-header">
-          <h3>Increase Position Matrix</h3>
+      <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden">
+        <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+          <div className="w-full flex items-center justify-between">
+            <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">INCREASE RULES</h3>
+            <div className="h-1 w-8 bg-[#4CAF50]"></div>
+          </div>
         </CardHeader>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-800 data-table">
@@ -60,9 +63,12 @@ export const MatrixRules = ({ increaseRules, decreaseRules }: MatrixRulesProps) 
       </Card>
       
       {/* Decrease Position Rules */}
-      <Card className="bg-card">
-        <CardHeader className="card-header">
-          <h3>Decrease Position Matrix</h3>
+      <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden">
+        <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+          <div className="w-full flex items-center justify-between">
+            <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">DECREASE RULES</h3>
+            <div className="h-1 w-8 bg-[#F44336]"></div>
+          </div>
         </CardHeader>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-800 data-table">
