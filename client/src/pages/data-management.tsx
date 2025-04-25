@@ -417,7 +417,7 @@ export default function DataManagement() {
       
       <div className="grid gap-3 sm:gap-4">
         {/* Update Panels - Top Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           <Card className="bg-[#0A1524] border border-[#1A304A] rounded-none shadow-lg">
             <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-2 sm:p-3">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
@@ -648,7 +648,7 @@ export default function DataManagement() {
         </Card>
         
         {/* Scheduler Configuration Section */}
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2">
           {configLoading ? (
             <div className="col-span-2 flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#38AAFD]"></div>
