@@ -17,7 +17,9 @@ import {
   FileText,
   Sparkles,
   PieChart,
-  Filter
+  Filter,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 // Mock data for earnings heatmap based on screenshot
@@ -180,8 +182,44 @@ const getReactionCommentaryColor = (value: string) => {
   }
 };
 
+// Define quarter data for navigation
+const quarters = [
+  { quarter: "Q4 2024", year: 2024, quarterNum: 4 },
+  { quarter: "Q3 2024", year: 2024, quarterNum: 3 },
+  { quarter: "Q2 2024", year: 2024, quarterNum: 2 },
+  { quarter: "Q1 2024", year: 2024, quarterNum: 1 },
+  { quarter: "Q4 2023", year: 2023, quarterNum: 4 },
+  { quarter: "Q3 2023", year: 2023, quarterNum: 3 },
+];
+
 export default function EarningsPage() {
   const [activeTab, setActiveTab] = useState("heatmap");
+  const [currentQuarterIndex, setCurrentQuarterIndex] = useState(0); // Start with Q4 2024
+  
+  // Function to navigate to previous quarter
+  const previousQuarter = () => {
+    if (currentQuarterIndex < quarters.length - 1) {
+      const newIndex = currentQuarterIndex + 1;
+      console.log(`Navigating to previous quarter: ${quarters[newIndex].quarter}`);
+      setCurrentQuarterIndex(newIndex);
+    }
+  };
+  
+  // Function to navigate to next quarter
+  const nextQuarter = () => {
+    if (currentQuarterIndex > 0) {
+      const newIndex = currentQuarterIndex - 1;
+      console.log(`Navigating to next quarter: ${quarters[newIndex].quarter}`);
+      setCurrentQuarterIndex(newIndex);
+    }
+  };
+  
+  // This useEffect would typically fetch data for the selected quarter
+  React.useEffect(() => {
+    console.log(`Loading data for: ${quarters[currentQuarterIndex].quarter}`);
+    // In a real application, this would fetch data from the API for the selected quarter
+    // For now, we're just using the mock data
+  }, [currentQuarterIndex]);
 
   return (
     <div className="container mx-auto p-4 bg-[#061220]">
@@ -251,13 +289,37 @@ export default function EarningsPage() {
 
         {/* EARNINGS HEATMAP */}
         <TabsContent value="heatmap" className="space-y-4">
-          {/* Main Earnings Season Header */}
+          {/* Main Earnings Season Header with Quarter Navigation */}
           <Card className="border-0 shadow bg-[#0A1929]">
             <CardHeader className="card-header px-4 py-3 bg-[#111E2E] flex justify-between items-center">
-              <div className="flex items-center">
-                <BarChart3 className="h-5 w-5 mr-2 text-[#E91E63]" />
-                <h3 className="text-left font-mono text-[#EFEFEF] text-sm">EARNINGS SEASON - Q4 2024</h3>
+              <div className="flex items-center space-x-4">
+                {/* Previous Quarter Arrow */}
+                <button 
+                  onClick={previousQuarter}
+                  className={`p-1 rounded-full ${currentQuarterIndex < quarters.length - 1 ? 'hover:bg-[#1A304A] text-[#E91E63]' : 'text-[#384b62] cursor-not-allowed'}`}
+                  disabled={currentQuarterIndex >= quarters.length - 1}
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                
+                {/* Current Quarter Title */}
+                <div className="flex items-center">
+                  <BarChart3 className="h-5 w-5 mr-2 text-[#E91E63]" />
+                  <h3 className="text-left font-mono text-[#EFEFEF] text-sm">
+                    EARNINGS SEASON - {quarters[currentQuarterIndex].quarter}
+                  </h3>
+                </div>
+                
+                {/* Next Quarter Arrow */}
+                <button 
+                  onClick={nextQuarter}
+                  className={`p-1 rounded-full ${currentQuarterIndex > 0 ? 'hover:bg-[#1A304A] text-[#E91E63]' : 'text-[#384b62] cursor-not-allowed'}`}
+                  disabled={currentQuarterIndex <= 0}
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
               </div>
+              
               <div className="flex items-center">
                 <Filter className="h-4 w-4 mr-1 text-[#7A8999]" />
                 <span className="text-xs font-mono text-[#7A8999]">FILTER</span>
@@ -365,7 +427,9 @@ export default function EarningsPage() {
             <CardHeader className="card-header px-4 py-3 bg-[#111E2E] flex justify-between items-center">
               <div className="flex items-center">
                 <PieChart className="h-5 w-5 mr-2 text-[#38AAFD]" />
-                <h3 className="text-left font-mono text-[#EFEFEF] text-sm">EARNINGS DETAILS</h3>
+                <h3 className="text-left font-mono text-[#EFEFEF] text-sm">
+                  EARNINGS DETAILS - {quarters[currentQuarterIndex].quarter}
+                </h3>
               </div>
             </CardHeader>
             <CardContent className="p-0">
