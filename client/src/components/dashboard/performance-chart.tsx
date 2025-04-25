@@ -66,7 +66,7 @@ export const PerformanceChart = ({
     <Card className="mb-6 border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden">
       <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
         <div className="w-full flex items-center justify-between">
-          <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">YTD</h3>
+          <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">RELATIVE P&L</h3>
           <div className="h-1 w-8 bg-[#2196F3]"></div>
         </div>
       </CardHeader>
