@@ -1082,39 +1082,41 @@ export default function EarningsPage() {
         {/* EARNINGS HEATMAP */}
         <TabsContent value="heatmap" className="space-y-4">
           {/* Main Earnings Season Header with Quarter Navigation */}
-          <Card className="border-0 shadow bg-[#0A1929]">
-            <CardHeader className="card-header px-2 sm:px-4 py-2 sm:py-3 bg-[#111E2E] flex justify-between items-center">
-              <div className="flex items-center space-x-2 sm:space-x-4">
-                {/* Previous Quarter Arrow */}
-                <button 
-                  onClick={previousQuarter}
-                  className={`p-1 rounded-full ${currentQuarterIndex < quarters.length - 1 ? 'hover:bg-[#1A304A] text-[#E91E63]' : 'text-[#384b62] cursor-not-allowed'}`}
-                  disabled={currentQuarterIndex >= quarters.length - 1}
-                >
-                  <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-                </button>
-                
-                {/* Current Quarter Title */}
-                <div className="flex items-center">
-                  <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-[#E91E63]" />
-                  <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-sm whitespace-nowrap">
+          <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden rounded-md">
+            <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+              <div className="w-full flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {/* Previous Quarter Arrow */}
+                  <button 
+                    onClick={previousQuarter}
+                    className={`p-1 rounded-full ${currentQuarterIndex < quarters.length - 1 ? 'hover:bg-[#1A304A] text-[#E91E63]' : 'text-[#384b62] cursor-not-allowed'}`}
+                    disabled={currentQuarterIndex >= quarters.length - 1}
+                  >
+                    <ChevronLeft className="h-3 w-3" />
+                  </button>
+                  
+                  {/* Current Quarter Title */}
+                  <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide whitespace-nowrap">
                     EARNINGS SEASON - {quarters[currentQuarterIndex].quarter}
                   </h3>
+                  
+                  {/* Next Quarter Arrow */}
+                  <button 
+                    onClick={nextQuarter}
+                    className={`p-1 rounded-full ${currentQuarterIndex > 0 ? 'hover:bg-[#1A304A] text-[#E91E63]' : 'text-[#384b62] cursor-not-allowed'}`}
+                    disabled={currentQuarterIndex <= 0}
+                  >
+                    <ChevronRight className="h-3 w-3" />
+                  </button>
                 </div>
                 
-                {/* Next Quarter Arrow */}
-                <button 
-                  onClick={nextQuarter}
-                  className={`p-1 rounded-full ${currentQuarterIndex > 0 ? 'hover:bg-[#1A304A] text-[#E91E63]' : 'text-[#384b62] cursor-not-allowed'}`}
-                  disabled={currentQuarterIndex <= 0}
-                >
-                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
-                </button>
-              </div>
-              
-              <div className="flex items-center">
-                <Filter className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-[#7A8999]" />
-                <span className="text-[10px] sm:text-xs font-mono text-[#7A8999]">FILTER</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-gray-400 flex items-center">
+                    <Filter className="h-3 w-3 mr-1" />
+                    FILTER
+                  </span>
+                  <div className="h-1 w-8 bg-[#E91E63]"></div>
+                </div>
               </div>
             </CardHeader>
           </Card>
@@ -1122,11 +1124,13 @@ export default function EarningsPage() {
           {/* Earnings Statistics Section */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
             {/* EPS Stats */}
-            <Card className="border-0 shadow bg-[#0A1929] rounded-none border border-[#1A304A]">
-              <CardHeader className="card-header px-2 sm:px-3 py-1 sm:py-2 bg-[#0D1C30] border-b border-[#1A304A]">
-                <div className="flex items-center">
-                  <BarChart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-[#4CAF50]" />
-                  <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">EPS</h3>
+            <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden rounded-md">
+              <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+                <div className="w-full flex items-center justify-between">
+                  <div className="flex items-center">
+                    <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">EPS</h3>
+                  </div>
+                  <div className="h-1 w-8 bg-[#4CAF50]"></div>
                 </div>
               </CardHeader>
               <CardContent className="p-1 sm:p-2">
@@ -1145,11 +1149,13 @@ export default function EarningsPage() {
             </Card>
 
             {/* Revenue Stats */}
-            <Card className="border-0 shadow bg-[#0A1929] rounded-none border border-[#1A304A]">
-              <CardHeader className="card-header px-2 sm:px-3 py-1 sm:py-2 bg-[#0D1C30] border-b border-[#1A304A]">
-                <div className="flex items-center">
-                  <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-[#2196F3]" />
-                  <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">REVENUE</h3>
+            <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden rounded-md">
+              <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+                <div className="w-full flex items-center justify-between">
+                  <div className="flex items-center">
+                    <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">REVENUE</h3>
+                  </div>
+                  <div className="h-1 w-8 bg-[#2196F3]"></div>
                 </div>
               </CardHeader>
               <CardContent className="p-1 sm:p-2">
@@ -1168,11 +1174,13 @@ export default function EarningsPage() {
             </Card>
 
             {/* Guidance Stats */}
-            <Card className="border-0 shadow bg-[#0A1929] rounded-none border border-[#1A304A]">
-              <CardHeader className="card-header px-2 sm:px-3 py-1 sm:py-2 bg-[#0D1C30] border-b border-[#1A304A]">
-                <div className="flex items-center">
-                  <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-[#FFCA28]" />
-                  <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">GUIDANCE</h3>
+            <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden rounded-md">
+              <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+                <div className="w-full flex items-center justify-between">
+                  <div className="flex items-center">
+                    <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">GUIDANCE</h3>
+                  </div>
+                  <div className="h-1 w-8 bg-[#FFCA28]"></div>
                 </div>
               </CardHeader>
               <CardContent className="p-1 sm:p-2">
@@ -1191,11 +1199,13 @@ export default function EarningsPage() {
             </Card>
 
             {/* Earnings Score Stats */}
-            <Card className="border-0 shadow bg-[#0A1929]">
-              <CardHeader className="card-header px-2 sm:px-3 py-1 sm:py-2 bg-[#111E2E]">
-                <div className="flex items-center">
-                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 mr-1 text-[#E91E63]" />
-                  <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">SCORE</h3>
+            <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden rounded-md">
+              <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+                <div className="w-full flex items-center justify-between">
+                  <div className="flex items-center">
+                    <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">SCORE</h3>
+                  </div>
+                  <div className="h-1 w-8 bg-[#E91E63]"></div>
                 </div>
               </CardHeader>
               <CardContent className="p-1 sm:p-2">
@@ -1215,13 +1225,15 @@ export default function EarningsPage() {
           </div>
           
           {/* Earnings Heatmap Table - Simplified Version */}
-          <Card className="border-0 shadow bg-[#0A1929]">
-            <CardHeader className="card-header px-2 sm:px-4 py-2 sm:py-3 bg-[#111E2E] flex justify-between items-center">
-              <div className="flex items-center">
-                <PieChart className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-[#38AAFD]" />
-                <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-sm whitespace-nowrap">
-                  <span className="hidden xs:inline">EARNINGS DETAILS -</span> {quarters[currentQuarterIndex].quarter}
-                </h3>
+          <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden rounded-md">
+            <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+              <div className="w-full flex items-center justify-between">
+                <div className="flex items-center">
+                  <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide whitespace-nowrap">
+                    <span className="hidden xs:inline">EARNINGS DETAILS -</span> {quarters[currentQuarterIndex].quarter}
+                  </h3>
+                </div>
+                <div className="h-1 w-8 bg-[#38AAFD]"></div>
               </div>
             </CardHeader>
             <CardContent className="p-0">
@@ -1322,11 +1334,13 @@ export default function EarningsPage() {
         <TabsContent value="intakes" className="mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Earnings Setup */}
-            <Card className="border-0 shadow bg-[#0A1929]">
-              <CardHeader className="card-header px-4 py-3 bg-[#111E2E]">
-                <div className="flex items-center">
-                  <FileSpreadsheet className="h-5 w-5 mr-2 text-[#2196F3]" />
-                  <h3 className="text-left font-mono text-[#EFEFEF] text-sm">EARNINGS SETUP</h3>
+            <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden rounded-md">
+              <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+                <div className="w-full flex items-center justify-between">
+                  <div className="flex items-center">
+                    <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">EARNINGS SETUP</h3>
+                  </div>
+                  <div className="h-1 w-8 bg-[#2196F3]"></div>
                 </div>
               </CardHeader>
               <CardContent className="p-4">
@@ -1345,11 +1359,13 @@ export default function EarningsPage() {
             </Card>
 
             {/* Earnings Recap */}
-            <Card className="border-0 shadow bg-[#0A1929]">
-              <CardHeader className="card-header px-4 py-3 bg-[#111E2E]">
-                <div className="flex items-center">
-                  <FileText className="h-5 w-5 mr-2 text-[#FFCA28]" />
-                  <h3 className="text-left font-mono text-[#EFEFEF] text-sm">EARNINGS RECAP</h3>
+            <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden rounded-md">
+              <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+                <div className="w-full flex items-center justify-between">
+                  <div className="flex items-center">
+                    <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">EARNINGS RECAP</h3>
+                  </div>
+                  <div className="h-1 w-8 bg-[#FFCA28]"></div>
                 </div>
               </CardHeader>
               <CardContent className="p-4">
@@ -1374,26 +1390,26 @@ export default function EarningsPage() {
           {selectedStockInfo && (
             <>
               {/* Stock Header with Back Button */}
-              <Card className="border-0 shadow bg-[#0A1929]">
-                <CardHeader className="card-header px-2 sm:px-4 py-2 sm:py-3 bg-[#111E2E] flex justify-between items-center">
+              <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden rounded-md">
+                <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9 flex justify-between items-center">
                   <div className="flex items-center space-x-2 sm:space-x-4">
                     <button 
                       onClick={handleBackToHeatmap}
                       className="p-1 rounded-full hover:bg-[#1A304A] text-[#E91E63]"
                     >
-                      <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
                     </button>
                     
                     <div className="flex items-center">
-                      <LineChart className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-[#E91E63]" />
-                      <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-sm whitespace-nowrap">
+                      <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide whitespace-nowrap">
                         <span className="hidden xs:inline">EARNINGS HISTORY -</span> {selectedStock}
                       </h3>
                     </div>
                   </div>
                   
-                  <div className="flex items-center">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="text-[10px] sm:text-xs font-mono text-[#38AAFD] truncate max-w-[120px] sm:max-w-none">{selectedStockInfo?.issuerName}</span>
+                    <div className="h-1 w-6 bg-[#E91E63]"></div>
                   </div>
                 </CardHeader>
               </Card>
