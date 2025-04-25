@@ -1415,13 +1415,13 @@ export default function EarningsPage() {
               </Card>
               
               {/* Stock Summary Card */}
-              <Card className="border-0 shadow bg-[#0A1929]">
-                <CardHeader className="card-header px-2 sm:px-4 py-2 sm:py-3 bg-[#111E2E]">
-                  <div className="flex items-center">
-                    <PieChart className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-[#38AAFD]" />
-                    <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-sm">
-                      LATEST QUARTER SUMMARY
-                    </h3>
+              <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden rounded-md">
+                <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+                  <div className="w-full flex items-center justify-between">
+                    <div className="flex items-center">
+                      <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">LATEST QUARTER SUMMARY</h3>
+                    </div>
+                    <div className="h-1 w-8 bg-[#38AAFD]"></div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-2 sm:p-4">
@@ -1449,13 +1449,13 @@ export default function EarningsPage() {
               </Card>
               
               {/* Historical Earnings Detail Table */}
-              <Card className="border-0 shadow bg-[#0A1929]">
-                <CardHeader className="card-header px-2 sm:px-4 py-2 sm:py-3 bg-[#111E2E]">
-                  <div className="flex items-center">
-                    <LineChart className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-[#38AAFD]" />
-                    <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-sm">
-                      QUARTERLY EARNINGS
-                    </h3>
+              <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden rounded-md">
+                <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+                  <div className="w-full flex items-center justify-between">
+                    <div className="flex items-center">
+                      <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">QUARTERLY EARNINGS</h3>
+                    </div>
+                    <div className="h-1 w-8 bg-[#E91E63]"></div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
@@ -1514,13 +1514,13 @@ export default function EarningsPage() {
               
               {/* Visual Charts Section - Placeholder */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-                <Card className="border-0 shadow bg-[#0A1929]">
-                  <CardHeader className="card-header px-2 sm:px-4 py-2 sm:py-3 bg-[#111E2E]">
-                    <div className="flex items-center">
-                      <BarChart className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-[#4CAF50]" />
-                      <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-sm">
-                        EARNINGS TREND
-                      </h3>
+                <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden rounded-md">
+                  <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+                    <div className="w-full flex items-center justify-between">
+                      <div className="flex items-center">
+                        <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">EARNINGS TREND</h3>
+                      </div>
+                      <div className="h-1 w-8 bg-[#4CAF50]"></div>
                     </div>
                   </CardHeader>
                   <CardContent className="p-2 sm:p-4 flex justify-center items-center bg-[#0D2237] h-[150px] sm:h-[200px]">
@@ -1528,13 +1528,13 @@ export default function EarningsPage() {
                   </CardContent>
                 </Card>
                 
-                <Card className="border-0 shadow bg-[#0A1929]">
-                  <CardHeader className="card-header px-2 sm:px-4 py-2 sm:py-3 bg-[#111E2E]">
-                    <div className="flex items-center">
-                      <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 text-[#38AAFD]" />
-                      <h3 className="text-left font-mono text-[#EFEFEF] text-[10px] sm:text-sm">
-                        PRICE REACTION
-                      </h3>
+                <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden rounded-md">
+                  <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+                    <div className="w-full flex items-center justify-between">
+                      <div className="flex items-center">
+                        <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">PRICE REACTION</h3>
+                      </div>
+                      <div className="h-1 w-8 bg-[#38AAFD]"></div>
                     </div>
                   </CardHeader>
                   <CardContent className="p-2 sm:p-4 flex justify-center items-center bg-[#0D2237] h-[150px] sm:h-[200px]">
