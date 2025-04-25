@@ -407,11 +407,10 @@ export default function DataManagement() {
   
   return (
     <div className="container mx-auto p-2 sm:p-4 bg-[#061220]">
-      <div className="mb-4 sm:mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-[#EFEFEF] font-mono tracking-tight">DATA MANAGEMENT</h1>
-        <div className="flex items-center space-x-2 mt-1">
-          <div className="h-1 w-12 bg-[#FFCA28]"></div>
-          <p className="text-[#C0C0C0] text-xs sm:text-sm font-mono tracking-tighter truncate">MANAGE DATA UPDATES • REAL-TIME SCHEDULING • SYSTEM LOGS</p>
+      <div className="mb-3 sm:mb-4">
+        <h1 className="text-lg sm:text-xl font-medium text-[#EFEFEF] font-mono tracking-tight">DATA MANAGEMENT</h1>
+        <div className="flex mt-1">
+          <div className="h-0.5 w-8 bg-[#FFCA28]"></div>
         </div>
       </div>
       
