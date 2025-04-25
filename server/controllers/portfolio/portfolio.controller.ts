@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { storage } from '../../storage';
+import { storage } from '../../db-storage';
 import { z } from 'zod';
-import { parseCSV, convertPortfolioData } from '../../util';
+import Papa from 'papaparse';
 
 /**
  * Get all stocks for a specific portfolio region
@@ -69,11 +69,32 @@ export const importPortfolio = async (req: Request, res: Response) => {
   }
   
   try {
-    const parsedData = await parseCSV(req.body.csvData);
-    const convertedData = convertPortfolioData(parsedData, region);
+    // Parse CSV data
+    const parsedData = Papa.parse(req.body.csvData, {
+      header: true,
+      skipEmptyLines: true
+    }).data;
+    
+    // Convert parsed data to the format expected by the storage layer
+    const convertedData = parsedData.map((item: any) => ({
+      symbol: item.Symbol || '',
+      name: item.Name || '',
+      region,
+      sector: item.Sector,
+      industry: item.Industry,
+      rating: item.Rating ? parseFloat(item.Rating) : null,
+      classificationLevel1: item.ClassificationLevel1,
+      classificationLevel2: item.ClassificationLevel2,
+      position: item.Position ? parseFloat(item.Position) : null,
+      targetPrice: item.TargetPrice ? parseFloat(item.TargetPrice) : null,
+      stopLoss: item.StopLoss ? parseFloat(item.StopLoss) : null,
+      entryPrice: item.EntryPrice ? parseFloat(item.EntryPrice) : null,
+      entryDate: item.EntryDate,
+      notes: item.Notes
+    }));
     
     // Use storage to bulk import
-    const result = await storage.bulkImportPortfolioStocks(convertedData, region);
+    const result = await storage.bulkCreatePortfolioStocks(convertedData, region);
     
     return res.json({
       message: "Portfolio data imported successfully",

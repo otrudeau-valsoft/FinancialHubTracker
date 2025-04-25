@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { storage } from '../../storage';
-import { scripts } from '../../scripts';
+import { storage } from '../../db-storage';
+import * as upgradeDowngradeScripts from '../../scripts/import-upgrade-downgrade';
 
 /**
  * Get upgrade/downgrade history for a specific region
@@ -31,11 +31,11 @@ export const fetchRegionUpgradeDowngradeHistory = async (req: Request, res: Resp
   const { region } = req.params;
   
   try {
-    const result = await scripts.importRegionUpgradeDowngradeHistory(region.toUpperCase());
+    const result = await upgradeDowngradeScripts.importRegionUpgradeDowngradeHistory(region.toUpperCase());
     return res.json({
       message: `Successfully imported upgrade/downgrade history for ${region}`,
       processed: result.processed,
-      imported: result.imported
+      withData: result.withData
     });
   } catch (error) {
     console.error(`Error importing upgrade/downgrade history for ${region}:`, error);
@@ -53,7 +53,7 @@ export const fetchStockUpgradeDowngradeHistory = async (req: Request, res: Respo
   const { symbol, region } = req.params;
   
   try {
-    await scripts.importUpgradeDowngradeHistory(symbol, region.toUpperCase());
+    await upgradeDowngradeScripts.importUpgradeDowngradeHistory(symbol, region.toUpperCase());
     return res.json({
       message: `Successfully imported upgrade/downgrade history for ${symbol} (${region})`
     });

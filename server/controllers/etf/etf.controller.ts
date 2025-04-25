@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { storage } from '../../storage';
+import { storage } from '../../db-storage';
 import { z } from 'zod';
-import { parseCSV } from '../../util';
+import Papa from 'papaparse';
 
 /**
  * Get ETF holdings for a specific symbol
@@ -74,16 +74,20 @@ export const bulkImportEtfHoldings = async (req: Request, res: Response) => {
   }
   
   try {
-    const parsedData = await parseCSV(req.body.csvData);
+    // Parse CSV data
+    const parsedData = Papa.parse(req.body.csvData, {
+      header: true,
+      skipEmptyLines: true
+    }).data;
     
     // Add the ETF symbol to each item
-    const holdingsData = parsedData.map(item => ({
+    const holdingsData = parsedData.map((item: any) => ({
       ...item,
       etfSymbol: symbol.toUpperCase()
     }));
     
     // Use storage to bulk import
-    const result = await storage.bulkImportEtfHoldings(holdingsData);
+    const result = await storage.bulkCreateEtfHoldings(holdingsData);
     
     return res.json({
       message: "ETF holdings imported successfully",

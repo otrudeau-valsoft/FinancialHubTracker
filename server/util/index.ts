@@ -1,73 +1,15 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { parse } from 'papaparse';
-
-// Convert paths for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 /**
- * Parse CSV file and return the data
- * @param filePath Path to CSV file relative to project root
+ * Sleep for a specified number of milliseconds
+ * Useful for rate limiting API requests
+ * @param ms Milliseconds to sleep
  */
-export function parseCSV<T = any>(filePath: string): Promise<T[]> {
-  return new Promise((resolve, reject) => {
-    const fullPath = path.join(process.cwd(), filePath);
-    
-    if (!fs.existsSync(fullPath)) {
-      return reject(new Error(`File not found: ${fullPath}`));
-    }
-    
-    const fileContent = fs.readFileSync(fullPath, 'utf8');
-    
-    parse(fileContent, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        resolve(results.data as T[]);
-      },
-      error: (error) => {
-        reject(error);
-      }
-    });
-  });
+export function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**
- * Clean string value, handling null and undefined
- */
-export function cleanValue(value: string | null | undefined): string | null {
-  if (value === undefined || value === null || value === '') {
-    return null;
-  }
-  return value.trim();
-}
-
-/**
- * Parse number from string, handling null and undefined
- */
-export function parseNumber(value: string | null | undefined): number | null {
-  if (value === undefined || value === null || value === '') {
-    return null;
-  }
-  
-  // Remove any non-numeric characters except dot and negative sign
-  const cleanedValue = value.toString().replace(/[^0-9.-]/g, '');
-  const parsed = parseFloat(cleanedValue);
-  
-  return isNaN(parsed) ? null : parsed;
-}
-
-/**
- * Format date to YYYY-MM-DD
- */
-export function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0];
-}
-
-/**
- * Get current date in Eastern Standard Time (EST)
+ * Get current date/time in EST timezone
+ * @returns Date object in EST timezone
  */
 export function getCurrentESTDate(): Date {
   const date = new Date();
@@ -75,7 +17,8 @@ export function getCurrentESTDate(): Date {
 }
 
 /**
- * Get Eastern Standard Time (EST) formatted datetime
+ * Get formatted time string in EST timezone
+ * @returns Formatted time string in EST timezone
  */
 export function getESTFormattedTime(): string {
   return new Date().toLocaleString('en-US', { 
@@ -91,60 +34,89 @@ export function getESTFormattedTime(): string {
 }
 
 /**
- * Add days to a date
+ * Parse CSV data using papaparse
+ * @param csvData CSV string to parse
+ * @returns Parsed CSV data as an array of objects
  */
-export function addDays(date: Date, days: number): Date {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result;
+export async function parseCSV(csvData: string): Promise<any[]> {
+  const Papa = await import('papaparse');
+  const result = Papa.default.parse(csvData, {
+    header: true,
+    skipEmptyLines: true
+  });
+  return result.data;
 }
 
 /**
- * Subtract days from a date
+ * Check if a value is undefined or null
+ * @param value Value to check
+ * @returns True if value is undefined or null
  */
-export function subtractDays(date: Date, days: number): Date {
-  return addDays(date, -days);
+export function isNil(value: any): boolean {
+  return value === undefined || value === null;
 }
 
 /**
- * Sleep for specified milliseconds
+ * Format a number as a percentage
+ * @param value Number to format
+ * @param decimals Number of decimal places
+ * @returns Formatted percentage string
  */
-export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+export function formatPercent(value: number, decimals: number = 2): string {
+  return `${(value * 100).toFixed(decimals)}%`;
 }
 
 /**
- * Convert portfolio data from CSV format to database format
+ * Format a number as currency
+ * @param value Number to format
+ * @param currency Currency code (USD, CAD, etc.)
+ * @returns Formatted currency string
  */
-export function convertPortfolioData(data: any, region: string): any {
-  return {
-    symbol: cleanValue(data.Symbol) || '',
-    name: cleanValue(data.Name) || '',
-    region,
-    sector: cleanValue(data.Sector),
-    industry: cleanValue(data.Industry),
-    rating: parseNumber(data.Rating),
-    classificationLevel1: cleanValue(data.ClassificationLevel1),
-    classificationLevel2: cleanValue(data.ClassificationLevel2),
-    position: parseNumber(data.Position),
-    targetPrice: parseNumber(data.TargetPrice),
-    stopLoss: parseNumber(data.StopLoss),
-    entryPrice: parseNumber(data.EntryPrice),
-    entryDate: cleanValue(data.EntryDate),
-    notes: cleanValue(data.Notes)
-  };
+export function formatCurrency(value: number, currency: string = 'USD'): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency
+  }).format(value);
 }
 
 /**
- * Sanitize values for database insertion
- * Converts undefined to null to avoid database errors
+ * Convert a date to EST timezone
+ * @param date Date to convert
+ * @returns Date in EST timezone
  */
-export function sanitizeForDb<T extends Record<string, any>>(obj: T): T {
-  const result: Record<string, any> = {};
+export function toESTTime(date: Date = new Date()): Date {
+  return new Date(date.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+}
+
+/**
+ * Check if date is a weekend
+ * @param date Date to check
+ * @returns True if date is a weekend
+ */
+export function isWeekend(date: Date = new Date()): boolean {
+  const day = date.getDay();
+  return day === 0 || day === 6; // 0 = Sunday, 6 = Saturday
+}
+
+/**
+ * Check if current time is within market hours (9:30am - 4:00pm EST, weekdays)
+ * @param date Date to check
+ * @returns True if within market hours
+ */
+export function isWithinMarketHours(date: Date = new Date()): boolean {
+  const estDate = toESTTime(date);
   
-  for (const [key, value] of Object.entries(obj)) {
-    result[key] = value === undefined ? null : value;
+  // Check if weekend
+  if (isWeekend(estDate)) {
+    return false;
   }
   
-  return result as T;
+  const hours = estDate.getHours();
+  const minutes = estDate.getMinutes();
+  
+  // Convert to total minutes since midnight
+  const totalMinutes = hours * 60 + minutes;
+  
+  // Market hours: 9:30am (570 minutes) to 4:00pm (960 minutes)
+  return totalMinutes >= 570 && totalMinutes <= 960;
 }
