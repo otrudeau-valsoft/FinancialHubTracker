@@ -167,3 +167,54 @@ export const updatePortfolioSummary = async (req: Request, res: Response) => {
     throw error;
   }
 };
+
+/**
+ * Rebalance a portfolio by replacing all stocks
+ */
+export const rebalancePortfolio = async (req: Request, res: Response) => {
+  const region = req.params.region.toUpperCase();
+  
+  // Validate the incoming stocks array
+  const stockSchema = z.object({
+    id: z.number().optional(),
+    symbol: z.string().min(1, "Symbol is required"),
+    company: z.string().min(1, "Company name is required"),
+    stockType: z.string().min(1, "Stock type is required"),
+    rating: z.string().min(1, "Rating is required"),
+    sector: z.string().optional(),
+    quantity: z.number().min(0, "Quantity must be a positive number"),
+    price: z.number().optional(),
+  });
+  
+  const schema = z.object({
+    stocks: z.array(stockSchema),
+  });
+  
+  try {
+    const validData = schema.parse(req.body);
+    
+    // Rebalance the portfolio (this will delete all existing stocks and add new ones)
+    const result = await storage.rebalancePortfolio(validData.stocks, region);
+    
+    // Return success with the newly created stocks
+    return res.status(200).json({
+      message: `Successfully rebalanced ${region} portfolio`,
+      stocks: result,
+      count: result.length
+    });
+  } catch (error) {
+    console.error(`Error rebalancing ${region} portfolio:`, error);
+    
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        message: "Validation error", 
+        errors: error.errors 
+      });
+    }
+    
+    return res.status(500).json({ 
+      message: `Failed to rebalance ${region} portfolio`, 
+      error: error instanceof Error ? error.message : String(error) 
+    });
+  }
+};

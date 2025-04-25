@@ -7,7 +7,8 @@ import {
   deletePortfolioStock,
   importPortfolio,
   getPortfolioSummary,
-  updatePortfolioSummary
+  updatePortfolioSummary,
+  rebalancePortfolio
 } from '../../controllers/portfolio/portfolio.controller';
 import { asyncHandler } from '../../middleware/error-handler';
 
@@ -39,5 +40,8 @@ router.post('/:region/summary', asyncHandler(updatePortfolioSummary));
 
 // PUT /api/portfolios/:region/summary/:id - Update portfolio summary
 router.put('/:region/summary/:id', asyncHandler(updatePortfolioSummary));
+
+// POST /api/portfolios/:region/rebalance - Rebalance portfolio (replace all stocks)
+router.post('/:region/rebalance', asyncHandler(rebalancePortfolio));
 
 export default router;

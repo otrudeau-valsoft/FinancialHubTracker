@@ -47,6 +47,7 @@ interface PortfolioStock {
   dividendYield?: number;
   profitLoss?: number;
   nextEarningsDate?: string;
+  sector?: string;
 }
 
 interface PortfolioTableProps {
@@ -57,6 +58,7 @@ interface PortfolioTableProps {
 
 export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTableProps) => {
   const [filter, setFilter] = useState<string>('all');
+  const [isRebalanceModalOpen, setIsRebalanceModalOpen] = useState(false);
   
   const currencySymbol = region === 'USD' ? '$' : region === 'CAD' ? 'C$' : '$';
   
@@ -74,121 +76,152 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
   // Use either provided prices or fetched prices
   const prices = currentPrices || fetchedPrices || [];
   
+  // Map portfolio stocks to the format expected by RebalanceModal
+  const rebalanceStocks = stocks.map(stock => ({
+    id: stock.id,
+    symbol: stock.symbol,
+    company: stock.company,
+    stockType: stock.stockType,
+    rating: stock.rating,
+    quantity: stock.quantity,
+    price: stock.price,
+    sector: stock.sector || 'Technology' // Default sector if not available
+  }));
+  
   return (
-    <Card className="mb-6 border-0 shadow bg-[#0A1929] rounded-none border border-[#1A304A]">
-      <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
-        <div className="w-full flex items-center justify-between">
-          <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">HOLDINGS</h3>
-          <div className="h-1 w-8 bg-[#4CAF50]"></div>
-        </div>
-      </CardHeader>
+    <>
+      <RebalanceModal 
+        isOpen={isRebalanceModalOpen}
+        onClose={() => setIsRebalanceModalOpen(false)}
+        region={region}
+        existingStocks={rebalanceStocks}
+      />
+      
+      <Card className="mb-6 border-0 shadow bg-[#0A1929] rounded-none border border-[#1A304A]">
+        <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+          <div className="w-full flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">HOLDINGS</h3>
+              <Button 
+                onClick={() => setIsRebalanceModalOpen(true)}
+                size="sm"
+                variant="outline"
+                className="h-6 px-2 text-[10px] font-mono bg-[#0F1A2A] border-[#193049] text-[#EFEFEF] hover:bg-[#162638]"
+              >
+                <Repeat size={12} className="mr-1" /> REBALANCE
+              </Button>
+            </div>
+            <div className="h-1 w-8 bg-[#4CAF50]"></div>
+          </div>
+        </CardHeader>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="text-xs h-8 border-b border-[#0F1A2A] bg-[#0D1F32]">
-              <th scope="col" className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">SYMBOL</th>
-              <th scope="col" className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">COMPANY</th>
-              <th scope="col" className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">TYPE</th>
-              <th scope="col" className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">RATING</th>
-              <th scope="col" className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">BOOK PRICE</th>
-              <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">MKT PRICE</th>
-              <th scope="col" className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">QTY</th>
-              <th scope="col" className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">NAV</th>
-              <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">WEIGHT</th>
-              <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">DAILY %</th>
-              <th scope="col" className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">MTD %</th>
-              <th scope="col" className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">YTD %</th>
-              <th scope="col" className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">P&L</th>
-              <th scope="col" className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">NEXT ER</th>
-            </tr>
-          </thead>
-          <tbody className="font-mono text-xs">
-            {filteredStocks.map((stock) => {
-              // Find current price data for this stock
-              const currentPrice = Array.isArray(prices) 
-                ? prices.find((p: CurrentPrice) => p.symbol === stock.symbol) 
-                : undefined;
-              const marketPrice = currentPrice ? parseFloat(currentPrice.regularMarketPrice) : null;
-              const marketChange = currentPrice ? parseFloat(currentPrice.regularMarketChangePercent) : null;
-              
-              // Calculate difference between book price and market price
-              const priceDiff = marketPrice ? (marketPrice - stock.price) / stock.price * 100 : null;
-              
-              return (
-                <tr key={stock.id} className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542]">
-                  <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#38AAFD] text-xs font-medium whitespace-nowrap">
-                    <Link href={`/stock/${stock.symbol}?region=${region}`} className="flex items-center gap-1 hover:underline">
-                      {stock.symbol}
-                      <InfoIcon size={11} className="text-[#38AAFD] opacity-70" />
-                    </Link>
-                  </td>
-                  <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '120px', textOverflow: 'ellipsis' }}>{stock.company}</td>
-                  <td className="px-2 sm:px-3 py-0 text-center">
-                    <span className={`inline-block font-mono px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium ${getStockTypeBackground(stock.stockType)}`}>
-                      {stock.stockType}
-                    </span>
-                  </td>
-                  <td className="px-2 sm:px-3 py-0 text-center">
-                    <span className={`inline-block font-mono min-w-[1.5rem] px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-medium ${getRatingClass(stock.rating)}`}>{stock.rating}</span>
-                  </td>
-                  <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{formatCurrency(stock.price, currencySymbol)}</td>
-                  <td className="px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
-                    {marketPrice ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className={priceDiff ? getProfitLossClass(priceDiff) : "text-[#EFEFEF]"}>
-                              {formatCurrency(marketPrice, currencySymbol)}
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Market Price: {formatCurrency(marketPrice, currencySymbol)}</p>
-                            <p>Daily Change: {formatPercentage(marketChange)}</p>
-                            <p>Vs. Book: {formatPercentage(priceDiff)}</p>
-                            <p>Last Updated: {new Date(currentPrice.updatedAt).toLocaleTimeString()}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
-                      <span className="text-[#7A8999]">--</span>
-                    )}
-                  </td>
-                  <td className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{stock.quantity}</td>
-                  <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{formatCurrency(stock.nav, currencySymbol)}</td>
-                  <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{typeof stock.portfolioWeight === 'number' ? stock.portfolioWeight.toFixed(1) : '0.0'}%</td>
-                  <td className="px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
-                    <span className={marketChange || stock.dailyChange > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
-                      {marketChange ? formatPercentage(marketChange) : formatPercentage(stock.dailyChange)}
-                    </span>
-                  </td>
-                  <td className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
-                    <span className={stock.mtdChange > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
-                      {formatPercentage(stock.mtdChange)}
-                    </span>
-                  </td>
-                  <td className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
-                    <span className={stock.ytdChange > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
-                      {formatPercentage(stock.ytdChange)}
-                    </span>
-                  </td>
-                  <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
-                    {stock.profitLoss !== undefined && (
-                      <span className={stock.profitLoss > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
-                        {formatCurrency(stock.profitLoss, currencySymbol)}
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="text-xs h-8 border-b border-[#0F1A2A] bg-[#0D1F32]">
+                <th scope="col" className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">SYMBOL</th>
+                <th scope="col" className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">COMPANY</th>
+                <th scope="col" className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">TYPE</th>
+                <th scope="col" className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">RATING</th>
+                <th scope="col" className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">BOOK PRICE</th>
+                <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">MKT PRICE</th>
+                <th scope="col" className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">QTY</th>
+                <th scope="col" className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">NAV</th>
+                <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">WEIGHT</th>
+                <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">DAILY %</th>
+                <th scope="col" className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">MTD %</th>
+                <th scope="col" className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">YTD %</th>
+                <th scope="col" className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">P&L</th>
+                <th scope="col" className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">NEXT ER</th>
+              </tr>
+            </thead>
+            <tbody className="font-mono text-xs">
+              {filteredStocks.map((stock) => {
+                // Find current price data for this stock
+                const currentPrice = Array.isArray(prices) 
+                  ? prices.find((p: CurrentPrice) => p.symbol === stock.symbol) 
+                  : undefined;
+                const marketPrice = currentPrice ? parseFloat(currentPrice.regularMarketPrice) : null;
+                const marketChange = currentPrice ? parseFloat(currentPrice.regularMarketChangePercent) : null;
+                
+                // Calculate difference between book price and market price
+                const priceDiff = marketPrice ? (marketPrice - stock.price) / stock.price * 100 : null;
+                
+                return (
+                  <tr key={stock.id} className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542]">
+                    <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#38AAFD] text-xs font-medium whitespace-nowrap">
+                      <Link href={`/stock/${stock.symbol}?region=${region}`} className="flex items-center gap-1 hover:underline">
+                        {stock.symbol}
+                        <InfoIcon size={11} className="text-[#38AAFD] opacity-70" />
+                      </Link>
+                    </td>
+                    <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '120px', textOverflow: 'ellipsis' }}>{stock.company}</td>
+                    <td className="px-2 sm:px-3 py-0 text-center">
+                      <span className={`inline-block font-mono px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium ${getStockTypeBackground(stock.stockType)}`}>
+                        {stock.stockType}
                       </span>
-                    )}
-                    {stock.profitLoss === undefined && (
-                      <span className="text-[#7A8999]">--</span>
-                    )}
-                  </td>
-                  <td className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] text-xs whitespace-nowrap">{stock.nextEarningsDate || '-'}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </Card>
+                    </td>
+                    <td className="px-2 sm:px-3 py-0 text-center">
+                      <span className={`inline-block font-mono min-w-[1.5rem] px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-medium ${getRatingClass(stock.rating)}`}>{stock.rating}</span>
+                    </td>
+                    <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{formatCurrency(stock.price, currencySymbol)}</td>
+                    <td className="px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
+                      {marketPrice ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className={priceDiff ? getProfitLossClass(priceDiff) : "text-[#EFEFEF]"}>
+                                {formatCurrency(marketPrice, currencySymbol)}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Market Price: {formatCurrency(marketPrice, currencySymbol)}</p>
+                              <p>Daily Change: {formatPercentage(marketChange)}</p>
+                              <p>Vs. Book: {formatPercentage(priceDiff)}</p>
+                              <p>Last Updated: {new Date(currentPrice.updatedAt).toLocaleTimeString()}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : (
+                        <span className="text-[#7A8999]">--</span>
+                      )}
+                    </td>
+                    <td className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{stock.quantity}</td>
+                    <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{formatCurrency(stock.nav, currencySymbol)}</td>
+                    <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{typeof stock.portfolioWeight === 'number' ? stock.portfolioWeight.toFixed(1) : '0.0'}%</td>
+                    <td className="px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
+                      <span className={marketChange || stock.dailyChange > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
+                        {marketChange ? formatPercentage(marketChange) : formatPercentage(stock.dailyChange)}
+                      </span>
+                    </td>
+                    <td className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
+                      <span className={stock.mtdChange > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
+                        {formatPercentage(stock.mtdChange)}
+                      </span>
+                    </td>
+                    <td className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
+                      <span className={stock.ytdChange > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
+                        {formatPercentage(stock.ytdChange)}
+                      </span>
+                    </td>
+                    <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
+                      {stock.profitLoss !== undefined && (
+                        <span className={stock.profitLoss > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
+                          {formatCurrency(stock.profitLoss, currencySymbol)}
+                        </span>
+                      )}
+                      {stock.profitLoss === undefined && (
+                        <span className="text-[#7A8999]">--</span>
+                      )}
+                    </td>
+                    <td className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] text-xs whitespace-nowrap">{stock.nextEarningsDate || '-'}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </>
   );
 };

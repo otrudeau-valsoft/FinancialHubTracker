@@ -163,8 +163,114 @@ export class DatabaseStorage {
    * Bulk import portfolio stocks
    */
   async bulkCreatePortfolioStocks(data: any[], region?: string) {
-    // Placeholder for actual implementation
-    return data.map((item, index) => ({ ...item, id: index + 1 }));
+    try {
+      if (!region) {
+        throw new Error('Region is required');
+      }
+      
+      const upperRegion = region.toUpperCase();
+      let results = [];
+      
+      // Process data for insertion
+      const processedData = data.map(item => sanitizeForDb(item));
+      
+      // Insert into the appropriate table based on the region
+      if (upperRegion === 'USD') {
+        results = await db.insert(assetsUS).values(processedData).returning();
+      } else if (upperRegion === 'CAD') {
+        results = await db.insert(assetsCAD).values(processedData).returning();
+      } else if (upperRegion === 'INTL') {
+        results = await db.insert(assetsINTL).values(processedData).returning();
+      } else {
+        throw new Error(`Unknown region: ${region}`);
+      }
+      
+      return results;
+    } catch (error) {
+      console.error(`Error bulk creating portfolio stocks for ${region}:`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Rebalance portfolio by replacing all stocks
+   */
+  async rebalancePortfolio(stocks: any[], region: string) {
+    try {
+      const upperRegion = region.toUpperCase();
+      
+      // Validate the region
+      if (!['USD', 'CAD', 'INTL'].includes(upperRegion)) {
+        throw new Error(`Unknown region: ${region}`);
+      }
+      
+      // Start a transaction
+      const result = await db.transaction(async (tx) => {
+        // Delete all existing stocks for the region
+        if (upperRegion === 'USD') {
+          await tx.delete(assetsUS);
+          
+          // Only insert if there are stocks to add
+          if (stocks.length > 0) {
+            // Map the incoming stocks to the expected schema
+            const processedStocks = stocks.map(stock => ({
+              symbol: stock.symbol,
+              company: stock.company,
+              stockType: stock.stockType,
+              stockRating: stock.rating,
+              sector: stock.sector,
+              quantity: stock.quantity,
+              price: stock.price || 0,
+              updatedAt: new Date()
+            }));
+            
+            // Insert the new stocks
+            return await tx.insert(assetsUS).values(processedStocks).returning();
+          }
+        } else if (upperRegion === 'CAD') {
+          await tx.delete(assetsCAD);
+          
+          if (stocks.length > 0) {
+            const processedStocks = stocks.map(stock => ({
+              symbol: stock.symbol,
+              company: stock.company,
+              stockType: stock.stockType,
+              stockRating: stock.rating,
+              sector: stock.sector,
+              quantity: stock.quantity,
+              price: stock.price || 0,
+              updatedAt: new Date()
+            }));
+            
+            return await tx.insert(assetsCAD).values(processedStocks).returning();
+          }
+        } else if (upperRegion === 'INTL') {
+          await tx.delete(assetsINTL);
+          
+          if (stocks.length > 0) {
+            const processedStocks = stocks.map(stock => ({
+              symbol: stock.symbol,
+              company: stock.company,
+              stockType: stock.stockType,
+              stockRating: stock.rating,
+              sector: stock.sector,
+              quantity: stock.quantity,
+              price: stock.price || 0,
+              updatedAt: new Date()
+            }));
+            
+            return await tx.insert(assetsINTL).values(processedStocks).returning();
+          }
+        }
+        
+        return [];
+      });
+      
+      return result;
+    } catch (error) {
+      console.error(`Error rebalancing portfolio for ${region}:`, error);
+      throw error;
+    }
   }
   
   /**
