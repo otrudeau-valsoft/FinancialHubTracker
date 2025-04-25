@@ -19,7 +19,6 @@ import {
   PieChart,
   Filter
 } from "lucide-react";
-// No visualization libraries needed for table-only approach
 
 // Mock data for earnings heatmap based on screenshot
 const mockEarningsHeatmapData = [
@@ -252,6 +251,20 @@ export default function EarningsPage() {
 
         {/* EARNINGS HEATMAP */}
         <TabsContent value="heatmap" className="space-y-4">
+          {/* Main Earnings Season Header */}
+          <Card className="border-0 shadow bg-[#0A1929]">
+            <CardHeader className="card-header px-4 py-3 bg-[#111E2E] flex justify-between items-center">
+              <div className="flex items-center">
+                <BarChart3 className="h-5 w-5 mr-2 text-[#E91E63]" />
+                <h3 className="text-left font-mono text-[#EFEFEF] text-sm">EARNINGS SEASON - Q4 2024</h3>
+              </div>
+              <div className="flex items-center">
+                <Filter className="h-4 w-4 mr-1 text-[#7A8999]" />
+                <span className="text-xs font-mono text-[#7A8999]">FILTER</span>
+              </div>
+            </CardHeader>
+          </Card>
+          
           {/* Earnings Statistics Section */}
           <div className="grid grid-cols-4 gap-4">
             {/* EPS Stats */}
@@ -346,119 +359,80 @@ export default function EarningsPage() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Earnings Heatmap Treemap Visualization */}
+          
+          {/* Earnings Heatmap Table */}
           <Card className="border-0 shadow bg-[#0A1929]">
             <CardHeader className="card-header px-4 py-3 bg-[#111E2E] flex justify-between items-center">
               <div className="flex items-center">
-                <BarChart3 className="h-5 w-5 mr-2 text-[#E91E63]" />
-                <h3 className="text-left font-mono text-[#EFEFEF] text-sm">EARNINGS SEASON - Q1 2025</h3>
-              </div>
-              <div className="flex items-center">
-                <Filter className="h-4 w-4 mr-1 text-[#7A8999]" />
-                <span className="text-xs font-mono text-[#7A8999]">FILTER</span>
+                <PieChart className="h-5 w-5 mr-2 text-[#38AAFD]" />
+                <h3 className="text-left font-mono text-[#EFEFEF] text-sm">EARNINGS DETAILS</h3>
               </div>
             </CardHeader>
-            <CardContent className="p-4">
-              <div className="w-full h-[500px] bg-[#0A1929]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <Treemap
-                    data={mockTreemapData}
-                    dataKey="size"
-                    aspectRatio={16 / 9}
-                    stroke="#061220"
-                    fill="#061220"
-                    animationDuration={500}
-                  >
-                    <RechartsTooltip 
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          const data = payload[0].payload;
-                          return (
-                            <div className="bg-[#0A1929] border border-[#1A304A] rounded p-2 shadow-md text-xs font-mono">
-                              <div className="font-bold text-[#38AAFD]">{data.name}</div>
-                              <div className="mt-1">
-                                <span className="text-[#7A8999]">Market Reaction: </span>
-                                <span className={`font-bold ${data.marketReaction >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
-                                  {data.marketReaction >= 0 ? '+' : ''}{data.marketReaction.toFixed(1)}%
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    {mockTreemapData.map((entry, index) => {
-                      // Color determination based on market reaction
-                      let fillColor;
-                      
-                      if (entry.marketReaction >= 5) {
-                        fillColor = "#4CAF50"; // Strong positive (dark green)
-                      } else if (entry.marketReaction > 0) {
-                        fillColor = "#8BC34A"; // Positive (light green)
-                      } else if (entry.marketReaction > -5) {
-                        fillColor = "#FF5252"; // Negative (light red)
-                      } else {
-                        fillColor = "#D32F2F"; // Strong negative (dark red)
-                      }
-
-                      // Special cases based on the screenshot
-                      if (entry.name === 'AAPL') fillColor = "#1E88E5";  // Blue
-                      if (entry.name === 'MSFT') fillColor = "#42A5F5";  // Light blue
-                      if (entry.name === 'NVDA') fillColor = "#26A69A";  // Teal
-                      if (entry.name === 'META') fillColor = "#9CCC65";  // Light green
-                      if (entry.name === 'UNH') fillColor = "#303F9F";   // Navy blue
-                      if (entry.name === 'TSLA') fillColor = "#7986CB";  // Periwinkle
-                      if (entry.name === 'MCJ') fillColor = "#9575CD";   // Purple
-                      if (entry.name === 'BCH') fillColor = "#FFB74D";   // Orange
-                      if (entry.name === 'JPM') fillColor = "#FF8A65";   // Salmon
-                      
-                      return (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={fillColor}
-                        >
-                          <text 
-                            x="50%" 
-                            y="50%" 
-                            textAnchor="middle" 
-                            dominantBaseline="middle"
-                            className="font-mono font-bold text-black"
-                            style={{ 
-                              fontSize: entry.size > 1000 ? 16 : 12,
-                              fill: ["AAPL", "MSFT", "NVDA", "META", "BCH"].includes(entry.name) ? "black" : "white",
-                              pointerEvents: "none"
-                            }}
-                          >
-                            {entry.name}
-                          </text>
-                        </Cell>
-                      );
-                    })}
-                  </Treemap>
-                </ResponsiveContainer>
-              </div>
-              <div className="mt-4 flex justify-between items-center text-xs font-mono text-[#7A8999]">
-                <div className="flex items-center">
-                  <div className="h-3 w-3 rounded-sm bg-[#4CAF50] mr-1"></div>
-                  <span>Strong Positive &gt; +5%</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="h-3 w-3 rounded-sm bg-[#8BC34A] mr-1"></div>
-                  <span>Positive &lt; +5%</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="h-3 w-3 rounded-sm bg-[#FF5252] mr-1"></div>
-                  <span>Negative &gt; -5%</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="h-3 w-3 rounded-sm bg-[#D32F2F] mr-1"></div>
-                  <span>Strong Negative &lt; -5%</span>
-                </div>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="text-xs border-b border-[#1A304A] bg-[#0D2237]">
+                      <th className="p-2 text-left font-mono text-[#7A8999]">TICKER</th>
+                      <th className="p-2 text-left font-mono text-[#7A8999]">ISSUER NAME</th>
+                      <th className="p-2 text-left font-mono text-[#7A8999]">CONSENSUS</th>
+                      <th className="p-2 text-right font-mono text-[#7A8999]">LAST</th>
+                      <th className="p-2 text-center font-mono text-[#7A8999]">EPS</th>
+                      <th className="p-2 text-center font-mono text-[#7A8999]">REV</th>
+                      <th className="p-2 text-center font-mono text-[#7A8999]">GUIDANCE</th>
+                      <th className="p-2 text-center font-mono text-[#7A8999]">SCORE</th>
+                      <th className="p-2 text-right font-mono text-[#7A8999]">MKT REACTION</th>
+                      <th className="p-2 text-left font-mono text-[#7A8999]">COMMENTARY</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {mockEarningsHeatmapData.map((item, index) => (
+                      <tr key={index} className="border-b border-[#1A304A] hover:bg-[#0F2542]">
+                        <td className="p-2 text-left font-mono text-[#38AAFD] text-xs">{item.ticker}</td>
+                        <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.issuerName}</td>
+                        <td className="p-2 text-left font-mono text-[#EFEFEF] text-xs">{item.consensusRecommendation}</td>
+                        <td className="p-2 text-right font-mono text-[#EFEFEF] text-xs">{item.last.toFixed(1)}</td>
+                        <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.eps)}`}>{item.eps}</td>
+                        <td className={`p-2 text-center font-mono text-xs ${getEpsColor(item.rev)}`}>{item.rev}</td>
+                        <td className={`p-2 text-center font-mono text-xs ${getGuidanceColor(item.guidance)}`}>{item.guidance}</td>
+                        <td className={`p-2 text-center font-mono text-xs ${getScoreColor(item.earningsScore)}`}>{item.earningsScore}</td>
+                        <td className={`p-2 text-right font-mono text-xs ${item.mktReaction >= 0 ? 'text-[#4CAF50]' : 'text-[#FF5252]'}`}>
+                          {item.mktReaction >= 0 ? '+' : ''}{item.mktReaction.toFixed(1)}%
+                        </td>
+                        <td className={`p-2 text-left font-mono text-xs ${getReactionCommentaryColor(item.mktReactionCommentary)}`}>
+                          {item.mktReactionCommentary}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </CardContent>
           </Card>
+          
+          {/* Legend */}
+          <div className="flex flex-wrap gap-4 text-xs font-mono text-[#7A8999]">
+            <div className="flex items-center gap-1">
+              <div className="h-3 w-3 bg-[#4CAF50] rounded-sm"></div>
+              <span>Beat / Increased / Good</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="h-3 w-3 bg-[#FFD700] rounded-sm"></div>
+              <span>In-Line / Maintain / Not So Bad</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="h-3 w-3 bg-[#FF5252] rounded-sm"></div>
+              <span>Miss / Reduced / Ugly</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="h-3 w-3 bg-[#38AAFD] rounded-sm"></div>
+              <span>Abnormal Reaction</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="h-3 w-3 bg-[#FF5252] rounded-sm"></div>
+              <span>Explosive Reaction</span>
+            </div>
+          </div>
         </TabsContent>
 
         {/* EARNINGS INTAKES */}
