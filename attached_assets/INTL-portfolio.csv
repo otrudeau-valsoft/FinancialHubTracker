@@ -1,16 +1,16 @@
 ﻿SYM,Company,,Sector,PBR,Price,Qty,NAV,% PTF,% Daily,% MTD,% QTD,% YTD,% 6M,% 52WKS,% Divy,P&L,Next Earnings,Stock Rating,Stock Type
-CB-US,CHUBB LIMITED,,, $199.04 , $ ,18, $ ,%,%,%,%,%,%,%,%,%,04/22/25,1,Comp
-kweb-us,KRANESHARES CSI CHINA INTERNET ETF,,, $29.88 , $ ,132, $ ,%,%,%,%,%,%,%,%,%, ,3,Cat
-ATRL,ATKINSREALIS GROUP INC,,, $33.27 , $ ,86, $ ,%,%,%,%,%,%,%,%,%,05/15/25,2,Cat
-TT-us,TRANE TECHNOLOGIES PLC,,, $141.06 , $ ,12, $ ,%,%,%,%,%,%,%,%,%,04/28/25,1,Comp
-ESLOY-5,ESSILORLUXOTTICA,,, $69.20 , $ ,28, $ ,%,%,%,%,%,%,%,%,%,07/28/25,1,Comp
-NSRGY-5,NESTLE N,,, $92.04 , $ ,34, $ ,%,%,%,%,%,%,%,%,%,07/28/25,4,Comp
-LNSTY-US,LONDON STK EXCHANGE GROUP AMER,,, $29.84 , $ ,98, $ ,%,%,%,%,%,%,%,%,%,07/31/25,2,Cat
-MUFG-US,MITSUBISHI UFJ FINANCIAL GROUP INC ADS,,, $12.64 , $ ,300, $ ,%,%,%,%,%,%,%,%,%,05/13/25,2,Cycl
-SDZNY-US,SANDOZ GROUP AG,,, $32.62 , $ ,84, $ ,%,%,%,%,%,%,%,%,%,05/09/25,2,Comp
-ACN-US,ACCENTURE PLC (IRELAND),,, $302.51 , $ ,10, $ ,%,%,%,%,%,%,%,%,%,06/20/25,1,Comp
-ETN-US,EATON CORP PLC (IRELAND),,, $280.20 , $ ,10, $ ,%,%,%,%,%,%,%,%,%,04/28/25,1,Comp
-ASML-US,ASML HOLDING NV NY REG SHS,,, $367.67 , $ ,4, $ ,%,%,%,%,%,%,%,%,%,04/15/25,1,Comp
-BYDDY-US,BYD COMPANY LTD,,, $89.38 , $ ,26, $ ,%,%,%,%,%,%,%,%,%,04/28/25,2,Cycl
-HESAY-US,HERMES INTL S A,,, $228.00 , $ ,6, $ ,%,%,%,%,%,%,%,%,%,07/30/25,1,Comp
-MC-fr,L.V.M.H.,,, $260.62 , $ ,2, $ ,%,%,%,%,%,%,%,%,%,07/21/25,1,Comp
+CB,CHUBB LIMITED,,,$199.04, $ ,18, $ ,%,%,%,%,%,%,%,%,%,04/22/25,1,Comp
+KWEB,KRANESHARES CSI CHINA INTERNET ETF,,,$29.88, $ ,132, $ ,%,%,%,%,%,%,%,%,%, ,3,Cat
+ATRL,ATKINSREALIS GROUP INC,,,$33.27, $ ,86, $ ,%,%,%,%,%,%,%,%,%,05/15/25,2,Cat
+TT,TRANE TECHNOLOGIES PLC,,,$141.06, $ ,12, $ ,%,%,%,%,%,%,%,%,%,04/28/25,1,Comp
+ESLOY,ESSILORLUXOTTICA,,,$69.20, $ ,28, $ ,%,%,%,%,%,%,%,%,%,07/28/25,1,Comp
+NSRGY,NESTLE N,,,$92.04, $ ,34, $ ,%,%,%,%,%,%,%,%,%,07/28/25,4,Comp
+LNSTY,LONDON STK EXCHANGE GROUP AMER,,,$29.84, $ ,98, $ ,%,%,%,%,%,%,%,%,%,07/31/25,2,Cat
+MUFG,MITSUBISHI UFJ FINANCIAL GROUP INC ADS,,,$12.64, $ ,300, $ ,%,%,%,%,%,%,%,%,%,05/13/25,2,Cycl
+SDZNY,SANDOZ GROUP AG,,,$32.62, $ ,84, $ ,%,%,%,%,%,%,%,%,%,2005-09-25,2,Comp
+CAN,ACCENTURE PLC (IRELAND),,,$302.51, $ ,10, $ ,%,%,%,%,%,%,%,%,%,06/20/25,1,Comp
+ETN,EATON CORP PLC (IRELAND),,,$280.20, $ ,10, $ ,%,%,%,%,%,%,%,%,%,04/28/25,1,Comp
+ASML,ASML HOLDING NV NY REG SHS,,,$367.67, $ ,4, $ ,%,%,%,%,%,%,%,%,%,04/15/25,1,Comp
+BYDDY,BYD COMPANY LTD,,,$89.38, $ ,26, $ ,%,%,%,%,%,%,%,%,%,04/28/25,2,Cycl
+HESAY,HERMES INTL S A,,,$228.00, $ ,6, $ ,%,%,%,%,%,%,%,%,%,07/30/25,1,Comp
+LVMHF,L.V.M.H.,,,$260.62, $ ,2, $ ,%,%,%,%,%,%,%,%,%,07/21/25,1,Comp

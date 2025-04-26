@@ -1,21 +1,21 @@
 ﻿SYM,Company,,Sector,PBR,Price,Qty,NAV,PTF %,S&P 500 %,DELTA,% Daily,% MTD,% YTD,% 6M,% 52WKS,Divy %,P&L,Next Earnings,Stock Rating,Stock Type
-MSFT,MICROSOFT CORP,,, $305.11 , $ ,16, $ ,%,%,%,%,%,%,%,%,%,%,04/23/25,1,Comp
-AMZN,AMAZON COM INC,,, $175.96 , $ ,30, $ ,%,%,%,%,%,%,%,%,%,%,04/28/25,1,Comp
-AAPL,APPLE INC,,, $24.80 , $ ,28, $ ,%,%,%,%,%,%,%,%,%,%,04/30/25,1,Comp
-MA,MASTERCARD INC CLASS A,,, $88.70 , $ ,10, $ ,%,%,%,%,%,%,%,%,%,%,04/29/25,1,Comp
-GOOG,ALPHABET INC CLASS C,,, $29.06 , $ ,32, $ ,%,%,%,%,%,%,%,%,%,%,04/23/25,1,Comp
-WM,WASTE MANAGEMENT INC,,, $98.37 , $ ,20, $ ,%,%,%,%,%,%,%,%,%,%,04/28/25,1,Comp
-META,META PLATFORMS INC CLASS A,,, $416.04 , $ ,8, $ ,%,%,%,%,%,%,%,%,%,%,04/30/25,2,Cat
-BIL,CASH ETF,,, $91.67 , $ ,44, $ ,%,%,%,%,%,%,%,%,%,%, ,4,Comp
-MCO,MOODYS CORP,,, $238.21 , $ ,10, $ ,%,%,%,%,%,%,%,%,%,%,04/30/25,1,Comp
-JPM,JPMORGAN CHASE & CO,,, $130.52 , $ ,18, $ ,%,%,%,%,%,%,%,%,%,%,04/11/25,2,Cycl
-GS,GOLDMAN SACHS GROUP INC,,, $544.30 , $ ,8, $ ,%,%,%,%,%,%,%,%,%,%,04/14/25,2,Cycl
-PANW,PALO ALTO NETWORKS INC,,, $149.18 , $ ,24, $ ,%,%,%,%,%,%,%,%,%,%,05/19/25,2,Comp
-COST,COSTCO WHOLESALE CORP,,, $543.30 , $ ,4, $ ,%,%,%,%,%,%,%,%,%,%,05/28/25,1,Comp
-pwr,QUANTA SERVICES INC,,, $271.35 , $ ,14, $ ,%,%,%,%,%,%,%,%,%,%,04/30/25,2,CAT
-AVGO,BROADCOM INC,,, $146.49 , $ ,22, $ ,%,%,%,%,%,%,%,%,%,%,06/10/25,2,Cycl
-UBER,UBER TECHNOLOGIES INC,,, $36.58 , $ ,50, $ ,%,%,%,%,%,%,%,%,%,%,05/06/25,2,Cat
-GLD,SPDR GOLD ETF,,, $147.49 , $ ,12, $ ,%,%,%,%,%,%,%,%,%,%, ,#N/A,#N/A
-CW,Curtiss Wright,,, $355.03 , $ ,10, $ ,%,%,%,%,%,%,%,%,%,%,05/07/25,2,Cat
-PEP,PEPSICO INC,,, $154.53 , $ ,18, $ ,%,%,%,%,%,%,%,%,%,%,04/24/25,3,cat
-CAT,CATERPILLAR INC,,, $348.46 , $ ,8, $ ,%,%,%,%,%,%,%,%,%,%,04/23/25,2,Cycl
+MSFT,MICROSOFT CORP,,,$305.11, $ ,16, $ ,%,%,%,%,%,%,%,%,%,%,04/23/25,1,Comp
+AMZN,AMAZON COM INC,,,$175.96, $ ,30, $ ,%,%,%,%,%,%,%,%,%,%,04/28/25,1,Comp
+AAPL,APPLE INC,,,$24.80, $ ,28, $ ,%,%,%,%,%,%,%,%,%,%,04/30/25,1,Comp
+MA,MASTERCARD INC CLASS A,,,$88.70, $ ,10, $ ,%,%,%,%,%,%,%,%,%,%,04/29/25,1,Comp
+GOOG,ALPHABET INC CLASS C,,,$29.06, $ ,32, $ ,%,%,%,%,%,%,%,%,%,%,04/23/25,1,Comp
+WM,WASTE MANAGEMENT INC,,,$98.37, $ ,20, $ ,%,%,%,%,%,%,%,%,%,%,04/28/25,1,Comp
+META,META PLATFORMS INC CLASS A,,,$416.04, $ ,8, $ ,%,%,%,%,%,%,%,%,%,%,04/30/25,2,Cat
+BIL,CASH ETF,,,$91.67, $ ,44, $ ,%,%,%,%,%,%,%,%,%,%, ,4,Comp
+MCO,MOODYS CORP,,,$238.21, $ ,10, $ ,%,%,%,%,%,%,%,%,%,%,04/30/25,1,Comp
+JPM,JPMORGAN CHASE & CO,,,$130.52, $ ,18, $ ,%,%,%,%,%,%,%,%,%,%,2004-11-25,2,Cycl
+GS,GOLDMAN SACHS GROUP INC,,,$544.30, $ ,8, $ ,%,%,%,%,%,%,%,%,%,%,04/14/25,2,Cycl
+PANW,PALO ALTO NETWORKS INC,,,$149.18, $ ,24, $ ,%,%,%,%,%,%,%,%,%,%,05/19/25,2,Comp
+COST,COSTCO WHOLESALE CORP,,,$543.30, $ ,4, $ ,%,%,%,%,%,%,%,%,%,%,05/28/25,1,Comp
+PWR,QUANTA SERVICES INC,,,$271.35, $ ,14, $ ,%,%,%,%,%,%,%,%,%,%,04/30/25,2,CAT
+AVGO,BROADCOM INC,,,$146.49, $ ,22, $ ,%,%,%,%,%,%,%,%,%,%,2006-10-25,2,Cycl
+UBER,UBER TECHNOLOGIES INC,,,$36.58, $ ,50, $ ,%,%,%,%,%,%,%,%,%,%,2005-06-25,2,Cat
+GLD,SPDR GOLD ETF,,,$147.49, $ ,12, $ ,%,%,%,%,%,%,%,%,%,%, ,#N/A,#N/A
+CW,Curtiss Wright,,,$355.03, $ ,10, $ ,%,%,%,%,%,%,%,%,%,%,2005-07-25,2,Cat
+PEP,PEPSICO INC,,,$154.53, $ ,18, $ ,%,%,%,%,%,%,%,%,%,%,04/24/25,3,cat
+CAT,CATERPILLAR INC,,,$348.46, $ ,8, $ ,%,%,%,%,%,%,%,%,%,%,04/23/25,2,Cycl
