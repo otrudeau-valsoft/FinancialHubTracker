@@ -37,12 +37,19 @@ interface PortfolioStock {
   rating: string;
   price: number;
   quantity: number;
-  nav: number;
-  portfolioWeight: number;
-  dailyChange: number;
-  mtdChange: number;
-  ytdChange: number;
+  netAssetValue?: number; // From API
+  nav?: number; // Old field
+  portfolioPercentage?: number; // From API
+  portfolioWeight?: number; // Old field
+  dailyChangePercent?: number; // From API
+  dailyChange?: number; // Old field
+  mtdChangePercent?: number; // From API
+  mtdChange?: number; // Old field
+  ytdChangePercent?: number; // From API
+  ytdChange?: number; // Old field
+  sixMonthChangePercent?: number;
   sixMonthChange?: number;
+  fiftyTwoWeekChangePercent?: number;
   fiftyTwoWeekChange?: number;
   dividendYield?: number;
   profitLoss?: number;
@@ -190,22 +197,59 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                       )}
                     </td>
                     <td className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{stock.quantity}</td>
-                    <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{formatCurrency(stock.nav, currencySymbol)}</td>
-                    <td className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{stock.pbr !== undefined ? stock.pbr.toFixed(2) : '--'}</td>
-                    <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{typeof stock.portfolioWeight === 'number' ? stock.portfolioWeight.toFixed(1) : '0.0'}%</td>
+                    <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
+                      {formatCurrency(stock.netAssetValue || stock.nav, currencySymbol)}
+                    </td>
+                    <td className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
+                      {stock.pbr !== undefined ? stock.pbr.toFixed(2) : '--'}
+                    </td>
+                    <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
+                      {typeof stock.portfolioPercentage === 'number' 
+                        ? stock.portfolioPercentage.toFixed(1) 
+                        : typeof stock.portfolioWeight === 'number' 
+                          ? stock.portfolioWeight.toFixed(1) 
+                          : '0.0'}%
+                    </td>
                     <td className="px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
-                      <span className={marketChange || stock.dailyChange > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
-                        {marketChange ? formatPercentage(marketChange) : formatPercentage(stock.dailyChange)}
+                      <span className={
+                        marketChange || 
+                        (stock.dailyChangePercent !== undefined && stock.dailyChangePercent > 0) || 
+                        (stock.dailyChange !== undefined && stock.dailyChange > 0) 
+                          ? 'text-[#4CAF50]' 
+                          : 'text-[#F44336]'
+                      }>
+                        {marketChange 
+                          ? formatPercentage(marketChange) 
+                          : stock.dailyChangePercent !== undefined 
+                            ? formatPercentage(stock.dailyChangePercent) 
+                            : formatPercentage(stock.dailyChange || 0)
+                        }
                       </span>
                     </td>
                     <td className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
-                      <span className={stock.mtdChange > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
-                        {formatPercentage(stock.mtdChange)}
+                      <span className={
+                        (stock.mtdChangePercent !== undefined && stock.mtdChangePercent > 0) || 
+                        (stock.mtdChange !== undefined && stock.mtdChange > 0) 
+                          ? 'text-[#4CAF50]' 
+                          : 'text-[#F44336]'
+                      }>
+                        {stock.mtdChangePercent !== undefined 
+                          ? formatPercentage(stock.mtdChangePercent) 
+                          : formatPercentage(stock.mtdChange || 0)
+                        }
                       </span>
                     </td>
                     <td className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
-                      <span className={stock.ytdChange > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
-                        {formatPercentage(stock.ytdChange)}
+                      <span className={
+                        (stock.ytdChangePercent !== undefined && stock.ytdChangePercent > 0) || 
+                        (stock.ytdChange !== undefined && stock.ytdChange > 0) 
+                          ? 'text-[#4CAF50]' 
+                          : 'text-[#F44336]'
+                      }>
+                        {stock.ytdChangePercent !== undefined 
+                          ? formatPercentage(stock.ytdChangePercent) 
+                          : formatPercentage(stock.ytdChange || 0)
+                        }
                       </span>
                     </td>
                     <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
