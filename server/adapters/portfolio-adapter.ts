@@ -126,6 +126,15 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
       ? Number(currentPriceInfo.regularMarketChangePercent) 
       : 0;
     
+    // Calculate 52-week change based on Yahoo Finance data
+    let fiftyTwoWeekChange = undefined;
+    if (currentPriceInfo?.fiftyTwoWeekHigh && currentPriceInfo?.fiftyTwoWeekLow && currentPrice) {
+      const high = Number(currentPriceInfo.fiftyTwoWeekHigh);
+      const low = Number(currentPriceInfo.fiftyTwoWeekLow);
+      const midpoint = (high + low) / 2;
+      fiftyTwoWeekChange = ((currentPrice - midpoint) / midpoint) * 100;
+    }
+    
     const profitLoss = calculateProfitLoss(bookPrice, currentPrice, quantity);
     
     return {
