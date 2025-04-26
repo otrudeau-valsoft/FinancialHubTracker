@@ -7,7 +7,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import papa from 'papaparse';
+import { parse } from 'csv-parse/sync';
 import { db } from '../server/db';
 import { 
   portfolioUSD, 
@@ -15,29 +15,29 @@ import {
   portfolioINTL,
   dataUpdateLogs
 } from '../shared/schema';
-import { eq } from 'drizzle-orm';
-import { createAdaptedDataUpdateLog } from '../server/adapters/data-management-adapter';
+import { sql } from 'drizzle-orm';
 
 /**
  * Clean a string value from the CSV
  */
 function cleanValue(value: string | null): string | null {
-  if (!value || value === '' || value === '#N/A') {
+  if (value === null || value === undefined) return null;
+  value = value.trim();
+  if (value === '' || value.toLowerCase() === 'n/a' || value.toLowerCase() === 'null') {
     return null;
   }
-  // Remove non-breaking spaces, dollar signs, commas
-  return value.replace(/\u00A0/g, ' ').replace(/\$/g, '').replace(/,/g, '').trim();
+  return value;
 }
 
 /**
  * Parse a number from a string, handle null values
  */
 function parseNumber(value: string | null): number | null {
-  if (value === null) {
-    return null;
-  }
-  const parsed = parseFloat(value);
-  return isNaN(parsed) ? null : parsed;
+  if (value === null) return null;
+  value = value.replace(/[,$%]/g, '').trim();
+  if (value === '' || value.toLowerCase() === 'n/a') return null;
+  const num = parseFloat(value);
+  return isNaN(num) ? null : num;
 }
 
 /**
@@ -45,8 +45,14 @@ function parseNumber(value: string | null): number | null {
  */
 async function logUpdate(type: string, status: 'Success' | 'Error' | 'In Progress', region: string, message: string) {
   try {
-    const logEntry = createAdaptedDataUpdateLog(type, status, region, message);
-    await db.insert(dataUpdateLogs).values(logEntry);
+    await db.insert(dataUpdateLogs).values({
+      type,
+      status,
+      timestamp: new Date(),
+      details: message,
+      region,
+      message
+    });
     console.log(`[${status}] ${region}: ${message}`);
   } catch (error) {
     console.error('Error logging update:', error);
@@ -57,61 +63,76 @@ async function logUpdate(type: string, status: 'Success' | 'Error' | 'In Progres
  * Import USD portfolio
  */
 async function importUSPortfolio() {
-  const region = 'USD';
-  console.log(`Importing ${region} portfolio...`);
-  await logUpdate('portfolio_import', 'In Progress', region, 'Starting portfolio import');
+  const filePath = path.join(__dirname, '../attached_assets/USD-portfolio.csv');
+  
+  if (!fs.existsSync(filePath)) {
+    console.error('USD portfolio CSV file not found:', filePath);
+    await logUpdate('portfolio_import', 'Error', 'USD', 'CSV file not found');
+    return;
+  }
   
   try {
-    const filePath = path.join(__dirname, '../attached_assets/USD-portfolio.csv');
-    const fileContent = fs.readFileSync(filePath, 'utf8');
+    await logUpdate('portfolio_import', 'In Progress', 'USD', 'Starting USD portfolio import');
+    console.log(`Importing USD portfolio from ${filePath}`);
     
-    const results = papa.parse(fileContent, {
-      header: true,
-      skipEmptyLines: true
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const records = parse(fileContent, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true
     });
     
-    if (results.data && Array.isArray(results.data)) {
-      // Delete existing stocks
-      console.log(`Clearing existing ${region} portfolio data...`);
-      await db.delete(portfolioUSD);
+    console.log(`Found ${records.length} records in USD CSV`);
+    
+    // Clear existing data
+    await db.delete(portfolioUSD);
+    
+    let importCount = 0;
+    for (const record of records) {
+      // Extract and clean data
+      const symbol = cleanValue(record.Symbol) || '';
+      const company = cleanValue(record.Company) || symbol;
+      const stockType = cleanValue(record.StockType) || 'Comp';
+      const rating = cleanValue(record.Rating) || '1';
+      const sector = cleanValue(record.Sector);
+      const quantity = parseNumber(record.Quantity) || 0;
+      const price = parseNumber(record.Price) || 0;
+      const pbr = parseNumber(record.PBR);
+      const nextEarningsDate = cleanValue(record.NextEarningsDate);
       
-      // Import new data
-      const stocks = [];
+      // Insert into the database
+      await db.insert(portfolioUSD).values({
+        symbol,
+        company,
+        stockType,
+        rating,
+        sector,
+        quantity,
+        price,
+        pbr,
+        nextEarningsDate
+      });
       
-      for (const row of results.data as any[]) {
-        if (!row.SYM) continue; // Skip empty rows
-        
-        const stock = {
-          symbol: cleanValue(row.SYM) || '',
-          company: cleanValue(row.Company) || '',
-          stockType: cleanValue(row['Stock Type']) || 'Comp',
-          rating: cleanValue(row['Stock Rating']) || '1',
-          sector: cleanValue(row.Sector) || 'Technology',
-          quantity: parseNumber(cleanValue(row.Qty)) || 0,
-          price: parseNumber(cleanValue(row.Price)) || 0,
-          pbr: parseNumber(cleanValue(row.PBR)),
-          nextEarningsDate: cleanValue(row['Next Earnings']),
-          // Additional fields will be calculated or updated separately
-        };
-        
-        stocks.push(stock);
-      }
-      
-      console.log(`Importing ${stocks.length} ${region} stocks...`);
-      
-      if (stocks.length > 0) {
-        await db.insert(portfolioUSD).values(stocks);
-      }
-      
-      await logUpdate('portfolio_import', 'Success', region, `Imported ${stocks.length} portfolio stocks`);
-      console.log(`${region} portfolio import completed.`);
-      return stocks.length;
+      importCount++;
     }
     
-    return 0;
+    await logUpdate(
+      'portfolio_import',
+      'Success',
+      'USD',
+      `Imported ${importCount} USD portfolio items`
+    );
+    
+    console.log(`Successfully imported ${importCount} USD portfolio items`);
+    return importCount;
   } catch (error) {
-    console.error(`Error importing ${region} portfolio:`, error);
-    await logUpdate('portfolio_import', 'Error', region, `Import error: ${(error as Error).message}`);
+    console.error('Error importing USD portfolio:', error);
+    await logUpdate(
+      'portfolio_import',
+      'Error',
+      'USD',
+      `Error importing portfolio: ${(error as Error).message}`
+    );
     return 0;
   }
 }
@@ -120,67 +141,82 @@ async function importUSPortfolio() {
  * Import CAD portfolio
  */
 async function importCADPortfolio() {
-  const region = 'CAD';
-  console.log(`Importing ${region} portfolio...`);
-  await logUpdate('portfolio_import', 'In Progress', region, 'Starting portfolio import');
+  const filePath = path.join(__dirname, '../attached_assets/CAD-portfolio.csv');
+  
+  if (!fs.existsSync(filePath)) {
+    console.error('CAD portfolio CSV file not found:', filePath);
+    await logUpdate('portfolio_import', 'Error', 'CAD', 'CSV file not found');
+    return;
+  }
   
   try {
-    const filePath = path.join(__dirname, '../attached_assets/CAD-portfolio.csv');
-    const fileContent = fs.readFileSync(filePath, 'utf8');
+    await logUpdate('portfolio_import', 'In Progress', 'CAD', 'Starting CAD portfolio import');
+    console.log(`Importing CAD portfolio from ${filePath}`);
     
-    const results = papa.parse(fileContent, {
-      header: true,
-      skipEmptyLines: true
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const records = parse(fileContent, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true
     });
     
-    if (results.data && Array.isArray(results.data)) {
-      // Delete existing stocks
-      console.log(`Clearing existing ${region} portfolio data...`);
-      await db.delete(portfolioCAD);
+    console.log(`Found ${records.length} records in CAD CSV`);
+    
+    // Clear existing data
+    await db.delete(portfolioCAD);
+    
+    let importCount = 0;
+    for (const record of records) {
+      // Extract and clean data
+      let symbol = cleanValue(record.Symbol) || '';
       
-      // Import new data
-      const stocks = [];
-      
-      for (const row of results.data as any[]) {
-        if (!row.SYM) continue; // Skip empty rows
-        
-        // Add .TO suffix for Canadian stocks if not already present
-        let symbol = cleanValue(row.SYM) || '';
-        if (!symbol.includes('.') && symbol !== 'ZGLD') {
-          symbol = `${symbol}.TO`;
-        }
-        
-        const stock = {
-          symbol: symbol,
-          company: cleanValue(row.Company) || '',
-          stockType: cleanValue(row['Stock Type']) || 'Comp',
-          rating: cleanValue(row['Stock Rating']) || '1',
-          sector: cleanValue(row.Sector) || 'Technology',
-          quantity: parseNumber(cleanValue(row.QTY)) || 0,
-          price: parseNumber(cleanValue(row.PRICE)) || 0,
-          pbr: parseNumber(cleanValue(row.PBR)),
-          nextEarningsDate: cleanValue(row['Next Earnings']),
-          // Additional fields will be calculated or updated separately
-        };
-        
-        stocks.push(stock);
+      // Add .TO suffix for Canadian stocks if not already present and not ETFs or Cash
+      if (symbol && !symbol.includes('.') && record.StockType !== 'ETF' && record.StockType !== 'Cash') {
+        symbol = `${symbol}.TO`;
       }
       
-      console.log(`Importing ${stocks.length} ${region} stocks...`);
+      const company = cleanValue(record.Company) || symbol;
+      const stockType = cleanValue(record.StockType) || 'Comp';
+      const rating = cleanValue(record.Rating) || '1';
+      const sector = cleanValue(record.Sector);
+      const quantity = parseNumber(record.Quantity) || 0;
+      const price = parseNumber(record.Price) || 0;
+      const pbr = parseNumber(record.PBR);
+      const nextEarningsDate = cleanValue(record.NextEarningsDate);
       
-      if (stocks.length > 0) {
-        await db.insert(portfolioCAD).values(stocks);
-      }
+      // Insert into the database
+      await db.insert(portfolioCAD).values({
+        symbol,
+        company,
+        stockType,
+        rating,
+        sector,
+        quantity,
+        price,
+        pbr,
+        nextEarningsDate
+      });
       
-      await logUpdate('portfolio_import', 'Success', region, `Imported ${stocks.length} portfolio stocks`);
-      console.log(`${region} portfolio import completed.`);
-      return stocks.length;
+      importCount++;
     }
     
-    return 0;
+    await logUpdate(
+      'portfolio_import',
+      'Success',
+      'CAD',
+      `Imported ${importCount} CAD portfolio items`
+    );
+    
+    console.log(`Successfully imported ${importCount} CAD portfolio items`);
+    return importCount;
   } catch (error) {
-    console.error(`Error importing ${region} portfolio:`, error);
-    await logUpdate('portfolio_import', 'Error', region, `Import error: ${(error as Error).message}`);
+    console.error('Error importing CAD portfolio:', error);
+    await logUpdate(
+      'portfolio_import',
+      'Error',
+      'CAD',
+      `Error importing portfolio: ${(error as Error).message}`
+    );
     return 0;
   }
 }
@@ -189,61 +225,76 @@ async function importCADPortfolio() {
  * Import INTL portfolio
  */
 async function importINTLPortfolio() {
-  const region = 'INTL';
-  console.log(`Importing ${region} portfolio...`);
-  await logUpdate('portfolio_import', 'In Progress', region, 'Starting portfolio import');
+  const filePath = path.join(__dirname, '../attached_assets/INTL-portfolio.csv');
+  
+  if (!fs.existsSync(filePath)) {
+    console.error('INTL portfolio CSV file not found:', filePath);
+    await logUpdate('portfolio_import', 'Error', 'INTL', 'CSV file not found');
+    return;
+  }
   
   try {
-    const filePath = path.join(__dirname, '../attached_assets/INTL-portfolio.csv');
-    const fileContent = fs.readFileSync(filePath, 'utf8');
+    await logUpdate('portfolio_import', 'In Progress', 'INTL', 'Starting INTL portfolio import');
+    console.log(`Importing INTL portfolio from ${filePath}`);
     
-    const results = papa.parse(fileContent, {
-      header: true,
-      skipEmptyLines: true
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const records = parse(fileContent, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true
     });
     
-    if (results.data && Array.isArray(results.data)) {
-      // Delete existing stocks
-      console.log(`Clearing existing ${region} portfolio data...`);
-      await db.delete(portfolioINTL);
+    console.log(`Found ${records.length} records in INTL CSV`);
+    
+    // Clear existing data
+    await db.delete(portfolioINTL);
+    
+    let importCount = 0;
+    for (const record of records) {
+      // Extract and clean data
+      const symbol = cleanValue(record.Symbol) || '';
+      const company = cleanValue(record.Company) || symbol;
+      const stockType = cleanValue(record.StockType) || 'Comp';
+      const rating = cleanValue(record.Rating) || '1';
+      const sector = cleanValue(record.Sector);
+      const quantity = parseNumber(record.Quantity) || 0;
+      const price = parseNumber(record.Price) || 0;
+      const pbr = parseNumber(record.PBR);
+      const nextEarningsDate = cleanValue(record.NextEarningsDate);
       
-      // Import new data
-      const stocks = [];
+      // Insert into the database
+      await db.insert(portfolioINTL).values({
+        symbol,
+        company,
+        stockType,
+        rating,
+        sector,
+        quantity,
+        price,
+        pbr,
+        nextEarningsDate
+      });
       
-      for (const row of results.data as any[]) {
-        if (!row.SYM) continue; // Skip empty rows
-        
-        const stock = {
-          symbol: cleanValue(row.SYM) || '',
-          company: cleanValue(row.Company) || '',
-          stockType: cleanValue(row['Stock Type']) || 'Comp',
-          rating: cleanValue(row['Stock Rating']) || '1',
-          sector: cleanValue(row.Sector) || 'Technology',
-          quantity: parseNumber(cleanValue(row.Qty)) || 0,
-          price: parseNumber(cleanValue(row.Price)) || 0,
-          pbr: parseNumber(cleanValue(row.PBR)),
-          nextEarningsDate: cleanValue(row['Next Earnings']),
-          // Additional fields will be calculated or updated separately
-        };
-        
-        stocks.push(stock);
-      }
-      
-      console.log(`Importing ${stocks.length} ${region} stocks...`);
-      
-      if (stocks.length > 0) {
-        await db.insert(portfolioINTL).values(stocks);
-      }
-      
-      await logUpdate('portfolio_import', 'Success', region, `Imported ${stocks.length} portfolio stocks`);
-      console.log(`${region} portfolio import completed.`);
-      return stocks.length;
+      importCount++;
     }
     
-    return 0;
+    await logUpdate(
+      'portfolio_import',
+      'Success',
+      'INTL',
+      `Imported ${importCount} INTL portfolio items`
+    );
+    
+    console.log(`Successfully imported ${importCount} INTL portfolio items`);
+    return importCount;
   } catch (error) {
-    console.error(`Error importing ${region} portfolio:`, error);
-    await logUpdate('portfolio_import', 'Error', region, `Import error: ${(error as Error).message}`);
+    console.error('Error importing INTL portfolio:', error);
+    await logUpdate(
+      'portfolio_import',
+      'Error',
+      'INTL',
+      `Error importing portfolio: ${(error as Error).message}`
+    );
     return 0;
   }
 }
@@ -252,20 +303,25 @@ async function importINTLPortfolio() {
  * Validate that required CSV files exist
  */
 function validateCSVFiles(): boolean {
-  const requiredFiles = [
-    'USD-portfolio.csv',
-    'CAD-portfolio.csv',
-    'INTL-portfolio.csv'
-  ];
+  const usdFile = path.join(__dirname, '../attached_assets/USD-portfolio.csv');
+  const cadFile = path.join(__dirname, '../attached_assets/CAD-portfolio.csv');
+  const intlFile = path.join(__dirname, '../attached_assets/INTL-portfolio.csv');
   
   let allFilesExist = true;
   
-  for (const file of requiredFiles) {
-    const filePath = path.join(__dirname, '../attached_assets', file);
-    if (!fs.existsSync(filePath)) {
-      console.error(`Missing required file: ${file}`);
-      allFilesExist = false;
-    }
+  if (!fs.existsSync(usdFile)) {
+    console.error('USD portfolio CSV file not found:', usdFile);
+    allFilesExist = false;
+  }
+  
+  if (!fs.existsSync(cadFile)) {
+    console.error('CAD portfolio CSV file not found:', cadFile);
+    allFilesExist = false;
+  }
+  
+  if (!fs.existsSync(intlFile)) {
+    console.error('INTL portfolio CSV file not found:', intlFile);
+    allFilesExist = false;
   }
   
   return allFilesExist;
@@ -275,38 +331,47 @@ function validateCSVFiles(): boolean {
  * Main function to run all importers
  */
 async function main() {
-  console.log('Starting portfolio import from CSV files...');
-  
-  if (!validateCSVFiles()) {
-    console.error('Missing required CSV files. Import aborted.');
-    process.exit(1);
-  }
+  console.log('Starting portfolio import...');
   
   try {
     await logUpdate('portfolio_import', 'In Progress', 'ALL', 'Starting import for all portfolios');
     
-    const usdStocks = await importUSPortfolio();
-    const cadStocks = await importCADPortfolio();
-    const intlStocks = await importINTLPortfolio();
+    // Validate that all required CSV files exist
+    if (!validateCSVFiles()) {
+      await logUpdate('portfolio_import', 'Error', 'ALL', 'One or more CSV files are missing');
+      console.error('Import aborted: One or more CSV files are missing');
+      return;
+    }
     
-    const totalStocks = usdStocks + cadStocks + intlStocks;
+    // Import all three regional portfolios
+    const usdCount = await importUSPortfolio();
+    const cadCount = await importCADPortfolio();
+    const intlCount = await importINTLPortfolio();
+    
+    const totalCount = usdCount + cadCount + intlCount;
     
     console.log('-----------------------------------');
     console.log('Portfolio import summary:');
-    console.log(`USD: ${usdStocks} stocks imported`);
-    console.log(`CAD: ${cadStocks} stocks imported`);
-    console.log(`INTL: ${intlStocks} stocks imported`);
-    console.log(`Total: ${totalStocks} stocks imported`);
+    console.log(`USD: ${usdCount} items imported`);
+    console.log(`CAD: ${cadCount} items imported`);
+    console.log(`INTL: ${intlCount} items imported`);
+    console.log(`Total: ${totalCount} items imported`);
     console.log('-----------------------------------');
     
-    await logUpdate('portfolio_import', 'Success', 'ALL', `Completed import of ${totalStocks} stocks across all portfolios`);
-    console.log('All portfolios imported successfully!');
+    await logUpdate(
+      'portfolio_import', 
+      'Success', 
+      'ALL', 
+      `Imported ${totalCount} portfolio items across all regions`
+    );
+    
+    console.log('Portfolio import completed.');
   } catch (error) {
     console.error('Error importing portfolios:', error);
     await logUpdate('portfolio_import', 'Error', 'ALL', `Import failed: ${(error as Error).message}`);
   } finally {
     // Close the database connection
-    await db.$pool.end();
+    await db.end();
     process.exit(0);
   }
 }

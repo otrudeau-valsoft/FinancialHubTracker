@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { storage } from '../../db-storage';
+import { dbAdapter } from '../../db-adapter';
 import { z } from 'zod';
 import Papa from 'papaparse';
 
@@ -8,7 +8,7 @@ import Papa from 'papaparse';
  */
 export const getPortfolioStocks = async (req: Request, res: Response) => {
   const region = req.params.region.toUpperCase();
-  const stocks = await storage.getPortfolioStocks(region);
+  const stocks = await dbAdapter.getPortfolioStocks(region);
   return res.json(stocks);
 };
 
@@ -17,7 +17,7 @@ export const getPortfolioStocks = async (req: Request, res: Response) => {
  */
 export const getPortfolioStock = async (req: Request, res: Response) => {
   const { id, region } = req.params;
-  const stock = await storage.getPortfolioStock(parseInt(id), region.toUpperCase());
+  const stock = await dbAdapter.getPortfolioStock(parseInt(id), region.toUpperCase());
   
   if (!stock) {
     return res.status(404).json({ message: "Stock not found" });
@@ -31,7 +31,7 @@ export const getPortfolioStock = async (req: Request, res: Response) => {
  */
 export const createPortfolioStock = async (req: Request, res: Response) => {
   const region = req.params.region.toUpperCase();
-  const stock = await storage.createPortfolioStock(req.body, region);
+  const stock = await dbAdapter.createPortfolioStock(req.body, region);
   return res.status(201).json(stock);
 };
 
@@ -40,7 +40,7 @@ export const createPortfolioStock = async (req: Request, res: Response) => {
  */
 export const updatePortfolioStock = async (req: Request, res: Response) => {
   const { id, region } = req.params;
-  const updatedStock = await storage.updatePortfolioStock(parseInt(id), req.body, region.toUpperCase());
+  const updatedStock = await dbAdapter.updatePortfolioStock(parseInt(id), req.body, region.toUpperCase());
   
   if (!updatedStock) {
     return res.status(404).json({ message: "Stock not found" });
@@ -54,7 +54,7 @@ export const updatePortfolioStock = async (req: Request, res: Response) => {
  */
 export const deletePortfolioStock = async (req: Request, res: Response) => {
   const { id, region } = req.params;
-  await storage.deletePortfolioStock(parseInt(id), region.toUpperCase());
+  await dbAdapter.deletePortfolioStock(parseInt(id), region.toUpperCase());
   return res.status(204).send();
 };
 
@@ -93,8 +93,8 @@ export const importPortfolio = async (req: Request, res: Response) => {
       notes: item.Notes
     }));
     
-    // Use storage to bulk import
-    const result = await storage.bulkCreatePortfolioStocks(convertedData, region);
+    // Use dbAdapter to bulk import
+    const result = await dbAdapter.bulkCreatePortfolioStocks(convertedData, region);
     
     return res.json({
       message: "Portfolio data imported successfully",
@@ -114,7 +114,7 @@ export const importPortfolio = async (req: Request, res: Response) => {
  */
 export const getPortfolioSummary = async (req: Request, res: Response) => {
   const region = req.params.region.toUpperCase();
-  const summary = await storage.getPortfolioSummary(region);
+  const summary = await dbAdapter.getPortfolioSummary(region);
   
   if (!summary) {
     return res.status(404).json({ message: "Summary not found" });
@@ -149,10 +149,10 @@ export const updatePortfolioSummary = async (req: Request, res: Response) => {
     let result;
     if (id) {
       // Update
-      result = await storage.updatePortfolioSummary(parseInt(id), validData);
+      result = await dbAdapter.updatePortfolioSummary(parseInt(id), validData);
     } else {
       // Create
-      result = await storage.createPortfolioSummary({
+      result = await dbAdapter.createPortfolioSummary({
         ...validData,
         region,
       });
@@ -236,7 +236,7 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
     const validData = schema.parse(req.body);
     
     // Rebalance the portfolio (this will delete all existing stocks and add new ones)
-    const result = await storage.rebalancePortfolio(validData.stocks, region);
+    const result = await dbAdapter.rebalancePortfolio(validData.stocks, region);
     
     // Return success with the newly created stocks
     return res.status(200).json({
