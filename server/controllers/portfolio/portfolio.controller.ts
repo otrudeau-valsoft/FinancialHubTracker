@@ -177,7 +177,7 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
   try {
     // Preprocess the request to ensure numeric fields
     if (req.body && req.body.stocks && Array.isArray(req.body.stocks)) {
-      req.body.stocks = req.body.stocks.map(stock => {
+      req.body.stocks = req.body.stocks.map((stock: any) => {
         // Make sure all numeric fields are properly converted to numbers
         const processedStock = { ...stock };
         
@@ -188,25 +188,29 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
         
         // Handle price field
         if (processedStock.price === undefined || processedStock.price === null) {
-          processedStock.price = undefined;
+          processedStock.price = 0; // Default to 0 instead of undefined
         } else if (typeof processedStock.price === 'string') {
           processedStock.price = parseFloat(processedStock.price) || 0;
         }
         
         // Handle pbr field
         if (processedStock.pbr === undefined || processedStock.pbr === null) {
-          processedStock.pbr = undefined;
+          processedStock.pbr = null; // Use null to indicate no value
         } else if (typeof processedStock.pbr === 'string') {
-          processedStock.pbr = parseFloat(processedStock.pbr) || undefined;
+          processedStock.pbr = parseFloat(processedStock.pbr) || null;
         }
         
         // Special handling for Cash and ETF
         if (processedStock.stockType === 'Cash' || processedStock.stockType === 'ETF' ||
             processedStock.rating === 'Cash' || processedStock.rating === 'ETF') {
-          if (processedStock.price === undefined) {
+          // Ensure price is set
+          if (processedStock.price === undefined || processedStock.price === null) {
             processedStock.price = 0;
           }
         }
+        
+        // Log the processed stock for debugging
+        console.log('Processed stock:', JSON.stringify(processedStock));
         
         return processedStock;
       });
@@ -221,15 +225,14 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
       rating: z.string().min(1, "Rating is required"),
       sector: z.string().optional(),
       quantity: z.number().min(0, "Quantity must be a positive number"),
-      price: z.number().optional(),
-      pbr: z.number().optional(),
+      price: z.number().optional().nullable(),
+      pbr: z.number().optional().nullable(),
     });
     
     const schema = z.object({
       stocks: z.array(stockSchema),
     });
-  
-  try {
+
     const validData = schema.parse(req.body);
     
     // Rebalance the portfolio (this will delete all existing stocks and add new ones)
