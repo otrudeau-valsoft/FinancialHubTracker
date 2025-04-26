@@ -4,9 +4,9 @@ import {
   etfHoldingsSPY, 
   etfHoldingsXIC, 
   etfHoldingsACWX,
-  assetsUS,
-  assetsCAD,
-  assetsINTL,
+  portfolioUSD,
+  portfolioCAD,
+  portfolioINTL,
   currentPrices
 } from '../shared/schema';
 
@@ -23,14 +23,14 @@ export class DatabaseStorage {
       const upperRegion = region.toUpperCase();
       
       if (upperRegion === 'USD') {
-        // Query the assets_us table
-        result = await db.select().from(assetsUS);
+        // Query the portfolio_USD table
+        result = await db.select().from(portfolioUSD);
       } else if (upperRegion === 'CAD') {
-        // Query the assets_cad table
-        result = await db.select().from(assetsCAD);
+        // Query the portfolio_CAD table
+        result = await db.select().from(portfolioCAD);
       } else if (upperRegion === 'INTL') {
-        // Query the assets_intl table
-        result = await db.select().from(assetsINTL);
+        // Query the portfolio_INTL table
+        result = await db.select().from(portfolioINTL);
       } else {
         throw new Error(`Unknown region: ${region}`);
       }
@@ -45,7 +45,7 @@ export class DatabaseStorage {
         const priceInfo = priceData.find(p => p.symbol === stock.symbol) || null;
         
         // Extract values safely with type checking
-        const price = priceInfo ? Number(priceInfo.regularMarketPrice) : 0;
+        const price = priceInfo ? Number(priceInfo.regularMarketPrice) : Number(stock.price);
         const quantity = Number(stock.quantity || 0);
         const nav = price * quantity;
         const dailyChange = priceInfo ? Number(priceInfo.regularMarketChangePercent) : 0;
