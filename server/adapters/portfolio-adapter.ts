@@ -85,21 +85,20 @@ async function getCurrentPrices(symbols: string[], region: string): Promise<Reco
 }
 
 /**
- * Calculate 52-week change percentage using high and low from Yahoo Finance
+ * Calculate 52-week change percentage using high from Yahoo Finance
+ * This calculates how far the current price is from the 52-week high as a percentage
  */
 function calculate52WeekChange(currentPrice: number, fiftyTwoWeekHigh: string | null, fiftyTwoWeekLow: string | null): number | undefined {
-  if (!fiftyTwoWeekHigh || !fiftyTwoWeekLow) return undefined;
+  if (!fiftyTwoWeekHigh) return undefined;
   
   const high = Number(fiftyTwoWeekHigh);
-  const low = Number(fiftyTwoWeekLow);
   
-  if (isNaN(high) || isNaN(low)) return undefined;
+  if (isNaN(high)) return undefined;
   
-  // Calculate the midpoint of the 52-week range
-  const midpoint = (high + low) / 2;
-  
-  // Calculate percentage change from midpoint to current price
-  return ((currentPrice - midpoint) / midpoint) * 100;
+  // Calculate percentage change from 52-week high to current price
+  // If current price is at 52-week high, this will be 0%
+  // If current price is below 52-week high, this will be negative
+  return ((currentPrice - high) / high) * 100;
 }
 
 /**

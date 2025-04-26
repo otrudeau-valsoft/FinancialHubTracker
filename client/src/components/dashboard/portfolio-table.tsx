@@ -223,11 +223,13 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                           ? formatPercentage(marketChange) 
                           : stock.dailyChangePercent !== undefined 
                             ? formatPercentage(stock.dailyChangePercent) 
-                            : formatPercentage(stock.dailyChange || 0)
+                            : stock.dailyChange !== undefined
+                              ? formatPercentage(stock.dailyChange)
+                              : '--'
                         }
                       </span>
                     </td>
-                    <td className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
+                    <td className="px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
                       <span className={
                         (stock.mtdChangePercent !== undefined && stock.mtdChangePercent > 0) || 
                         (stock.mtdChange !== undefined && stock.mtdChange > 0) 
@@ -236,11 +238,13 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                       }>
                         {stock.mtdChangePercent !== undefined 
                           ? formatPercentage(stock.mtdChangePercent) 
-                          : formatPercentage(stock.mtdChange || 0)
+                          : stock.mtdChange !== undefined 
+                            ? formatPercentage(stock.mtdChange)
+                            : '--'
                         }
                       </span>
                     </td>
-                    <td className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
+                    <td className="px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
                       <span className={
                         (stock.ytdChangePercent !== undefined && stock.ytdChangePercent > 0) || 
                         (stock.ytdChange !== undefined && stock.ytdChange > 0) 
@@ -249,7 +253,9 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                       }>
                         {stock.ytdChangePercent !== undefined 
                           ? formatPercentage(stock.ytdChangePercent) 
-                          : formatPercentage(stock.ytdChange || 0)
+                          : stock.ytdChange !== undefined
+                            ? formatPercentage(stock.ytdChange)
+                            : '--'
                         }
                       </span>
                     </td>
