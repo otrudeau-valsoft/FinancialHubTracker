@@ -1,5 +1,5 @@
 import { db, sanitizeForDb } from './db';
-import { desc, eq, and } from 'drizzle-orm';
+import { desc, eq, and, asc, sql, gte, lte } from 'drizzle-orm';
 import { 
   etfHoldingsSPY, 
   etfHoldingsXIC, 
@@ -7,7 +7,11 @@ import {
   portfolioUSD,
   portfolioCAD,
   portfolioINTL,
-  currentPrices
+  currentPrices,
+  historicalPrices,
+  alerts,
+  matrixRules,
+  portfolioSummaries
 } from '../shared/schema';
 
 /**
@@ -534,40 +538,135 @@ export class DatabaseStorage {
    * Get historical prices
    */
   async getHistoricalPrices(symbol: string, region: string, startDate?: Date, endDate?: Date) {
-    // Placeholder for actual implementation
-    return [];
+    try {
+      // Build the base query
+      let query = db.select()
+        .from(historicalPrices)
+        .where(and(
+          eq(historicalPrices.symbol, symbol),
+          eq(historicalPrices.region, region.toUpperCase())
+        ));
+      
+      // Apply date filtering if provided
+      if (startDate) {
+        query = query.where(sql`${historicalPrices.date} >= ${startDate.toISOString().split('T')[0]}`);
+      }
+      
+      if (endDate) {
+        query = query.where(sql`${historicalPrices.date} <= ${endDate.toISOString().split('T')[0]}`);
+      }
+      
+      // Execute the query
+      const result = await query.orderBy(asc(historicalPrices.date));
+      
+      // Parse numeric values to ensure consistent format
+      return result.map(price => ({
+        ...price,
+        open: parseFloat(price.open?.toString() || '0'),
+        high: parseFloat(price.high?.toString() || '0'),
+        low: parseFloat(price.low?.toString() || '0'),
+        close: parseFloat(price.close?.toString() || '0'),
+        volume: parseInt(price.volume?.toString() || '0', 10),
+        adjustedClose: parseFloat(price.adjustedClose?.toString() || price.close?.toString() || '0')
+      }));
+    } catch (error) {
+      console.error(`Error getting historical prices for ${symbol} (${region}):`, error);
+      return [];
+    }
   }
 
   /**
    * Get historical prices by region
    */
   async getHistoricalPricesByRegion(region: string, startDate?: Date, endDate?: Date) {
-    // Placeholder for actual implementation
-    return [];
+    try {
+      // Build the base query
+      let query = db.select()
+        .from(historicalPrices)
+        .where(eq(historicalPrices.region, region.toUpperCase()));
+      
+      // Apply date filtering if provided
+      if (startDate) {
+        query = query.where(sql`${historicalPrices.date} >= ${startDate.toISOString().split('T')[0]}`);
+      }
+      
+      if (endDate) {
+        query = query.where(sql`${historicalPrices.date} <= ${endDate.toISOString().split('T')[0]}`);
+      }
+      
+      // Execute the query
+      const result = await query.orderBy(asc(historicalPrices.date));
+      
+      // Parse numeric values to ensure consistent format
+      return result.map(price => ({
+        ...price,
+        open: parseFloat(price.open?.toString() || '0'),
+        high: parseFloat(price.high?.toString() || '0'),
+        low: parseFloat(price.low?.toString() || '0'),
+        close: parseFloat(price.close?.toString() || '0'),
+        volume: parseInt(price.volume?.toString() || '0', 10),
+        adjustedClose: parseFloat(price.adjustedClose?.toString() || price.close?.toString() || '0')
+      }));
+    } catch (error) {
+      console.error(`Error getting historical prices for region ${region}:`, error);
+      return [];
+    }
   }
 
   /**
    * Create a historical price
    */
   async createHistoricalPrice(data: any) {
-    // Placeholder for actual implementation
-    return { ...data, id: 1 };
+    try {
+      const [result] = await db.insert(historicalPrices)
+        .values(sanitizeForDb(data))
+        .returning();
+      return result;
+    } catch (error) {
+      console.error(`Error creating historical price:`, error);
+      throw error;
+    }
   }
 
   /**
    * Bulk create historical prices
    */
   async bulkCreateHistoricalPrices(data: any[]) {
-    // Placeholder for actual implementation
-    return data.map((item, index) => ({ ...item, id: index + 1 }));
+    if (!data || data.length === 0) {
+      return [];
+    }
+    
+    try {
+      // Sanitize data for database insertion
+      const sanitizedData = data.map(item => sanitizeForDb(item));
+      
+      // Insert all price records
+      const result = await db.insert(historicalPrices)
+        .values(sanitizedData)
+        .returning();
+      
+      return result;
+    } catch (error) {
+      console.error(`Error bulk creating historical prices:`, error);
+      throw error;
+    }
   }
 
   /**
    * Delete historical prices
    */
   async deleteHistoricalPrices(symbol: string, region: string) {
-    // Placeholder for actual implementation
-    return true;
+    try {
+      await db.delete(historicalPrices)
+        .where(and(
+          eq(historicalPrices.symbol, symbol),
+          eq(historicalPrices.region, region.toUpperCase())
+        ));
+      return true;
+    } catch (error) {
+      console.error(`Error deleting historical prices for ${symbol} (${region}):`, error);
+      throw error;
+    }
   }
 
   /**
