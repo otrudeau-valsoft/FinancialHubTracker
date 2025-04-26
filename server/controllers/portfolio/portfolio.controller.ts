@@ -174,30 +174,60 @@ export const updatePortfolioSummary = async (req: Request, res: Response) => {
 export const rebalancePortfolio = async (req: Request, res: Response) => {
   const region = req.params.region.toUpperCase();
   
-  // Validate the incoming stocks array
-  const stockSchema = z.object({
-    id: z.number().optional(),
-    symbol: z.string().min(1, "Symbol is required"),
-    company: z.string().min(1, "Company name is required"),
-    stockType: z.string().min(1, "Stock type is required"),
-    rating: z.string().min(1, "Rating is required"),
-    sector: z.string().optional(),
-    quantity: z.number().min(0, "Quantity must be a positive number"),
-    price: z.union([z.number(), z.string(), z.null(), z.undefined()]).optional().transform(val => 
-      // Convert string or null to number 
-      val === null || val === undefined ? undefined : 
-      typeof val === 'string' ? parseFloat(val) || 0 : val
-    ),
-    pbr: z.union([z.number(), z.string(), z.null(), z.undefined()]).optional().transform(val => 
-      // Convert string or null to number
-      val === null || val === undefined ? undefined : 
-      typeof val === 'string' ? parseFloat(val) || undefined : val
-    ),
-  });
+  try {
+    // Preprocess the request to ensure numeric fields
+    if (req.body && req.body.stocks && Array.isArray(req.body.stocks)) {
+      req.body.stocks = req.body.stocks.map(stock => {
+        // Make sure all numeric fields are properly converted to numbers
+        const processedStock = { ...stock };
+        
+        // Handle quantity field
+        if (typeof processedStock.quantity === 'string') {
+          processedStock.quantity = parseFloat(processedStock.quantity) || 0;
+        }
+        
+        // Handle price field
+        if (processedStock.price === undefined || processedStock.price === null) {
+          processedStock.price = undefined;
+        } else if (typeof processedStock.price === 'string') {
+          processedStock.price = parseFloat(processedStock.price) || 0;
+        }
+        
+        // Handle pbr field
+        if (processedStock.pbr === undefined || processedStock.pbr === null) {
+          processedStock.pbr = undefined;
+        } else if (typeof processedStock.pbr === 'string') {
+          processedStock.pbr = parseFloat(processedStock.pbr) || undefined;
+        }
+        
+        // Special handling for Cash and ETF
+        if (processedStock.stockType === 'Cash' || processedStock.stockType === 'ETF' ||
+            processedStock.rating === 'Cash' || processedStock.rating === 'ETF') {
+          if (processedStock.price === undefined) {
+            processedStock.price = 0;
+          }
+        }
+        
+        return processedStock;
+      });
+    }
   
-  const schema = z.object({
-    stocks: z.array(stockSchema),
-  });
+    // Validate the incoming stocks array
+    const stockSchema = z.object({
+      id: z.number().optional(),
+      symbol: z.string().min(1, "Symbol is required"),
+      company: z.string().min(1, "Company name is required"),
+      stockType: z.string().min(1, "Stock type is required"),
+      rating: z.string().min(1, "Rating is required"),
+      sector: z.string().optional(),
+      quantity: z.number().min(0, "Quantity must be a positive number"),
+      price: z.number().optional(),
+      pbr: z.number().optional(),
+    });
+    
+    const schema = z.object({
+      stocks: z.array(stockSchema),
+    });
   
   try {
     const validData = schema.parse(req.body);
