@@ -54,8 +54,8 @@ export class DatabaseAdapter {
           throw new Error(`Invalid region: ${region}`);
       }
       
-      // Transform to legacy format expected by API consumers
-      return adaptPortfolioData(portfolioData, region);
+      // Transform to legacy format expected by API consumers with calculated values
+      return await adaptPortfolioData(portfolioData, region);
     } catch (error) {
       console.error(`Error getting portfolio stocks for ${region}:`, error);
       throw error;

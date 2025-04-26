@@ -4,6 +4,8 @@
  * This adapter ensures backward compatibility between our new database structure
  * and the existing UI components. It transforms data from the new regional
  * portfolio tables into the format expected by the UI.
+ * 
+ * It also calculates portfolio values, weights, and performance metrics.
  */
 
 import { 
@@ -12,8 +14,12 @@ import {
   PortfolioINTL,
   AssetsUS, 
   AssetsCAD, 
-  AssetsINTL
+  AssetsINTL,
+  CurrentPrice
 } from '@shared/schema';
+import { db } from '../db';
+import { currentPrices } from '../../shared/schema';
+import { eq } from 'drizzle-orm';
 
 /**
  * Type for the legacy portfolio format expected by the UI
@@ -42,87 +48,244 @@ export interface LegacyPortfolioItem {
 }
 
 /**
- * Adapt USD portfolio data to legacy format
+ * Calculate Net Asset Value (NAV) for a stock
  */
-export function adaptUSDPortfolioData(data: PortfolioUSD[]): LegacyPortfolioItem[] {
-  return data.map(item => ({
-    id: item.id,
-    symbol: item.symbol,
-    company: item.company,
-    stockType: item.stockType,
-    rating: item.rating,
-    sector: item.sector || 'Technology',
-    quantity: Number(item.quantity),
-    price: item.price ? Number(item.price) : undefined,
-    pbr: item.pbr ? Number(item.pbr) : undefined,
-    netAssetValue: item.netAssetValue ? Number(item.netAssetValue) : undefined,
-    portfolioPercentage: item.portfolioPercentage ? Number(item.portfolioPercentage) : undefined,
-    dailyChangePercent: item.dailyChangePercent ? Number(item.dailyChangePercent) : undefined,
-    mtdChangePercent: item.mtdChangePercent ? Number(item.mtdChangePercent) : undefined,
-    ytdChangePercent: item.ytdChangePercent ? Number(item.ytdChangePercent) : undefined,
-    sixMonthChangePercent: item.sixMonthChangePercent ? Number(item.sixMonthChangePercent) : undefined,
-    fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent ? Number(item.fiftyTwoWeekChangePercent) : undefined,
-    dividendYield: item.dividendYield ? Number(item.dividendYield) : undefined,
-    profitLoss: item.profitLoss ? Number(item.profitLoss) : undefined,
-    nextEarningsDate: item.nextEarningsDate,
-    // Other legacy fields as needed
-  }));
+function calculateNAV(quantity: number, price: number): number {
+  return quantity * price;
 }
 
 /**
- * Adapt CAD portfolio data to legacy format
+ * Calculate profit/loss
  */
-export function adaptCADPortfolioData(data: PortfolioCAD[]): LegacyPortfolioItem[] {
-  return data.map(item => ({
-    id: item.id,
-    symbol: item.symbol,
-    company: item.company,
-    stockType: item.stockType,
-    rating: item.rating,
-    sector: item.sector || 'Technology',
-    quantity: Number(item.quantity),
-    price: item.price ? Number(item.price) : undefined,
-    pbr: item.pbr ? Number(item.pbr) : undefined,
-    netAssetValue: item.netAssetValue ? Number(item.netAssetValue) : undefined,
-    portfolioPercentage: item.portfolioPercentage ? Number(item.portfolioPercentage) : undefined,
-    dailyChangePercent: item.dailyChangePercent ? Number(item.dailyChangePercent) : undefined,
-    mtdChangePercent: item.mtdChangePercent ? Number(item.mtdChangePercent) : undefined,
-    ytdChangePercent: item.ytdChangePercent ? Number(item.ytdChangePercent) : undefined,
-    sixMonthChangePercent: item.sixMonthChangePercent ? Number(item.sixMonthChangePercent) : undefined,
-    fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent ? Number(item.fiftyTwoWeekChangePercent) : undefined,
-    dividendYield: item.dividendYield ? Number(item.dividendYield) : undefined,
-    profitLoss: item.profitLoss ? Number(item.profitLoss) : undefined,
-    nextEarningsDate: item.nextEarningsDate,
-    // Other legacy fields as needed
-  }));
+function calculateProfitLoss(bookPrice: number, currentPrice: number, quantity: number): number {
+  if (!bookPrice || !currentPrice) return 0;
+  return (currentPrice - bookPrice) * quantity;
 }
 
 /**
- * Adapt INTL portfolio data to legacy format
+ * Get current prices for portfolio stocks
  */
-export function adaptINTLPortfolioData(data: PortfolioINTL[]): LegacyPortfolioItem[] {
-  return data.map(item => ({
-    id: item.id,
-    symbol: item.symbol,
-    company: item.company,
-    stockType: item.stockType,
-    rating: item.rating,
-    sector: item.sector || 'Technology',
-    quantity: Number(item.quantity),
-    price: item.price ? Number(item.price) : undefined,
-    pbr: item.pbr ? Number(item.pbr) : undefined,
-    netAssetValue: item.netAssetValue ? Number(item.netAssetValue) : undefined,
-    portfolioPercentage: item.portfolioPercentage ? Number(item.portfolioPercentage) : undefined,
-    dailyChangePercent: item.dailyChangePercent ? Number(item.dailyChangePercent) : undefined,
-    mtdChangePercent: item.mtdChangePercent ? Number(item.mtdChangePercent) : undefined,
-    ytdChangePercent: item.ytdChangePercent ? Number(item.ytdChangePercent) : undefined,
-    sixMonthChangePercent: item.sixMonthChangePercent ? Number(item.sixMonthChangePercent) : undefined,
-    fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent ? Number(item.fiftyTwoWeekChangePercent) : undefined,
-    dividendYield: item.dividendYield ? Number(item.dividendYield) : undefined,
-    profitLoss: item.profitLoss ? Number(item.profitLoss) : undefined,
-    nextEarningsDate: item.nextEarningsDate,
-    // Other legacy fields as needed
-  }));
+async function getCurrentPrices(symbols: string[], region: string): Promise<Record<string, CurrentPrice>> {
+  try {
+    const prices = await db.select().from(currentPrices)
+      .where(eq(currentPrices.region, region));
+    
+    const priceMap: Record<string, CurrentPrice> = {};
+    prices.forEach(price => {
+      if (symbols.includes(price.symbol)) {
+        priceMap[price.symbol] = price;
+      }
+    });
+    
+    return priceMap;
+  } catch (error) {
+    console.error('Error fetching current prices:', error);
+    return {};
+  }
+}
+
+/**
+ * Adapt USD portfolio data to legacy format with calculated values
+ */
+export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<LegacyPortfolioItem[]> {
+  if (!data.length) return [];
+  
+  // Get symbols for all stocks
+  const symbols = data.map(item => item.symbol);
+  
+  // Get current prices
+  const priceMap = await getCurrentPrices(symbols, 'USD');
+  
+  // Calculate total portfolio value to determine weights
+  let totalPortfolioValue = 0;
+  data.forEach(item => {
+    const quantity = Number(item.quantity);
+    const currentPriceInfo = priceMap[item.symbol];
+    const currentPrice = currentPriceInfo?.regularMarketPrice 
+      ? Number(currentPriceInfo.regularMarketPrice) 
+      : Number(item.price);
+    
+    totalPortfolioValue += calculateNAV(quantity, currentPrice);
+  });
+  
+  // Map each stock to legacy format with calculated values
+  return data.map(item => {
+    const quantity = Number(item.quantity);
+    const bookPrice = Number(item.price);
+    const currentPriceInfo = priceMap[item.symbol];
+    const currentPrice = currentPriceInfo?.regularMarketPrice 
+      ? Number(currentPriceInfo.regularMarketPrice) 
+      : bookPrice;
+    
+    const nav = calculateNAV(quantity, currentPrice);
+    const portfolioWeight = totalPortfolioValue > 0 
+      ? (nav / totalPortfolioValue) * 100 
+      : 0;
+    
+    const dailyChange = currentPriceInfo?.regularMarketChangePercent 
+      ? Number(currentPriceInfo.regularMarketChangePercent) 
+      : 0;
+    
+    const profitLoss = calculateProfitLoss(bookPrice, currentPrice, quantity);
+    
+    return {
+      id: item.id,
+      symbol: item.symbol,
+      company: item.company,
+      stockType: item.stockType,
+      rating: item.rating,
+      sector: item.sector || 'Technology',
+      quantity: quantity,
+      price: bookPrice,
+      pbr: item.pbr ? Number(item.pbr) : undefined,
+      netAssetValue: nav,
+      portfolioPercentage: portfolioWeight,
+      dailyChangePercent: dailyChange,
+      mtdChangePercent: item.mtdChangePercent ? Number(item.mtdChangePercent) : undefined,
+      ytdChangePercent: item.ytdChangePercent ? Number(item.ytdChangePercent) : undefined,
+      sixMonthChangePercent: item.sixMonthChangePercent ? Number(item.sixMonthChangePercent) : undefined,
+      fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent ? Number(item.fiftyTwoWeekChangePercent) : undefined,
+      dividendYield: currentPriceInfo?.dividendYield ? Number(currentPriceInfo.dividendYield) : undefined,
+      profitLoss: profitLoss,
+      nextEarningsDate: item.nextEarningsDate,
+    };
+  });
+}
+
+/**
+ * Adapt CAD portfolio data to legacy format with calculated values
+ */
+export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<LegacyPortfolioItem[]> {
+  if (!data.length) return [];
+  
+  // Get symbols for all stocks
+  const symbols = data.map(item => item.symbol);
+  
+  // Get current prices
+  const priceMap = await getCurrentPrices(symbols, 'CAD');
+  
+  // Calculate total portfolio value to determine weights
+  let totalPortfolioValue = 0;
+  data.forEach(item => {
+    const quantity = Number(item.quantity);
+    const currentPriceInfo = priceMap[item.symbol];
+    const currentPrice = currentPriceInfo?.regularMarketPrice 
+      ? Number(currentPriceInfo.regularMarketPrice) 
+      : Number(item.price);
+    
+    totalPortfolioValue += calculateNAV(quantity, currentPrice);
+  });
+  
+  // Map each stock to legacy format with calculated values
+  return data.map(item => {
+    const quantity = Number(item.quantity);
+    const bookPrice = Number(item.price);
+    const currentPriceInfo = priceMap[item.symbol];
+    const currentPrice = currentPriceInfo?.regularMarketPrice 
+      ? Number(currentPriceInfo.regularMarketPrice) 
+      : bookPrice;
+    
+    const nav = calculateNAV(quantity, currentPrice);
+    const portfolioWeight = totalPortfolioValue > 0 
+      ? (nav / totalPortfolioValue) * 100 
+      : 0;
+    
+    const dailyChange = currentPriceInfo?.regularMarketChangePercent 
+      ? Number(currentPriceInfo.regularMarketChangePercent) 
+      : 0;
+    
+    const profitLoss = calculateProfitLoss(bookPrice, currentPrice, quantity);
+    
+    return {
+      id: item.id,
+      symbol: item.symbol,
+      company: item.company,
+      stockType: item.stockType,
+      rating: item.rating,
+      sector: item.sector || 'Technology',
+      quantity: quantity,
+      price: bookPrice,
+      pbr: item.pbr ? Number(item.pbr) : undefined,
+      netAssetValue: nav,
+      portfolioPercentage: portfolioWeight,
+      dailyChangePercent: dailyChange,
+      mtdChangePercent: item.mtdChangePercent ? Number(item.mtdChangePercent) : undefined,
+      ytdChangePercent: item.ytdChangePercent ? Number(item.ytdChangePercent) : undefined,
+      sixMonthChangePercent: item.sixMonthChangePercent ? Number(item.sixMonthChangePercent) : undefined,
+      fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent ? Number(item.fiftyTwoWeekChangePercent) : undefined,
+      dividendYield: currentPriceInfo?.dividendYield ? Number(currentPriceInfo.dividendYield) : undefined,
+      profitLoss: profitLoss,
+      nextEarningsDate: item.nextEarningsDate,
+    };
+  });
+}
+
+/**
+ * Adapt INTL portfolio data to legacy format with calculated values
+ */
+export async function adaptINTLPortfolioData(data: PortfolioINTL[]): Promise<LegacyPortfolioItem[]> {
+  if (!data.length) return [];
+  
+  // Get symbols for all stocks
+  const symbols = data.map(item => item.symbol);
+  
+  // Get current prices
+  const priceMap = await getCurrentPrices(symbols, 'INTL');
+  
+  // Calculate total portfolio value to determine weights
+  let totalPortfolioValue = 0;
+  data.forEach(item => {
+    const quantity = Number(item.quantity);
+    const currentPriceInfo = priceMap[item.symbol];
+    const currentPrice = currentPriceInfo?.regularMarketPrice 
+      ? Number(currentPriceInfo.regularMarketPrice) 
+      : Number(item.price);
+    
+    totalPortfolioValue += calculateNAV(quantity, currentPrice);
+  });
+  
+  // Map each stock to legacy format with calculated values
+  return data.map(item => {
+    const quantity = Number(item.quantity);
+    const bookPrice = Number(item.price);
+    const currentPriceInfo = priceMap[item.symbol];
+    const currentPrice = currentPriceInfo?.regularMarketPrice 
+      ? Number(currentPriceInfo.regularMarketPrice) 
+      : bookPrice;
+    
+    const nav = calculateNAV(quantity, currentPrice);
+    const portfolioWeight = totalPortfolioValue > 0 
+      ? (nav / totalPortfolioValue) * 100 
+      : 0;
+    
+    const dailyChange = currentPriceInfo?.regularMarketChangePercent 
+      ? Number(currentPriceInfo.regularMarketChangePercent) 
+      : 0;
+    
+    const profitLoss = calculateProfitLoss(bookPrice, currentPrice, quantity);
+    
+    return {
+      id: item.id,
+      symbol: item.symbol,
+      company: item.company,
+      stockType: item.stockType,
+      rating: item.rating,
+      sector: item.sector || 'Technology',
+      quantity: quantity,
+      price: bookPrice,
+      pbr: item.pbr ? Number(item.pbr) : undefined,
+      netAssetValue: nav,
+      portfolioPercentage: portfolioWeight,
+      dailyChangePercent: dailyChange,
+      mtdChangePercent: item.mtdChangePercent ? Number(item.mtdChangePercent) : undefined,
+      ytdChangePercent: item.ytdChangePercent ? Number(item.ytdChangePercent) : undefined,
+      sixMonthChangePercent: item.sixMonthChangePercent ? Number(item.sixMonthChangePercent) : undefined,
+      fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent ? Number(item.fiftyTwoWeekChangePercent) : undefined,
+      dividendYield: currentPriceInfo?.dividendYield ? Number(currentPriceInfo.dividendYield) : undefined,
+      profitLoss: profitLoss,
+      nextEarningsDate: item.nextEarningsDate,
+    };
+  });
 }
 
 /**
@@ -182,14 +345,14 @@ export function adaptAssetsINTLToPortfolioINTL(data: AssetsINTL): Partial<Portfo
 /**
  * Generalized adapter function that selects the correct adapter based on region
  */
-export function adaptPortfolioData(data: any[], region: string): LegacyPortfolioItem[] {
+export async function adaptPortfolioData(data: any[], region: string): Promise<LegacyPortfolioItem[]> {
   switch (region.toUpperCase()) {
     case 'USD':
-      return adaptUSDPortfolioData(data);
+      return await adaptUSDPortfolioData(data);
     case 'CAD':
-      return adaptCADPortfolioData(data);
+      return await adaptCADPortfolioData(data);
     case 'INTL':
-      return adaptINTLPortfolioData(data);
+      return await adaptINTLPortfolioData(data);
     default:
       throw new Error(`Invalid region: ${region}`);
   }
