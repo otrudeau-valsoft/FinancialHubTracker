@@ -137,10 +137,11 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                 <th scope="col" className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">QTY</th>
                 <th scope="col" className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">NAV</th>
                 <th scope="col" className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">PBR</th>
-                <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">WEIGHT</th>
+                <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">WEIGHT %</th>
                 <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">DAILY %</th>
                 <th scope="col" className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">MTD %</th>
                 <th scope="col" className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">YTD %</th>
+                <th scope="col" className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">52W %</th>
                 <th scope="col" className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">P&L</th>
                 <th scope="col" className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">NEXT ER</th>
               </tr>
@@ -249,6 +250,21 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                         {stock.ytdChangePercent !== undefined 
                           ? formatPercentage(stock.ytdChangePercent) 
                           : formatPercentage(stock.ytdChange || 0)
+                        }
+                      </span>
+                    </td>
+                    <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
+                      <span className={
+                        (stock.fiftyTwoWeekChangePercent !== undefined && stock.fiftyTwoWeekChangePercent > 0) || 
+                        (stock.fiftyTwoWeekChange !== undefined && stock.fiftyTwoWeekChange > 0) 
+                          ? 'text-[#4CAF50]' 
+                          : 'text-[#F44336]'
+                      }>
+                        {stock.fiftyTwoWeekChangePercent !== undefined 
+                          ? formatPercentage(stock.fiftyTwoWeekChangePercent) 
+                          : stock.fiftyTwoWeekChange !== undefined
+                            ? formatPercentage(stock.fiftyTwoWeekChange)
+                            : '--'
                         }
                       </span>
                     </td>
