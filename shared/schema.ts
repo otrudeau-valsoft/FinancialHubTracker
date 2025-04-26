@@ -18,7 +18,7 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
 // Stock Type Enum
-export const StockTypeEnum = z.enum(["Comp", "Cat", "Cycl"]);
+export const StockTypeEnum = z.enum(["Comp", "Cat", "Cycl", "Cash", "ETF"]);
 export type StockType = z.infer<typeof StockTypeEnum>;
 
 // Stock Rating Enum (1-4)
@@ -324,3 +324,189 @@ export const insertUpgradeDowngradeHistorySchema = createInsertSchema(upgradeDow
 
 export type InsertUpgradeDowngradeHistory = z.infer<typeof insertUpgradeDowngradeHistorySchema>;
 export type UpgradeDowngradeHistory = typeof upgradeDowngradeHistory.$inferSelect;
+
+// New Portfolio Tables with Regional Separation
+
+// USD Portfolio
+export const portfolioUSD = pgTable("portfolio_USD", {
+  id: serial("id").primaryKey(),
+  symbol: text("symbol").notNull(),
+  company: text("company").notNull(),
+  stockType: text("stock_type").notNull(),
+  rating: text("rating").notNull(),
+  sector: text("sector"),
+  quantity: numeric("quantity").notNull(),
+  price: numeric("price").notNull(),
+  pbr: numeric("pbr"),
+  netAssetValue: numeric("net_asset_value"),
+  portfolioPercentage: numeric("portfolio_percentage"),
+  benchmarkPercentage: numeric("benchmark_percentage"),
+  delta: numeric("delta"),
+  dailyChangePercent: numeric("daily_change_percent"),
+  mtdChangePercent: numeric("mtd_change_percent"),
+  ytdChangePercent: numeric("ytd_change_percent"),
+  sixMonthChangePercent: numeric("six_month_change_percent"),
+  fiftyTwoWeekChangePercent: numeric("fifty_two_week_change_percent"),
+  dividendYield: numeric("dividend_yield"),
+  profitLoss: numeric("profit_loss"),
+  nextEarningsDate: text("next_earnings_date"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertPortfolioUSDSchema = createInsertSchema(portfolioUSD).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertPortfolioUSD = z.infer<typeof insertPortfolioUSDSchema>;
+export type PortfolioUSD = typeof portfolioUSD.$inferSelect;
+
+// CAD Portfolio
+export const portfolioCAD = pgTable("portfolio_CAD", {
+  id: serial("id").primaryKey(),
+  symbol: text("symbol").notNull(),
+  company: text("company").notNull(),
+  stockType: text("stock_type").notNull(),
+  rating: text("rating").notNull(),
+  sector: text("sector"),
+  quantity: numeric("quantity").notNull(),
+  price: numeric("price").notNull(),
+  pbr: numeric("pbr"),
+  netAssetValue: numeric("net_asset_value"),
+  portfolioPercentage: numeric("portfolio_percentage"),
+  benchmarkPercentage: numeric("benchmark_percentage"),
+  delta: numeric("delta"),
+  dailyChangePercent: numeric("daily_change_percent"),
+  mtdChangePercent: numeric("mtd_change_percent"),
+  ytdChangePercent: numeric("ytd_change_percent"),
+  sixMonthChangePercent: numeric("six_month_change_percent"),
+  fiftyTwoWeekChangePercent: numeric("fifty_two_week_change_percent"),
+  dividendYield: numeric("dividend_yield"),
+  profitLoss: numeric("profit_loss"),
+  nextEarningsDate: text("next_earnings_date"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertPortfolioCADSchema = createInsertSchema(portfolioCAD).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertPortfolioCAD = z.infer<typeof insertPortfolioCADSchema>;
+export type PortfolioCAD = typeof portfolioCAD.$inferSelect;
+
+// INTL Portfolio
+export const portfolioINTL = pgTable("portfolio_INTL", {
+  id: serial("id").primaryKey(),
+  symbol: text("symbol").notNull(),
+  company: text("company").notNull(),
+  stockType: text("stock_type").notNull(),
+  rating: text("rating").notNull(),
+  sector: text("sector"),
+  quantity: numeric("quantity").notNull(),
+  price: numeric("price").notNull(),
+  pbr: numeric("pbr"),
+  netAssetValue: numeric("net_asset_value"),
+  portfolioPercentage: numeric("portfolio_percentage"),
+  benchmarkPercentage: numeric("benchmark_percentage"),
+  delta: numeric("delta"),
+  dailyChangePercent: numeric("daily_change_percent"),
+  mtdChangePercent: numeric("mtd_change_percent"),
+  ytdChangePercent: numeric("ytd_change_percent"),
+  sixMonthChangePercent: numeric("six_month_change_percent"),
+  fiftyTwoWeekChangePercent: numeric("fifty_two_week_change_percent"),
+  dividendYield: numeric("dividend_yield"),
+  profitLoss: numeric("profit_loss"),
+  nextEarningsDate: text("next_earnings_date"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertPortfolioINTLSchema = createInsertSchema(portfolioINTL).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertPortfolioINTL = z.infer<typeof insertPortfolioINTLSchema>;
+export type PortfolioINTL = typeof portfolioINTL.$inferSelect;
+
+// Market Indices - For tracking SPY, XIC, ACWX
+export const marketIndices = pgTable("market_indices", {
+  id: serial("id").primaryKey(),
+  symbol: text("symbol").notNull(),
+  name: text("name").notNull(),
+  region: text("region").notNull(), // USD, CAD, INTL
+  currentPrice: numeric("current_price"),
+  dailyChange: numeric("daily_change"),
+  dailyChangePercent: numeric("daily_change_percent"),
+  ytdChangePercent: numeric("ytd_change_percent"),
+  fiftyTwoWeekHigh: numeric("fifty_two_week_high"),
+  fiftyTwoWeekLow: numeric("fifty_two_week_low"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertMarketIndexSchema = createInsertSchema(marketIndices).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertMarketIndex = z.infer<typeof insertMarketIndexSchema>;
+export type MarketIndex = typeof marketIndices.$inferSelect;
+
+// Earnings Data
+export const earnings = pgTable("earnings", {
+  id: serial("id").primaryKey(),
+  symbol: text("symbol").notNull(),
+  region: text("region").notNull(), // USD, CAD, INTL
+  company: text("company").notNull(),
+  fiscalQuarter: text("fiscal_quarter").notNull(), // e.g., Q1, Q2, etc.
+  fiscalYear: integer("fiscal_year").notNull(), // e.g., 2023, 2024
+  reportDate: date("report_date").notNull(),
+  timeOfDay: text("time_of_day"), // BMO (Before Market Open), AMC (After Market Close)
+  epsEstimate: numeric("eps_estimate"),
+  epsActual: numeric("eps_actual"),
+  epsSurprise: numeric("eps_surprise"),
+  epsSurprisePercent: numeric("eps_surprise_percent"),
+  revenueEstimate: numeric("revenue_estimate"),
+  revenueActual: numeric("revenue_actual"),
+  revenueSurprise: numeric("revenue_surprise"),
+  revenueSurprisePercent: numeric("revenue_surprise_percent"),
+  stockImpact: numeric("stock_impact"), // Stock price change after earnings announcement
+  guidance: text("guidance"), // positive, negative, in-line
+  notes: text("notes"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEarningsSchema = createInsertSchema(earnings).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertEarnings = z.infer<typeof insertEarningsSchema>;
+export type Earnings = typeof earnings.$inferSelect;
+
+// Earnings Calendar
+export const earningsCalendar = pgTable("earnings_calendar", {
+  id: serial("id").primaryKey(),
+  symbol: text("symbol").notNull(),
+  region: text("region").notNull(), // USD, CAD, INTL
+  company: text("company").notNull(),
+  earningsDate: date("earnings_date").notNull(),
+  confirmed: boolean("confirmed").default(false),
+  timeOfDay: text("time_of_day"), // BMO (Before Market Open), AMC (After Market Close)
+  estimatedEPS: numeric("estimated_eps"),
+  lastQuarterEPS: numeric("last_quarter_eps"),
+  marketCap: numeric("market_cap"),
+  importance: text("importance").notNull().default("normal"), // high, normal, low
+  stockRating: text("stock_rating"),
+  stockType: text("stock_type"),
+  notes: text("notes"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEarningsCalendarSchema = createInsertSchema(earningsCalendar).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertEarningsCalendar = z.infer<typeof insertEarningsCalendarSchema>;
+export type EarningsCalendar = typeof earningsCalendar.$inferSelect;
