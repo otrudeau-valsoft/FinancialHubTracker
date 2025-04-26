@@ -22,7 +22,13 @@ export const calculateHistoricalPerformance = async (stocks: any[], region: stri
     
     // Fetch historical prices for the benchmark ETF (SPY, XIC, or ACWX)
     const benchmarkSymbol = region === 'USD' ? 'SPY' : (region === 'CAD' ? 'XIC' : 'ACWX');
-    const benchmarkResponse = await fetch(`/api/historical-prices/${benchmarkSymbol}/${region}?start=${startDateStr}&end=${endDateStr}`);
+    const benchmarkResponse = await fetch(`/api/historical-prices/${benchmarkSymbol}/${region}?startDate=${startDateStr}&endDate=${endDateStr}`);
+    
+    if (!benchmarkResponse.ok) {
+      console.error(`Failed to fetch benchmark data: ${benchmarkResponse.status} ${benchmarkResponse.statusText}`);
+      return [];
+    }
+    
     const benchmarkPrices = await benchmarkResponse.json();
     
     if (!benchmarkPrices || benchmarkPrices.length === 0) {
@@ -34,50 +40,76 @@ export const calculateHistoricalPerformance = async (stocks: any[], region: stri
     const benchmarkByDate: Record<string, number> = {};
     benchmarkPrices.forEach((price: any) => {
       const date = new Date(price.date).toISOString().split('T')[0];
-      benchmarkByDate[date] = price.close;
+      benchmarkByDate[date] = parseFloat(price.adjustedClose || price.close);
     });
     
-    // Build the dates array from all available benchmark dates
-    const dates = Object.keys(benchmarkByDate).sort();
+    // Create a map to store portfolio values by date
+    const portfolioByDate: Record<string, number> = {};
+    const symbolWeights: Record<string, number> = {};
     
-    // For each date, calculate the portfolio value
-    const result = [];
+    // Calculate the weight of each stock in the portfolio
+    const totalPortfolioValue = stocks.reduce((sum, stock) => sum + (parseFloat(stock.nav) || 0), 0);
+    
+    stocks.forEach(stock => {
+      if (stock.nav && stock.symbol) {
+        symbolWeights[stock.symbol] = parseFloat(stock.nav) / totalPortfolioValue;
+      }
+    });
+    
+    // Fetch historical prices for each stock and calculate weighted portfolio value
+    for (const stock of stocks) {
+      if (!stock.symbol || !stock.nav) continue;
+      
+      const weight = symbolWeights[stock.symbol];
+      const stockSymbol = stock.symbol;
+      
+      try {
+        const response = await fetch(
+          `/api/historical-prices/${stockSymbol}/${region}?startDate=${startDateStr}&endDate=${endDateStr}`
+        );
+        
+        if (!response.ok) {
+          console.warn(`Failed to fetch historical data for ${stockSymbol}: ${response.status}`);
+          continue;
+        }
+        
+        const prices = await response.json();
+        
+        if (prices && prices.length > 0) {
+          prices.forEach((price: any) => {
+            const date = new Date(price.date).toISOString().split('T')[0];
+            // If we already have a benchmark value for this date
+            if (benchmarkByDate[date]) {
+              const stockValue = parseFloat(price.adjustedClose || price.close);
+              portfolioByDate[date] = (portfolioByDate[date] || 0) + (stockValue * weight);
+            }
+          });
+        }
+      } catch (error) {
+        console.error(`Error fetching historical prices for ${stockSymbol}:`, error);
+      }
+    }
+    
+    // Build the dates array from all available dates that have both benchmark and portfolio data
+    const dates = Object.keys(benchmarkByDate)
+      .filter(date => portfolioByDate[date])
+      .sort();
+    
+    if (dates.length === 0) {
+      console.warn("No matching dates found with both benchmark and portfolio data");
+      return [];
+    }
     
     // Initialize with first date's values
-    let firstBenchmarkValue = benchmarkByDate[dates[0]];
-    let firstPortfolioValue = 0; // We'll calculate this
+    const firstBenchmarkValue = benchmarkByDate[dates[0]];
+    const firstPortfolioValue = portfolioByDate[dates[0]];
     
-    // Calculate portfolio value for each date
-    for (const date of dates) {
-      // Sum up the value of all stocks on this date
-      // In a real implementation, we would need to fetch historical prices for each stock
-      // For now, let's estimate based on current values and mock ups/downs
-      
-      // Example calculation:
-      let portfolioValue = 0;
-      
-      // Use this date's benchmark value
-      const benchmarkValue = benchmarkByDate[date] / firstBenchmarkValue * 100;
-      
-      // Add a slight randomness factor to make it look realistic
-      // This is just for demo purposes - in real life we would use actual values
-      const portfolioRandomFactor = 1 + (Math.sin(new Date(date).getTime() / 8640000000) * 0.02);
-      
-      // Portfolio value fluctuates around benchmark with the random factor
-      portfolioValue = benchmarkValue * portfolioRandomFactor;
-      
-      // Store the first portfolio value for normalization
-      if (result.length === 0) {
-        firstPortfolioValue = portfolioValue;
-      }
-      
-      // Normalize both values to start at 100
-      result.push({
-        date,
-        portfolioValue: portfolioValue / firstPortfolioValue * 100,
-        benchmarkValue: benchmarkValue
-      });
-    }
+    // Calculate portfolio and benchmark values for each date
+    const result = dates.map(date => ({
+      date,
+      portfolioValue: (portfolioByDate[date] / firstPortfolioValue) * 100,
+      benchmarkValue: (benchmarkByDate[date] / firstBenchmarkValue) * 100
+    }));
     
     return result;
   } catch (error) {
