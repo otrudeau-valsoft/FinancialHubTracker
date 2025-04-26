@@ -85,6 +85,24 @@ async function getCurrentPrices(symbols: string[], region: string): Promise<Reco
 }
 
 /**
+ * Calculate 52-week change percentage using high and low from Yahoo Finance
+ */
+function calculate52WeekChange(currentPrice: number, fiftyTwoWeekHigh: string | null, fiftyTwoWeekLow: string | null): number | undefined {
+  if (!fiftyTwoWeekHigh || !fiftyTwoWeekLow) return undefined;
+  
+  const high = Number(fiftyTwoWeekHigh);
+  const low = Number(fiftyTwoWeekLow);
+  
+  if (isNaN(high) || isNaN(low)) return undefined;
+  
+  // Calculate the midpoint of the 52-week range
+  const midpoint = (high + low) / 2;
+  
+  // Calculate percentage change from midpoint to current price
+  return ((currentPrice - midpoint) / midpoint) * 100;
+}
+
+/**
  * Adapt USD portfolio data to legacy format with calculated values
  */
 export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<LegacyPortfolioItem[]> {
@@ -126,14 +144,12 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
       ? Number(currentPriceInfo.regularMarketChangePercent) 
       : 0;
     
-    // Calculate 52-week change based on Yahoo Finance data
-    let fiftyTwoWeekChange = undefined;
-    if (currentPriceInfo?.fiftyTwoWeekHigh && currentPriceInfo?.fiftyTwoWeekLow && currentPrice) {
-      const high = Number(currentPriceInfo.fiftyTwoWeekHigh);
-      const low = Number(currentPriceInfo.fiftyTwoWeekLow);
-      const midpoint = (high + low) / 2;
-      fiftyTwoWeekChange = ((currentPrice - midpoint) / midpoint) * 100;
-    }
+    // Calculate 52-week change using the Yahoo Finance data
+    const fiftyTwoWeekChange = calculate52WeekChange(
+      currentPrice,
+      currentPriceInfo?.fiftyTwoWeekHigh,
+      currentPriceInfo?.fiftyTwoWeekLow
+    );
     
     const profitLoss = calculateProfitLoss(bookPrice, currentPrice, quantity);
     
@@ -153,7 +169,7 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
       mtdChangePercent: item.mtdChangePercent ? Number(item.mtdChangePercent) : undefined,
       ytdChangePercent: item.ytdChangePercent ? Number(item.ytdChangePercent) : undefined,
       sixMonthChangePercent: item.sixMonthChangePercent ? Number(item.sixMonthChangePercent) : undefined,
-      fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent ? Number(item.fiftyTwoWeekChangePercent) : undefined,
+      fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent ? Number(item.fiftyTwoWeekChangePercent) : fiftyTwoWeekChange,
       dividendYield: currentPriceInfo?.dividendYield ? Number(currentPriceInfo.dividendYield) : undefined,
       profitLoss: profitLoss,
       nextEarningsDate: item.nextEarningsDate,
@@ -203,6 +219,13 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
       ? Number(currentPriceInfo.regularMarketChangePercent) 
       : 0;
     
+    // Calculate 52-week change using the Yahoo Finance data
+    const fiftyTwoWeekChange = calculate52WeekChange(
+      currentPrice,
+      currentPriceInfo?.fiftyTwoWeekHigh,
+      currentPriceInfo?.fiftyTwoWeekLow
+    );
+    
     const profitLoss = calculateProfitLoss(bookPrice, currentPrice, quantity);
     
     return {
@@ -221,7 +244,7 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
       mtdChangePercent: item.mtdChangePercent ? Number(item.mtdChangePercent) : undefined,
       ytdChangePercent: item.ytdChangePercent ? Number(item.ytdChangePercent) : undefined,
       sixMonthChangePercent: item.sixMonthChangePercent ? Number(item.sixMonthChangePercent) : undefined,
-      fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent ? Number(item.fiftyTwoWeekChangePercent) : undefined,
+      fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent ? Number(item.fiftyTwoWeekChangePercent) : fiftyTwoWeekChange,
       dividendYield: currentPriceInfo?.dividendYield ? Number(currentPriceInfo.dividendYield) : undefined,
       profitLoss: profitLoss,
       nextEarningsDate: item.nextEarningsDate,
@@ -271,6 +294,13 @@ export async function adaptINTLPortfolioData(data: PortfolioINTL[]): Promise<Leg
       ? Number(currentPriceInfo.regularMarketChangePercent) 
       : 0;
     
+    // Calculate 52-week change using the Yahoo Finance data
+    const fiftyTwoWeekChange = calculate52WeekChange(
+      currentPrice,
+      currentPriceInfo?.fiftyTwoWeekHigh,
+      currentPriceInfo?.fiftyTwoWeekLow
+    );
+    
     const profitLoss = calculateProfitLoss(bookPrice, currentPrice, quantity);
     
     return {
@@ -289,7 +319,7 @@ export async function adaptINTLPortfolioData(data: PortfolioINTL[]): Promise<Leg
       mtdChangePercent: item.mtdChangePercent ? Number(item.mtdChangePercent) : undefined,
       ytdChangePercent: item.ytdChangePercent ? Number(item.ytdChangePercent) : undefined,
       sixMonthChangePercent: item.sixMonthChangePercent ? Number(item.sixMonthChangePercent) : undefined,
-      fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent ? Number(item.fiftyTwoWeekChangePercent) : undefined,
+      fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent ? Number(item.fiftyTwoWeekChangePercent) : fiftyTwoWeekChange,
       dividendYield: currentPriceInfo?.dividendYield ? Number(currentPriceInfo.dividendYield) : undefined,
       profitLoss: profitLoss,
       nextEarningsDate: item.nextEarningsDate,
