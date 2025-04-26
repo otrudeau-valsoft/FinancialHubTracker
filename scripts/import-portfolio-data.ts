@@ -7,6 +7,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 import { db } from '../server/db';
 import { 
@@ -15,6 +16,10 @@ import {
   portfolioINTL,
   dataUpdateLogs
 } from '../shared/schema';
+
+// Create __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Clean a string value from the CSV
@@ -31,11 +36,22 @@ function cleanValue(value: string | null): string | null {
 /**
  * Parse a number from a string, handle null values
  */
-function parseNumber(value: string | null): number | null {
-  if (value === null) return null;
-  value = value.replace(/[,$%\s]/g, '').trim();
-  if (value === '' || value.toLowerCase() === 'n/a') return null;
-  const num = parseFloat(value);
+function parseNumber(value: string | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  
+  // Handle special values
+  if (value.includes('$')) {
+    // Extract the number from dollar format (e.g., "$ 10.5")
+    const numericPart = value.replace(/[$,\s]/g, '').trim();
+    if (numericPart === '' || numericPart.toLowerCase() === 'n/a') return null;
+    const num = parseFloat(numericPart);
+    return isNaN(num) ? null : num;
+  }
+  
+  // Handle regular numeric values
+  const cleaned = value.replace(/[,$%\s]/g, '').trim();
+  if (cleaned === '' || cleaned.toLowerCase() === 'n/a') return null;
+  const num = parseFloat(cleaned);
   return isNaN(num) ? null : num;
 }
 
@@ -269,7 +285,7 @@ async function importINTLPortfolio() {
       const rating = cleanValue(record['Stock Rating']) || '1';
       const sector = cleanValue(record.Sector);
       const quantity = parseNumber(record.QTY) || 0;
-      const price = parseNumber(record.Price) || 0;
+      const price = parseNumber(record.PRICE) || 0;
       const pbr = parseNumber(record.PBR);
       const nextEarningsDate = cleanValue(record['Next Earnings']);
       
@@ -386,8 +402,7 @@ async function main() {
     console.error('Error importing portfolios:', error);
     await logUpdate('portfolio_import', 'Error', 'ALL', `Import failed: ${(error as Error).message}`);
   } finally {
-    // Close the database connection
-    await db.end();
+    // Exit the process
     process.exit(0);
   }
 }
