@@ -98,7 +98,7 @@ export class DatabaseAdapter {
       if (!portfolioItem) return null;
       
       // Transform to legacy format
-      const adaptedData = adaptPortfolioData([portfolioItem], region);
+      const adaptedData = await adaptPortfolioData([portfolioItem], region);
       return adaptedData.length > 0 ? adaptedData[0] : null;
     } catch (error) {
       console.error(`Error getting portfolio stock ${id} (${region}):`, error);
@@ -133,7 +133,7 @@ export class DatabaseAdapter {
       if (!portfolioItem) return null;
       
       // Transform to legacy format
-      const adaptedData = adaptPortfolioData([portfolioItem], region);
+      const adaptedData = await adaptPortfolioData([portfolioItem], region);
       return adaptedData.length > 0 ? adaptedData[0] : null;
     } catch (error) {
       console.error(`Error getting portfolio stock ${symbol} (${region}):`, error);
@@ -174,7 +174,7 @@ export class DatabaseAdapter {
       }
       
       // Transform to legacy format
-      const adaptedData = adaptPortfolioData([createdItem], region);
+      const adaptedData = await adaptPortfolioData([createdItem], region);
       return adaptedData[0];
     } catch (error) {
       console.error(`Error creating portfolio stock (${region}):`, error);
@@ -226,7 +226,7 @@ export class DatabaseAdapter {
       if (!updatedItem) return null;
       
       // Transform to legacy format
-      const adaptedData = adaptPortfolioData([updatedItem], region);
+      const adaptedData = await adaptPortfolioData([updatedItem], region);
       return adaptedData[0];
     } catch (error) {
       console.error(`Error updating portfolio stock ${id} (${region}):`, error);
@@ -315,7 +315,7 @@ export class DatabaseAdapter {
       }
       
       // Transform to legacy format
-      return adaptPortfolioData(createdItems, region);
+      return await adaptPortfolioData(createdItems, region);
     } catch (error) {
       console.error(`Error bulk creating portfolio stocks (${region}):`, error);
       throw error;
@@ -370,7 +370,7 @@ export class DatabaseAdapter {
         }
         
         // Transform to legacy format
-        return adaptPortfolioData(createdItems, region);
+        return await adaptPortfolioData(createdItems, region);
       });
     } catch (error) {
       console.error(`Error rebalancing portfolio (${region}):`, error);
