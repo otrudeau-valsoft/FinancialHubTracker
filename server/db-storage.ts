@@ -86,11 +86,11 @@ export class DatabaseStorage {
       let result;
       
       if (upperRegion === 'USD') {
-        [result] = await db.select().from(assetsUS).where(eq(assetsUS.id, id));
+        [result] = await db.select().from(portfolioUSD).where(eq(portfolioUSD.id, id));
       } else if (upperRegion === 'CAD') {
-        [result] = await db.select().from(assetsCAD).where(eq(assetsCAD.id, id));
+        [result] = await db.select().from(portfolioCAD).where(eq(portfolioCAD.id, id));
       } else if (upperRegion === 'INTL') {
-        [result] = await db.select().from(assetsINTL).where(eq(assetsINTL.id, id));
+        [result] = await db.select().from(portfolioINTL).where(eq(portfolioINTL.id, id));
       } else {
         throw new Error(`Unknown region: ${region}`);
       }
@@ -176,11 +176,11 @@ export class DatabaseStorage {
       
       // Insert into the appropriate table based on the region
       if (upperRegion === 'USD') {
-        results = await db.insert(assetsUS).values(processedData).returning();
+        results = await db.insert(portfolioUSD).values(processedData).returning();
       } else if (upperRegion === 'CAD') {
-        results = await db.insert(assetsCAD).values(processedData).returning();
+        results = await db.insert(portfolioCAD).values(processedData).returning();
       } else if (upperRegion === 'INTL') {
-        results = await db.insert(assetsINTL).values(processedData).returning();
+        results = await db.insert(portfolioINTL).values(processedData).returning();
       } else {
         throw new Error(`Unknown region: ${region}`);
       }
@@ -208,7 +208,7 @@ export class DatabaseStorage {
       const result = await db.transaction(async (tx) => {
         // Delete all existing stocks for the region
         if (upperRegion === 'USD') {
-          await tx.delete(assetsUS);
+          await tx.delete(portfolioUSD);
           
           // Only insert if there are stocks to add
           if (stocks.length > 0) {
@@ -217,7 +217,7 @@ export class DatabaseStorage {
               symbol: stock.symbol,
               company: stock.company,
               stockType: stock.stockType,
-              stockRating: stock.rating,
+              rating: stock.rating,
               sector: stock.sector,
               quantity: stock.quantity,
               price: stock.price || 0,
@@ -226,17 +226,17 @@ export class DatabaseStorage {
             }));
             
             // Insert the new stocks
-            return await tx.insert(assetsUS).values(processedStocks).returning();
+            return await tx.insert(portfolioUSD).values(processedStocks).returning();
           }
         } else if (upperRegion === 'CAD') {
-          await tx.delete(assetsCAD);
+          await tx.delete(portfolioCAD);
           
           if (stocks.length > 0) {
             const processedStocks = stocks.map(stock => ({
               symbol: stock.symbol,
               company: stock.company,
               stockType: stock.stockType,
-              stockRating: stock.rating,
+              rating: stock.rating,
               sector: stock.sector,
               quantity: stock.quantity,
               price: stock.price || 0,
@@ -244,17 +244,17 @@ export class DatabaseStorage {
               updatedAt: new Date()
             }));
             
-            return await tx.insert(assetsCAD).values(processedStocks).returning();
+            return await tx.insert(portfolioCAD).values(processedStocks).returning();
           }
         } else if (upperRegion === 'INTL') {
-          await tx.delete(assetsINTL);
+          await tx.delete(portfolioINTL);
           
           if (stocks.length > 0) {
             const processedStocks = stocks.map(stock => ({
               symbol: stock.symbol,
               company: stock.company,
               stockType: stock.stockType,
-              stockRating: stock.rating,
+              rating: stock.rating,
               sector: stock.sector,
               quantity: stock.quantity,
               price: stock.price || 0,
@@ -262,7 +262,7 @@ export class DatabaseStorage {
               updatedAt: new Date()
             }));
             
-            return await tx.insert(assetsINTL).values(processedStocks).returning();
+            return await tx.insert(portfolioINTL).values(processedStocks).returning();
           }
         }
         
