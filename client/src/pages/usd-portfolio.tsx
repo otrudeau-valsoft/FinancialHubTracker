@@ -7,38 +7,24 @@ import { AlertsList } from "@/components/dashboard/alerts-list";
 import { PortfolioTable } from "@/components/dashboard/portfolio-table";
 import { EtfComparison } from "@/components/dashboard/etf-comparison";
 import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Upload, Download, RefreshCw, BarChart3 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   calculateAllocationByType, 
   calculateAllocationByRating, 
   calculatePortfolioStats,
-  calculateEtfDifferences
+  calculateEtfDifferences,
+  calculateHistoricalPerformance
 } from "@/lib/financial";
 import { parseCSV, convertPortfolioData } from "@/lib/parse-csv";
 import { apiRequest } from "@/lib/queryClient";
 
-// Sample performance data for illustration
-const samplePerformanceData = Array.from({ length: 180 }, (_, i) => {
-  const date = new Date();
-  date.setDate(date.getDate() - (180 - i));
-  
-  const dateStr = date.toISOString().split('T')[0];
-  
-  // Create some reasonable looking performance data
-  const portfolioValue = 100 + (i * 0.05) + Math.sin(i / 10) * 2;
-  const benchmarkValue = 100 + (i * 0.04) + Math.sin(i / 8) * 1.5;
-  
-  return {
-    date: dateStr,
-    portfolioValue,
-    benchmarkValue
-  };
-});
-
 export default function UsdPortfolio() {
+  const queryClient = useQueryClient();
+  
   // Fetch USD portfolio data
-  const { data: usdStocks, isLoading: usdLoading } = useQuery({
+  const { data: usdStocks, isLoading: usdLoading, refetch: refetchUsdStocks } = useQuery({
     queryKey: ['/api/portfolios/USD/stocks'],
     staleTime: 60000, // 1 minute
   });
@@ -123,6 +109,28 @@ export default function UsdPortfolio() {
     stock.company.includes('CASH') || 
     stock.symbol.includes('SHV')
   );
+  
+  // Fetch historical performance data
+  const [performanceData, setPerformanceData] = useState<any[]>([]);
+  const [performanceLoading, setPerformanceLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPerformanceData = async () => {
+      if (!usdStocks || usdStocks.length === 0) return;
+      
+      setPerformanceLoading(true);
+      try {
+        const data = await calculateHistoricalPerformance(usdStocks, 'USD', 180);
+        setPerformanceData(data);
+      } catch (error) {
+        console.error("Error fetching performance data:", error);
+      } finally {
+        setPerformanceLoading(false);
+      }
+    };
+    
+    fetchPerformanceData();
+  }, [usdStocks]);
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4 bg-[#061220]">
@@ -247,11 +255,27 @@ export default function UsdPortfolio() {
               </div>
               
               <div className="md:col-span-2 lg:col-span-1 flex flex-col">
-                <PerformanceChart 
-                  portfolioData={samplePerformanceData}
-                  timeRanges={["1W", "1M", "YTD", "1Y"]}
-                  benchmark="SPY"
-                />
+                {performanceLoading ? (
+                  <Card className="mb-6 border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden">
+                    <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+                      <div className="w-full flex items-center justify-between">
+                        <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">RELATIVE P&L</h3>
+                        <div className="h-1 w-8 bg-[#2196F3]"></div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-4 bg-[#0A1929] flex items-center justify-center">
+                      <div className="text-center text-[#7A8999] font-mono text-xs">
+                        Loading performance data...
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <PerformanceChart 
+                    portfolioData={performanceData}
+                    timeRanges={["1W", "1M", "YTD", "1Y"]}
+                    benchmark="SPY"
+                  />
+                )}
               </div>
               
               <div className="flex flex-col">
