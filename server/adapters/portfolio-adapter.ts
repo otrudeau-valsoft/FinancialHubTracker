@@ -158,7 +158,8 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
       currentPriceInfo?.fiftyTwoWeekLow
     );
     
-    const profitLoss = calculateProfitLoss(bookPrice, currentPrice, quantity);
+    // Calculate profit/loss as a percentage return instead of dollar amount
+    const profitLoss = calculateProfitLossPercentage(bookPrice, currentPrice);
     
     return {
       id: item.id,
@@ -233,7 +234,8 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
       currentPriceInfo?.fiftyTwoWeekLow
     );
     
-    const profitLoss = calculateProfitLoss(bookPrice, currentPrice, quantity);
+    // Calculate profit/loss as a percentage return instead of dollar amount
+    const profitLoss = calculateProfitLossPercentage(bookPrice, currentPrice);
     
     return {
       id: item.id,
@@ -308,7 +310,8 @@ export async function adaptINTLPortfolioData(data: PortfolioINTL[]): Promise<Leg
       currentPriceInfo?.fiftyTwoWeekLow
     );
     
-    const profitLoss = calculateProfitLoss(bookPrice, currentPrice, quantity);
+    // Calculate profit/loss as a percentage return instead of dollar amount
+    const profitLoss = calculateProfitLossPercentage(bookPrice, currentPrice);
     
     return {
       id: item.id,

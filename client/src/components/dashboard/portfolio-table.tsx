@@ -274,10 +274,10 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                         }
                       </span>
                     </td>
-                    <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
+                    <td className="px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
                       {stock.profitLoss !== undefined && (
                         <span className={stock.profitLoss > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
-                          {formatCurrency(stock.profitLoss, currencySymbol)}
+                          {formatPercentage(stock.profitLoss)}
                         </span>
                       )}
                       {stock.profitLoss === undefined && (
