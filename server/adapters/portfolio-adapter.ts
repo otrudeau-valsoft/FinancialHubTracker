@@ -20,6 +20,7 @@ import {
 import { db } from '../db';
 import { currentPrices } from '../../shared/schema';
 import { eq } from 'drizzle-orm';
+import { performanceService } from '../services/performance-calculation-service';
 
 /**
  * Type for the legacy portfolio format expected by the UI
@@ -93,19 +94,26 @@ async function getCurrentPrices(symbols: string[], region: string): Promise<Reco
 }
 
 /**
- * Calculate 52-week change percentage using high from Yahoo Finance
+ * Calculate 52-week change percentage using high and low from Yahoo Finance
  * This calculates how far the current price is from the 52-week high as a percentage
+ * If current price is higher than the 52-week high (new high), we use the 1-year return instead
  */
 function calculate52WeekChange(currentPrice: number, fiftyTwoWeekHigh: string | null, fiftyTwoWeekLow: string | null): number | undefined {
-  if (!fiftyTwoWeekHigh) return undefined;
+  if (!fiftyTwoWeekHigh || !fiftyTwoWeekLow) return undefined;
   
   const high = Number(fiftyTwoWeekHigh);
+  const low = Number(fiftyTwoWeekLow);
   
-  if (isNaN(high)) return undefined;
+  if (isNaN(high) || isNaN(low)) return undefined;
   
-  // Calculate percentage change from 52-week high to current price
-  // If current price is at 52-week high, this will be 0%
-  // If current price is below 52-week high, this will be negative
+  // If current price is higher than 52-week high (new high), 
+  // calculate the percentage return from 52-week low to show a positive return
+  if (currentPrice > high) {
+    return ((currentPrice - low) / low) * 100;
+  }
+  
+  // Otherwise, calculate percentage change from 52-week high to current price
+  // which will be negative since price is below the high
   return ((currentPrice - high) / high) * 100;
 }
 
@@ -133,8 +141,8 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
     totalPortfolioValue += calculateNAV(quantity, currentPrice);
   });
   
-  // Map each stock to legacy format with calculated values
-  return data.map(item => {
+  // Process each stock and compute all performance metrics
+  const processedData = await Promise.all(data.map(async (item) => {
     const quantity = Number(item.quantity);
     const bookPrice = Number(item.price);
     const currentPriceInfo = priceMap[item.symbol];
@@ -161,6 +169,13 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
     // Calculate profit/loss as a percentage return instead of dollar amount
     const profitLoss = calculateProfitLossPercentage(bookPrice, currentPrice);
     
+    // Calculate performance metrics using the historical price service
+    const performanceMetrics = await performanceService.calculateAllPerformanceMetrics(
+      item.symbol,
+      'USD',
+      currentPrice
+    );
+    
     return {
       id: item.id,
       symbol: item.symbol,
@@ -174,15 +189,17 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
       netAssetValue: nav,
       portfolioPercentage: portfolioWeight,
       dailyChangePercent: dailyChange,
-      mtdChangePercent: item.mtdChangePercent ? Number(item.mtdChangePercent) : undefined,
-      ytdChangePercent: item.ytdChangePercent ? Number(item.ytdChangePercent) : undefined,
-      sixMonthChangePercent: item.sixMonthChangePercent ? Number(item.sixMonthChangePercent) : undefined,
+      mtdChangePercent: performanceMetrics.mtdReturn !== undefined ? performanceMetrics.mtdReturn : undefined,
+      ytdChangePercent: performanceMetrics.ytdReturn !== undefined ? performanceMetrics.ytdReturn : undefined,
+      sixMonthChangePercent: performanceMetrics.sixMonthReturn !== undefined ? performanceMetrics.sixMonthReturn : undefined,
       fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent ? Number(item.fiftyTwoWeekChangePercent) : fiftyTwoWeekChange,
       dividendYield: currentPriceInfo?.dividendYield ? Number(currentPriceInfo.dividendYield) : undefined,
       profitLoss: profitLoss,
       nextEarningsDate: item.nextEarningsDate,
     };
-  });
+  }));
+  
+  return processedData;
 }
 
 /**
@@ -209,8 +226,8 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
     totalPortfolioValue += calculateNAV(quantity, currentPrice);
   });
   
-  // Map each stock to legacy format with calculated values
-  return data.map(item => {
+  // Process each stock and compute all performance metrics
+  const processedData = await Promise.all(data.map(async (item) => {
     const quantity = Number(item.quantity);
     const bookPrice = Number(item.price);
     const currentPriceInfo = priceMap[item.symbol];
@@ -237,6 +254,13 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
     // Calculate profit/loss as a percentage return instead of dollar amount
     const profitLoss = calculateProfitLossPercentage(bookPrice, currentPrice);
     
+    // Calculate performance metrics using the historical price service
+    const performanceMetrics = await performanceService.calculateAllPerformanceMetrics(
+      item.symbol,
+      'CAD',
+      currentPrice
+    );
+    
     return {
       id: item.id,
       symbol: item.symbol,
@@ -250,15 +274,17 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
       netAssetValue: nav,
       portfolioPercentage: portfolioWeight,
       dailyChangePercent: dailyChange,
-      mtdChangePercent: item.mtdChangePercent ? Number(item.mtdChangePercent) : undefined,
-      ytdChangePercent: item.ytdChangePercent ? Number(item.ytdChangePercent) : undefined,
-      sixMonthChangePercent: item.sixMonthChangePercent ? Number(item.sixMonthChangePercent) : undefined,
+      mtdChangePercent: performanceMetrics.mtdReturn !== undefined ? performanceMetrics.mtdReturn : undefined,
+      ytdChangePercent: performanceMetrics.ytdReturn !== undefined ? performanceMetrics.ytdReturn : undefined,
+      sixMonthChangePercent: performanceMetrics.sixMonthReturn !== undefined ? performanceMetrics.sixMonthReturn : undefined,
       fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent ? Number(item.fiftyTwoWeekChangePercent) : fiftyTwoWeekChange,
       dividendYield: currentPriceInfo?.dividendYield ? Number(currentPriceInfo.dividendYield) : undefined,
       profitLoss: profitLoss,
       nextEarningsDate: item.nextEarningsDate,
     };
-  });
+  }));
+  
+  return processedData;
 }
 
 /**
@@ -285,8 +311,8 @@ export async function adaptINTLPortfolioData(data: PortfolioINTL[]): Promise<Leg
     totalPortfolioValue += calculateNAV(quantity, currentPrice);
   });
   
-  // Map each stock to legacy format with calculated values
-  return data.map(item => {
+  // Process each stock and compute all performance metrics
+  const processedData = await Promise.all(data.map(async (item) => {
     const quantity = Number(item.quantity);
     const bookPrice = Number(item.price);
     const currentPriceInfo = priceMap[item.symbol];
@@ -313,6 +339,13 @@ export async function adaptINTLPortfolioData(data: PortfolioINTL[]): Promise<Leg
     // Calculate profit/loss as a percentage return instead of dollar amount
     const profitLoss = calculateProfitLossPercentage(bookPrice, currentPrice);
     
+    // Calculate performance metrics using the historical price service
+    const performanceMetrics = await performanceService.calculateAllPerformanceMetrics(
+      item.symbol,
+      'INTL',
+      currentPrice
+    );
+    
     return {
       id: item.id,
       symbol: item.symbol,
@@ -326,15 +359,17 @@ export async function adaptINTLPortfolioData(data: PortfolioINTL[]): Promise<Leg
       netAssetValue: nav,
       portfolioPercentage: portfolioWeight,
       dailyChangePercent: dailyChange,
-      mtdChangePercent: item.mtdChangePercent ? Number(item.mtdChangePercent) : undefined,
-      ytdChangePercent: item.ytdChangePercent ? Number(item.ytdChangePercent) : undefined,
-      sixMonthChangePercent: item.sixMonthChangePercent ? Number(item.sixMonthChangePercent) : undefined,
+      mtdChangePercent: performanceMetrics.mtdReturn !== undefined ? performanceMetrics.mtdReturn : undefined,
+      ytdChangePercent: performanceMetrics.ytdReturn !== undefined ? performanceMetrics.ytdReturn : undefined,
+      sixMonthChangePercent: performanceMetrics.sixMonthReturn !== undefined ? performanceMetrics.sixMonthReturn : undefined,
       fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent ? Number(item.fiftyTwoWeekChangePercent) : fiftyTwoWeekChange,
       dividendYield: currentPriceInfo?.dividendYield ? Number(currentPriceInfo.dividendYield) : undefined,
       profitLoss: profitLoss,
       nextEarningsDate: item.nextEarningsDate,
     };
-  });
+  }));
+  
+  return processedData;
 }
 
 /**
