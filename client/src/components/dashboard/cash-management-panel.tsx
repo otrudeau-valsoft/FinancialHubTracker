@@ -32,15 +32,22 @@ const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
   // Query to fetch cash balances
   const { data: cashBalances, isLoading } = useQuery({
     queryKey: ['/api/cash'],
-    queryFn: () => apiRequest('GET', '/api/cash'),
-    onSuccess: (data: CashBalance[]) => {
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/cash');
+      return response as CashBalance[];
+    }
+  });
+  
+  // Update local state when data is loaded
+  React.useEffect(() => {
+    if (cashBalances && cashBalances.length > 0) {
       const values: {[key: string]: string} = {};
-      data.forEach(cash => {
+      cashBalances.forEach(cash => {
         values[cash.region] = cash.amount;
       });
       setCashValues(values);
     }
-  });
+  }, [cashBalances]);
 
   // Mutation to update cash balance
   const updateCashMutation = useMutation({
@@ -80,9 +87,11 @@ const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
   };
 
   // Calculate total cash across all portfolios
-  const totalCash = cashBalances 
-    ? cashBalances.reduce((sum, cash) => sum + parseFloat(cash.amount || '0'), 0) 
-    : 0;
+  const totalCash = React.useMemo(() => {
+    if (!cashBalances || !Array.isArray(cashBalances)) return 0;
+    return cashBalances.reduce((sum: number, cash: CashBalance) => 
+      sum + parseFloat(cash.amount || '0'), 0);
+  }, [cashBalances]);
 
   return (
     <Card className={`bg-[#0A1524] border border-[#1A304A] rounded-none shadow-lg ${className}`}>
@@ -108,7 +117,7 @@ const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
               <div key={cash.region} className="flex items-center gap-2">
                 <div className="w-12 font-mono text-xs text-[#EFEFEF]">{cash.region}</div>
                 <div className="relative flex-1">
-                  <Dollar className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#7A8999]" />
+                  <DollarSign className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#7A8999]" />
                   <Input
                     type="number"
                     value={cashValues[cash.region] || ''}
