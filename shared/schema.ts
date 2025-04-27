@@ -468,3 +468,100 @@ export const insertEarningsCalendarSchema = createInsertSchema(earningsCalendar)
 
 export type InsertEarningsCalendar = z.infer<typeof insertEarningsCalendarSchema>;
 export type EarningsCalendar = typeof earningsCalendar.$inferSelect;
+
+// Portfolio Holdings tables (combines portfolio data with current prices and performance metrics)
+// USD Holdings
+export const holdingsUSD = pgTable("holdings_USD", {
+  id: serial("id").primaryKey(),
+  symbol: text("symbol").notNull(),
+  company: text("company").notNull(),
+  stockType: text("stock_type").notNull(),
+  rating: text("rating").notNull(),
+  sector: text("sector"),
+  quantity: numeric("quantity").notNull(),
+  currentPrice: numeric("current_price").notNull(),
+  netAssetValue: numeric("net_asset_value").notNull(),  // quantity * currentPrice
+  portfolioWeight: numeric("portfolio_weight").notNull(),  // percentage of total portfolio
+  benchmarkWeight: numeric("benchmark_weight"),  // percentage in the benchmark ETF (SPY)
+  deltaWeight: numeric("delta_weight"),  // difference between portfolio and benchmark weights
+  dailyChangePercent: numeric("daily_change_percent"),
+  mtdChangePercent: numeric("mtd_change_percent"),
+  ytdChangePercent: numeric("ytd_change_percent"),
+  sixMonthChangePercent: numeric("six_month_change_percent"),
+  fiftyTwoWeekChangePercent: numeric("fifty_two_week_change_percent"),
+  profitLossPercent: numeric("profit_loss_percent"),
+  dividendYield: numeric("dividend_yield"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertHoldingsUSDSchema = createInsertSchema(holdingsUSD).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertHoldingsUSD = z.infer<typeof insertHoldingsUSDSchema>;
+export type HoldingsUSD = typeof holdingsUSD.$inferSelect;
+
+// CAD Holdings
+export const holdingsCAD = pgTable("holdings_CAD", {
+  id: serial("id").primaryKey(),
+  symbol: text("symbol").notNull(),
+  company: text("company").notNull(),
+  stockType: text("stock_type").notNull(),
+  rating: text("rating").notNull(),
+  sector: text("sector"),
+  quantity: numeric("quantity").notNull(),
+  currentPrice: numeric("current_price").notNull(),
+  netAssetValue: numeric("net_asset_value").notNull(),  // quantity * currentPrice
+  portfolioWeight: numeric("portfolio_weight").notNull(),  // percentage of total portfolio
+  benchmarkWeight: numeric("benchmark_weight"),  // percentage in the benchmark ETF (XIC)
+  deltaWeight: numeric("delta_weight"),  // difference between portfolio and benchmark weights
+  dailyChangePercent: numeric("daily_change_percent"),
+  mtdChangePercent: numeric("mtd_change_percent"),
+  ytdChangePercent: numeric("ytd_change_percent"),
+  sixMonthChangePercent: numeric("six_month_change_percent"),
+  fiftyTwoWeekChangePercent: numeric("fifty_two_week_change_percent"),
+  profitLossPercent: numeric("profit_loss_percent"),
+  dividendYield: numeric("dividend_yield"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertHoldingsCADSchema = createInsertSchema(holdingsCAD).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertHoldingsCAD = z.infer<typeof insertHoldingsCADSchema>;
+export type HoldingsCAD = typeof holdingsCAD.$inferSelect;
+
+// INTL Holdings
+export const holdingsINTL = pgTable("holdings_INTL", {
+  id: serial("id").primaryKey(),
+  symbol: text("symbol").notNull(),
+  company: text("company").notNull(),
+  stockType: text("stock_type").notNull(),
+  rating: text("rating").notNull(),
+  sector: text("sector"),
+  quantity: numeric("quantity").notNull(),
+  currentPrice: numeric("current_price").notNull(),
+  netAssetValue: numeric("net_asset_value").notNull(),  // quantity * currentPrice
+  portfolioWeight: numeric("portfolio_weight").notNull(),  // percentage of total portfolio
+  benchmarkWeight: numeric("benchmark_weight"),  // percentage in the benchmark ETF (ACWX)
+  deltaWeight: numeric("delta_weight"),  // difference between portfolio and benchmark weights
+  dailyChangePercent: numeric("daily_change_percent"),
+  mtdChangePercent: numeric("mtd_change_percent"),
+  ytdChangePercent: numeric("ytd_change_percent"),
+  sixMonthChangePercent: numeric("six_month_change_percent"),
+  fiftyTwoWeekChangePercent: numeric("fifty_two_week_change_percent"),
+  profitLossPercent: numeric("profit_loss_percent"),
+  dividendYield: numeric("dividend_yield"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertHoldingsINTLSchema = createInsertSchema(holdingsINTL).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertHoldingsINTL = z.infer<typeof insertHoldingsINTLSchema>;
+export type HoldingsINTL = typeof holdingsINTL.$inferSelect;

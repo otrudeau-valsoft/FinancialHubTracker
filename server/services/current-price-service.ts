@@ -1,7 +1,7 @@
 import { storage } from '../storage';
 import { db } from '../db';
 import { and, eq } from 'drizzle-orm';
-import { assetsUS, assetsCAD, assetsINTL, currentPrices, InsertCurrentPrice } from '@shared/schema';
+import { portfolioUSD, portfolioCAD, portfolioINTL, currentPrices, InsertCurrentPrice } from '@shared/schema';
 import yahooFinance from 'yahoo-finance2';
 import { isWeekend } from '../util';
 
@@ -424,22 +424,31 @@ class CurrentPriceService {
       
       switch (region) {
         case 'USD': {
-          const result = await db.select({ symbol: assetsUS.symbol }).from(assetsUS);
+          const result = await db.select({ symbol: portfolioUSD.symbol }).from(portfolioUSD);
           symbols = result.map(r => r.symbol);
           break;
         }
         case 'CAD': {
-          const result = await db.select({ symbol: assetsCAD.symbol }).from(assetsCAD);
+          const result = await db.select({ symbol: portfolioCAD.symbol }).from(portfolioCAD);
           symbols = result.map(r => r.symbol);
           break;
         }
         case 'INTL': {
-          const result = await db.select({ symbol: assetsINTL.symbol }).from(assetsINTL);
+          const result = await db.select({ symbol: portfolioINTL.symbol }).from(portfolioINTL);
           symbols = result.map(r => r.symbol);
           break;
         }
         default:
           throw new Error(`Invalid region: ${region}`);
+      }
+      
+      // Add market indices
+      if (region === 'USD') {
+        symbols.push('SPY');
+      } else if (region === 'CAD') {
+        symbols.push('XIC.TO');
+      } else if (region === 'INTL') {
+        symbols.push('ACWX');
       }
       
       return symbols;
