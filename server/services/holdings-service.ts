@@ -3,7 +3,8 @@ import {
   portfolioUSD, portfolioCAD, portfolioINTL,
   holdingsUSD, holdingsCAD, holdingsINTL,
   currentPrices, etfHoldingsSPY, etfHoldingsXIC, etfHoldingsACWX,
-  InsertHoldingsUSD, InsertHoldingsCAD, InsertHoldingsINTL
+  InsertHoldingsUSD, InsertHoldingsCAD, InsertHoldingsINTL,
+  portfolioCash
 } from '@shared/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { historicalPriceService } from './historical-price-service';

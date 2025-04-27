@@ -303,6 +303,22 @@ export const insertDataUpdateLogSchema = createInsertSchema(dataUpdateLogs).omit
 export type InsertDataUpdateLog = z.infer<typeof insertDataUpdateLogSchema>;
 export type DataUpdateLog = typeof dataUpdateLogs.$inferSelect;
 
+// Portfolio Cash Balances
+export const portfolioCash = pgTable("portfolio_cash", {
+  id: serial("id").primaryKey(),
+  region: text("region").notNull().unique(),
+  amount: numeric("amount").notNull().default("10000"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertPortfolioCashSchema = createInsertSchema(portfolioCash).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertPortfolioCash = z.infer<typeof insertPortfolioCashSchema>;
+export type PortfolioCash = typeof portfolioCash.$inferSelect;
+
 // Upgrade Downgrade History
 export const upgradeDowngradeHistory = pgTable("upgrade_downgrade_history", {
   id: serial("id").primaryKey(),
