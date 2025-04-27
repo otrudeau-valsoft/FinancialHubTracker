@@ -365,12 +365,96 @@ class HistoricalPriceService {
   }
   
   /**
+   * Update historical prices for benchmark ETFs
+   */
+  async updateBenchmarkHistoricalPrices() {
+    try {
+      // Define the benchmark ETFs
+      const benchmarks = [
+        { symbol: 'SPY', region: 'USD' },
+        { symbol: 'XIC.TO', region: 'CAD' },
+        { symbol: 'ACWX', region: 'INTL' }
+      ];
+      
+      let benchmarkResults: {symbol: string, success: boolean, result?: any, error?: string}[] = [];
+      
+      console.log('Updating historical prices for benchmark ETFs');
+      
+      for (const benchmark of benchmarks) {
+        try {
+          console.log(`Processing benchmark: ${benchmark.symbol} (${benchmark.region})`);
+          
+          // Get the latest historical price to determine from when to start fetching
+          const latestPrice = await this.getLatestHistoricalPrice(benchmark.symbol, benchmark.region);
+          
+          let startDate: Date;
+          if (latestPrice && latestPrice.length > 0) {
+            // Start the day after the latest price we have
+            startDate = new Date(latestPrice[0].date);
+            startDate.setDate(startDate.getDate() + 1);
+          } else {
+            // If we have no data, fetch the last 5 years
+            startDate = new Date();
+            startDate.setFullYear(startDate.getFullYear() - 5);
+          }
+          
+          // Only fetch if there's potentially new data
+          if (startDate < new Date()) {
+            console.log(`Fetching historical prices for ${benchmark.symbol} from ${startDate.toISOString().split('T')[0]}`);
+            const result = await this.fetchAndStoreHistoricalPrices(benchmark.symbol, benchmark.region, startDate);
+            benchmarkResults.push({ symbol: benchmark.symbol, success: true, result });
+          } else {
+            console.log(`Historical prices for ${benchmark.symbol} are already up to date`);
+            benchmarkResults.push({ symbol: benchmark.symbol, success: true, result: [] });
+          }
+          
+          // Add a pause between benchmarks to avoid API rate limits
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+        } catch (error) {
+          console.error(`Error updating benchmark ${benchmark.symbol} (${benchmark.region}):`, error);
+          benchmarkResults.push({ 
+            symbol: benchmark.symbol, 
+            success: false, 
+            error: error instanceof Error ? error.message : String(error)
+          });
+        }
+      }
+      
+      return benchmarkResults;
+    } catch (error) {
+      console.error('Error updating benchmark ETF historical prices:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Update historical prices for all portfolios with batch processing
    */
   async updateAllHistoricalPrices() {
     try {
-      const regions = ['USD', 'CAD', 'INTL'];
       let allResults: {symbol: string, success: boolean, result?: any, error?: string}[] = [];
+      
+      // First update benchmark ETFs (SPY, XIC.TO, ACWX) - this is critical for performance charts
+      try {
+        console.log('Updating benchmark ETF historical prices');
+        const benchmarkResults = await this.updateBenchmarkHistoricalPrices();
+        allResults = [...allResults, ...benchmarkResults];
+        
+        // Add a pause after benchmarks before processing portfolios
+        console.log('Pausing for 3 seconds before updating portfolio stocks...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      } catch (error) {
+        console.error('Error updating benchmark ETFs:', error);
+        allResults.push({ 
+          symbol: 'benchmarks_all', 
+          success: false, 
+          error: error instanceof Error ? error.message : String(error)
+        });
+      }
+      
+      // Then update all portfolio stocks
+      const regions = ['USD', 'CAD', 'INTL'];
       
       for (const region of regions) {
         try {
