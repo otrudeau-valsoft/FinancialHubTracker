@@ -74,8 +74,8 @@ export const calculateHistoricalPerformance = async (stocks: any[], region: stri
       }
     }
     
-    // Try to fetch benchmark data (SPY, XIC, or ACWX)
-    const benchmarkSymbol = region === 'USD' ? 'SPY' : (region === 'CAD' ? 'XIC' : 'ACWX');
+    // Try to fetch benchmark data (SPY, XIC.TO, or ACWX)
+    const benchmarkSymbol = region === 'USD' ? 'SPY' : (region === 'CAD' ? 'XIC.TO' : 'ACWX');
     let benchmarkPrices = [];
     let benchmarkByDate: Record<string, number> = {};
     
