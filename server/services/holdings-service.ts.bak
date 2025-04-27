@@ -63,7 +63,7 @@ class HoldingsService {
       
       // 4. Calculate the total portfolio value (including CASH)
       let totalPortfolioValue = 0;
-      const cashValue = await this.getCashBalance("USD");
+      const cashValue = 10000; // Default cash value of $10,000 - will be configurable later
       
       for (const stock of portfolioStocks) {
         const currentPrice = priceMap.get(stock.symbol);
@@ -228,7 +228,7 @@ class HoldingsService {
       
       // 4. Calculate the total portfolio value (including CASH)
       let totalPortfolioValue = 0;
-      const cashValue = await this.getCashBalance("USD");
+      const cashValue = 10000; // Default cash value of $10,000 CAD - will be configurable later
       
       for (const stock of portfolioStocks) {
         const currentPrice = priceMap.get(stock.symbol);
@@ -395,7 +395,7 @@ class HoldingsService {
       
       // 4. Calculate the total portfolio value (including CASH)
       let totalPortfolioValue = 0;
-      const cashValue = await this.getCashBalance("USD");
+      const cashValue = 10000; // Default cash value of $10,000 - will be configurable later
       
       for (const stock of portfolioStocks) {
         const currentPrice = priceMap.get(stock.symbol);
