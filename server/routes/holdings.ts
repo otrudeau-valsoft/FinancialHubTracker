@@ -56,7 +56,7 @@ router.post('/update/:region', async (req, res) => {
       return res.status(400).json({ error: 'Invalid region. Must be USD, CAD, or INTL' });
     }
     
-    let result;
+    let result: any[] = [];
     
     if (region === 'USD') {
       result = await holdingsService.updateUSDHoldings();
@@ -68,8 +68,8 @@ router.post('/update/:region', async (req, res) => {
     
     res.json({ 
       success: true, 
-      message: `Updated ${result?.length || 0} holdings for ${region} portfolio`,
-      count: result?.length || 0 
+      message: `Updated ${result.length} holdings for ${region} portfolio`,
+      count: result.length 
     });
   } catch (error) {
     console.error(`Error updating ${req.params.region} holdings:`, error);

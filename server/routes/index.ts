@@ -9,6 +9,7 @@ import upgradeDowngradeRoutes from './upgrade-downgrade/upgrade-downgrade.routes
 import dataManagementRoutes from './data-management';
 import schedulerRoutes from './scheduler/scheduler.routes';
 import apiHealthRoutes from './api-health.routes';
+import holdingsRoutes from './holdings';
 
 const router = Router();
 
@@ -34,6 +35,9 @@ router.use('/scheduler', schedulerRoutes);
 
 // Upgrade/downgrade routes
 router.use('/upgrade-downgrade', upgradeDowngradeRoutes);
+
+// Holdings routes - new optimized tables combining portfolio and price data
+router.use('/holdings', holdingsRoutes);
 
 // Data management routes (for development and administration)
 router.use('/data-management', dataManagementRoutes);
