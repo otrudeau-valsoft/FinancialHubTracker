@@ -38,11 +38,18 @@ const samplePerformanceData = Array.from({ length: 180 }, (_, i) => {
 });
 
 export default function UsdPortfolio() {
+  const queryClient = useQueryClient();
+  
   // Fetch USD portfolio data
   const { data: usdStocks, isLoading: usdLoading } = useQuery({
     queryKey: ['/api/portfolios/USD/stocks'],
     staleTime: 60000, // 1 minute
   });
+  
+  // Function to refetch USD stocks data
+  const refetchUsdStocks = () => {
+    queryClient.invalidateQueries({ queryKey: ['/api/portfolios/USD/stocks'] });
+  };
   
   // Fetch current prices
   const { data: currentPrices } = useQuery({
@@ -91,7 +98,7 @@ export default function UsdPortfolio() {
           const formattedData = convertPortfolioData(parsed.data, 'USD');
           
           // Send the formatted data to the server
-          await apiRequest('POST', '/api/portfolios/USD/stocks/bulk', {
+          await apiRequest('/api/portfolios/USD/stocks/bulk', 'POST', {
             stocks: formattedData
           });
           
