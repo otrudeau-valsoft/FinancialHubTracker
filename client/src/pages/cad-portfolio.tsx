@@ -5,6 +5,7 @@ import { AllocationChart } from "@/components/dashboard/allocation-chart";
 import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { AlertsList } from "@/components/dashboard/alerts-list";
 import { PortfolioTable } from "@/components/dashboard/portfolio-table";
+import { PortfolioCashPanel } from "@/components/dashboard/portfolio-cash-panel";
 import { EtfComparison } from "@/components/dashboard/etf-comparison";
 import { Button } from "@/components/ui/button";
 import { Upload, BarChart3 } from "lucide-react";
@@ -230,6 +231,10 @@ export default function CadPortfolio() {
               currentPrices={currentPrices || []}
             />
             
+            <div className="mt-6 mb-6">
+              <PortfolioCashPanel region="CAD" />
+            </div>
+
             <div className="mt-8 mb-4"></div>
             
             {!xicLoading && xicComparisonData.length > 0 ? (

@@ -395,7 +395,7 @@ class HoldingsService {
       
       // 4. Calculate the total portfolio value (including CASH)
       let totalPortfolioValue = 0;
-      const cashValue = await this.getCashBalance("USD");
+      const cashValue = await this.getCashBalance("INTL");
       
       for (const stock of portfolioStocks) {
         const currentPrice = priceMap.get(stock.symbol);
