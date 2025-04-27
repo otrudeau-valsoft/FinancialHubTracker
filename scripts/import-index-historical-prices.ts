@@ -1,18 +1,21 @@
 /**
  * Market Index Historical Price Import Script
  * 
- * This script imports historical price data for market indices (SPY, XIC, ACWX)
+ * This script imports historical price data for market indices (SPY, XIC.TO, ACWX)
  * from Yahoo Finance. It ensures we have price data for charting purposes.
+ * 
+ * Unlike other historical price scripts, this one focuses specifically on getting
+ * 5 years of daily data for our benchmark ETFs to ensure performance chart accuracy.
  */
 
-import * as yahooFinance from 'yahoo-finance2';
+import { historicalPrices as historicalPrice, dataUpdateLogs } from '../shared/schema';
 import { db } from '../server/db';
-import { historicalPrices, currentPrices } from '../shared/schema';
-import { and, eq, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
+import * as yahooFinance from 'yahoo-finance2';
 
-// List of market indices to import
-const MARKET_INDICES = [
-  { symbol: 'SPY', region: 'USD', name: 'S&P 500 ETF Trust' },
+// ETF benchmark mapping
+const BENCHMARK_ETFS = [
+  { symbol: 'SPY', region: 'USD', name: 'SPDR S&P 500 ETF Trust' },
   { symbol: 'XIC.TO', region: 'CAD', name: 'iShares Core S&P/TSX Capped Composite Index ETF' },
   { symbol: 'ACWX', region: 'INTL', name: 'iShares MSCI ACWI ex U.S. ETF' }
 ];
@@ -21,108 +24,101 @@ const MARKET_INDICES = [
  * Log an update to the console
  */
 function logUpdate(message: string) {
-  console.log(`[${new Date().toLocaleTimeString()}] ${message}`);
+  console.log(message);
 }
 
 /**
  * Import historical price data for a market index
  */
 async function importHistoricalPrices(symbol: string, region: string) {
+  logUpdate(`Importing 5-year historical prices for ${symbol} (${region})`);
+  
   try {
-    // Check if we already have data for this index
-    const existingPricesResult = await db.select({
-      count: sql<string>`count(*)::text`
-    })
-    .from(historicalPrices)
-    .where(
-      and(
-        eq(historicalPrices.symbol, symbol),
-        eq(historicalPrices.region, region)
-      )
-    );
-    
-    const count = parseInt(existingPricesResult[0]?.count || '0');
-    
-    if (count > 0) {
-      logUpdate(`${symbol} (${region}): Already have ${count} historical price records`);
-      return true;
-    }
-    
-    // Calculate date 5 years ago
+    // Calculate date range (5 years from today)
     const endDate = new Date();
     const startDate = new Date();
     startDate.setFullYear(startDate.getFullYear() - 5);
     
-    const startDateStr = startDate.toISOString().split('T')[0];
-    const endDateStr = endDate.toISOString().split('T')[0];
+    logUpdate(`Date range: ${startDate.toISOString().slice(0, 10)} to ${endDate.toISOString().slice(0, 10)}`);
     
-    // Fetch historical data from Yahoo Finance (5 years)
-    logUpdate(`${symbol} (${region}): Fetching 5 years of historical price data from ${startDateStr} to ${endDateStr}`);
+    // Fetch historical data from Yahoo Finance
+    const historicalData = await yahooFinance.historical(symbol, {
+      period1: startDate,
+      period2: endDate,
+      interval: '1d' // Daily data
+    });
     
-    // Manual insertion of sample daily data for benchmarks to ensure we have proper data
-    // This is important for the performance chart to work correctly
-    const priceRecords = [];
+    logUpdate(`Fetched ${historicalData.length} historical prices for ${symbol}`);
     
-    // Generate 5 years of daily data
-    const currentDate = new Date(startDate);
-    let baseValue = 100; // Starting value
+    // First delete any existing data for this symbol and region to avoid duplicates
+    await db.delete(historicalPrice)
+      .where(sql`${historicalPrice.symbol} = ${symbol} AND ${historicalPrice.region} = ${region}`);
     
-    while (currentDate <= endDate) {
-      // Skip weekends
-      const dayOfWeek = currentDate.getDay();
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Skip Sunday (0) and Saturday (6)
-        // Slight daily variation (±1%)
-        const dailyChange = (Math.random() * 2 - 1) * 0.01;
-        
-        // Long term trend upward (approximately 10% per year = 0.04% per day)
-        baseValue = baseValue * (1 + dailyChange + 0.0004);
-        
-        priceRecords.push({
-          symbol,
-          region,
-          date: currentDate.toISOString().split('T')[0],
-          open: baseValue.toFixed(2),
-          high: (baseValue * 1.005).toFixed(2),
-          low: (baseValue * 0.995).toFixed(2),
-          close: baseValue.toFixed(2),
-          volume: Math.floor(Math.random() * 10000000 + 5000000).toString(),
-          adjustedClose: baseValue.toFixed(2)
-        });
-      }
-      
-      // Move to next day
-      currentDate.setDate(currentDate.getDate() + 1);
+    // Prepare batch insert
+    const batchSize = 500;
+    const batches = [];
+    
+    for (let i = 0; i < historicalData.length; i += batchSize) {
+      const batch = historicalData.slice(i, i + batchSize);
+      batches.push(batch);
     }
     
-    logUpdate(`${symbol} (${region}): Generated ${priceRecords.length} historical price points`);
+    // Process each batch
+    let insertedCount = 0;
     
-    // Insert into database in batches of 100
-    const BATCH_SIZE = 100;
-    for (let i = 0; i < priceRecords.length; i += BATCH_SIZE) {
-      const batch = priceRecords.slice(i, i + BATCH_SIZE);
+    for (const [index, batch] of batches.entries()) {
+      logUpdate(`Processing batch ${index + 1}/${batches.length} for ${symbol}`);
       
-      // Make sure all values are strings, not nulls
-      const preparedBatch = batch.map(record => ({
-        symbol: record.symbol,
-        region: record.region,
-        date: record.date,
-        open: record.open || "0.00",
-        high: record.high || "0.00",
-        low: record.low || "0.00",
-        close: record.close || "0.00",
-        volume: record.volume || "0",
-        adjustedClose: record.adjustedClose || "0.00"
+      const values = batch.map(record => ({
+        symbol,
+        region,
+        date: record.date.toISOString().split('T')[0],
+        open: record.open.toString(),
+        high: record.high.toString(),
+        low: record.low.toString(),
+        close: record.close.toString(),
+        volume: record.volume.toString(),
+        adjustedClose: record.adjClose.toString()
       }));
       
-      await db.insert(historicalPrices).values(preparedBatch);
-      logUpdate(`${symbol} (${region}): Inserted batch ${i / BATCH_SIZE + 1} of ${Math.ceil(priceRecords.length / BATCH_SIZE)}`);
+      await db.insert(historicalPrice).values(values);
+      insertedCount += values.length;
     }
     
-    logUpdate(`${symbol} (${region}): Successfully imported ${priceRecords.length} historical price records`);
-    return true;
+    // Log completion
+    logUpdate(`Successfully imported ${insertedCount} historical prices for ${symbol} (${region})`);
+    
+    // Add to data update logs
+    await db.insert(dataUpdateLogs).values({
+      type: 'Benchmark ETF Historical Prices',
+      status: 'Success',
+      details: `Imported ${insertedCount} historical prices for ${symbol} (${region})`,
+      timestamp: new Date()
+    });
+    
+    return {
+      symbol,
+      region,
+      count: insertedCount,
+      success: true
+    };
   } catch (error) {
-    logUpdate(`ERROR importing ${symbol} (${region}) historical prices: ${error}`);
-    return false;
+    console.error(`Error importing historical prices for ${symbol}:`, error);
+    
+    // Add to data update logs
+    await db.insert(dataUpdateLogs).values({
+      type: 'Benchmark ETF Historical Prices',
+      status: 'Error',
+      details: `Error importing historical prices for ${symbol} (${region}): ${error instanceof Error ? error.message : String(error)}`,
+      timestamp: new Date()
+    });
+    
+    return {
+      symbol,
+      region,
+      error: error instanceof Error ? error.message : String(error),
+      success: false
+    };
   }
 }
 
@@ -130,67 +126,47 @@ async function importHistoricalPrices(symbol: string, region: string) {
  * Import current price data for a market index
  */
 async function importCurrentPrice(symbol: string, region: string, name: string) {
+  logUpdate(`Importing current price for ${symbol} (${region})`);
+  
   try {
-    // Check if we already have current price data
-    const existingPrice = await db.select()
-      .from(currentPrices)
-      .where(
-        and(
-          eq(currentPrices.symbol, symbol),
-          eq(currentPrices.region, region)
-        )
-      );
+    // Fetch quote data from Yahoo Finance
+    const quote = await yahooFinance.quote(symbol);
     
-    // Fetch current price data directly instead of using Yahoo Finance
-    logUpdate(`${symbol} (${region}): Creating current price data`);
+    if (!quote) {
+      throw new Error(`No quote data found for ${symbol}`);
+    }
     
-    // Create a basic current price record with reasonable values
-    const priceRecord = {
+    // Add to data update logs
+    await db.insert(dataUpdateLogs).values({
+      type: 'Benchmark ETF Current Prices',
+      status: 'Success',
+      details: `Updated current price for ${symbol} (${region}): ${quote.regularMarketPrice}`,
+      timestamp: new Date()
+    });
+    
+    return {
       symbol,
       region,
-      regularMarketPrice: "450.75",
-      regularMarketChange: "2.15",
-      regularMarketChangePercent: "0.48",
-      regularMarketVolume: "84526300",
-      regularMarketDayHigh: "453.22",
-      regularMarketDayLow: "448.87",
-      marketCap: "420824000000",
-      trailingPE: "30.12",
-      forwardPE: "24.87",
-      dividendYield: "1.48",
-      fiftyTwoWeekHigh: "480.55",
-      fiftyTwoWeekLow: "395.87"
+      price: quote.regularMarketPrice,
+      success: true
     };
-    
-    // Adjust values based on region/symbol
-    if (region === 'CAD') {
-      priceRecord.regularMarketPrice = "35.42";
-      priceRecord.marketCap = "12485000000";
-    } else if (region === 'INTL') {
-      priceRecord.regularMarketPrice = "48.78";
-      priceRecord.marketCap = "5245000000";
-    }
-    
-    // Insert or update price data
-    if (existingPrice && existingPrice.length > 0) {
-      await db.update(currentPrices)
-        .set(priceRecord)
-        .where(
-          and(
-            eq(currentPrices.symbol, symbol),
-            eq(currentPrices.region, region)
-          )
-        );
-      logUpdate(`${symbol} (${region}): Updated current price data`);
-    } else {
-      await db.insert(currentPrices).values(priceRecord);
-      logUpdate(`${symbol} (${region}): Inserted current price data`);
-    }
-    
-    return true;
   } catch (error) {
-    logUpdate(`ERROR importing ${symbol} (${region}) current price: ${error}`);
-    return false;
+    console.error(`Error importing current price for ${symbol}:`, error);
+    
+    // Add to data update logs
+    await db.insert(dataUpdateLogs).values({
+      type: 'Benchmark ETF Current Prices',
+      status: 'Error',
+      details: `Error importing current price for ${symbol} (${region}): ${error instanceof Error ? error.message : String(error)}`,
+      timestamp: new Date()
+    });
+    
+    return {
+      symbol,
+      region,
+      error: error instanceof Error ? error.message : String(error),
+      success: false
+    };
   }
 }
 
@@ -198,29 +174,67 @@ async function importCurrentPrice(symbol: string, region: string, name: string) 
  * Main function
  */
 async function main() {
-  logUpdate('Starting market index data import');
-  
-  for (const index of MARKET_INDICES) {
-    // Import current price first
-    await importCurrentPrice(index.symbol, index.region, index.name);
+  try {
+    logUpdate('Starting benchmark ETF historical price import...');
     
-    // Import historical prices
-    await importHistoricalPrices(index.symbol, index.region);
+    // Import historical prices for all benchmark ETFs
+    const results = [];
     
-    // Add a delay to avoid rate limiting
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    for (const etf of BENCHMARK_ETFS) {
+      logUpdate(`Processing benchmark ETF: ${etf.symbol} (${etf.region})`);
+      
+      const result = await importHistoricalPrices(etf.symbol, etf.region);
+      results.push(result);
+      
+      // Wait a bit between requests to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Also update current price while we're at it
+      const currentPriceResult = await importCurrentPrice(etf.symbol, etf.region, etf.name);
+      results.push(currentPriceResult);
+      
+      // Wait a bit between ETFs
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+    
+    logUpdate('Benchmark ETF historical price import completed');
+    console.log('Results:', results);
+    
+    // Add summary to logs
+    const successCount = results.filter(r => r.success).length;
+    const errorCount = results.filter(r => !r.success).length;
+    
+    await db.insert(dataUpdateLogs).values({
+      type: 'Benchmark ETF Import',
+      status: errorCount === 0 ? 'Success' : 'Error',
+      details: `Completed with ${successCount} successes and ${errorCount} errors`,
+      timestamp: new Date()
+    });
+    
+    // Finish
+    await db.$client.end();
+    
+    if (errorCount > 0) {
+      process.exit(1);
+    } else {
+      process.exit(0);
+    }
+  } catch (error) {
+    console.error('Unhandled error in benchmark ETF import:', error);
+    
+    // Log error
+    await db.insert(dataUpdateLogs).values({
+      type: 'Benchmark ETF Import',
+      status: 'Error',
+      details: `Unhandled error: ${error instanceof Error ? error.message : String(error)}`,
+      timestamp: new Date()
+    });
+    
+    // Finish
+    await db.$client.end();
+    process.exit(1);
   }
-  
-  logUpdate('Market index data import complete');
 }
 
-// Run the main function
-main()
-  .catch(err => {
-    console.error('Error in main function:', err);
-    process.exit(1);
-  })
-  .finally(() => {
-    // Give a moment for any final logs to be written
-    setTimeout(() => process.exit(0), 1000);
-  });
+// Execute the main function
+main();
