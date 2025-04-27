@@ -380,6 +380,83 @@ export default function DataManagement() {
     }
   });
   
+  // Holdings update mutations
+  const updateAllHoldingsMutation = useMutation({
+    mutationFn: () => apiRequest('POST', '/api/data-management/update-holdings'),
+    onSuccess: () => {
+      toast({
+        title: "Holdings updated",
+        description: "Successfully updated all portfolio holdings with pre-calculated metrics",
+      });
+      refetchLogs();
+      queryClient.invalidateQueries({ queryKey: ['/api/holdings'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to update holdings",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  const updateUSDHoldingsMutation = useMutation({
+    mutationFn: () => apiRequest('POST', '/api/data-management/update-holdings/USD'),
+    onSuccess: () => {
+      toast({
+        title: "USD Holdings updated",
+        description: "Successfully updated USD portfolio holdings",
+      });
+      refetchLogs();
+      queryClient.invalidateQueries({ queryKey: ['/api/holdings/USD'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to update USD holdings",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  const updateCADHoldingsMutation = useMutation({
+    mutationFn: () => apiRequest('POST', '/api/data-management/update-holdings/CAD'),
+    onSuccess: () => {
+      toast({
+        title: "CAD Holdings updated",
+        description: "Successfully updated CAD portfolio holdings",
+      });
+      refetchLogs();
+      queryClient.invalidateQueries({ queryKey: ['/api/holdings/CAD'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to update CAD holdings",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  const updateINTLHoldingsMutation = useMutation({
+    mutationFn: () => apiRequest('POST', '/api/data-management/update-holdings/INTL'),
+    onSuccess: () => {
+      toast({
+        title: "INTL Holdings updated",
+        description: "Successfully updated INTL portfolio holdings",
+      });
+      refetchLogs();
+      queryClient.invalidateQueries({ queryKey: ['/api/holdings/INTL'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to update INTL holdings",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
   // Mutation for updating scheduler config
   const updateSchedulerConfigMutation = useMutation({
     mutationFn: ({ type, config }: { type: string, config: any }) => 

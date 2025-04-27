@@ -45,8 +45,10 @@ class HoldingsService {
         benchmarkWeightMap.set(holding.ticker, parseFloat(holding.weight?.toString() || '0'));
       });
       
-      // 4. Calculate the total portfolio value
+      // 4. Calculate the total portfolio value (including CASH)
       let totalPortfolioValue = 0;
+      const cashValue = 10000; // Default cash value of $10,000 - will be configurable later
+      
       for (const stock of portfolioStocks) {
         const currentPrice = priceMap.get(stock.symbol);
         if (currentPrice) {
@@ -56,9 +58,37 @@ class HoldingsService {
         }
       }
       
+      // Add cash to total portfolio value
+      totalPortfolioValue += cashValue;
+      
       // 5. Calculate performance metrics and prepare holdings data
       const holdingsData: InsertHoldingsUSD[] = [];
       
+      // First add the cash entry
+      const cashEntry: InsertHoldingsUSD = {
+        symbol: 'CASH',
+        company: 'CASH',
+        stockType: 'Cash',
+        rating: '1',
+        sector: null,
+        quantity: '1',
+        currentPrice: cashValue.toString(),
+        netAssetValue: cashValue.toString(),
+        portfolioWeight: ((cashValue / totalPortfolioValue) * 100).toString(),
+        benchmarkWeight: '0',
+        deltaWeight: ((cashValue / totalPortfolioValue) * 100).toString(),
+        dailyChangePercent: '0',
+        mtdChangePercent: '0',
+        ytdChangePercent: '0',
+        sixMonthChangePercent: '0',
+        fiftyTwoWeekChangePercent: '0',
+        profitLossPercent: '0',
+        dividendYield: '0'
+      };
+      
+      holdingsData.push(cashEntry);
+      
+      // Then process normal stocks
       for (const stock of portfolioStocks) {
         try {
           const currentPrice = priceMap.get(stock.symbol);
@@ -138,7 +168,7 @@ class HoldingsService {
         await db.insert(holdingsUSD).values(holdingsData);
       }
       
-      console.log(`Updated ${holdingsData.length} holdings for USD portfolio`);
+      console.log(`Updated ${holdingsData.length} holdings for USD portfolio (including CASH)`);
       return holdingsData;
     } catch (error) {
       console.error('Error updating USD holdings:', error);
@@ -180,8 +210,10 @@ class HoldingsService {
         benchmarkWeightMap.set(baseSymbol, parseFloat(holding.weight?.toString() || '0'));
       });
       
-      // 4. Calculate the total portfolio value
+      // 4. Calculate the total portfolio value (including CASH)
       let totalPortfolioValue = 0;
+      const cashValue = 10000; // Default cash value of $10,000 CAD - will be configurable later
+      
       for (const stock of portfolioStocks) {
         const currentPrice = priceMap.get(stock.symbol);
         if (currentPrice) {
@@ -191,8 +223,35 @@ class HoldingsService {
         }
       }
       
+      // Add cash to total portfolio value
+      totalPortfolioValue += cashValue;
+      
       // 5. Calculate performance metrics and prepare holdings data
       const holdingsData: InsertHoldingsCAD[] = [];
+      
+      // First add the cash entry
+      const cashEntry: InsertHoldingsCAD = {
+        symbol: 'CASH',
+        company: 'CASH',
+        stockType: 'Cash',
+        rating: '1',
+        sector: null,
+        quantity: '1',
+        currentPrice: cashValue.toString(),
+        netAssetValue: cashValue.toString(),
+        portfolioWeight: ((cashValue / totalPortfolioValue) * 100).toString(),
+        benchmarkWeight: '0',
+        deltaWeight: ((cashValue / totalPortfolioValue) * 100).toString(),
+        dailyChangePercent: '0',
+        mtdChangePercent: '0',
+        ytdChangePercent: '0',
+        sixMonthChangePercent: '0',
+        fiftyTwoWeekChangePercent: '0',
+        profitLossPercent: '0',
+        dividendYield: '0'
+      };
+      
+      holdingsData.push(cashEntry);
       
       for (const stock of portfolioStocks) {
         try {
@@ -265,7 +324,7 @@ class HoldingsService {
             sixMonthChangePercent: sixMonthChangePercent.toString(),
             fiftyTwoWeekChangePercent: fiftyTwoWeekChangePercent.toString(),
             profitLossPercent: fiftyTwoWeekChangePercent.toString(), // Using 52-week change for P/L, could be adjusted based on purchase price
-            dividendYield: currentPrice.dividendYield?.toString() || '0'
+            dividendYield: '0' // Default to 0 since this data is often missing
           };
           
           holdingsData.push(holdingEntry);
@@ -280,7 +339,7 @@ class HoldingsService {
         await db.insert(holdingsCAD).values(holdingsData);
       }
       
-      console.log(`Updated ${holdingsData.length} holdings for CAD portfolio`);
+      console.log(`Updated ${holdingsData.length} holdings for CAD portfolio (including CASH)`);
       return holdingsData;
     } catch (error) {
       console.error('Error updating CAD holdings:', error);
@@ -318,8 +377,10 @@ class HoldingsService {
         benchmarkWeightMap.set(holding.ticker, parseFloat(holding.weight?.toString() || '0'));
       });
       
-      // 4. Calculate the total portfolio value
+      // 4. Calculate the total portfolio value (including CASH)
       let totalPortfolioValue = 0;
+      const cashValue = 10000; // Default cash value of $10,000 - will be configurable later
+      
       for (const stock of portfolioStocks) {
         const currentPrice = priceMap.get(stock.symbol);
         if (currentPrice) {
@@ -329,8 +390,35 @@ class HoldingsService {
         }
       }
       
+      // Add cash to total portfolio value
+      totalPortfolioValue += cashValue;
+      
       // 5. Calculate performance metrics and prepare holdings data
       const holdingsData: InsertHoldingsINTL[] = [];
+      
+      // First add the cash entry
+      const cashEntry: InsertHoldingsINTL = {
+        symbol: 'CASH',
+        company: 'CASH',
+        stockType: 'Cash',
+        rating: '1',
+        sector: null,
+        quantity: '1',
+        currentPrice: cashValue.toString(),
+        netAssetValue: cashValue.toString(),
+        portfolioWeight: ((cashValue / totalPortfolioValue) * 100).toString(),
+        benchmarkWeight: '0',
+        deltaWeight: ((cashValue / totalPortfolioValue) * 100).toString(),
+        dailyChangePercent: '0',
+        mtdChangePercent: '0',
+        ytdChangePercent: '0',
+        sixMonthChangePercent: '0',
+        fiftyTwoWeekChangePercent: '0',
+        profitLossPercent: '0',
+        dividendYield: '0'
+      };
+      
+      holdingsData.push(cashEntry);
       
       for (const stock of portfolioStocks) {
         try {
@@ -396,7 +484,7 @@ class HoldingsService {
             sixMonthChangePercent: sixMonthChangePercent.toString(),
             fiftyTwoWeekChangePercent: fiftyTwoWeekChangePercent.toString(),
             profitLossPercent: fiftyTwoWeekChangePercent.toString(), // Using 52-week change for P/L, could be adjusted based on purchase price
-            dividendYield: currentPrice.dividendYield?.toString() || '0'
+            dividendYield: '0' // Default to 0 since this data is often missing
           };
           
           holdingsData.push(holdingEntry);
@@ -411,7 +499,7 @@ class HoldingsService {
         await db.insert(holdingsINTL).values(holdingsData);
       }
       
-      console.log(`Updated ${holdingsData.length} holdings for INTL portfolio`);
+      console.log(`Updated ${holdingsData.length} holdings for INTL portfolio (including CASH)`);
       return holdingsData;
     } catch (error) {
       console.error('Error updating INTL holdings:', error);
@@ -420,7 +508,7 @@ class HoldingsService {
   }
 
   /**
-   * Get historical price for a specific date (or the closest available date)
+   * Helper function to get historical price data for a specific date
    */
   private async getHistoricalPriceForDate(symbol: string, region: string, date: Date) {
     try {
@@ -477,26 +565,26 @@ class HoldingsService {
         const usdHoldings = await this.updateUSDHoldings();
         results.USD = { success: true, message: 'Updated successfully', count: usdHoldings.length };
       } catch (error) {
-        results.USD = { success: false, message: error.message, count: 0 };
+        results.USD = { success: false, message: error.message || 'Unknown error', count: 0 };
       }
       
       try {
         const cadHoldings = await this.updateCADHoldings();
         results.CAD = { success: true, message: 'Updated successfully', count: cadHoldings.length };
       } catch (error) {
-        results.CAD = { success: false, message: error.message, count: 0 };
+        results.CAD = { success: false, message: error.message || 'Unknown error', count: 0 };
       }
       
       try {
         const intlHoldings = await this.updateINTLHoldings();
         results.INTL = { success: true, message: 'Updated successfully', count: intlHoldings.length };
       } catch (error) {
-        results.INTL = { success: false, message: error.message, count: 0 };
+        results.INTL = { success: false, message: error.message || 'Unknown error', count: 0 };
       }
       
       // Log the total count
       const totalCount = results.USD.count + results.CAD.count + results.INTL.count;
-      console.log(`Updated ${totalCount} total holdings across all portfolios`);
+      console.log(`Updated ${totalCount} total holdings across all portfolios (including CASH rows)`);
       
       return results;
     } catch (error) {
