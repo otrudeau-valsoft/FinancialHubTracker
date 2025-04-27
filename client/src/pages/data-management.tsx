@@ -117,7 +117,7 @@ export default function DataManagement() {
   
   // Update all holdings mutation
   const updateAllHoldingsMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/data-management/update-holdings'),
+    mutationFn: () => apiRequest('POST', '/api/holdings/update'),
     onSuccess: () => {
       toast({
         title: "Holdings updated",
@@ -136,7 +136,7 @@ export default function DataManagement() {
   
   // Update USD holdings mutation
   const updateUSDHoldingsMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/data-management/update-holdings/USD'),
+    mutationFn: () => apiRequest('POST', '/api/holdings/update/USD'),
     onSuccess: () => {
       toast({
         title: "USD Holdings updated",
@@ -380,82 +380,7 @@ export default function DataManagement() {
     }
   });
   
-  // Holdings update mutations
-  const updateAllHoldingsMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/data-management/update-holdings'),
-    onSuccess: () => {
-      toast({
-        title: "Holdings updated",
-        description: "Successfully updated all portfolio holdings with pre-calculated metrics",
-      });
-      refetchLogs();
-      queryClient.invalidateQueries({ queryKey: ['/api/holdings'] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to update holdings",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-  
-  const updateUSDHoldingsMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/data-management/update-holdings/USD'),
-    onSuccess: () => {
-      toast({
-        title: "USD Holdings updated",
-        description: "Successfully updated USD portfolio holdings",
-      });
-      refetchLogs();
-      queryClient.invalidateQueries({ queryKey: ['/api/holdings/USD'] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to update USD holdings",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-  
-  const updateCADHoldingsMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/data-management/update-holdings/CAD'),
-    onSuccess: () => {
-      toast({
-        title: "CAD Holdings updated",
-        description: "Successfully updated CAD portfolio holdings",
-      });
-      refetchLogs();
-      queryClient.invalidateQueries({ queryKey: ['/api/holdings/CAD'] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to update CAD holdings",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-  
-  const updateINTLHoldingsMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/data-management/update-holdings/INTL'),
-    onSuccess: () => {
-      toast({
-        title: "INTL Holdings updated",
-        description: "Successfully updated INTL portfolio holdings",
-      });
-      refetchLogs();
-      queryClient.invalidateQueries({ queryKey: ['/api/holdings/INTL'] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to update INTL holdings",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
+  // Holdings update mutations are defined lower in the file
   
   // Mutation for updating scheduler config
   const updateSchedulerConfigMutation = useMutation({
@@ -580,6 +505,89 @@ export default function DataManagement() {
       
       <div className="grid gap-3 sm:gap-4">
         {/* Update Panels - Top Row */}
+        <Card className="bg-[#0A1524] border border-[#1A304A] rounded-none shadow-lg">
+          <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-2 sm:p-3">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
+              <CardTitle className="text-[#EFEFEF] text-base sm:text-lg font-mono flex items-center">
+                <FileBarChart className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-[#FFCA28]" />
+                PORTFOLIO HOLDINGS
+              </CardTitle>
+              <Button 
+                variant="default" 
+                onClick={() => updateAllHoldingsMutation.mutate()}
+                disabled={updateAllHoldingsMutation.isPending}
+                className="bg-[#FFCA28] hover:bg-[#FFA000] text-black rounded-sm h-8 px-2 sm:px-3 py-1 text-xs sm:text-sm w-full sm:w-auto"
+                size="sm"
+              >
+                {updateAllHoldingsMutation.isPending ? (
+                  <>
+                    <div className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin rounded-full border-2 border-black border-t-transparent"></div>
+                    RUNNING
+                  </>
+                ) : (
+                  <>
+                    <RotateCw className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">UPDATE ALL HOLDINGS</span>
+                    <span className="inline sm:hidden">UPDATE ALL</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-3 pt-4">
+            <div className="text-xs text-[#EFEFEF] mb-3">
+              Update pre-calculated metrics in portfolio holdings tables including NAV, weights, benchmark comparison, and performance data.
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => updateUSDHoldingsMutation.mutate()}
+                disabled={updateUSDHoldingsMutation.isPending}
+                className="bg-[#1C2938] hover:bg-[#243447] text-[#38AAFD] border-[#1A304A] font-mono text-xs"
+              >
+                {updateUSDHoldingsMutation.isPending ? (
+                  <div className="h-3 w-3 mr-1 animate-spin rounded-full border-2 border-[#38AAFD] border-t-transparent"></div>
+                ) : (
+                  <RotateCw className="h-3 w-3 mr-1" />
+                )}
+                USD
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                onClick={() => updateCADHoldingsMutation.mutate()}
+                disabled={updateCADHoldingsMutation.isPending}
+                className="bg-[#1C2938] hover:bg-[#243447] text-[#4CAF50] border-[#1A304A] font-mono text-xs"
+              >
+                {updateCADHoldingsMutation.isPending ? (
+                  <div className="h-3 w-3 mr-1 animate-spin rounded-full border-2 border-[#4CAF50] border-t-transparent"></div>
+                ) : (
+                  <RotateCw className="h-3 w-3 mr-1" />
+                )}
+                CAD
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                onClick={() => updateINTLHoldingsMutation.mutate()}
+                disabled={updateINTLHoldingsMutation.isPending}
+                className="bg-[#1C2938] hover:bg-[#243447] text-[#FFCA28] border-[#1A304A] font-mono text-xs"
+              >
+                {updateINTLHoldingsMutation.isPending ? (
+                  <div className="h-3 w-3 mr-1 animate-spin rounded-full border-2 border-[#FFCA28] border-t-transparent"></div>
+                ) : (
+                  <RotateCw className="h-3 w-3 mr-1" />
+                )}
+                INTL
+              </Button>
+            </div>
+            <div className="mt-3 text-xs text-[#7A8999] border-t border-[#1A304A] pt-3">
+              Cash balances are included in calculations with a default value of $10,000
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Update Panels - Real-time and Historical Data Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           <Card className="bg-[#0A1524] border border-[#1A304A] rounded-none shadow-lg">
             <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-2 sm:p-3">
