@@ -28,6 +28,7 @@ import {
   Info as InfoIcon,
   Trash2
 } from 'lucide-react';
+import CashManagementPanel from '@/components/dashboard/cash-management-panel';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { formatDistanceToNow } from 'date-fns';
