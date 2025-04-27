@@ -220,6 +220,10 @@ export default function IntlPortfolio() {
             currentPrices={currentPrices || []}
           />
           
+          <div className="mt-6 mb-6">
+            <PortfolioCashPanel region="INTL" />
+          </div>
+          
           <div className="mt-8 mb-4"></div>
           
           {!acwxLoading && acwxComparisonData.length > 0 ? (

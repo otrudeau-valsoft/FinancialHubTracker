@@ -42,7 +42,7 @@ export function PortfolioCashPanel({ className, region = 'USD' }: PortfolioCashP
       case 'CAD':
         return `C$${value.toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       case 'INTL':
-        return `€${value.toLocaleString('en-EU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       default:
         return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
@@ -138,7 +138,7 @@ export function PortfolioCashPanel({ className, region = 'USD' }: PortfolioCashP
           Portfolio Cash Balance
         </CardTitle>
         <CardDescription>
-          Current available cash for {region} portfolio
+          Current available cash for {region} portfolio {region === 'INTL' ? '(in USD)' : ''}
         </CardDescription>
       </CardHeader>
       <CardContent>
