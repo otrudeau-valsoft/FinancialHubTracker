@@ -131,6 +131,8 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
   
   // Calculate total portfolio value to determine weights
   let totalPortfolioValue = 0;
+  const stocksWithCurrentPrices: Array<{symbol: string, currentPrice: number}> = [];
+  
   data.forEach(item => {
     const quantity = Number(item.quantity);
     const currentPriceInfo = priceMap[item.symbol];
@@ -139,10 +141,22 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
       : Number(item.price);
     
     totalPortfolioValue += calculateNAV(quantity, currentPrice);
+    
+    // Build an array of symbols with their current prices for batch processing
+    stocksWithCurrentPrices.push({
+      symbol: item.symbol,
+      currentPrice: currentPrice
+    });
   });
   
-  // Process each stock and compute all performance metrics
-  const processedData = await Promise.all(data.map(async (item) => {
+  // Calculate performance metrics for all stocks in a single batch operation
+  const performanceMetricsMap = await performanceService.calculateBatchPerformanceMetrics(
+    stocksWithCurrentPrices,
+    'USD'
+  );
+  
+  // Map each stock to legacy format with calculated values
+  return data.map(item => {
     const quantity = Number(item.quantity);
     const bookPrice = Number(item.price);
     const currentPriceInfo = priceMap[item.symbol];
@@ -169,12 +183,8 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
     // Calculate profit/loss as a percentage return instead of dollar amount
     const profitLoss = calculateProfitLossPercentage(bookPrice, currentPrice);
     
-    // Calculate performance metrics using the historical price service
-    const performanceMetrics = await performanceService.calculateAllPerformanceMetrics(
-      item.symbol,
-      'USD',
-      currentPrice
-    );
+    // Get the pre-calculated performance metrics for this stock
+    const performanceMetrics = performanceMetricsMap[item.symbol] || {};
     
     return {
       id: item.id,
@@ -197,9 +207,7 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
       profitLoss: profitLoss,
       nextEarningsDate: item.nextEarningsDate,
     };
-  }));
-  
-  return processedData;
+  });
 }
 
 /**
@@ -216,6 +224,8 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
   
   // Calculate total portfolio value to determine weights
   let totalPortfolioValue = 0;
+  const stocksWithCurrentPrices: Array<{symbol: string, currentPrice: number}> = [];
+  
   data.forEach(item => {
     const quantity = Number(item.quantity);
     const currentPriceInfo = priceMap[item.symbol];
@@ -224,10 +234,22 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
       : Number(item.price);
     
     totalPortfolioValue += calculateNAV(quantity, currentPrice);
+    
+    // Build an array of symbols with their current prices for batch processing
+    stocksWithCurrentPrices.push({
+      symbol: item.symbol,
+      currentPrice: currentPrice
+    });
   });
   
-  // Process each stock and compute all performance metrics
-  const processedData = await Promise.all(data.map(async (item) => {
+  // Calculate performance metrics for all stocks in a single batch operation
+  const performanceMetricsMap = await performanceService.calculateBatchPerformanceMetrics(
+    stocksWithCurrentPrices,
+    'CAD'
+  );
+  
+  // Map each stock to legacy format with calculated values
+  return data.map(item => {
     const quantity = Number(item.quantity);
     const bookPrice = Number(item.price);
     const currentPriceInfo = priceMap[item.symbol];
@@ -254,12 +276,8 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
     // Calculate profit/loss as a percentage return instead of dollar amount
     const profitLoss = calculateProfitLossPercentage(bookPrice, currentPrice);
     
-    // Calculate performance metrics using the historical price service
-    const performanceMetrics = await performanceService.calculateAllPerformanceMetrics(
-      item.symbol,
-      'CAD',
-      currentPrice
-    );
+    // Get the pre-calculated performance metrics for this stock
+    const performanceMetrics = performanceMetricsMap[item.symbol] || {};
     
     return {
       id: item.id,
@@ -282,9 +300,7 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
       profitLoss: profitLoss,
       nextEarningsDate: item.nextEarningsDate,
     };
-  }));
-  
-  return processedData;
+  });
 }
 
 /**
@@ -301,6 +317,8 @@ export async function adaptINTLPortfolioData(data: PortfolioINTL[]): Promise<Leg
   
   // Calculate total portfolio value to determine weights
   let totalPortfolioValue = 0;
+  const stocksWithCurrentPrices: Array<{symbol: string, currentPrice: number}> = [];
+  
   data.forEach(item => {
     const quantity = Number(item.quantity);
     const currentPriceInfo = priceMap[item.symbol];
@@ -309,10 +327,22 @@ export async function adaptINTLPortfolioData(data: PortfolioINTL[]): Promise<Leg
       : Number(item.price);
     
     totalPortfolioValue += calculateNAV(quantity, currentPrice);
+    
+    // Build an array of symbols with their current prices for batch processing
+    stocksWithCurrentPrices.push({
+      symbol: item.symbol,
+      currentPrice: currentPrice
+    });
   });
   
-  // Process each stock and compute all performance metrics
-  const processedData = await Promise.all(data.map(async (item) => {
+  // Calculate performance metrics for all stocks in a single batch operation
+  const performanceMetricsMap = await performanceService.calculateBatchPerformanceMetrics(
+    stocksWithCurrentPrices,
+    'INTL'
+  );
+  
+  // Map each stock to legacy format with calculated values
+  return data.map(item => {
     const quantity = Number(item.quantity);
     const bookPrice = Number(item.price);
     const currentPriceInfo = priceMap[item.symbol];
@@ -339,12 +369,8 @@ export async function adaptINTLPortfolioData(data: PortfolioINTL[]): Promise<Leg
     // Calculate profit/loss as a percentage return instead of dollar amount
     const profitLoss = calculateProfitLossPercentage(bookPrice, currentPrice);
     
-    // Calculate performance metrics using the historical price service
-    const performanceMetrics = await performanceService.calculateAllPerformanceMetrics(
-      item.symbol,
-      'INTL',
-      currentPrice
-    );
+    // Get the pre-calculated performance metrics for this stock
+    const performanceMetrics = performanceMetricsMap[item.symbol] || {};
     
     return {
       id: item.id,
@@ -367,9 +393,7 @@ export async function adaptINTLPortfolioData(data: PortfolioINTL[]): Promise<Leg
       profitLoss: profitLoss,
       nextEarningsDate: item.nextEarningsDate,
     };
-  }));
-  
-  return processedData;
+  });
 }
 
 /**
