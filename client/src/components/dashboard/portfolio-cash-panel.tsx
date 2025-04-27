@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { DollarSign, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { DollarSign, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface CashBalance {
@@ -96,56 +94,70 @@ export function PortfolioCashPanel({ className, region = 'USD' }: PortfolioCashP
   // Handle loading and error states
   if (isLoading) {
     return (
-      <Card className={className}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-primary" />
-            Portfolio Cash Balance
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-6">
-            <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="bg-[#0A1524] border border-[#1A304A] rounded-md overflow-hidden">
+        <div className="p-4 border-b border-[#1A304A]">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-base font-medium text-[#EFEFEF] font-mono tracking-tight">
+                <DollarSign className="h-4 w-4 text-[#4CAF50]" />
+                PORTFOLIO CASH
+              </div>
+              <div className="flex mt-1">
+                <div className="h-0.5 w-6 bg-[#4CAF50]"></div>
+              </div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="p-6 flex items-center justify-center">
+          <RefreshCw className="h-5 w-5 animate-spin text-[#4CAF50]" />
+        </div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card className={className}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-primary" />
-            Portfolio Cash Balance
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-6 text-destructive">
-            Error loading cash balances
+      <div className="bg-[#0A1524] border border-[#1A304A] rounded-md overflow-hidden">
+        <div className="p-4 border-b border-[#1A304A]">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-base font-medium text-[#EFEFEF] font-mono tracking-tight">
+                <DollarSign className="h-4 w-4 text-[#4CAF50]" />
+                PORTFOLIO CASH
+              </div>
+              <div className="flex mt-1">
+                <div className="h-0.5 w-6 bg-[#4CAF50]"></div>
+              </div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="p-6 flex items-center justify-center">
+          <div className="text-[#FF3D00] font-mono text-sm">Error loading cash balance</div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card className={className}>
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5 text-primary" />
-          Portfolio Cash Balance
-        </CardTitle>
-        <CardDescription>
-          Current available cash for {region} portfolio {region === 'INTL' ? '(in USD)' : ''}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-4">
+    <div className="bg-[#0A1524] border border-[#1A304A] rounded-md overflow-hidden">
+      <div className="p-4 border-b border-[#1A304A]">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-base font-medium text-[#EFEFEF] font-mono tracking-tight">
+              <DollarSign className="h-4 w-4 text-[#4CAF50]" />
+              PORTFOLIO CASH {region === 'INTL' ? '(USD)' : ''}
+            </div>
+            <div className="flex mt-1">
+              <div className="h-0.5 w-6 bg-[#4CAF50]"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="p-4">
+        <div className="space-y-4">
           {isEditing ? (
             <div className="space-y-2">
-              <Label htmlFor="cashAmount">Cash Amount</Label>
+              <Label htmlFor="cashAmount" className="text-[#7A8999] font-mono text-xs">Cash Amount</Label>
               <Input
                 id="cashAmount"
                 type="number"
@@ -154,59 +166,48 @@ export function PortfolioCashPanel({ className, region = 'USD' }: PortfolioCashP
                 value={cashAmount}
                 onChange={(e) => setCashAmount(e.target.value)}
                 placeholder="Enter cash amount"
-                className="w-full"
+                className="border-[#1A304A] bg-[#0B1728] text-[#EFEFEF]"
               />
             </div>
           ) : (
             <div className="flex flex-col space-y-1.5">
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-[#EFEFEF] font-mono">
                 {currentCashBalance ? formatCurrency(currentCashBalance.amount, region) : 'N/A'}
               </div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-xs text-[#7A8999] font-mono">
                 Last updated: {currentCashBalance ? new Date(currentCashBalance.updatedAt).toLocaleString() : 'N/A'}
               </div>
             </div>
           )}
-          
-          <Separator />
-          
-          {/* Quick view of other regions */}
-          <div className="space-y-1">
-            <h4 className="text-sm font-medium">All Portfolio Cash</h4>
-            <div className="grid grid-cols-3 gap-2">
-              {cashBalances?.map((cash) => (
-                <div 
-                  key={cash.region}
-                  className={`p-2 rounded-md ${cash.region === region ? 'bg-primary/10' : 'bg-muted'}`}
-                >
-                  <div className="text-xs font-medium">{cash.region}</div>
-                  <div className="text-sm font-semibold">{formatCurrency(cash.amount, cash.region)}</div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
-      </CardContent>
-      <CardFooter className="flex justify-between">
+      </div>
+      <div className="p-4 border-t border-[#1A304A]">
         {isEditing ? (
-          <>
-            <Button variant="outline" onClick={handleCancel}>
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handleCancel}
+              className="border-[#1A304A] bg-[#0B1728] text-[#EFEFEF] hover:bg-[#162639] hover:text-white"
+            >
               Cancel
             </Button>
-            <Button onClick={handleEditToggle} disabled={updateCashMutation.isPending}>
+            <Button 
+              onClick={handleEditToggle} 
+              disabled={updateCashMutation.isPending}
+              className="bg-[#4CAF50] text-white hover:bg-[#388E3C]"
+            >
               {updateCashMutation.isPending ? 'Saving...' : 'Save Changes'}
             </Button>
-          </>
+          </div>
         ) : (
           <Button 
-            variant="outline" 
-            className="w-full"
             onClick={handleEditToggle}
+            className="w-full border-[#1A304A] bg-[#0B1728] text-[#EFEFEF] hover:bg-[#162639] hover:text-white font-mono text-xs"
           >
-            Edit Cash Balance
+            EDIT CASH BALANCE
           </Button>
         )}
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }
