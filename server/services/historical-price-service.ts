@@ -365,6 +365,67 @@ class HistoricalPriceService {
   }
   
   /**
+   * Update historical prices for market indices
+   */
+  async updateIndicesHistoricalPrices() {
+    try {
+      // Get historical data for market indices
+      const indices = [
+        { symbol: 'SPY', region: 'USD' },
+        { symbol: 'XIC.TO', region: 'CAD' },
+        { symbol: 'ACWX', region: 'INTL' }
+      ];
+      
+      const results: {symbol: string, success: boolean, result?: any, error?: string}[] = [];
+      
+      for (const index of indices) {
+        try {
+          // Get the latest historical price to determine from when to start fetching
+          const latestPrice = await this.getLatestHistoricalPrice(index.symbol, index.region);
+          
+          let startDate: Date;
+          if (latestPrice && latestPrice.length > 0) {
+            // Start the day after the latest price we have
+            startDate = new Date(latestPrice[0].date);
+            startDate.setDate(startDate.getDate() + 1);
+          } else {
+            // If we have no data, fetch the last 5 years
+            startDate = new Date();
+            startDate.setFullYear(startDate.getFullYear() - 5);
+          }
+          
+          // Only fetch if there's potentially new data
+          if (startDate < new Date()) {
+            console.log(`Fetching historical prices for index ${index.symbol} from ${startDate.toISOString().split('T')[0]}`);
+            const result = await this.fetchAndStoreHistoricalPrices(index.symbol, index.region, startDate);
+            results.push({ symbol: index.symbol, success: true, result });
+          } else {
+            console.log(`Historical prices for index ${index.symbol} are already up to date`);
+            results.push({ symbol: index.symbol, success: true, result: [] });
+          }
+          
+          // Add a pause between indices
+          if (index !== indices[indices.length - 1]) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        } catch (error) {
+          console.error(`Error updating historical prices for index ${index.symbol}:`, error);
+          results.push({
+            symbol: index.symbol,
+            success: false,
+            error: error instanceof Error ? error.message : String(error)
+          });
+        }
+      }
+      
+      return results;
+    } catch (error) {
+      console.error('Error updating indices historical prices:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Update historical prices for all portfolios with batch processing
    */
   async updateAllHistoricalPrices() {
@@ -372,6 +433,25 @@ class HistoricalPriceService {
       const regions = ['USD', 'CAD', 'INTL'];
       let allResults: {symbol: string, success: boolean, result?: any, error?: string}[] = [];
       
+      // First update market indices
+      try {
+        console.log('Updating historical prices for market indices');
+        const indicesResults = await this.updateIndicesHistoricalPrices();
+        allResults = [...allResults, ...indicesResults];
+        
+        // Add a pause after updating indices
+        console.log(`Pausing for 2 seconds after updating indices...`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (error) {
+        console.error('Error updating historical prices for indices:', error);
+        allResults.push({
+          symbol: 'indices_all',
+          success: false,
+          error: error instanceof Error ? error.message : String(error)
+        });
+      }
+      
+      // Then update portfolio stocks
       for (const region of regions) {
         try {
           console.log(`Updating historical prices for ${region} portfolio`);

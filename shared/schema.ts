@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, numeric, timestamp, json, date, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, numeric, timestamp, json, date, varchar, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -336,20 +336,6 @@ export const portfolioUSD = pgTable("portfolio_USD", {
   rating: text("rating").notNull(),
   sector: text("sector"),
   quantity: numeric("quantity").notNull(),
-  price: numeric("price").notNull(),
-  pbr: numeric("pbr"),
-  netAssetValue: numeric("net_asset_value"),
-  portfolioPercentage: numeric("portfolio_percentage"),
-  benchmarkPercentage: numeric("benchmark_percentage"),
-  delta: numeric("delta"),
-  dailyChangePercent: numeric("daily_change_percent"),
-  mtdChangePercent: numeric("mtd_change_percent"),
-  ytdChangePercent: numeric("ytd_change_percent"),
-  sixMonthChangePercent: numeric("six_month_change_percent"),
-  fiftyTwoWeekChangePercent: numeric("fifty_two_week_change_percent"),
-  dividendYield: numeric("dividend_yield"),
-  profitLoss: numeric("profit_loss"),
-  nextEarningsDate: text("next_earnings_date"),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
@@ -370,20 +356,6 @@ export const portfolioCAD = pgTable("portfolio_CAD", {
   rating: text("rating").notNull(),
   sector: text("sector"),
   quantity: numeric("quantity").notNull(),
-  price: numeric("price").notNull(),
-  pbr: numeric("pbr"),
-  netAssetValue: numeric("net_asset_value"),
-  portfolioPercentage: numeric("portfolio_percentage"),
-  benchmarkPercentage: numeric("benchmark_percentage"),
-  delta: numeric("delta"),
-  dailyChangePercent: numeric("daily_change_percent"),
-  mtdChangePercent: numeric("mtd_change_percent"),
-  ytdChangePercent: numeric("ytd_change_percent"),
-  sixMonthChangePercent: numeric("six_month_change_percent"),
-  fiftyTwoWeekChangePercent: numeric("fifty_two_week_change_percent"),
-  dividendYield: numeric("dividend_yield"),
-  profitLoss: numeric("profit_loss"),
-  nextEarningsDate: text("next_earnings_date"),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
@@ -404,20 +376,6 @@ export const portfolioINTL = pgTable("portfolio_INTL", {
   rating: text("rating").notNull(),
   sector: text("sector"),
   quantity: numeric("quantity").notNull(),
-  price: numeric("price").notNull(),
-  pbr: numeric("pbr"),
-  netAssetValue: numeric("net_asset_value"),
-  portfolioPercentage: numeric("portfolio_percentage"),
-  benchmarkPercentage: numeric("benchmark_percentage"),
-  delta: numeric("delta"),
-  dailyChangePercent: numeric("daily_change_percent"),
-  mtdChangePercent: numeric("mtd_change_percent"),
-  ytdChangePercent: numeric("ytd_change_percent"),
-  sixMonthChangePercent: numeric("six_month_change_percent"),
-  fiftyTwoWeekChangePercent: numeric("fifty_two_week_change_percent"),
-  dividendYield: numeric("dividend_yield"),
-  profitLoss: numeric("profit_loss"),
-  nextEarningsDate: text("next_earnings_date"),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
