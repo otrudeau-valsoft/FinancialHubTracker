@@ -265,26 +265,6 @@ export default function DataManagement() {
     }
   });
   
-  // Mutation for updating benchmark ETF historical prices
-  const updateBenchmarkETFMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/data-management/populate-data/benchmark-etfs'),
-    onSuccess: () => {
-      toast({
-        title: "Benchmark ETF data updated",
-        description: "Successfully updated historical prices for benchmark ETFs (SPY, XIC.TO, ACWX)",
-      });
-      refetchLogs();
-      queryClient.invalidateQueries({ queryKey: ['/api/historical-prices'] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to update benchmark ETF data",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-  
   const updateHistoricalPricesMutation = useMutation({
     mutationFn: (region: string) => 
       apiRequest('POST', `/api/historical-prices/fetch/portfolio/${region}`),
@@ -674,57 +654,6 @@ export default function DataManagement() {
                 </div>
               </ScrollArea>
             )}
-          </CardContent>
-        </Card>
-        
-        {/* Benchmark ETF Data Section */}
-        <Card className="bg-[#0A1524] border border-[#1A304A] rounded-none shadow-lg">
-          <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-2 sm:p-3">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
-              <CardTitle className="text-[#EFEFEF] text-base sm:text-lg font-mono flex items-center">
-                <FileBarChart className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-[#FFCA28]" />
-                BENCHMARK ETF DATA
-              </CardTitle>
-              <Button 
-                variant="default" 
-                onClick={() => updateBenchmarkETFMutation.mutate()}
-                disabled={updateBenchmarkETFMutation.isPending}
-                className="bg-[#FFCA28] hover:bg-[#FFB300] text-black rounded-sm h-8 px-2 sm:px-3 py-1 text-xs sm:text-sm w-full sm:w-auto"
-                size="sm"
-              >
-                {updateBenchmarkETFMutation.isPending ? (
-                  <>
-                    <div className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin rounded-full border-2 border-black border-t-transparent"></div>
-                    RUNNING
-                  </>
-                ) : (
-                  <>
-                    <RotateCw className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">UPDATE BENCHMARK DATA</span>
-                    <span className="inline sm:hidden">UPDATE BENCHMARKS</span>
-                  </>
-                )}
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-3 pt-4">
-            <div className="font-mono text-xs space-y-2">
-              <div className="flex justify-between">
-                <span className="text-[#7A8999]">TARGET ETFS:</span>
-                <span className="text-[#EFEFEF]">SPY | XIC.TO | ACWX</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#7A8999]">REGIONS:</span>
-                <span className="text-[#EFEFEF]">USD | CAD | INTL</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#7A8999]">DATA RANGE:</span>
-                <span className="text-[#EFEFEF]">5 YEARS</span>
-              </div>
-            </div>
-            <div className="mt-3 text-xs text-[#7A8999] border-t border-[#1A304A] pt-3">
-              Updates benchmark ETF historical price data used for performance comparison charts.
-            </div>
           </CardContent>
         </Card>
         

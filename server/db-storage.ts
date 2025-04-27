@@ -1,17 +1,13 @@
 import { db, sanitizeForDb } from './db';
-import { desc, eq, and, asc, sql, gte, lte } from 'drizzle-orm';
+import { desc, eq, and } from 'drizzle-orm';
 import { 
   etfHoldingsSPY, 
   etfHoldingsXIC, 
   etfHoldingsACWX,
-  portfolioUSD,
-  portfolioCAD,
-  portfolioINTL,
-  currentPrices,
-  historicalPrices,
-  alerts,
-  matrixRules,
-  portfolioSummaries
+  assetsUS,
+  assetsCAD,
+  assetsINTL,
+  currentPrices
 } from '../shared/schema';
 
 /**
@@ -27,14 +23,14 @@ export class DatabaseStorage {
       const upperRegion = region.toUpperCase();
       
       if (upperRegion === 'USD') {
-        // Query the portfolio_USD table
-        result = await db.select().from(portfolioUSD);
+        // Query the assets_us table
+        result = await db.select().from(assetsUS);
       } else if (upperRegion === 'CAD') {
-        // Query the portfolio_CAD table
-        result = await db.select().from(portfolioCAD);
+        // Query the assets_cad table
+        result = await db.select().from(assetsCAD);
       } else if (upperRegion === 'INTL') {
-        // Query the portfolio_INTL table
-        result = await db.select().from(portfolioINTL);
+        // Query the assets_intl table
+        result = await db.select().from(assetsINTL);
       } else {
         throw new Error(`Unknown region: ${region}`);
       }
@@ -49,7 +45,7 @@ export class DatabaseStorage {
         const priceInfo = priceData.find(p => p.symbol === stock.symbol) || null;
         
         // Extract values safely with type checking
-        const price = priceInfo ? Number(priceInfo.regularMarketPrice) : Number(stock.price);
+        const price = priceInfo ? Number(priceInfo.regularMarketPrice) : 0;
         const quantity = Number(stock.quantity || 0);
         const nav = price * quantity;
         const dailyChange = priceInfo ? Number(priceInfo.regularMarketChangePercent) : 0;
@@ -90,11 +86,11 @@ export class DatabaseStorage {
       let result;
       
       if (upperRegion === 'USD') {
-        [result] = await db.select().from(portfolioUSD).where(eq(portfolioUSD.id, id));
+        [result] = await db.select().from(assetsUS).where(eq(assetsUS.id, id));
       } else if (upperRegion === 'CAD') {
-        [result] = await db.select().from(portfolioCAD).where(eq(portfolioCAD.id, id));
+        [result] = await db.select().from(assetsCAD).where(eq(assetsCAD.id, id));
       } else if (upperRegion === 'INTL') {
-        [result] = await db.select().from(portfolioINTL).where(eq(portfolioINTL.id, id));
+        [result] = await db.select().from(assetsINTL).where(eq(assetsINTL.id, id));
       } else {
         throw new Error(`Unknown region: ${region}`);
       }
@@ -180,11 +176,11 @@ export class DatabaseStorage {
       
       // Insert into the appropriate table based on the region
       if (upperRegion === 'USD') {
-        results = await db.insert(portfolioUSD).values(processedData).returning();
+        results = await db.insert(assetsUS).values(processedData).returning();
       } else if (upperRegion === 'CAD') {
-        results = await db.insert(portfolioCAD).values(processedData).returning();
+        results = await db.insert(assetsCAD).values(processedData).returning();
       } else if (upperRegion === 'INTL') {
-        results = await db.insert(portfolioINTL).values(processedData).returning();
+        results = await db.insert(assetsINTL).values(processedData).returning();
       } else {
         throw new Error(`Unknown region: ${region}`);
       }
@@ -212,7 +208,7 @@ export class DatabaseStorage {
       const result = await db.transaction(async (tx) => {
         // Delete all existing stocks for the region
         if (upperRegion === 'USD') {
-          await tx.delete(portfolioUSD);
+          await tx.delete(assetsUS);
           
           // Only insert if there are stocks to add
           if (stocks.length > 0) {
@@ -221,7 +217,7 @@ export class DatabaseStorage {
               symbol: stock.symbol,
               company: stock.company,
               stockType: stock.stockType,
-              rating: stock.rating,
+              stockRating: stock.rating,
               sector: stock.sector,
               quantity: stock.quantity,
               price: stock.price || 0,
@@ -230,17 +226,17 @@ export class DatabaseStorage {
             }));
             
             // Insert the new stocks
-            return await tx.insert(portfolioUSD).values(processedStocks).returning();
+            return await tx.insert(assetsUS).values(processedStocks).returning();
           }
         } else if (upperRegion === 'CAD') {
-          await tx.delete(portfolioCAD);
+          await tx.delete(assetsCAD);
           
           if (stocks.length > 0) {
             const processedStocks = stocks.map(stock => ({
               symbol: stock.symbol,
               company: stock.company,
               stockType: stock.stockType,
-              rating: stock.rating,
+              stockRating: stock.rating,
               sector: stock.sector,
               quantity: stock.quantity,
               price: stock.price || 0,
@@ -248,17 +244,17 @@ export class DatabaseStorage {
               updatedAt: new Date()
             }));
             
-            return await tx.insert(portfolioCAD).values(processedStocks).returning();
+            return await tx.insert(assetsCAD).values(processedStocks).returning();
           }
         } else if (upperRegion === 'INTL') {
-          await tx.delete(portfolioINTL);
+          await tx.delete(assetsINTL);
           
           if (stocks.length > 0) {
             const processedStocks = stocks.map(stock => ({
               symbol: stock.symbol,
               company: stock.company,
               stockType: stock.stockType,
-              rating: stock.rating,
+              stockRating: stock.rating,
               sector: stock.sector,
               quantity: stock.quantity,
               price: stock.price || 0,
@@ -266,7 +262,7 @@ export class DatabaseStorage {
               updatedAt: new Date()
             }));
             
-            return await tx.insert(portfolioINTL).values(processedStocks).returning();
+            return await tx.insert(assetsINTL).values(processedStocks).returning();
           }
         }
         
@@ -538,135 +534,40 @@ export class DatabaseStorage {
    * Get historical prices
    */
   async getHistoricalPrices(symbol: string, region: string, startDate?: Date, endDate?: Date) {
-    try {
-      // Build the base query
-      let query = db.select()
-        .from(historicalPrices)
-        .where(and(
-          eq(historicalPrices.symbol, symbol),
-          eq(historicalPrices.region, region.toUpperCase())
-        ));
-      
-      // Apply date filtering if provided
-      if (startDate) {
-        query = query.where(sql`${historicalPrices.date} >= ${startDate.toISOString().split('T')[0]}`);
-      }
-      
-      if (endDate) {
-        query = query.where(sql`${historicalPrices.date} <= ${endDate.toISOString().split('T')[0]}`);
-      }
-      
-      // Execute the query
-      const result = await query.orderBy(asc(historicalPrices.date));
-      
-      // Parse numeric values to ensure consistent format
-      return result.map(price => ({
-        ...price,
-        open: parseFloat(price.open?.toString() || '0'),
-        high: parseFloat(price.high?.toString() || '0'),
-        low: parseFloat(price.low?.toString() || '0'),
-        close: parseFloat(price.close?.toString() || '0'),
-        volume: parseInt(price.volume?.toString() || '0', 10),
-        adjustedClose: parseFloat(price.adjustedClose?.toString() || price.close?.toString() || '0')
-      }));
-    } catch (error) {
-      console.error(`Error getting historical prices for ${symbol} (${region}):`, error);
-      return [];
-    }
+    // Placeholder for actual implementation
+    return [];
   }
 
   /**
    * Get historical prices by region
    */
   async getHistoricalPricesByRegion(region: string, startDate?: Date, endDate?: Date) {
-    try {
-      // Build the base query
-      let query = db.select()
-        .from(historicalPrices)
-        .where(eq(historicalPrices.region, region.toUpperCase()));
-      
-      // Apply date filtering if provided
-      if (startDate) {
-        query = query.where(sql`${historicalPrices.date} >= ${startDate.toISOString().split('T')[0]}`);
-      }
-      
-      if (endDate) {
-        query = query.where(sql`${historicalPrices.date} <= ${endDate.toISOString().split('T')[0]}`);
-      }
-      
-      // Execute the query
-      const result = await query.orderBy(asc(historicalPrices.date));
-      
-      // Parse numeric values to ensure consistent format
-      return result.map(price => ({
-        ...price,
-        open: parseFloat(price.open?.toString() || '0'),
-        high: parseFloat(price.high?.toString() || '0'),
-        low: parseFloat(price.low?.toString() || '0'),
-        close: parseFloat(price.close?.toString() || '0'),
-        volume: parseInt(price.volume?.toString() || '0', 10),
-        adjustedClose: parseFloat(price.adjustedClose?.toString() || price.close?.toString() || '0')
-      }));
-    } catch (error) {
-      console.error(`Error getting historical prices for region ${region}:`, error);
-      return [];
-    }
+    // Placeholder for actual implementation
+    return [];
   }
 
   /**
    * Create a historical price
    */
   async createHistoricalPrice(data: any) {
-    try {
-      const [result] = await db.insert(historicalPrices)
-        .values(sanitizeForDb(data))
-        .returning();
-      return result;
-    } catch (error) {
-      console.error(`Error creating historical price:`, error);
-      throw error;
-    }
+    // Placeholder for actual implementation
+    return { ...data, id: 1 };
   }
 
   /**
    * Bulk create historical prices
    */
   async bulkCreateHistoricalPrices(data: any[]) {
-    if (!data || data.length === 0) {
-      return [];
-    }
-    
-    try {
-      // Sanitize data for database insertion
-      const sanitizedData = data.map(item => sanitizeForDb(item));
-      
-      // Insert all price records
-      const result = await db.insert(historicalPrices)
-        .values(sanitizedData)
-        .returning();
-      
-      return result;
-    } catch (error) {
-      console.error(`Error bulk creating historical prices:`, error);
-      throw error;
-    }
+    // Placeholder for actual implementation
+    return data.map((item, index) => ({ ...item, id: index + 1 }));
   }
 
   /**
    * Delete historical prices
    */
   async deleteHistoricalPrices(symbol: string, region: string) {
-    try {
-      await db.delete(historicalPrices)
-        .where(and(
-          eq(historicalPrices.symbol, symbol),
-          eq(historicalPrices.region, region.toUpperCase())
-        ));
-      return true;
-    } catch (error) {
-      console.error(`Error deleting historical prices for ${symbol} (${region}):`, error);
-      throw error;
-    }
+    // Placeholder for actual implementation
+    return true;
   }
 
   /**

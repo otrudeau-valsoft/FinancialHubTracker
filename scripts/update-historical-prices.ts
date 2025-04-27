@@ -7,20 +7,21 @@
 
 import { historicalPriceService } from '../server/services/historical-price-service';
 import { db } from '../server/db';
-import { dataUpdateLogs } from '../shared/schema';
+import { logUpdates } from '../server/storage';
 
 /**
  * Log update to the database
  */
-async function logUpdate(type: string, status: 'Success' | 'Error' | 'In Progress', message: string, details: string | null = null) {
+async function logUpdate(type: string, status: 'Success' | 'Error' | 'In Progress', region: string, message: string) {
   try {
-    await db.insert(dataUpdateLogs).values({
+    await logUpdates.create({
       type,
       status,
-      details,
-      timestamp: new Date(),
+      region,
+      message,
+      details: null,
+      timestamp: new Date()
     });
-    console.log(`Log: [${status}] ${type} - ${message}`);
   } catch (error) {
     console.error('Error logging update:', error);
   }
@@ -32,7 +33,7 @@ async function logUpdate(type: string, status: 'Success' | 'Error' | 'In Progres
 async function main() {
   try {
     // Log start
-    await logUpdate('Historical Prices', 'In Progress', 'Starting 5-year historical price update for all stocks');
+    await logUpdate('Historical Prices', 'In Progress', 'All portfolios', 'Starting 5-year historical price update for all stocks');
     
     console.log('Starting 5-year historical price update for all portfolios');
     
@@ -51,6 +52,7 @@ async function main() {
     await logUpdate(
       'Historical Prices',
       failures > 0 ? 'Error' : 'Success',
+      'All portfolios',
       `Completed 5-year historical price update: ${successes} succeeded, ${failures} failed`
     );
     
@@ -63,6 +65,7 @@ async function main() {
       await logUpdate(
         'Historical Prices',
         'Error',
+        'All portfolios',
         `Failed to update historical prices for: ${failureSymbols.join(', ')}`
       );
     }
@@ -78,6 +81,7 @@ async function main() {
     await logUpdate(
       'Historical Prices',
       'Error',
+      'All portfolios',
       `Error updating historical prices: ${error instanceof Error ? error.message : String(error)}`
     );
     
