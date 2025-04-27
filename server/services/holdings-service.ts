@@ -123,7 +123,7 @@ class HoldingsService {
             sixMonthChangePercent: sixMonthChangePercent.toString(),
             fiftyTwoWeekChangePercent: fiftyTwoWeekChangePercent.toString(),
             profitLossPercent: fiftyTwoWeekChangePercent.toString(), // Using 52-week change for P/L, could be adjusted based on purchase price
-            dividendYield: currentPrice.dividendYield?.toString() || '0'
+            dividendYield: '0' // Default to 0 since this data is often missing
           };
           
           holdingsData.push(holdingEntry);
