@@ -583,10 +583,13 @@ export default function DataManagement() {
               </Button>
             </div>
             <div className="mt-3 text-xs text-[#7A8999] border-t border-[#1A304A] pt-3">
-              Cash balances are included in calculations with a default value of $10,000
+              Cash balances are used in all portfolio calculations for NAV and weights
             </div>
           </CardContent>
         </Card>
+
+        {/* Cash Management Panel */}
+        <CashManagementPanel className="shadow-lg" />
         
         {/* Update Panels - Real-time and Historical Data Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">

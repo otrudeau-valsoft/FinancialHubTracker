@@ -34,7 +34,7 @@ const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
     queryKey: ['/api/cash'],
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/cash');
-      return response as CashBalance[];
+      return response as unknown as CashBalance[];
     }
   });
   
@@ -113,7 +113,7 @@ const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
           </div>
         ) : (
           <>
-            {cashBalances?.map(cash => (
+            {Array.isArray(cashBalances) && cashBalances.map(cash => (
               <div key={cash.region} className="flex items-center gap-2">
                 <div className="w-12 font-mono text-xs text-[#EFEFEF]">{cash.region}</div>
                 <div className="relative flex-1">
