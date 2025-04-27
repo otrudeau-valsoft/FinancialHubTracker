@@ -115,6 +115,82 @@ export default function DataManagement() {
     }
   });
   
+  // Update all holdings mutation
+  const updateAllHoldingsMutation = useMutation({
+    mutationFn: () => apiRequest('POST', '/api/data-management/update-holdings'),
+    onSuccess: () => {
+      toast({
+        title: "Holdings updated",
+        description: "All portfolio holdings have been updated",
+      });
+      refetchLogs();
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to update holdings",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Update USD holdings mutation
+  const updateUSDHoldingsMutation = useMutation({
+    mutationFn: () => apiRequest('POST', '/api/data-management/update-holdings/USD'),
+    onSuccess: () => {
+      toast({
+        title: "USD Holdings updated",
+        description: "USD portfolio holdings have been updated",
+      });
+      refetchLogs();
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to update USD holdings", 
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Update CAD holdings mutation
+  const updateCADHoldingsMutation = useMutation({
+    mutationFn: () => apiRequest('POST', '/api/data-management/update-holdings/CAD'),
+    onSuccess: () => {
+      toast({
+        title: "CAD Holdings updated",
+        description: "CAD portfolio holdings have been updated",
+      });
+      refetchLogs();
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to update CAD holdings",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Update INTL holdings mutation
+  const updateINTLHoldingsMutation = useMutation({
+    mutationFn: () => apiRequest('POST', '/api/data-management/update-holdings/INTL'),
+    onSuccess: () => {
+      toast({
+        title: "INTL Holdings updated",
+        description: "INTL portfolio holdings have been updated",
+      });
+      refetchLogs();
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to update INTL holdings",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
   // Process and consolidate logs
   const processedLogs = useMemo(() => {
     if (!updateLogs) return [];

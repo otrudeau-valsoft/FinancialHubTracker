@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import populateDataRoutes from './populate-data.routes';
+import updateHoldingsRoutes from './update-holdings';
 import { db, pool } from '../../db';
 import { sql } from 'drizzle-orm';
 
@@ -12,6 +13,7 @@ const router = Router();
 
 // Register data management sub-routes
 router.use('/populate-data', populateDataRoutes);
+router.use('/update-holdings', updateHoldingsRoutes);
 
 // Get database status
 router.get('/status', asyncHandler(async (req: Request, res: Response) => {
