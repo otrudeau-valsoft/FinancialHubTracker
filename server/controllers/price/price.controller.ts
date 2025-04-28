@@ -143,7 +143,7 @@ export const fetchAllHistoricalPrices = async (req: Request, res: Response) => {
     const period = (req.query.period || req.body.period || '5y') as string;
     
     // Step 1: Update historical prices
-    const response = await historicalPriceService.fetchHistoricalPricesForAllRegions(period);
+    const response = await historicalPriceService.updateAllHistoricalPrices();
     
     // Step 2: Automatically update portfolio holdings to reflect new historical data
     console.log('Automatically updating portfolio holdings after historical price update...');
@@ -222,8 +222,8 @@ export const fetchRegionCurrentPrices = async (req: Request, res: Response) => {
     const { region } = req.params;
     const upperRegion = region.toUpperCase();
     
-    // Step 1: Update current prices for this region
-    const results = await currentPriceService.fetchCurrentPricesForRegion(upperRegion);
+    // Step 1: Update current prices for this region - using correct function name
+    const results = await currentPriceService.updatePortfolioCurrentPrices(upperRegion);
     
     // Step 2: Automatically update portfolio holdings for this region
     console.log(`Automatically updating ${upperRegion} portfolio holdings after price update...`);
@@ -281,7 +281,7 @@ export const fetchRegionCurrentPrices = async (req: Request, res: Response) => {
  */
 export const fetchAllCurrentPrices = async (req: Request, res: Response) => {
   try {
-    // Step 1: Update current prices
+    // Step 1: Update current prices - using correct function name
     const results = await currentPriceService.updateAllCurrentPrices();
     
     const successCount = results.filter(r => r.success).length;
