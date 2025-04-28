@@ -12,7 +12,7 @@ export interface EarningsQuarterly {
   rev_estimate: number | null;
   guidance: string | null;
   mkt_reaction: number | null;
-  score: number | null;
+  score: string | null;
   note: string | null;
   current_price?: number | null;
   created_at?: string;
@@ -52,7 +52,7 @@ export interface HeatmapQuarterData {
 }
 
 /**
- * Hook to fetch earnings data for specified tickers
+ * Hook to fetch earnings data for specified tickers or all earnings if no tickers provided
  */
 export function useEarnings(options: UseEarningsOptions = {}) {
   const { tickers = [], enabled = true } = options;
@@ -62,10 +62,13 @@ export function useEarnings(options: UseEarningsOptions = {}) {
   return useQuery({
     queryKey,
     queryFn: async () => {
-      if (!tickers.length) return { data: [] };
-
-      const tickersParam = tickers.join(',');
-      const response = await fetch(`/api/earnings?tickers=${tickersParam}`);
+      let url = '/api/earnings';
+      if (tickers.length > 0) {
+        const tickersParam = tickers.join(',');
+        url += `?tickers=${tickersParam}`;
+      }
+      
+      const response = await fetch(url);
       
       if (!response.ok) {
         throw new Error('Failed to fetch earnings data');
@@ -77,7 +80,7 @@ export function useEarnings(options: UseEarningsOptions = {}) {
       // Process the data if needed
       return data.data || [];
     },
-    enabled: enabled && tickers.length > 0,
+    enabled: enabled,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }

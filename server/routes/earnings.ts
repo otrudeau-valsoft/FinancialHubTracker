@@ -27,36 +27,56 @@ router.post('/admin/update-earnings', asyncHandler(async (req, res) => {
 
 /**
  * GET /api/earnings
- * Returns earnings data for requested tickers
+ * Returns earnings data for requested tickers or all if no tickers provided
  */
 router.get('/earnings', asyncHandler(async (req, res) => {
   try {
     const { tickers } = req.query;
     
-    if (!tickers) {
-      return res.status(400).json({ 
-        status: 'error', 
-        message: 'Tickers parameter is required' 
-      });
+    let earnings;
+    let prices;
+    
+    if (tickers) {
+      // Filter by provided tickers
+      const tickerList = Array.isArray(tickers) 
+        ? tickers
+        : tickers.toString().split(',').map(t => t.trim());
+      
+      // Get earnings data for the tickers
+      earnings = await db.select()
+        .from(earningsQuarterly)
+        .where(sql`ticker IN (${tickerList.join(',')})`)
+        .orderBy(desc(earningsQuarterly.fiscal_year), desc(earningsQuarterly.fiscal_q));
+      
+      // Get current prices
+      prices = await db.execute(sql`
+        SELECT symbol as ticker, regular_market_price as price
+        FROM current_prices
+        WHERE symbol IN (${tickerList.join(',')})
+        ORDER BY updated_at DESC
+      `);
+    } else {
+      // Get all earnings data with limit
+      earnings = await db.select()
+        .from(earningsQuarterly)
+        .orderBy(desc(earningsQuarterly.fiscal_year), desc(earningsQuarterly.fiscal_q))
+        .limit(100); // Limit to prevent too much data
+      
+      // Get all tickers from the earnings data
+      const earningsTickers = [...new Set(earnings.map(e => e.ticker))];
+      
+      if (earningsTickers.length > 0) {
+        // Get current prices for all these tickers
+        prices = await db.execute(sql`
+          SELECT symbol as ticker, regular_market_price as price
+          FROM current_prices
+          WHERE symbol IN (${earningsTickers.join(',')})
+          ORDER BY updated_at DESC
+        `);
+      } else {
+        prices = [];
+      }
     }
-    
-    const tickerList = Array.isArray(tickers) 
-      ? tickers
-      : tickers.toString().split(',').map(t => t.trim());
-    
-    // Get earnings data for the tickers
-    const earnings = await db.select()
-      .from(earningsQuarterly)
-      .where(sql`ticker IN (${tickerList.join(',')})`)
-      .orderBy(desc(earningsQuarterly.fiscal_year), desc(earningsQuarterly.fiscal_q));
-    
-    // Get current prices
-    const prices = await db.execute(sql`
-      SELECT symbol as ticker, regular_market_price as price
-      FROM current_prices
-      WHERE symbol IN (${tickerList.join(',')})
-      ORDER BY updated_at DESC
-    `);
     
     // Create a map of current prices
     const priceMap = new Map();
@@ -152,9 +172,9 @@ router.get('/heatmap', asyncHandler(async (req, res) => {
       };
       
       const scoreStats = {
-        Good: quarterData.filter(d => d.score >= 7).length,
-        Okay: quarterData.filter(d => d.score >= 4 && d.score < 7).length,
-        Bad: quarterData.filter(d => d.score < 4).length,
+        Good: quarterData.filter(d => d.score === 'Good').length,
+        Okay: quarterData.filter(d => d.score === 'Okay').length,
+        Bad: quarterData.filter(d => d.score === 'Bad').length,
       };
       
       result.push({
