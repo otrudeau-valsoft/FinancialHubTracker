@@ -46,19 +46,31 @@ async function importSPYHoldings() {
     const filePath = path.join(process.cwd(), 'attached_assets', 'holdings-daily-us-en-spy (1).csv');
     const fileContent = fs.readFileSync(filePath, 'utf8');
     
-    // Parse the CSV
+    // Parse the CSV without column headers first
     const records = parse(fileContent, { 
       columns: false,
-      skip_empty_lines: true,
-      from_line: 6 // Skip header rows
+      skip_empty_lines: true
     });
+    
+    // Find the header row and start processing from the following row
+    let headerIndex = -1;
+    for (let i = 0; i < records.length; i++) {
+      if (records[i][0] === 'Name' && records[i][1] === 'Ticker') {
+        headerIndex = i;
+        break;
+      }
+    }
+    
+    if (headerIndex === -1) {
+      throw new Error('Could not find header row in SPY CSV');
+    }
     
     // Process records
     const holdings = [];
-    for (let i = 0; i < records.length; i++) {
+    for (let i = headerIndex + 1; i < records.length; i++) {
       const record = records[i];
       // Check if this is a valid record with expected columns
-      if (record.length >= 6) {
+      if (record.length >= 7) {
         const holding = {
           ticker: cleanValue(record[1]) || '',
           name: cleanValue(record[0]) || '',
@@ -69,11 +81,11 @@ async function importSPYHoldings() {
           quantity: parseNumber(record[6]),
           location: 'United States',
           exchange: 'NYSE',
-          currency: 'USD'
+          currency: record[7] || 'USD'
         };
         
         // Skip records with special characters in ticker or empty tickers
-        if (holding.ticker && !holding.ticker.includes('-') && holding.ticker !== 'US DOLLAR') {
+        if (holding.ticker && !holding.ticker.includes('-') && holding.ticker !== 'US DOLLAR' && holding.name) {
           holdings.push(holding);
         }
       }
@@ -107,19 +119,33 @@ async function importXICHoldings() {
     const filePath = path.join(process.cwd(), 'attached_assets', 'XIC_holdings (1).csv');
     const fileContent = fs.readFileSync(filePath, 'utf8');
     
-    // Parse the CSV
+    // Parse the CSV without column headers first
     const records = parse(fileContent, { 
       columns: false,
-      skip_empty_lines: true,
-      from_line: 3 // Skip header rows
+      skip_empty_lines: true
     });
+    
+    // Find the header row and start processing from the following row
+    let headerIndex = -1;
+    for (let i = 0; i < records.length; i++) {
+      if (records[i][0] === 'Ticker' && records[i][1] === 'Name' && records[i][2] === 'Sector') {
+        headerIndex = i;
+        break;
+      }
+    }
+    
+    if (headerIndex === -1) {
+      throw new Error('Could not find header row in XIC CSV');
+    }
+    
+    console.log(`Found XIC header at row ${headerIndex}`);
     
     // Process records
     const holdings = [];
-    for (let i = 0; i < records.length; i++) {
+    for (let i = headerIndex + 1; i < records.length; i++) {
       const record = records[i];
       // Check if this is a valid record with expected columns
-      if (record.length >= 8) {
+      if (record.length >= 9) {
         const holding = {
           ticker: cleanValue(record[0]) || '',
           name: cleanValue(record[1]) || '',
@@ -135,7 +161,7 @@ async function importXICHoldings() {
         };
         
         // Skip cash entries or empty tickers
-        if (holding.ticker && holding.ticker !== 'CAD' && holding.assetClass !== 'Cash') {
+        if (holding.ticker && holding.ticker !== 'CAD' && holding.name) {
           holdings.push(holding);
         }
       }
@@ -169,19 +195,33 @@ async function importACWXHoldings() {
     const filePath = path.join(process.cwd(), 'attached_assets', 'ACWX_holdings (2).csv');
     const fileContent = fs.readFileSync(filePath, 'utf8');
     
-    // Parse the CSV
+    // Parse the CSV without column headers first
     const records = parse(fileContent, { 
       columns: false,
-      skip_empty_lines: true,
-      from_line: 6 // Skip header rows
+      skip_empty_lines: true
     });
+    
+    // Find the header row and start processing from the following row
+    let headerIndex = -1;
+    for (let i = 0; i < records.length; i++) {
+      if (records[i][0] === 'Ticker' && records[i][1] === 'Name' && records[i][2] === 'Sector') {
+        headerIndex = i;
+        break;
+      }
+    }
+    
+    if (headerIndex === -1) {
+      throw new Error('Could not find header row in ACWX CSV');
+    }
+    
+    console.log(`Found ACWX header at row ${headerIndex}`);
     
     // Process records
     const holdings = [];
-    for (let i = 0; i < records.length; i++) {
+    for (let i = headerIndex + 1; i < records.length; i++) {
       const record = records[i];
       // Check if this is a valid record with expected columns
-      if (record.length >= 12) {
+      if (record.length >= 9) {
         const holding = {
           ticker: cleanValue(record[0]) || '',
           name: cleanValue(record[1]) || '',
@@ -196,8 +236,8 @@ async function importACWXHoldings() {
           currency: cleanValue(record[11]) || 'USD'
         };
         
-        // Skip cash, bond, or other non-equity holdings
-        if (holding.ticker && holding.ticker !== '-' && holding.assetClass === 'Equity') {
+        // Skip records with dash as ticker or empty names
+        if (holding.ticker && holding.ticker !== '-' && holding.assetClass === 'Equity' && holding.name) {
           holdings.push(holding);
         }
       }
