@@ -284,8 +284,17 @@ export const fetchAllCurrentPrices = async (req: Request, res: Response) => {
     // Step 1: Update current prices - using correct function name
     const results = await currentPriceService.updateAllCurrentPrices();
     
-    const successCount = results.filter(r => r.success).length;
-    const totalSymbols = results.length;
+    // Calculate total success and symbols from the regional results
+    let totalSuccessCount = 0;
+    let totalSymbols = 0;
+    
+    // Iterate through each region's results
+    Object.keys(results).forEach(region => {
+      if (results[region] && results[region].successCount !== undefined) {
+        totalSuccessCount += results[region].successCount;
+        totalSymbols += results[region].totalSymbols;
+      }
+    });
     
     // Step 2: Automatically update portfolio holdings to reflect new prices
     console.log('Automatically updating portfolio holdings after price update...');
@@ -299,8 +308,8 @@ export const fetchAllCurrentPrices = async (req: Request, res: Response) => {
       console.log('Successfully updated all portfolio holdings with new prices');
       
       return res.json({
-        message: `Successfully updated ${successCount}/${totalSymbols} symbols and recalculated all portfolio metrics`,
-        successCount,
+        message: `Successfully updated ${totalSuccessCount}/${totalSymbols} symbols and recalculated all portfolio metrics`,
+        successCount: totalSuccessCount,
         totalSymbols,
         results,
         holdingsUpdated: true
@@ -310,8 +319,8 @@ export const fetchAllCurrentPrices = async (req: Request, res: Response) => {
       
       // Still return success for price update, but indicate holdings update failed
       return res.json({
-        message: `Successfully updated ${successCount}/${totalSymbols} symbols, but failed to recalculate portfolio metrics`,
-        successCount,
+        message: `Successfully updated ${totalSuccessCount}/${totalSymbols} symbols, but failed to recalculate portfolio metrics`,
+        successCount: totalSuccessCount,
         totalSymbols,
         results,
         holdingsUpdated: false,
