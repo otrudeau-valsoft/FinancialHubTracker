@@ -1304,128 +1304,202 @@ export default function EarningsPage() {
                   </thead>
                   <tbody>
                     {currentQuarterData ? (
-                      // First case: check if stocks array exists and has items
-                      currentQuarterData.stocks && currentQuarterData.stocks.length > 0 ? (
-                        // Display individual stock rows when we have stock data
-                        currentQuarterData.stocks.map((item: any, index: number) => (
-                          <tr 
-                            key={index} 
-                            onClick={() => handleSelectStock(item.ticker)}
-                            className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542] cursor-pointer"
-                            style={{
-                              background: `linear-gradient(90deg, rgba(10, 25, 41, 0.95) 0%, rgba(${getHeatmapRowColor(item)}) 100%)`
-                            }}
-                            title="Click to view historical earnings performance"
-                          >
-                            <td className="px-2 sm:px-3 py-0 text-left whitespace-nowrap">
-                              <div className="flex items-center">
-                                <span className="font-mono text-[#38AAFD] font-medium text-[10px] sm:text-xs tracking-wide">{item.ticker}</span>
-                                <Info className="ml-1 h-2 w-2 sm:h-3 sm:w-3 text-[#E91E63] opacity-50" />
-                              </div>
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '100px', textOverflow: 'ellipsis' }}>
-                              {item.issuerName}
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
-                              <span className={`text-[10px] sm:text-xs ${getConsensusColor(item.consensusRecommendation)}`}>{item.consensusRecommendation}</span>
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-[10px] sm:text-xs whitespace-nowrap">${item.last.toFixed(1)}</td>
-                            <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
-                              <span className={`text-[10px] sm:text-xs ${getEpsColor(item.eps)}`}>{item.eps}</span>
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
-                              <span className={`text-[10px] sm:text-xs ${getEpsColor(item.rev)}`}>{item.rev}</span>
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
-                              <span className={`text-[10px] sm:text-xs ${getGuidanceColor(item.guidance)}`}>{item.guidance}</span>
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
-                              <span className={`text-[10px] sm:text-xs ${getScoreColor(item.earningsScore)}`}>{item.earningsScore}</span>
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-right whitespace-nowrap">
-                              <span className={`inline-block font-mono ${item.mktReaction >= 0 ? 'bg-[#4CAF50] text-white' : 'bg-[#FF5252] text-white'} px-2 sm:px-3 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium`}>
-                                {item.mktReaction >= 0 ? '+' : ''}{item.mktReaction.toFixed(1)}%
-                              </span>
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-left font-mono text-[10px] sm:text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '80px', textOverflow: 'ellipsis' }}>
-                              <span className={`${getReactionCommentaryColor(item.mktReactionCommentary)}`}>{item.mktReactionCommentary}</span>
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        // Second case: show summary info from the quarter data when stocks array is missing
-                        <tr className="border-b border-[#0F1A2A] h-8">
-                          <td colSpan={10} className="px-2 sm:px-3 py-4 text-center">
-                            <div className="flex flex-col items-center space-y-2">
-                              <div className="text-[#EFEFEF] text-sm font-medium">
-                                Quarter Summary: {currentQuarterData.label}
-                              </div>
-                              <div className="grid grid-cols-3 gap-6 mt-4 w-full max-w-3xl">
-                                {/* EPS Stats */}
-                                <div className="bg-[#0F1A2A] p-3 rounded-md">
-                                  <h4 className="text-[#7A8999] text-xs mb-2">EPS</h4>
-                                  <div className="grid grid-cols-3 gap-2 text-center">
-                                    <div className="flex flex-col">
-                                      <span className="text-[#4CAF50] text-sm font-medium">{currentQuarterData.eps?.Beat || 0}</span>
-                                      <span className="text-[#7A8999] text-xs">Beat</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                      <span className="text-[#FFC107] text-sm font-medium">{currentQuarterData.eps?.['In-Line'] || 0}</span>
-                                      <span className="text-[#7A8999] text-xs">In-Line</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                      <span className="text-[#F44336] text-sm font-medium">{currentQuarterData.eps?.Miss || 0}</span>
-                                      <span className="text-[#7A8999] text-xs">Miss</span>
-                                    </div>
-                                  </div>
+                      // Create fake stocks data for table display
+                      (() => {
+                        // If we have actual stock data, use it
+                        if (currentQuarterData.stocks && currentQuarterData.stocks.length > 0) {
+                          return currentQuarterData.stocks.map((item: any, index: number) => (
+                            <tr 
+                              key={index} 
+                              onClick={() => handleSelectStock(item.ticker)}
+                              className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542] cursor-pointer"
+                              style={{
+                                background: `linear-gradient(90deg, rgba(10, 25, 41, 0.95) 0%, rgba(${getHeatmapRowColor(item)}) 100%)`
+                              }}
+                              title="Click to view historical earnings performance"
+                            >
+                              <td className="px-2 sm:px-3 py-0 text-left whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <span className="font-mono text-[#38AAFD] font-medium text-[10px] sm:text-xs tracking-wide">{item.ticker}</span>
+                                  <Info className="ml-1 h-2 w-2 sm:h-3 sm:w-3 text-[#E91E63] opacity-50" />
                                 </div>
-                                
-                                {/* Revenue Stats */}
-                                <div className="bg-[#0F1A2A] p-3 rounded-md">
-                                  <h4 className="text-[#7A8999] text-xs mb-2">REVENUE</h4>
-                                  <div className="grid grid-cols-3 gap-2 text-center">
-                                    <div className="flex flex-col">
-                                      <span className="text-[#4CAF50] text-sm font-medium">{currentQuarterData.revenue?.Up || 0}</span>
-                                      <span className="text-[#7A8999] text-xs">Up</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                      <span className="text-[#FFC107] text-sm font-medium">{currentQuarterData.revenue?.Flat || 0}</span>
-                                      <span className="text-[#7A8999] text-xs">Flat</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                      <span className="text-[#F44336] text-sm font-medium">{currentQuarterData.revenue?.Down || 0}</span>
-                                      <span className="text-[#7A8999] text-xs">Down</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                
-                                {/* Score Stats */}
-                                <div className="bg-[#0F1A2A] p-3 rounded-md">
-                                  <h4 className="text-[#7A8999] text-xs mb-2">SCORE</h4>
-                                  <div className="grid grid-cols-3 gap-2 text-center">
-                                    <div className="flex flex-col">
-                                      <span className="text-[#4CAF50] text-sm font-medium">{currentQuarterData.score?.Good || 0}</span>
-                                      <span className="text-[#7A8999] text-xs">Good</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                      <span className="text-[#FFC107] text-sm font-medium">{currentQuarterData.score?.Okay || 0}</span>
-                                      <span className="text-[#7A8999] text-xs">Okay</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                      <span className="text-[#F44336] text-sm font-medium">{currentQuarterData.score?.Bad || 0}</span>
-                                      <span className="text-[#7A8999] text-xs">Bad</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              <div className="mt-4 text-[#7A8999] text-xs">
-                                {currentQuarterData.count} companies reported this quarter
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      )
+                              </td>
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '100px', textOverflow: 'ellipsis' }}>
+                                {item.issuerName}
+                              </td>
+                              <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                                <span className={`text-[10px] sm:text-xs ${getConsensusColor(item.consensusRecommendation)}`}>{item.consensusRecommendation}</span>
+                              </td>
+                              <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-[10px] sm:text-xs whitespace-nowrap">${item.last.toFixed(1)}</td>
+                              <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                                <span className={`text-[10px] sm:text-xs ${getEpsColor(item.eps)}`}>{item.eps}</span>
+                              </td>
+                              <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                                <span className={`text-[10px] sm:text-xs ${getEpsColor(item.rev)}`}>{item.rev}</span>
+                              </td>
+                              <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                                <span className={`text-[10px] sm:text-xs ${getGuidanceColor(item.guidance)}`}>{item.guidance}</span>
+                              </td>
+                              <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                                <span className={`text-[10px] sm:text-xs ${getScoreColor(item.earningsScore)}`}>{item.earningsScore}</span>
+                              </td>
+                              <td className="px-2 sm:px-3 py-0 text-right whitespace-nowrap">
+                                <span className={`inline-block font-mono ${item.mktReaction >= 0 ? 'bg-[#4CAF50] text-white' : 'bg-[#FF5252] text-white'} px-2 sm:px-3 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium`}>
+                                  {item.mktReaction >= 0 ? '+' : ''}{item.mktReaction.toFixed(1)}%
+                                </span>
+                              </td>
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[10px] sm:text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '80px', textOverflow: 'ellipsis' }}>
+                                <span className={`${getReactionCommentaryColor(item.mktReactionCommentary)}`}>{item.mktReactionCommentary}</span>
+                              </td>
+                            </tr>
+                          ));
+                        }
+                        
+                        // Generate pill rows for summary data when real stock data is missing
+                        // First row: EPS Beat/In-Line/Miss stats
+                        const epsPills = [];
+                        if (currentQuarterData.eps?.Beat) {
+                          epsPills.push(
+                            <tr key="eps-beat" className="border-b border-[#0F1A2A] h-8">
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#4CAF50] font-bold text-[10px] sm:text-xs">EPS</td>
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">Beat</td>
+                              <td colSpan={2} className="px-2 sm:px-3 py-0 text-center">
+                                <span className="inline-block bg-[#4CAF50] text-white px-4 py-1 rounded-full text-[10px] sm:text-xs font-medium">
+                                  {currentQuarterData.eps.Beat} companies
+                                </span>
+                              </td>
+                              <td colSpan={6}></td>
+                            </tr>
+                          );
+                        }
+                        
+                        if (currentQuarterData.eps?.['In-Line']) {
+                          epsPills.push(
+                            <tr key="eps-inline" className="border-b border-[#0F1A2A] h-8">
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#FFD700] font-bold text-[10px] sm:text-xs">EPS</td>
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">In-Line</td>
+                              <td colSpan={2} className="px-2 sm:px-3 py-0 text-center">
+                                <span className="inline-block bg-[#FFD700] text-black px-4 py-1 rounded-full text-[10px] sm:text-xs font-medium">
+                                  {currentQuarterData.eps['In-Line']} companies
+                                </span>
+                              </td>
+                              <td colSpan={6}></td>
+                            </tr>
+                          );
+                        }
+                        
+                        if (currentQuarterData.eps?.Miss) {
+                          epsPills.push(
+                            <tr key="eps-miss" className="border-b border-[#0F1A2A] h-8">
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#FF5252] font-bold text-[10px] sm:text-xs">EPS</td>
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">Miss</td>
+                              <td colSpan={2} className="px-2 sm:px-3 py-0 text-center">
+                                <span className="inline-block bg-[#FF5252] text-white px-4 py-1 rounded-full text-[10px] sm:text-xs font-medium">
+                                  {currentQuarterData.eps.Miss} companies
+                                </span>
+                              </td>
+                              <td colSpan={6}></td>
+                            </tr>
+                          );
+                        }
+                        
+                        // Revenue Up/Flat/Down stats
+                        const revPills = [];
+                        if (currentQuarterData.revenue?.Up) {
+                          revPills.push(
+                            <tr key="rev-up" className="border-b border-[#0F1A2A] h-8">
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#4CAF50] font-bold text-[10px] sm:text-xs">REV</td>
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">Up</td>
+                              <td colSpan={2} className="px-2 sm:px-3 py-0 text-center">
+                                <span className="inline-block bg-[#4CAF50] text-white px-4 py-1 rounded-full text-[10px] sm:text-xs font-medium">
+                                  {currentQuarterData.revenue.Up} companies
+                                </span>
+                              </td>
+                              <td colSpan={6}></td>
+                            </tr>
+                          );
+                        }
+                        
+                        if (currentQuarterData.revenue?.Flat) {
+                          revPills.push(
+                            <tr key="rev-flat" className="border-b border-[#0F1A2A] h-8">
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#FFD700] font-bold text-[10px] sm:text-xs">REV</td>
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">Flat</td>
+                              <td colSpan={2} className="px-2 sm:px-3 py-0 text-center">
+                                <span className="inline-block bg-[#FFD700] text-black px-4 py-1 rounded-full text-[10px] sm:text-xs font-medium">
+                                  {currentQuarterData.revenue.Flat} companies
+                                </span>
+                              </td>
+                              <td colSpan={6}></td>
+                            </tr>
+                          );
+                        }
+                        
+                        if (currentQuarterData.revenue?.Down) {
+                          revPills.push(
+                            <tr key="rev-down" className="border-b border-[#0F1A2A] h-8">
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#FF5252] font-bold text-[10px] sm:text-xs">REV</td>
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">Down</td>
+                              <td colSpan={2} className="px-2 sm:px-3 py-0 text-center">
+                                <span className="inline-block bg-[#FF5252] text-white px-4 py-1 rounded-full text-[10px] sm:text-xs font-medium">
+                                  {currentQuarterData.revenue.Down} companies
+                                </span>
+                              </td>
+                              <td colSpan={6}></td>
+                            </tr>
+                          );
+                        }
+                        
+                        // Score Good/Okay/Bad stats
+                        const scorePills = [];
+                        if (currentQuarterData.score?.Good) {
+                          scorePills.push(
+                            <tr key="score-good" className="border-b border-[#0F1A2A] h-8">
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#4CAF50] font-bold text-[10px] sm:text-xs">SCORE</td>
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">Good</td>
+                              <td colSpan={2} className="px-2 sm:px-3 py-0 text-center">
+                                <span className="inline-block bg-[#4CAF50] text-white px-4 py-1 rounded-full text-[10px] sm:text-xs font-medium">
+                                  {currentQuarterData.score.Good} companies
+                                </span>
+                              </td>
+                              <td colSpan={6}></td>
+                            </tr>
+                          );
+                        }
+                        
+                        if (currentQuarterData.score?.Okay) {
+                          scorePills.push(
+                            <tr key="score-okay" className="border-b border-[#0F1A2A] h-8">
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#FFD700] font-bold text-[10px] sm:text-xs">SCORE</td>
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">Okay</td>
+                              <td colSpan={2} className="px-2 sm:px-3 py-0 text-center">
+                                <span className="inline-block bg-[#FFD700] text-black px-4 py-1 rounded-full text-[10px] sm:text-xs font-medium">
+                                  {currentQuarterData.score.Okay} companies
+                                </span>
+                              </td>
+                              <td colSpan={6}></td>
+                            </tr>
+                          );
+                        }
+                        
+                        if (currentQuarterData.score?.Bad) {
+                          scorePills.push(
+                            <tr key="score-bad" className="border-b border-[#0F1A2A] h-8">
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#FF5252] font-bold text-[10px] sm:text-xs">SCORE</td>
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs">Bad</td>
+                              <td colSpan={2} className="px-2 sm:px-3 py-0 text-center">
+                                <span className="inline-block bg-[#FF5252] text-white px-4 py-1 rounded-full text-[10px] sm:text-xs font-medium">
+                                  {currentQuarterData.score.Bad} companies
+                                </span>
+                              </td>
+                              <td colSpan={6}></td>
+                            </tr>
+                          );
+                        }
+                        
+                        // Combine all pills
+                        return [...epsPills, ...revPills, ...scorePills];
+                      })()
                     ) : (
                       <tr>
                         <td colSpan={10} className="px-3 py-4 text-center text-[#EFEFEF] text-xs">
