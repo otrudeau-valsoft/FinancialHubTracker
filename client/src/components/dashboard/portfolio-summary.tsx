@@ -32,7 +32,7 @@ export const PortfolioSummary = ({
   const currencySymbol = region === 'USD' ? '$' : region === 'CAD' ? 'C$' : '$';
   
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
       {/* Portfolio Value Card */}
       <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden">
         <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
@@ -107,35 +107,7 @@ export const PortfolioSummary = ({
         </CardContent>
       </Card>
       
-      {/* Alerts Card */}
-      <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden">
-        <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
-          <div className="w-full flex items-center justify-between">
-            <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">ALERTS</h3>
-            <div className="h-1 w-8 bg-[#FF5722]"></div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-2 pt-1.5">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-            <span className="text-lg sm:text-xl font-semibold text-[#EFEFEF] mono">
-              {summary.activeAlerts || 0}
-            </span>
-            {(summary.criticalAlerts || 0) > 0 ? (
-              <span className="text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full bg-red-900/30 text-red-400">
-                {summary.criticalAlerts} critical
-              </span>
-            ) : (
-              <span className="text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full bg-green-900/30 text-green-400">
-                All clear
-              </span>
-            )}
-          </div>
-          <div className="text-[10px] sm:text-xs text-gray-400 mt-2 flex justify-between">
-            <span>Matrix rules</span>
-            <span className="mono font-medium">{new Date().toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</span>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Removed the Alerts Card section */}
     </div>
   );
 };
