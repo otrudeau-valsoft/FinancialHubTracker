@@ -904,11 +904,20 @@ export default function EarningsPage() {
   const { quarters = [], isLoading: isQuartersLoading } = useAvailableQuarters();
   const { data: usdEarningsData, isLoading: isUsdEarningsLoading } = usePortfolioEarnings('USD');
   
-  // Get the current quarter data
-  const currentQuarter = quarters.length > 0 ? quarters[currentQuarterIndex]?.quarter : "";
-  const currentQuarterData = formattedHeatmapData && formattedHeatmapData.length > 0 
+  // Get the current quarter data with proper error handling
+  const currentQuarter = quarters && quarters.length > 0 && currentQuarterIndex < quarters.length 
+    ? quarters[currentQuarterIndex]?.quarter : "";
+  const currentQuarterData = formattedHeatmapData && formattedHeatmapData.length > 0 && currentQuarterIndex < formattedHeatmapData.length
     ? formattedHeatmapData[currentQuarterIndex]
     : null;
+    
+  // Create placeholder stats if real data is not yet available
+  const placeholderStats = {
+    eps: { beat: 0, inLine: 0, miss: 0 },
+    revenue: { beat: 0, inLine: 0, miss: 0 },
+    guidance: { increased: 0, maintain: 0, reduced: 0 },
+    earningScore: { greatGood: 0, notSoBad: 0, ugly: 0 }
+  };
   
   // Function to navigate to previous quarter
   const previousQuarter = () => {
@@ -1097,7 +1106,9 @@ export default function EarningsPage() {
                   
                   {/* Current Quarter Title */}
                   <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide whitespace-nowrap">
-                    EARNINGS SEASON - {quarters[currentQuarterIndex].quarter}
+                    EARNINGS SEASON - {quarters && quarters.length > 0 && currentQuarterIndex < quarters.length 
+                      ? quarters[currentQuarterIndex].quarter 
+                      : "Loading..."}
                   </h3>
                   
                   {/* Next Quarter Arrow */}
@@ -1136,13 +1147,13 @@ export default function EarningsPage() {
               <CardContent className="p-1 sm:p-2">
                 <div className="grid grid-cols-2 gap-1 text-[10px] sm:text-xs font-mono">
                   <div className="bg-[#4CAF50] text-white p-1 rounded text-center">
-                    Beat <span className="font-bold">{currentQuarterData.stats.eps.beat}</span>
+                    Beat <span className="font-bold">{currentQuarterData?.eps?.Beat || placeholderStats.eps.beat}</span>
                   </div>
                   <div className="bg-[#FFD700] text-black p-1 rounded text-center">
-                    In-Line <span className="font-bold">{currentQuarterData.stats.eps.inLine}</span>
+                    In-Line <span className="font-bold">{currentQuarterData?.eps?.['In-Line'] || placeholderStats.eps.inLine}</span>
                   </div>
                   <div className="bg-[#FF5252] text-white p-1 rounded text-center col-span-2">
-                    Miss <span className="font-bold">{currentQuarterData.stats.eps.miss}</span>
+                    Miss <span className="font-bold">{currentQuarterData?.eps?.Miss || placeholderStats.eps.miss}</span>
                   </div>
                 </div>
               </CardContent>
@@ -1161,13 +1172,13 @@ export default function EarningsPage() {
               <CardContent className="p-1 sm:p-2">
                 <div className="grid grid-cols-2 gap-1 text-[10px] sm:text-xs font-mono">
                   <div className="bg-[#4CAF50] text-white p-1 rounded text-center">
-                    Beat <span className="font-bold">{currentQuarterData.stats.revenue.beat}</span>
+                    Beat <span className="font-bold">{currentQuarterData?.revenue?.Beat || placeholderStats.revenue.beat}</span>
                   </div>
                   <div className="bg-[#FFD700] text-black p-1 rounded text-center">
-                    In-Line <span className="font-bold">{currentQuarterData.stats.revenue.inLine}</span>
+                    In-Line <span className="font-bold">{currentQuarterData?.revenue?.['In-Line'] || placeholderStats.revenue.inLine}</span>
                   </div>
                   <div className="bg-[#FF5252] text-white p-1 rounded text-center col-span-2">
-                    Miss <span className="font-bold">{currentQuarterData.stats.revenue.miss}</span>
+                    Miss <span className="font-bold">{currentQuarterData?.revenue?.Miss || placeholderStats.revenue.miss}</span>
                   </div>
                 </div>
               </CardContent>
@@ -1186,13 +1197,13 @@ export default function EarningsPage() {
               <CardContent className="p-1 sm:p-2">
                 <div className="grid grid-cols-2 gap-1 text-[10px] sm:text-xs font-mono">
                   <div className="bg-[#4CAF50] text-white p-1 rounded text-center">
-                    Up <span className="font-bold">{currentQuarterData.stats.guidance.increased}</span>
+                    Up <span className="font-bold">{currentQuarterData?.guidance?.Increased || placeholderStats.guidance.increased}</span>
                   </div>
                   <div className="bg-[#FFD700] text-black p-1 rounded text-center">
-                    Flat <span className="font-bold">{currentQuarterData.stats.guidance.maintain}</span>
+                    Flat <span className="font-bold">{currentQuarterData?.guidance?.Maintain || placeholderStats.guidance.maintain}</span>
                   </div>
                   <div className="bg-[#FF5252] text-white p-1 rounded text-center col-span-2">
-                    Down <span className="font-bold">{currentQuarterData.stats.guidance.reduced}</span>
+                    Down <span className="font-bold">{currentQuarterData?.guidance?.Reduced || placeholderStats.guidance.reduced}</span>
                   </div>
                 </div>
               </CardContent>
@@ -1211,13 +1222,13 @@ export default function EarningsPage() {
               <CardContent className="p-1 sm:p-2">
                 <div className="grid grid-cols-2 gap-1 text-[10px] sm:text-xs font-mono">
                   <div className="bg-[#4CAF50] text-white p-1 rounded text-center">
-                    Good <span className="font-bold">{currentQuarterData.stats.earningScore.greatGood}</span>
+                    Good <span className="font-bold">{currentQuarterData?.score?.Good || placeholderStats.earningScore.greatGood}</span>
                   </div>
                   <div className="bg-[#FFD700] text-black p-1 rounded text-center">
-                    Okay <span className="font-bold">{currentQuarterData.stats.earningScore.notSoBad}</span>
+                    Okay <span className="font-bold">{currentQuarterData?.score?.["Not So Bad"] || placeholderStats.earningScore.notSoBad}</span>
                   </div>
                   <div className="bg-[#FF5252] text-white p-1 rounded text-center col-span-2">
-                    Bad <span className="font-bold">{currentQuarterData.stats.earningScore.ugly}</span>
+                    Bad <span className="font-bold">{currentQuarterData?.score?.Ugly || placeholderStats.earningScore.ugly}</span>
                   </div>
                 </div>
               </CardContent>
@@ -1230,7 +1241,7 @@ export default function EarningsPage() {
               <div className="w-full flex items-center justify-between">
                 <div className="flex items-center">
                   <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide whitespace-nowrap">
-                    <span className="hidden xs:inline">EARNINGS DETAILS -</span> {quarters[currentQuarterIndex].quarter}
+                    <span className="hidden xs:inline">EARNINGS DETAILS -</span> {quarters && quarters.length > 0 && currentQuarterIndex < quarters.length ? quarters[currentQuarterIndex].quarter : "Loading..."}
                   </h3>
                 </div>
                 <div className="h-1 w-8 bg-[#38AAFD]"></div>
@@ -1254,51 +1265,59 @@ export default function EarningsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {currentQuarterData.heatmapData.map((item: EarningsHeatmapDataItem, index: number) => (
-                      <tr 
-                        key={index} 
-                        onClick={() => handleSelectStock(item.ticker)}
-                        className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542] cursor-pointer"
-                        style={{
-                          background: `linear-gradient(90deg, rgba(10, 25, 41, 0.95) 0%, rgba(${getHeatmapRowColor(item)}) 100%)`
-                        }}
-                        title="Click to view historical earnings performance"
-                      >
-                        <td className="px-2 sm:px-3 py-0 text-left whitespace-nowrap">
-                          <div className="flex items-center">
-                            <span className="font-mono text-[#38AAFD] font-medium text-[10px] sm:text-xs tracking-wide">{item.ticker}</span>
-                            <Info className="ml-1 h-2 w-2 sm:h-3 sm:w-3 text-[#E91E63] opacity-50" />
-                          </div>
-                        </td>
-                        <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '100px', textOverflow: 'ellipsis' }}>
-                          {item.issuerName}
-                        </td>
-                        <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
-                          <span className={`text-[10px] sm:text-xs ${getConsensusColor(item.consensusRecommendation)}`}>{item.consensusRecommendation}</span>
-                        </td>
-                        <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-[10px] sm:text-xs whitespace-nowrap">${item.last.toFixed(1)}</td>
-                        <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
-                          <span className={`text-[10px] sm:text-xs ${getEpsColor(item.eps)}`}>{item.eps}</span>
-                        </td>
-                        <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
-                          <span className={`text-[10px] sm:text-xs ${getEpsColor(item.rev)}`}>{item.rev}</span>
-                        </td>
-                        <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
-                          <span className={`text-[10px] sm:text-xs ${getGuidanceColor(item.guidance)}`}>{item.guidance}</span>
-                        </td>
-                        <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
-                          <span className={`text-[10px] sm:text-xs ${getScoreColor(item.earningsScore)}`}>{item.earningsScore}</span>
-                        </td>
-                        <td className="px-2 sm:px-3 py-0 text-right whitespace-nowrap">
-                          <span className={`inline-block font-mono ${item.mktReaction >= 0 ? 'bg-[#4CAF50] text-white' : 'bg-[#FF5252] text-white'} px-2 sm:px-3 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium`}>
-                            {item.mktReaction >= 0 ? '+' : ''}{item.mktReaction.toFixed(1)}%
-                          </span>
-                        </td>
-                        <td className="px-2 sm:px-3 py-0 text-left font-mono text-[10px] sm:text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '80px', textOverflow: 'ellipsis' }}>
-                          <span className={`${getReactionCommentaryColor(item.mktReactionCommentary)}`}>{item.mktReactionCommentary}</span>
+                    {currentQuarterData && currentQuarterData.stocks && currentQuarterData.stocks.length > 0 ? (
+                      currentQuarterData.stocks.map((item: any, index: number) => (
+                        <tr 
+                          key={index} 
+                          onClick={() => handleSelectStock(item.ticker)}
+                          className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542] cursor-pointer"
+                          style={{
+                            background: `linear-gradient(90deg, rgba(10, 25, 41, 0.95) 0%, rgba(${getHeatmapRowColor(item)}) 100%)`
+                          }}
+                          title="Click to view historical earnings performance"
+                        >
+                          <td className="px-2 sm:px-3 py-0 text-left whitespace-nowrap">
+                            <div className="flex items-center">
+                              <span className="font-mono text-[#38AAFD] font-medium text-[10px] sm:text-xs tracking-wide">{item.ticker}</span>
+                              <Info className="ml-1 h-2 w-2 sm:h-3 sm:w-3 text-[#E91E63] opacity-50" />
+                            </div>
+                          </td>
+                          <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '100px', textOverflow: 'ellipsis' }}>
+                            {item.issuerName}
+                          </td>
+                          <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                            <span className={`text-[10px] sm:text-xs ${getConsensusColor(item.consensusRecommendation)}`}>{item.consensusRecommendation}</span>
+                          </td>
+                          <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-[10px] sm:text-xs whitespace-nowrap">${item.last.toFixed(1)}</td>
+                          <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                            <span className={`text-[10px] sm:text-xs ${getEpsColor(item.eps)}`}>{item.eps}</span>
+                          </td>
+                          <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                            <span className={`text-[10px] sm:text-xs ${getEpsColor(item.rev)}`}>{item.rev}</span>
+                          </td>
+                          <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                            <span className={`text-[10px] sm:text-xs ${getGuidanceColor(item.guidance)}`}>{item.guidance}</span>
+                          </td>
+                          <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                            <span className={`text-[10px] sm:text-xs ${getScoreColor(item.earningsScore)}`}>{item.earningsScore}</span>
+                          </td>
+                          <td className="px-2 sm:px-3 py-0 text-right whitespace-nowrap">
+                            <span className={`inline-block font-mono ${item.mktReaction >= 0 ? 'bg-[#4CAF50] text-white' : 'bg-[#FF5252] text-white'} px-2 sm:px-3 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium`}>
+                              {item.mktReaction >= 0 ? '+' : ''}{item.mktReaction.toFixed(1)}%
+                            </span>
+                          </td>
+                          <td className="px-2 sm:px-3 py-0 text-left font-mono text-[10px] sm:text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '80px', textOverflow: 'ellipsis' }}>
+                            <span className={`${getReactionCommentaryColor(item.mktReactionCommentary)}`}>{item.mktReactionCommentary}</span>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={10} className="px-3 py-4 text-center text-[#EFEFEF] text-xs">
+                          No earnings data available for this quarter
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
