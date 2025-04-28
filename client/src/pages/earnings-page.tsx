@@ -1303,52 +1303,129 @@ export default function EarningsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {currentQuarterData && currentQuarterData.stocks && currentQuarterData.stocks.length > 0 ? (
-                      currentQuarterData.stocks.map((item: any, index: number) => (
-                        <tr 
-                          key={index} 
-                          onClick={() => handleSelectStock(item.ticker)}
-                          className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542] cursor-pointer"
-                          style={{
-                            background: `linear-gradient(90deg, rgba(10, 25, 41, 0.95) 0%, rgba(${getHeatmapRowColor(item)}) 100%)`
-                          }}
-                          title="Click to view historical earnings performance"
-                        >
-                          <td className="px-2 sm:px-3 py-0 text-left whitespace-nowrap">
-                            <div className="flex items-center">
-                              <span className="font-mono text-[#38AAFD] font-medium text-[10px] sm:text-xs tracking-wide">{item.ticker}</span>
-                              <Info className="ml-1 h-2 w-2 sm:h-3 sm:w-3 text-[#E91E63] opacity-50" />
+                    {currentQuarterData ? (
+                      // First case: check if stocks array exists and has items
+                      currentQuarterData.stocks && currentQuarterData.stocks.length > 0 ? (
+                        // Display individual stock rows when we have stock data
+                        currentQuarterData.stocks.map((item: any, index: number) => (
+                          <tr 
+                            key={index} 
+                            onClick={() => handleSelectStock(item.ticker)}
+                            className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542] cursor-pointer"
+                            style={{
+                              background: `linear-gradient(90deg, rgba(10, 25, 41, 0.95) 0%, rgba(${getHeatmapRowColor(item)}) 100%)`
+                            }}
+                            title="Click to view historical earnings performance"
+                          >
+                            <td className="px-2 sm:px-3 py-0 text-left whitespace-nowrap">
+                              <div className="flex items-center">
+                                <span className="font-mono text-[#38AAFD] font-medium text-[10px] sm:text-xs tracking-wide">{item.ticker}</span>
+                                <Info className="ml-1 h-2 w-2 sm:h-3 sm:w-3 text-[#E91E63] opacity-50" />
+                              </div>
+                            </td>
+                            <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '100px', textOverflow: 'ellipsis' }}>
+                              {item.issuerName}
+                            </td>
+                            <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                              <span className={`text-[10px] sm:text-xs ${getConsensusColor(item.consensusRecommendation)}`}>{item.consensusRecommendation}</span>
+                            </td>
+                            <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-[10px] sm:text-xs whitespace-nowrap">${item.last.toFixed(1)}</td>
+                            <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                              <span className={`text-[10px] sm:text-xs ${getEpsColor(item.eps)}`}>{item.eps}</span>
+                            </td>
+                            <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                              <span className={`text-[10px] sm:text-xs ${getEpsColor(item.rev)}`}>{item.rev}</span>
+                            </td>
+                            <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                              <span className={`text-[10px] sm:text-xs ${getGuidanceColor(item.guidance)}`}>{item.guidance}</span>
+                            </td>
+                            <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
+                              <span className={`text-[10px] sm:text-xs ${getScoreColor(item.earningsScore)}`}>{item.earningsScore}</span>
+                            </td>
+                            <td className="px-2 sm:px-3 py-0 text-right whitespace-nowrap">
+                              <span className={`inline-block font-mono ${item.mktReaction >= 0 ? 'bg-[#4CAF50] text-white' : 'bg-[#FF5252] text-white'} px-2 sm:px-3 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium`}>
+                                {item.mktReaction >= 0 ? '+' : ''}{item.mktReaction.toFixed(1)}%
+                              </span>
+                            </td>
+                            <td className="px-2 sm:px-3 py-0 text-left font-mono text-[10px] sm:text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '80px', textOverflow: 'ellipsis' }}>
+                              <span className={`${getReactionCommentaryColor(item.mktReactionCommentary)}`}>{item.mktReactionCommentary}</span>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        // Second case: show summary info from the quarter data when stocks array is missing
+                        <tr className="border-b border-[#0F1A2A] h-8">
+                          <td colSpan={10} className="px-2 sm:px-3 py-4 text-center">
+                            <div className="flex flex-col items-center space-y-2">
+                              <div className="text-[#EFEFEF] text-sm font-medium">
+                                Quarter Summary: {currentQuarterData.label}
+                              </div>
+                              <div className="grid grid-cols-3 gap-6 mt-4 w-full max-w-3xl">
+                                {/* EPS Stats */}
+                                <div className="bg-[#0F1A2A] p-3 rounded-md">
+                                  <h4 className="text-[#7A8999] text-xs mb-2">EPS</h4>
+                                  <div className="grid grid-cols-3 gap-2 text-center">
+                                    <div className="flex flex-col">
+                                      <span className="text-[#4CAF50] text-sm font-medium">{currentQuarterData.eps?.Beat || 0}</span>
+                                      <span className="text-[#7A8999] text-xs">Beat</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="text-[#FFC107] text-sm font-medium">{currentQuarterData.eps?.['In-Line'] || 0}</span>
+                                      <span className="text-[#7A8999] text-xs">In-Line</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="text-[#F44336] text-sm font-medium">{currentQuarterData.eps?.Miss || 0}</span>
+                                      <span className="text-[#7A8999] text-xs">Miss</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                {/* Revenue Stats */}
+                                <div className="bg-[#0F1A2A] p-3 rounded-md">
+                                  <h4 className="text-[#7A8999] text-xs mb-2">REVENUE</h4>
+                                  <div className="grid grid-cols-3 gap-2 text-center">
+                                    <div className="flex flex-col">
+                                      <span className="text-[#4CAF50] text-sm font-medium">{currentQuarterData.revenue?.Up || 0}</span>
+                                      <span className="text-[#7A8999] text-xs">Up</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="text-[#FFC107] text-sm font-medium">{currentQuarterData.revenue?.Flat || 0}</span>
+                                      <span className="text-[#7A8999] text-xs">Flat</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="text-[#F44336] text-sm font-medium">{currentQuarterData.revenue?.Down || 0}</span>
+                                      <span className="text-[#7A8999] text-xs">Down</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                {/* Score Stats */}
+                                <div className="bg-[#0F1A2A] p-3 rounded-md">
+                                  <h4 className="text-[#7A8999] text-xs mb-2">SCORE</h4>
+                                  <div className="grid grid-cols-3 gap-2 text-center">
+                                    <div className="flex flex-col">
+                                      <span className="text-[#4CAF50] text-sm font-medium">{currentQuarterData.score?.Good || 0}</span>
+                                      <span className="text-[#7A8999] text-xs">Good</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="text-[#FFC107] text-sm font-medium">{currentQuarterData.score?.Okay || 0}</span>
+                                      <span className="text-[#7A8999] text-xs">Okay</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="text-[#F44336] text-sm font-medium">{currentQuarterData.score?.Bad || 0}</span>
+                                      <span className="text-[#7A8999] text-xs">Bad</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="mt-4 text-[#7A8999] text-xs">
+                                {currentQuarterData.count} companies reported this quarter
+                              </div>
                             </div>
                           </td>
-                          <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-[10px] sm:text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '100px', textOverflow: 'ellipsis' }}>
-                            {item.issuerName}
-                          </td>
-                          <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
-                            <span className={`text-[10px] sm:text-xs ${getConsensusColor(item.consensusRecommendation)}`}>{item.consensusRecommendation}</span>
-                          </td>
-                          <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-[10px] sm:text-xs whitespace-nowrap">${item.last.toFixed(1)}</td>
-                          <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
-                            <span className={`text-[10px] sm:text-xs ${getEpsColor(item.eps)}`}>{item.eps}</span>
-                          </td>
-                          <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
-                            <span className={`text-[10px] sm:text-xs ${getEpsColor(item.rev)}`}>{item.rev}</span>
-                          </td>
-                          <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
-                            <span className={`text-[10px] sm:text-xs ${getGuidanceColor(item.guidance)}`}>{item.guidance}</span>
-                          </td>
-                          <td className="px-2 sm:px-3 py-0 text-center whitespace-nowrap">
-                            <span className={`text-[10px] sm:text-xs ${getScoreColor(item.earningsScore)}`}>{item.earningsScore}</span>
-                          </td>
-                          <td className="px-2 sm:px-3 py-0 text-right whitespace-nowrap">
-                            <span className={`inline-block font-mono ${item.mktReaction >= 0 ? 'bg-[#4CAF50] text-white' : 'bg-[#FF5252] text-white'} px-2 sm:px-3 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium`}>
-                              {item.mktReaction >= 0 ? '+' : ''}{item.mktReaction.toFixed(1)}%
-                            </span>
-                          </td>
-                          <td className="px-2 sm:px-3 py-0 text-left font-mono text-[10px] sm:text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '80px', textOverflow: 'ellipsis' }}>
-                            <span className={`${getReactionCommentaryColor(item.mktReactionCommentary)}`}>{item.mktReactionCommentary}</span>
-                          </td>
                         </tr>
-                      ))
+                      )
                     ) : (
                       <tr>
                         <td colSpan={10} className="px-3 py-4 text-center text-[#EFEFEF] text-xs">
