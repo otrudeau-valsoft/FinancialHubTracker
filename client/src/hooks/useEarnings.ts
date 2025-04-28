@@ -161,12 +161,29 @@ export function useEarningsHeatmap() {
     },
     select: (data): HeatmapQuarterData[] => {
       console.log('DEBUG: Heatmap data select function:', data);
+      
       // Check if stocks array exists in each quarter data item
       if (data?.data?.length > 0) {
+        const firstQuarter = data.data[0];
         console.log('DEBUG: First quarter stocks array?', 
-                    Array.isArray(data.data[0].stocks) ? 
-                    `Yes, with ${data.data[0].stocks?.length} elements` : 'No');
+                    Array.isArray(firstQuarter.stocks) ? 
+                    `Yes, with ${firstQuarter.stocks?.length} elements` : 'No');
+        
+        // Add debug info about the first quarter
+        console.log('DEBUG: First quarter data:', {
+          fiscal_year: firstQuarter.fiscal_year,
+          fiscal_q: firstQuarter.fiscal_q, 
+          label: firstQuarter.label,
+          count: firstQuarter.count,
+          hasStocks: !!firstQuarter.stocks
+        });
+        
+        if (!firstQuarter.stocks) {
+          console.log('WARNING: No stocks array found in quarter data!');
+        }
       }
+      
+      // Always return the data as is
       return data.data || [];
     },
     staleTime: 15 * 60 * 1000, // 15 minutes

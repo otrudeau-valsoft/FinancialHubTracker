@@ -248,6 +248,11 @@ router.get('/heatmap', asyncHandler(async (req, res) => {
         };
       });
       
+      console.log(`DEBUG - Created ${stocks.length} stock records for the heatmap`);
+      if (stocks.length === 0 && quarterData.length > 0) {
+        console.log('WARNING: No stock records created even though we have quarter data!')
+      }
+      
       result.push({
         fiscal_year,
         fiscal_q,
