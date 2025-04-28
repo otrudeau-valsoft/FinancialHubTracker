@@ -1,227 +1,228 @@
-// Financial utility functions for calculations
+// Financial utilities and calculations
 
 /**
- * Calculate portfolio allocation percentages by type
- * @param stocks Array of portfolio stocks
- * @returns Object with allocation percentages by type
+ * Format currency value with symbol
  */
-export const calculateAllocationByType = (stocks: any[]) => {
-  if (!stocks || stocks.length === 0) {
-    return { Comp: 0, Cat: 0, Cycl: 0 };
-  }
-
-  const totalValue = stocks.reduce((sum, stock) => sum + Number(stock.nav || 0), 0);
-  
-  const types = stocks.reduce((acc: Record<string, number>, stock) => {
-    const type = stock.stockType || 'Unknown';
-    const value = Number(stock.nav || 0);
-    acc[type] = (acc[type] || 0) + value;
-    return acc;
-  }, {});
-  
-  // Convert absolute values to percentages
-  const result: Record<string, number> = {};
-  for (const [type, value] of Object.entries(types)) {
-    result[type] = totalValue > 0 ? Math.round((value / totalValue) * 100) : 0;
-  }
-  
-  return result;
-};
-
-/**
- * Calculate portfolio allocation percentages by rating
- * @param stocks Array of portfolio stocks
- * @returns Object with allocation percentages by rating
- */
-export const calculateAllocationByRating = (stocks: any[]) => {
-  if (!stocks || stocks.length === 0) {
-    return { "1": 0, "2": 0, "3": 0, "4": 0 };
-  }
-
-  const totalValue = stocks.reduce((sum, stock) => sum + Number(stock.nav || 0), 0);
-  
-  const ratings = stocks.reduce((acc: Record<string, number>, stock) => {
-    const rating = stock.rating || 'Unknown';
-    const value = Number(stock.nav || 0);
-    acc[rating] = (acc[rating] || 0) + value;
-    return acc;
-  }, {});
-  
-  // Convert absolute values to percentages
-  const result: Record<string, number> = {};
-  for (const [rating, value] of Object.entries(ratings)) {
-    result[rating] = totalValue > 0 ? Math.round((value / totalValue) * 100) : 0;
-  }
-  
-  return result;
-};
-
-/**
- * Calculate portfolio weighting differences compared to benchmark ETF
- * @param portfolioStocks Array of portfolio stocks
- * @param etfHoldings Array of ETF holdings
- * @returns Array of portfolio stocks with overweight/underweight calculations
- */
-export const calculateEtfDifferences = (portfolioStocks: any[], etfHoldings: any[]) => {
-  if (!portfolioStocks || !etfHoldings) return [];
-  
-  // Calculate the total portfolio value using price * quantity
-  const portfolioTotalValue = portfolioStocks.reduce(
-    (sum, stock) => {
-      const price = Number(stock.price || 0);
-      const quantity = Number(stock.quantity || 0);
-      return sum + (price * quantity);
-    }, 
-    0
-  );
-  
-  console.log("Portfolio total value:", portfolioTotalValue);
-  
-  // Create map of portfolio weights
-  const portfolioWeights = portfolioStocks.reduce((acc: Record<string, number>, stock) => {
-    const price = Number(stock.price || 0);
-    const quantity = Number(stock.quantity || 0);
-    const stockValue = price * quantity;
-    
-    // Store both uppercase and original symbol to handle case-insensitive matching
-    acc[stock.symbol.toUpperCase()] = portfolioTotalValue > 0 
-      ? (stockValue / portfolioTotalValue) * 100
-      : 0;
-    
-    return acc;
-  }, {});
-  
-  console.log("Portfolio weights:", portfolioWeights);
-  
-  // Create map of ETF weights
-  const etfWeights = etfHoldings.reduce((acc: Record<string, number>, holding) => {
-    acc[holding.ticker.toUpperCase()] = Number(holding.weight || 0);
-    return acc;
-  }, {});
-  
-  console.log("ETF weights:", etfWeights);
-  
-  // For each ETF holding, calculate the difference
-  return etfHoldings.map(holding => {
-    const symbol = holding.ticker.toUpperCase();
-    const etfWeight = Number(holding.weight || 0);
-    const portfolioWeight = portfolioWeights[symbol] || 0;
-    const weightDifference = portfolioWeight - etfWeight;
-    const inPortfolio = symbol in portfolioWeights;
-    
-    return {
-      ...holding,
-      portfolioWeight,
-      weightDifference,
-      inPortfolio
-    };
-  });
-};
-
-/**
- * Format percentage for display
- * @param value Percentage value
- * @returns Formatted string with + or - sign
- */
-export const formatPercentage = (value: number | string | null | undefined) => {
-  if (value === null || value === undefined) return '--';
-  
+export function formatCurrency(value: number | string, symbol = '$'): string {
   const numValue = typeof value === 'string' ? parseFloat(value) : value;
-  if (isNaN(numValue)) return '--';
-  
+  return `${symbol}${numValue.toLocaleString('en-US', { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  })}`;
+}
+
+/**
+ * Format percentage value with sign
+ */
+export function formatPercentage(value: number | string): string {
+  const numValue = typeof value === 'string' ? parseFloat(value) : value;
   const sign = numValue > 0 ? '+' : '';
   return `${sign}${numValue.toFixed(2)}%`;
-};
+}
 
 /**
- * Format currency for display
- * @param value Currency value
- * @param currency Currency symbol
- * @returns Formatted currency string
+ * Get CSS class based on profit/loss value
  */
-export const formatCurrency = (value: number | string | null | undefined, currency = '$') => {
-  if (value === null || value === undefined) return '--';
-  
+export function getProfitLossClass(value: number | string): string {
   const numValue = typeof value === 'string' ? parseFloat(value) : value;
-  if (isNaN(numValue)) return '--';
-  
-  return `${currency}${numValue.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })}`;
-};
+  if (numValue > 0) return 'text-green-400';
+  if (numValue < 0) return 'text-red-400';
+  return 'text-gray-400';
+}
 
 /**
- * Get CSS class for profit/loss values
- * @param value Numerical value
- * @returns CSS class name
+ * Calculate portfolio allocation by stock type (Compounder, Catalyst, Cyclical)
  */
-export const getProfitLossClass = (value: number | string | null | undefined) => {
-  if (value === null || value === undefined) return '';
+export function calculateAllocationByType(stocks: any[]): { [key: string]: number } {
+  // Initialize allocation object
+  const typeAllocation = { 
+    Comp: 0, // Compounder
+    Cat: 0,  // Catalyst
+    Cycl: 0, // Cyclical
+    Cash: 0  // Cash
+  };
   
-  const numValue = typeof value === 'string' ? parseFloat(value) : value;
-  if (isNaN(numValue)) return '';
+  // Calculate total value
+  const totalValue = stocks.reduce((sum, stock) => {
+    const currentValue = parseFloat(stock.currentValue || '0');
+    return sum + currentValue;
+  }, 0);
   
-  return numValue > 0 ? 'text-profit' : numValue < 0 ? 'text-loss' : '';
-};
+  // Skip calculation if total value is 0
+  if (totalValue === 0) return typeAllocation;
+  
+  // Calculate allocation by type
+  stocks.forEach(stock => {
+    const currentValue = parseFloat(stock.currentValue || '0');
+    const percentage = (currentValue / totalValue) * 100;
+    
+    // Map abbreviated types to our allocation object keys
+    const type = stock.stockType || 'Unknown';
+    
+    if (type === 'Compounder' || type === 'Comp') {
+      typeAllocation.Comp += percentage;
+    } else if (type === 'Catalyst' || type === 'Cat') {
+      typeAllocation.Cat += percentage;
+    } else if (type === 'Cyclical' || type === 'Cycl') {
+      typeAllocation.Cycl += percentage;
+    } else if (type === 'Cash') {
+      typeAllocation.Cash += percentage;
+    }
+  });
+  
+  // Round values
+  Object.keys(typeAllocation).forEach(key => {
+    typeAllocation[key] = Math.round(typeAllocation[key]);
+  });
+  
+  return typeAllocation;
+}
 
 /**
- * Calculate portfolio statistics for dashboard summary
- * @param stocks Array of portfolio stocks
- * @returns Object with portfolio statistics
+ * Calculate portfolio allocation by rating (1-4)
  */
-export const calculatePortfolioStats = (stocks: any[]) => {
-  if (!stocks || stocks.length === 0) {
-    return {
-      totalValue: 0,
-      dailyChange: 0,
-      dailyChangePercent: 0,
-      cashValue: 0,
-      cashPercent: 0,
-      ytdPerformance: 0,
-      ytdValue: 0
-    };
-  }
+export function calculateAllocationByRating(stocks: any[]): { [key: string]: number } {
+  // Initialize allocation object
+  const ratingAllocation = {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0
+  };
+  
+  // Calculate total value
+  const totalValue = stocks.reduce((sum, stock) => {
+    const currentValue = parseFloat(stock.currentValue || '0');
+    return sum + currentValue;
+  }, 0);
+  
+  // Skip calculation if total value is 0
+  if (totalValue === 0) return ratingAllocation;
+  
+  // Calculate allocation by rating
+  stocks.forEach(stock => {
+    const currentValue = parseFloat(stock.currentValue || '0');
+    const percentage = (currentValue / totalValue) * 100;
+    
+    // Map ratings to our allocation object keys
+    const rating = stock.rating ? stock.rating.toString() : "0";
+    
+    if (rating && ["1", "2", "3", "4"].includes(rating)) {
+      ratingAllocation[rating] += percentage;
+    }
+  });
+  
+  // Round values
+  Object.keys(ratingAllocation).forEach(key => {
+    ratingAllocation[key] = Math.round(ratingAllocation[key]);
+  });
+  
+  return ratingAllocation;
+}
 
-  const totalValue = stocks.reduce((sum, stock) => sum + Number(stock.nav || 0), 0);
+/**
+ * Calculate portfolio statistics
+ */
+export function calculatePortfolioStats(stocks: any[]) {
+  // Initialize stats object
+  const stats = {
+    totalValue: 0,
+    dailyChange: 0,
+    dailyChangePercent: 0,
+    ytdPerformance: 0,
+    ytdValue: 0,
+    cashValue: 0,
+    cashPercent: 0
+  };
   
-  // Calculate daily change
-  const dailyChange = stocks.reduce(
-    (sum, stock) => sum + (Number(stock.nav || 0) * Number(stock.dailyChange || 0) / 100), 
-    0
-  );
+  // Skip calculation if no stocks
+  if (!stocks || stocks.length === 0) return stats;
   
+  // Calculate total value and daily change
+  let totalValue = 0;
+  let dailyChange = 0;
+  let ytdChange = 0;
+  let cashValue = 0;
+  
+  stocks.forEach(stock => {
+    const currentValue = parseFloat(stock.currentValue || '0');
+    const dailyChangePercent = parseFloat(stock.dailyChangePercent || '0');
+    const ytdChangePercent = parseFloat(stock.ytdChangePercent || '0');
+    
+    // Add to total value
+    totalValue += currentValue;
+    
+    // Calculate daily change
+    dailyChange += (currentValue * dailyChangePercent / 100);
+    
+    // Calculate YTD change
+    ytdChange += (currentValue * ytdChangePercent / 100);
+    
+    // Track cash value
+    if (stock.stockType === 'Cash' || stock.symbol === 'CASH') {
+      cashValue += currentValue;
+    }
+  });
+  
+  // Calculate percentages
   const dailyChangePercent = totalValue > 0 ? (dailyChange / totalValue) * 100 : 0;
-  
-  // Calculate cash position (assuming cash ETFs or similar are marked)
-  const cashStocks = stocks.filter(stock => 
-    stock.symbol.includes('BIL') || 
-    stock.company.includes('CASH') || 
-    stock.symbol.includes('SHV')
-  );
-  
-  const cashValue = cashStocks.reduce((sum, stock) => sum + Number(stock.nav || 0), 0);
+  const ytdPerformance = totalValue > 0 ? (ytdChange / totalValue) * 100 : 0;
   const cashPercent = totalValue > 0 ? (cashValue / totalValue) * 100 : 0;
   
-  // Calculate YTD performance
-  const ytdPerformance = stocks.reduce(
-    (sum, stock) => {
-      const stockYtd = Number(stock.ytdChange || 0) / 100;
-      const stockValue = Number(stock.nav || 0);
-      return sum + (stockValue * stockYtd);
-    }, 
-    0
-  ) / totalValue * 100;
+  // Set final stats
+  stats.totalValue = totalValue;
+  stats.dailyChange = dailyChange;
+  stats.dailyChangePercent = dailyChangePercent;
+  stats.ytdPerformance = ytdPerformance;
+  stats.ytdValue = ytdChange;
+  stats.cashValue = cashValue;
+  stats.cashPercent = cashPercent;
   
-  const ytdValue = totalValue * ytdPerformance / 100;
+  return stats;
+}
+
+/**
+ * Calculate differences between portfolio and ETF benchmark
+ */
+export function calculateEtfDifferences(stocks: any[], etfHoldings: any[]) {
+  if (!stocks || !etfHoldings || stocks.length === 0 || etfHoldings.length === 0) {
+    return [];
+  }
   
-  return {
-    totalValue,
-    dailyChange,
-    dailyChangePercent,
-    cashValue,
-    cashPercent,
-    ytdPerformance,
-    ytdValue
-  };
-};
+  // Create a map of portfolio weights
+  const portfolioWeights: Record<string, number> = {};
+  const totalValue = stocks.reduce((sum, stock) => sum + parseFloat(stock.currentValue || '0'), 0);
+  
+  stocks.forEach(stock => {
+    const weight = totalValue > 0 ? 
+      (parseFloat(stock.currentValue || '0') / totalValue) * 100 : 0;
+    portfolioWeights[stock.symbol] = weight;
+  });
+  
+  // Create a map of ETF weights
+  const etfWeights: Record<string, number> = {};
+  etfHoldings.forEach(holding => {
+    etfWeights[holding.ticker] = parseFloat(holding.weight || '0');
+  });
+  
+  // Filter ETF holdings for top positions and find delta
+  const comparisonData = etfHoldings.map(holding => {
+    const symbol = holding.ticker;
+    const etfWeight = parseFloat(holding.weight || '0');
+    const portfolioWeight = portfolioWeights[symbol] || 0;
+    const deltaWeight = portfolioWeight - etfWeight;
+    
+    return {
+      symbol,
+      name: holding.name || symbol,
+      portfolioWeight,
+      etfWeight,
+      deltaWeight
+    };
+  });
+  
+  // Sort by absolute delta weight (largest differences first)
+  return comparisonData.sort((a, b) => 
+    Math.abs(b.deltaWeight) - Math.abs(a.deltaWeight)
+  );
+}
