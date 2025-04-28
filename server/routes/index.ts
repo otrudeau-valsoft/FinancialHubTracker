@@ -12,6 +12,7 @@ import apiHealthRoutes from './api-health.routes';
 import holdingsRoutes from './holdings';
 import cashRoutes from './cash';
 import portfolioHistoryRoutes from './portfolio-history';
+import portfolioPerformanceRoutes from './portfolio-performance';
 import earningsRoutes from './earnings';
 import marketIndicesRoutes from './market-indices';
 import { getNewsBySymbol, getNewsForPortfolio } from './news';
@@ -49,6 +50,9 @@ router.use('/cash', cashRoutes);
 
 // Portfolio history routes for performance charts
 router.use('/portfolio-history', portfolioHistoryRoutes);
+
+// New portfolio performance routes (alternative implementation with raw SQL)
+router.use('/portfolio-performance', portfolioPerformanceRoutes);
 
 // Earnings routes
 router.use('/', earningsRoutes);

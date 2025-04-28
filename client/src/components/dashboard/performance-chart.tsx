@@ -58,11 +58,11 @@ export const PerformanceChart = ({
     setEndDate(now.toISOString().split('T')[0]);
   }, [selectedRange]);
   
-  // Fetch portfolio performance data
+  // Fetch portfolio performance data from our new endpoint
   const { data: apiResponse, isLoading } = useQuery({
-    queryKey: ['/api/portfolio-history', region, selectedRange],
+    queryKey: ['/api/portfolio-performance', region, selectedRange],
     queryFn: () => 
-      fetch(`/api/portfolio-history?region=${region}&timeRange=${selectedRange}`)
+      fetch(`/api/portfolio-performance?region=${region}&timeRange=${selectedRange}`)
         .then(res => {
           if (!res.ok) throw new Error('Network response was not ok');
           return res.json();
