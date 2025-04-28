@@ -6,14 +6,8 @@ import { PerformanceChart } from "@/components/dashboard/performance-chart";
 import { AlertsList } from "@/components/dashboard/alerts-list";
 import { PortfolioTable } from "@/components/dashboard/portfolio-table";
 import { PortfolioCashPanel } from "@/components/dashboard/portfolio-cash-panel";
-import { PortfolioValuePanel } from "@/components/dashboard/portfolio-value-panel";
-import { PortfolioCashValuePanel } from "@/components/dashboard/portfolio-cash-value-panel";
-import { PortfolioYtdPanel } from "@/components/dashboard/portfolio-ytd-panel";
-import { PortfolioAllocationPanel } from "@/components/dashboard/portfolio-allocation-panel";
-import { PortfolioRelativePerformance } from "@/components/dashboard/portfolio-relative-performance";
 import { EtfComparison } from "@/components/dashboard/etf-comparison";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Upload, Download, RefreshCw, BarChart3 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
@@ -232,42 +226,32 @@ export default function UsdPortfolio() {
           <div className="text-center p-8">Loading USD portfolio data...</div>
         ) : (
           <>
-            {/* Portfolio Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
-              <PortfolioValuePanel region="USD" benchmark="SPY" />
-              <PortfolioCashValuePanel region="USD" />
-              <PortfolioYtdPanel region="USD" benchmark="SPY" />
-              <Card className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden">
-                <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
-                  <div className="w-full flex items-center justify-between">
-                    <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">ALERTS</h3>
-                    <div className="h-1 w-8 bg-[#FF5722]"></div>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-2 pt-1.5">
-                  <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-                    <span className="text-lg sm:text-xl font-semibold text-[#EFEFEF] mono">
-                      {alerts?.filter(a => a.isActive).length || 0}
-                    </span>
-                    {(alerts?.filter(a => a.isActive && a.severity === 'critical').length || 0) > 0 ? (
-                      <span className="text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full bg-red-900/30 text-red-400">
-                        {alerts?.filter(a => a.isActive && a.severity === 'critical').length || 0} critical
-                      </span>
-                    ) : (
-                      <span className="text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full bg-green-900/30 text-green-400">All clear</span>
-                    )}
-                  </div>
-                  <div className="text-[10px] sm:text-xs text-gray-400 mt-2 flex justify-between">
-                    <span>Matrix rules</span>
-                    <span className="mono font-medium">{new Date().toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <PortfolioSummary 
+              region="USD"
+              summary={{
+                value: usdStats.totalValue,
+                dailyChange: usdStats.dailyChange,
+                dailyChangePercent: usdStats.dailyChangePercent,
+                benchmarkDiff: 0.42, // Vs S&P 500
+                cashPosition: usdStats.cashValue,
+                cashPositionPercent: usdStats.cashPercent,
+                ytdPerformance: usdStats.ytdPerformance,
+                ytdPerformanceValue: usdStats.ytdValue,
+                benchmarkPerformance: 7.35, // SPY YTD
+                activeAlerts: alerts?.filter(a => a.isActive).length || 0,
+                criticalAlerts: alerts?.filter(a => a.isActive && a.severity === 'critical').length || 0
+              }}
+              benchmark="SPY"
+              cashSymbol={cashHolding?.symbol || "BIL"}
+              cashShares={cashHolding?.quantity || 0}
+            />
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6">
               <div className="md:col-span-2 lg:col-span-1 flex flex-col">
-                <PortfolioAllocationPanel region="USD" />
+                <AllocationChart 
+                  typeAllocation={usdAllocationByType} 
+                  ratingAllocation={usdAllocationByRating} 
+                />
               </div>
               
               <div className="md:col-span-2 lg:col-span-1 flex flex-col">
@@ -279,7 +263,11 @@ export default function UsdPortfolio() {
               </div>
               
               <div className="flex flex-col">
-                <PortfolioRelativePerformance region="USD" benchmark="SPY" />
+                <AlertsList 
+                  alerts={alerts?.filter(a => 
+                    usdStocks?.find(s => s.symbol === a.symbol) && a.isActive
+                  ) || []} 
+                />
               </div>
             </div>
             

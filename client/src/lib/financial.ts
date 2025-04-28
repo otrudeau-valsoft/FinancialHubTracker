@@ -3,8 +3,11 @@
 /**
  * Format currency value with symbol
  */
-export function formatCurrency(value: number | string, symbol = '$'): string {
+export function formatCurrency(value: number | string | null | undefined, symbol = '$'): string {
+  if (value === null || value === undefined) return `${symbol}0.00`;
   const numValue = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(numValue)) return `${symbol}0.00`;
+  
   return `${symbol}${numValue.toLocaleString('en-US', { 
     minimumFractionDigits: 2, 
     maximumFractionDigits: 2 
@@ -14,8 +17,11 @@ export function formatCurrency(value: number | string, symbol = '$'): string {
 /**
  * Format percentage value with sign
  */
-export function formatPercentage(value: number | string): string {
+export function formatPercentage(value: number | string | null | undefined): string {
+  if (value === null || value === undefined) return `0.00%`;
   const numValue = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(numValue)) return `0.00%`;
+  
   const sign = numValue > 0 ? '+' : '';
   return `${sign}${numValue.toFixed(2)}%`;
 }
@@ -23,8 +29,11 @@ export function formatPercentage(value: number | string): string {
 /**
  * Get CSS class based on profit/loss value
  */
-export function getProfitLossClass(value: number | string): string {
+export function getProfitLossClass(value: number | string | null | undefined): string {
+  if (value === null || value === undefined) return 'text-gray-400';
   const numValue = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(numValue)) return 'text-gray-400';
+  
   if (numValue > 0) return 'text-green-400';
   if (numValue < 0) return 'text-red-400';
   return 'text-gray-400';
@@ -207,22 +216,25 @@ export function calculateEtfDifferences(stocks: any[], etfHoldings: any[]) {
   
   // Filter ETF holdings for top positions and find delta
   const comparisonData = etfHoldings.map(holding => {
-    const symbol = holding.ticker;
-    const etfWeight = parseFloat(holding.weight || '0');
-    const portfolioWeight = portfolioWeights[symbol] || 0;
-    const deltaWeight = portfolioWeight - etfWeight;
+    const ticker = holding.ticker;
+    const weight = parseFloat(holding.weight || '0');
+    const portfolioWeight = portfolioWeights[ticker] || 0;
+    const weightDifference = portfolioWeight - weight;
     
     return {
-      symbol,
-      name: holding.name || symbol,
-      portfolioWeight,
-      etfWeight,
-      deltaWeight
+      id: holding.id || 0,
+      ticker,
+      name: holding.name || ticker,
+      sector: holding.sector || '',
+      weight,
+      price: holding.price || 0,
+      inPortfolio: portfolioWeight > 0,
+      weightDifference
     };
   });
   
-  // Sort by absolute delta weight (largest differences first)
+  // Sort by absolute weight difference (largest differences first)
   return comparisonData.sort((a, b) => 
-    Math.abs(b.deltaWeight) - Math.abs(a.deltaWeight)
+    Math.abs(b.weightDifference) - Math.abs(a.weightDifference)
   );
 }
