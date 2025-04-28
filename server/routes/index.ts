@@ -13,6 +13,7 @@ import holdingsRoutes from './holdings';
 import cashRoutes from './cash';
 import portfolioHistoryRoutes from './portfolio-history';
 import earningsRoutes from './earnings';
+import marketIndicesRoutes from './market-indices';
 import { getNewsBySymbol, getNewsForPortfolio } from './news';
 
 const router = Router();
@@ -51,6 +52,9 @@ router.use('/portfolio-history', portfolioHistoryRoutes);
 
 // Earnings routes
 router.use('/', earningsRoutes);
+
+// Market indices routes
+router.use('/market-indices', marketIndicesRoutes);
 
 // Data management routes (for development and administration)
 router.use('/data-management', dataManagementRoutes);

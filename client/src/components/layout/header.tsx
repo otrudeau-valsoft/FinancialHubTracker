@@ -13,17 +13,15 @@ export function Header() {
   const [location, navigate] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // Mock data for market returns - in a real app, this would come from an API
-  const { data: marketData } = useQuery({
+  // Fetch real-time market index data
+  const { data: marketData, isLoading: isLoadingMarketData } = useQuery({
     queryKey: ['market-data'],
     queryFn: async () => {
-      // In a production app, this would fetch from your API
-      // For now, using mock data to demonstrate the UI
-      return {
-        sp500: { return: 0.32, positive: true },
-        tsx: { return: -0.18, positive: false },
-        acwx: { return: 0.21, positive: true }
-      };
+      const response = await fetch('/api/market-indices/real-time');
+      if (!response.ok) {
+        throw new Error('Failed to fetch market indices data');
+      }
+      return await response.json();
     },
     // Refresh every 5 minutes
     refetchInterval: 5 * 60 * 1000
