@@ -60,8 +60,8 @@ export const PerformanceChart = ({
   
   // Fetch portfolio performance data
   const { data: apiResponse, isLoading } = useQuery({
-    queryKey: ['/api/portfolio-history', region, startDate, endDate],
-    enabled: !!startDate && !!endDate,
+    queryKey: ['/api/portfolio-history', { region, timeRange: selectedRange }],
+    enabled: !!selectedRange,
     staleTime: 3600000, // 1 hour
   });
   

@@ -126,9 +126,9 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
 
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
-            <thead>
+            <thead className="sticky top-0 z-10">
               <tr className="text-xs h-8 border-b border-[#0F1A2A] bg-[#0D1F32]">
-                <th scope="col" className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">SYMBOL</th>
+                <th scope="col" className="sticky left-0 bg-[#0D1F32] px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">SYMBOL</th>
                 <th scope="col" className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">COMPANY</th>
                 <th scope="col" className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">TYPE</th>
                 <th scope="col" className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">RATING</th>
@@ -166,7 +166,7 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                 
                 return (
                   <tr key={stock.id} className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542]">
-                    <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#38AAFD] text-xs font-medium whitespace-nowrap">
+                    <td className="sticky left-0 bg-[#0A1929] px-2 sm:px-3 py-0 text-left font-mono text-[#38AAFD] text-xs font-medium whitespace-nowrap">
                       <Link href={`/stock/${stock.symbol}?region=${region}`} className="flex items-center gap-1 hover:underline">
                         {stock.symbol}
                         <InfoIcon size={11} className="text-[#38AAFD] opacity-70" />
