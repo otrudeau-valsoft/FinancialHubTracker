@@ -2,6 +2,209 @@ import { Request, Response } from 'express';
 import { storage } from '../../storage';
 import { currentPriceService } from '../../services/current-price-service';
 import { historicalPriceService } from '../../services/historical-price-service';
+import { pool } from '../../db';
+import { DateTime } from 'luxon';
+
+/**
+ * Update portfolio performance history data in the database
+ * This function recalculates portfolio performance based on the latest prices
+ */
+async function updatePortfolioPerformanceHistory() {
+  console.log('Updating portfolio performance history...');
+  
+  try {
+    // Delete existing performance data to rebuild from scratch
+    await pool.query('DELETE FROM portfolio_performance');
+    
+    // Get all regions
+    const regions = ['USD', 'CAD', 'INTL'];
+    
+    for (const region of regions) {
+      console.log(`Processing performance data for ${region} region...`);
+      
+      // Get portfolio stocks for this region
+      const portfolioQuery = `
+        SELECT symbol, company, stock_type, rating, quantity, price
+        FROM portfolio_${region.toLowerCase()}
+        WHERE symbol != 'CASH'
+      `;
+      
+      const portfolioResult = await pool.query(portfolioQuery);
+      const stocks = portfolioResult.rows;
+      
+      if (!stocks || stocks.length === 0) {
+        console.log(`No stocks found for ${region} region, skipping...`);
+        continue;
+      }
+      
+      // Get all symbols for this region
+      const symbols = stocks.map(s => s.symbol);
+      
+      // Get the benchmark symbol for this region
+      const benchmarkSymbol = region === 'USD' ? 'SPY' : region === 'CAD' ? 'XIC.TO' : 'ACWX';
+      
+      // Get the dates we need to process (e.g., past year)
+      const endDate = DateTime.now().setZone('America/New_York');
+      const startDate = endDate.minus({ years: 1 });
+      
+      const formattedStartDate = startDate.toFormat('yyyy-MM-dd');
+      const formattedEndDate = endDate.toFormat('yyyy-MM-dd');
+      
+      // Get all historical prices for portfolio stocks and benchmark in this date range
+      const pricesQuery = `
+        SELECT symbol, date, adjusted_close
+        FROM historical_prices
+        WHERE region = $1
+        AND date BETWEEN $2 AND $3
+        AND symbol IN (${symbols.map((_, i) => `$${i + 4}`).join(', ')}, $${symbols.length + 4})
+        ORDER BY date
+      `;
+      
+      const pricesResult = await pool.query(
+        pricesQuery, 
+        [region, formattedStartDate, formattedEndDate, ...symbols, benchmarkSymbol]
+      );
+      
+      const priceData = pricesResult.rows;
+      
+      if (!priceData || priceData.length === 0) {
+        console.log(`No historical price data found for ${region} region, skipping...`);
+        continue;
+      }
+      
+      // Group prices by date
+      const pricesByDate = {};
+      
+      priceData.forEach(row => {
+        if (!pricesByDate[row.date]) {
+          pricesByDate[row.date] = {};
+        }
+        pricesByDate[row.date][row.symbol] = parseFloat(row.adjusted_close);
+      });
+      
+      // Sort dates
+      const dates = Object.keys(pricesByDate).sort();
+      
+      // Calculate portfolio performance for each date
+      const performanceData = [];
+      let basePortfolioValue = null;
+      let baseBenchmarkValue = null;
+      
+      for (let i = 0; i < dates.length; i++) {
+        const date = dates[i];
+        const prices = pricesByDate[date];
+        
+        // Calculate portfolio value based on quantities and prices
+        let portfolioValue = 0;
+        let allStocksHavePrices = true;
+        
+        for (const stock of stocks) {
+          if (prices[stock.symbol]) {
+            portfolioValue += stock.quantity * prices[stock.symbol];
+          } else {
+            allStocksHavePrices = false;
+            break;
+          }
+        }
+        
+        // Skip dates where not all stocks have prices
+        if (!allStocksHavePrices || !prices[benchmarkSymbol]) {
+          continue;
+        }
+        
+        // Get benchmark value
+        const benchmarkValue = prices[benchmarkSymbol];
+        
+        // Set base values for the first valid date
+        if (basePortfolioValue === null) {
+          basePortfolioValue = portfolioValue;
+          baseBenchmarkValue = benchmarkValue;
+        }
+        
+        // Calculate daily returns if we have a previous date
+        let portfolioReturnDaily = null;
+        let benchmarkReturnDaily = null;
+        
+        if (i > 0 && pricesByDate[dates[i-1]]) {
+          const prevPrices = pricesByDate[dates[i-1]];
+          let prevPortfolioValue = 0;
+          let allPrevStocksHavePrices = true;
+          
+          for (const stock of stocks) {
+            if (prevPrices[stock.symbol]) {
+              prevPortfolioValue += stock.quantity * prevPrices[stock.symbol];
+            } else {
+              allPrevStocksHavePrices = false;
+              break;
+            }
+          }
+          
+          if (allPrevStocksHavePrices && prevPrices[benchmarkSymbol] && prevPortfolioValue > 0) {
+            portfolioReturnDaily = (portfolioValue - prevPortfolioValue) / prevPortfolioValue;
+            benchmarkReturnDaily = (benchmarkValue - prevPrices[benchmarkSymbol]) / prevPrices[benchmarkSymbol];
+          }
+        }
+        
+        // Calculate cumulative returns
+        const portfolioCumulativeReturn = (portfolioValue / basePortfolioValue) - 1;
+        const benchmarkCumulativeReturn = (benchmarkValue / baseBenchmarkValue) - 1;
+        
+        // Calculate relative performance (alpha)
+        const relativePerformance = portfolioCumulativeReturn - benchmarkCumulativeReturn;
+        
+        // Add to performance data
+        performanceData.push({
+          date,
+          region,
+          portfolioValue,
+          benchmarkValue,
+          portfolioReturnDaily,
+          benchmarkReturnDaily,
+          portfolioCumulativeReturn,
+          benchmarkCumulativeReturn,
+          relativePerformance
+        });
+      }
+      
+      if (performanceData.length === 0) {
+        console.log(`No valid performance data could be calculated for ${region} region, skipping...`);
+        continue;
+      }
+      
+      // Insert performance data into the database
+      console.log(`Inserting ${performanceData.length} performance data points for ${region} region...`);
+      
+      for (const data of performanceData) {
+        await pool.query(`
+          INSERT INTO portfolio_performance (
+            date, region, portfolio_value, benchmark_value, 
+            portfolio_return_daily, benchmark_return_daily,
+            portfolio_cumulative_return, benchmark_cumulative_return, 
+            relative_performance
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        `, [
+          data.date,
+          data.region,
+          data.portfolioValue,
+          data.benchmarkValue,
+          data.portfolioReturnDaily,
+          data.benchmarkReturnDaily,
+          data.portfolioCumulativeReturn,
+          data.benchmarkCumulativeReturn,
+          data.relativePerformance
+        ]);
+      }
+      
+      console.log(`Successfully updated performance history for ${region} region`);
+    }
+    
+    console.log('Successfully updated all portfolio performance history');
+    return true;
+  } catch (error) {
+    console.error('Error updating portfolio performance history:', error);
+    return false;
+  }
+}
 
 /**
  * Get historical prices for a specific symbol and region
@@ -71,7 +274,7 @@ export const fetchRegionHistoricalPrices = async (req: Request, res: Response) =
     const period = (req.query.period || req.body.period || '5y') as string;
     
     // Step 1: Update historical prices for this region
-    const results = await historicalPriceService.fetchHistoricalPricesForRegion(upperRegion, period);
+    const results = await historicalPriceService.fetchHistoricalPrices(upperRegion, period);
     
     // Step 2: Automatically update portfolio holdings for this region
     console.log(`Automatically updating ${upperRegion} portfolio holdings after historical price update...`);
@@ -97,6 +300,9 @@ export const fetchRegionHistoricalPrices = async (req: Request, res: Response) =
       }
       
       console.log(`Successfully updated ${upperRegion} portfolio holdings with new historical data`);
+      
+      // Update portfolio performance history with new data
+      await updatePortfolioPerformanceHistory();
       
       // Get success metrics from original results
       const successCount = results.filter(r => r.success).length;
@@ -154,7 +360,11 @@ export const fetchAllHistoricalPrices = async (req: Request, res: Response) => {
     try {
       // Update all regional portfolios
       await holdingsService.updateAllHoldings();
-      console.log('Successfully updated all portfolio holdings with new historical data');
+      
+      // Update portfolio performance history with new data
+      await updatePortfolioPerformanceHistory();
+      
+      console.log('Successfully updated all portfolio holdings and performance with new historical data');
       
       return res.json({
         ...response,
@@ -305,7 +515,11 @@ export const fetchAllCurrentPrices = async (req: Request, res: Response) => {
     try {
       // Update all regional portfolios
       await holdingsService.updateAllHoldings();
-      console.log('Successfully updated all portfolio holdings with new prices');
+      
+      // Update portfolio performance history with new data
+      await updatePortfolioPerformanceHistory();
+      
+      console.log('Successfully updated all portfolio holdings and performance with new prices');
       
       return res.json({
         message: `Successfully updated ${totalSuccessCount}/${totalSymbols} symbols and recalculated all portfolio metrics`,
