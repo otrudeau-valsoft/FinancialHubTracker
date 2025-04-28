@@ -163,6 +163,13 @@ export function Header() {
         >
           Data Management
         </button>
+        
+        <button 
+          onClick={() => navigateTo("/diagnostics")} 
+          className={`text-gray-300 hover:text-white px-3 py-1.5 rounded-md transition-colors duration-200 ease-in-out ${location === '/diagnostics' ? 'bg-blue-900/40' : 'hover:bg-[#1A304A]'}`}
+        >
+          Diagnostics
+        </button>
       </nav>
       
       {/* Mobile View - Market Indicators */}
@@ -309,6 +316,13 @@ export function Header() {
                 className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/data-management' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
               >
                 Data Management
+              </button>
+              
+              <button 
+                onClick={() => navigateTo("/diagnostics")} 
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/diagnostics' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
+              >
+                Diagnostics
               </button>
             </div>
           </div>
