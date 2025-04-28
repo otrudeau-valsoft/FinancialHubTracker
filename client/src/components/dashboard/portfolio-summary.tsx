@@ -94,7 +94,9 @@ export const PortfolioSummary = ({
             <span className={`text-lg sm:text-xl font-semibold mono ${getProfitLossClass(summary.ytdPerformance)}`}>
               {formatPercentage(summary.ytdPerformance)}
             </span>
-            <span className="text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full bg-blue-900/20 text-blue-400">{formatCurrency(summary.ytdPerformanceValue, currencySymbol)}</span>
+            <span className="text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full bg-blue-900/20 text-blue-400">
+              {formatCurrency(summary.ytdPerformanceValue, currencySymbol)}
+            </span>
           </div>
           <div className="text-[10px] sm:text-xs text-gray-400 mt-2 flex justify-between">
             <span>{benchmark}:</span> 
@@ -115,11 +117,17 @@ export const PortfolioSummary = ({
         </CardHeader>
         <CardContent className="p-2 pt-1.5">
           <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-            <span className="text-lg sm:text-xl font-semibold text-[#EFEFEF] mono">{summary.activeAlerts}</span>
-            {summary.criticalAlerts > 0 ? (
-              <span className="text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full bg-red-900/30 text-red-400">{summary.criticalAlerts} critical</span>
+            <span className="text-lg sm:text-xl font-semibold text-[#EFEFEF] mono">
+              {summary.activeAlerts || 0}
+            </span>
+            {(summary.criticalAlerts || 0) > 0 ? (
+              <span className="text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full bg-red-900/30 text-red-400">
+                {summary.criticalAlerts} critical
+              </span>
             ) : (
-              <span className="text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full bg-green-900/30 text-green-400">All clear</span>
+              <span className="text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full bg-green-900/30 text-green-400">
+                All clear
+              </span>
             )}
           </div>
           <div className="text-[10px] sm:text-xs text-gray-400 mt-2 flex justify-between">
