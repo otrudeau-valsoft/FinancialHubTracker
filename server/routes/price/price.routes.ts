@@ -12,11 +12,11 @@ import {
   fetchAllCurrentPrices
 } from '../../controllers/price/price.controller';
 import { asyncHandler } from '../../middleware/error-handler';
+import portfolioPerformanceHistoryRouter from '../portfolio-performance-history';
 
 // Create separate routers for historical and current prices
 const historicalRouter = Router();
 const currentRouter = Router();
-const performanceHistoryRouter = Router();
 
 // Historical prices router - explicitly set service type
 historicalRouter.use((req, res, next) => {
@@ -44,18 +44,9 @@ currentRouter.post('/fetch/:symbol/:region', asyncHandler(fetchCurrentPrice));
 currentRouter.post('/fetch/portfolio/:region', asyncHandler(fetchRegionCurrentPrices));
 currentRouter.post('/fetch/all', asyncHandler(fetchAllCurrentPrices));
 
-// Performance history router - uses historical price service but specific endpoint
-performanceHistoryRouter.use((req, res, next) => {
-  req.serviceType = 'historical';
-  next();
-});
-
-// Performance history uses historical data routes
-performanceHistoryRouter.get('/', asyncHandler(getHistoricalPricesByRegion));
-
 // Export all routers
 export { 
   historicalRouter as historicalPriceRoutes, 
   currentRouter as currentPriceRoutes,
-  performanceHistoryRouter as performanceHistoryRoutes
+  portfolioPerformanceHistoryRouter as performanceHistoryRoutes
 };
