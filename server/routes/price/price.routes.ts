@@ -13,60 +13,49 @@ import {
 } from '../../controllers/price/price.controller';
 import { asyncHandler } from '../../middleware/error-handler';
 
-const router = Router();
+// Create separate routers for historical and current prices
+const historicalRouter = Router();
+const currentRouter = Router();
+const performanceHistoryRouter = Router();
 
-// Handler to distinguish between historical and current price routes
-router.use((req, res, next) => {
-  const path = req.path;
-  
-  // Check if the URL starts with a recognized service prefix
-  const isHistoricalUrl = 
-    req.baseUrl === '/api/historical-prices' || 
-    path.startsWith('/historical');
-  
-  const isCurrentUrl = 
-    req.baseUrl === '/api/current-prices' || 
-    path.startsWith('/current');
-  
-  // Add service type to the request object for controllers to use
-  if (isHistoricalUrl) {
-    req.serviceType = 'historical';
-  } else if (isCurrentUrl) {
-    req.serviceType = 'current';
-  }
-  
+// Historical prices router - explicitly set service type
+historicalRouter.use((req, res, next) => {
+  req.serviceType = 'historical';
   next();
 });
 
-// Routes for historical prices (when mounted at /api/historical-prices)
-// Direct routes
-router.get('/:symbol/:region', asyncHandler(getHistoricalPrices));
-router.get('/region/:region', asyncHandler(getHistoricalPricesByRegion));
-router.post('/fetch/:symbol/:region', asyncHandler(fetchHistoricalPrices));
-router.post('/fetch/portfolio/:region', asyncHandler(fetchRegionHistoricalPrices));
-router.post('/fetch/all', asyncHandler(fetchAllHistoricalPrices));
+// Routes for historical prices
+historicalRouter.get('/:symbol/:region', asyncHandler(getHistoricalPrices));
+historicalRouter.get('/region/:region', asyncHandler(getHistoricalPricesByRegion));
+historicalRouter.post('/fetch/:symbol/:region', asyncHandler(fetchHistoricalPrices));
+historicalRouter.post('/fetch/portfolio/:region', asyncHandler(fetchRegionHistoricalPrices));
+historicalRouter.post('/fetch/all', asyncHandler(fetchAllHistoricalPrices));
 
-// Routes for current prices (when mounted at /api/current-prices)
-// Direct routes
-router.get('/:region', asyncHandler(getCurrentPrices));
-router.get('/:region/:symbol', asyncHandler(getCurrentPrice));
-router.post('/fetch/:symbol/:region', asyncHandler(fetchCurrentPrice));
-router.post('/fetch/portfolio/:region', asyncHandler(fetchRegionCurrentPrices));
-router.post('/fetch/all', asyncHandler(fetchAllCurrentPrices));
+// Current prices router - explicitly set service type
+currentRouter.use((req, res, next) => {
+  req.serviceType = 'current';
+  next();
+});
 
-// Nested routes (when mounted at a parent path)
-// Historical price routes
-router.get('/historical/:symbol/:region', asyncHandler(getHistoricalPrices));
-router.get('/historical/region/:region', asyncHandler(getHistoricalPricesByRegion));
-router.post('/historical/fetch/:symbol/:region', asyncHandler(fetchHistoricalPrices));
-router.post('/historical/fetch/portfolio/:region', asyncHandler(fetchRegionHistoricalPrices));
-router.post('/historical/fetch/all', asyncHandler(fetchAllHistoricalPrices));
+// Routes for current prices
+currentRouter.get('/:region', asyncHandler(getCurrentPrices));
+currentRouter.get('/:region/:symbol', asyncHandler(getCurrentPrice));
+currentRouter.post('/fetch/:symbol/:region', asyncHandler(fetchCurrentPrice));
+currentRouter.post('/fetch/portfolio/:region', asyncHandler(fetchRegionCurrentPrices));
+currentRouter.post('/fetch/all', asyncHandler(fetchAllCurrentPrices));
 
-// Current price routes
-router.get('/current/:region', asyncHandler(getCurrentPrices));
-router.get('/current/:region/:symbol', asyncHandler(getCurrentPrice));
-router.post('/current/fetch/:symbol/:region', asyncHandler(fetchCurrentPrice));
-router.post('/current/fetch/portfolio/:region', asyncHandler(fetchRegionCurrentPrices));
-router.post('/current/fetch/all', asyncHandler(fetchAllCurrentPrices));
+// Performance history router - uses historical price service but specific endpoint
+performanceHistoryRouter.use((req, res, next) => {
+  req.serviceType = 'historical';
+  next();
+});
 
-export default router;
+// Performance history uses historical data routes
+performanceHistoryRouter.get('/', asyncHandler(getHistoricalPricesByRegion));
+
+// Export all routers
+export { 
+  historicalRouter as historicalPriceRoutes, 
+  currentRouter as currentPriceRoutes,
+  performanceHistoryRouter as performanceHistoryRoutes
+};

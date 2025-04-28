@@ -3,7 +3,7 @@ import portfolioRoutes from './portfolio/portfolio.routes';
 import etfRoutes from './etf/etf.routes';
 import matrixRoutes from './matrix/matrix.routes';
 import alertsRoutes from './alerts/alerts.routes';
-import priceRoutes from './price/price.routes';
+import { historicalPriceRoutes, currentPriceRoutes, performanceHistoryRoutes } from './price/price.routes';
 import dataRoutes from './data/data.routes';
 import upgradeDowngradeRoutes from './upgrade-downgrade/upgrade-downgrade.routes';
 import dataManagementRoutes from './data-management';
@@ -29,10 +29,10 @@ router.use('/etfs', etfRoutes);
 router.use('/matrix-rules', matrixRoutes);
 router.use('/alerts', alertsRoutes);
 
-// Historical prices routes
-router.use('/historical-prices', priceRoutes);
-// Current prices routes
-router.use('/current-prices', priceRoutes);
+// Historical prices routes - now using dedicated router
+router.use('/historical-prices', historicalPriceRoutes);
+// Current prices routes - now using dedicated router
+router.use('/current-prices', currentPriceRoutes);
 
 // Data update routes
 router.use('/data-updates', dataRoutes);
@@ -56,7 +56,7 @@ router.use('/portfolio-history', portfolioHistoryRoutes);
 router.use('/portfolio-performance', portfolioPerformanceRoutes);
 
 // Portfolio performance history routes (from dedicated history table)
-router.use('/portfolio-performance-history', portfolioPerformanceHistoryRoutes);
+router.use('/portfolio-performance-history', performanceHistoryRoutes);
 
 // Earnings routes
 router.use('/', earningsRoutes);
