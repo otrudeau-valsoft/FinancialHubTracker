@@ -7,7 +7,7 @@
  */
 import { db } from '../server/db';
 import { eq, desc, isNull } from 'drizzle-orm';
-import { etfHoldings } from '../shared/schema';
+import { etfHoldingsSPY } from '../shared/schema';
 import yahooFinance from 'yahoo-finance2';
 
 // Common sector mappings for major companies
@@ -53,16 +53,14 @@ async function getTop10SPYHoldings() {
   try {
     const holdings = await db
       .select({
-        id: etfHoldings.id,
-        ticker: etfHoldings.ticker,
-        name: etfHoldings.name,
-        weight: etfHoldings.weight,
-        etfSymbol: etfHoldings.etfSymbol,
-        sector: etfHoldings.sector
+        id: etfHoldingsSPY.id,
+        ticker: etfHoldingsSPY.ticker,
+        name: etfHoldingsSPY.name,
+        weight: etfHoldingsSPY.weight,
+        sector: etfHoldingsSPY.sector
       })
-      .from(etfHoldings)
-      .where(eq(etfHoldings.etfSymbol, 'SPY'))
-      .orderBy(desc(etfHoldings.weight))
+      .from(etfHoldingsSPY)
+      .orderBy(desc(etfHoldingsSPY.weight))
       .limit(10);
     
     return holdings;
@@ -100,25 +98,27 @@ async function fetchSectorInfo(ticker: string): Promise<string | null> {
 /**
  * Update sector information for a single holding
  */
-async function updateHoldingSector(holding: { id: number; ticker: string; name: string; weight: number | null }) {
+async function updateHoldingSector(holding: { id: number; ticker: string; name: string; weight: number | null; sector: string | null }) {
   try {
-    // Skip if sector already exists
-    if (holding.sector) {
+    // Skip if sector already exists and is not a placeholder
+    if (holding.sector && holding.sector !== '-') {
       logProgress(`Skipping ${holding.ticker} (${holding.name}): sector already exists (${holding.sector})`);
       return true;
     }
     
-    logProgress(`Fetching sector for ${holding.ticker} (${holding.name}), weight: ${holding.weight?.toFixed(2)}%`);
+    // Convert weight to number first if it's a string
+    const weightValue = holding.weight ? parseFloat(holding.weight.toString()) : null;
+    logProgress(`Fetching sector for ${holding.ticker} (${holding.name}), weight: ${weightValue?.toFixed(2) || 'N/A'}%`);
     const sector = await fetchSectorInfo(holding.ticker);
     
     if (sector) {
       await db
-        .update(etfHoldings)
+        .update(etfHoldingsSPY)
         .set({
           sector: sector,
           updatedAt: new Date()
         })
-        .where(eq(etfHoldings.id, holding.id));
+        .where(eq(etfHoldingsSPY.id, holding.id));
       
       logProgress(`✅ Updated sector for ${holding.ticker}: ${sector}`);
       return true;
