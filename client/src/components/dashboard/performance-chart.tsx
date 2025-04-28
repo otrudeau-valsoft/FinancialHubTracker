@@ -1,6 +1,7 @@
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 import {
   ResponsiveContainer,
   LineChart,
@@ -13,54 +14,73 @@ import {
 } from "recharts";
 
 interface PerformanceChartProps {
-  portfolioData: Array<{
-    date: string;
-    portfolioValue: number;
-    benchmarkValue: number;
-  }>;
-  timeRanges: string[];
-  benchmark: string;
+  region: string;
+  timeRanges?: string[];
+  benchmark?: string;
 }
 
 export const PerformanceChart = ({ 
-  portfolioData,
+  region,
   timeRanges = ["1W", "1M", "YTD", "1Y"],
   benchmark = "SPY"
 }: PerformanceChartProps) => {
   const [selectedRange, setSelectedRange] = useState("YTD");
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
   
-  // Format the data specifically for the selected time range
-  const filteredData = portfolioData.slice(-getTimeRangeLength(selectedRange));
-  
-  // Convert absolute values to percentage changes
-  const percentageData = calculatePercentageChanges(filteredData);
-  
-  function getTimeRangeLength(range: string): number {
-    switch (range) {
-      case "1W": return 7;
-      case "1M": return 30;
-      case "YTD": 
-        // Get days from Jan 1 to today
-        const now = new Date();
-        const startOfYear = new Date(now.getFullYear(), 0, 1);
-        return Math.floor((now.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
-      case "1Y": return 365;
-      default: return 30;
+  // Set date range based on selected time range
+  useEffect(() => {
+    const now = new Date();
+    let start = new Date();
+    
+    switch (selectedRange) {
+      case "1W":
+        start = new Date(now);
+        start.setDate(now.getDate() - 7);
+        break;
+      case "1M":
+        start = new Date(now);
+        start.setMonth(now.getMonth() - 1);
+        break;
+      case "YTD":
+        start = new Date(now.getFullYear(), 0, 1); // Jan 1st of current year
+        break;
+      case "1Y":
+        start = new Date(now);
+        start.setFullYear(now.getFullYear() - 1);
+        break;
+      default:
+        start = new Date(now);
+        start.setMonth(now.getMonth() - 1);
     }
-  }
+    
+    setStartDate(start.toISOString().split('T')[0]);
+    setEndDate(now.toISOString().split('T')[0]);
+  }, [selectedRange]);
   
-  function calculatePercentageChanges(data: any[]): any[] {
-    if (!data.length) return [];
+  // Fetch portfolio performance data
+  const { data: performanceData, isLoading } = useQuery({
+    queryKey: ['/api/portfolio-history', region, startDate, endDate],
+    enabled: !!startDate && !!endDate,
+    staleTime: 3600000, // 1 hour
+  });
+  
+  // Format data for chart display
+  const percentageData = useMemo(() => {
+    if (!performanceData || !performanceData.length) return [];
     
-    const baselinePortfolio = data[0].portfolioValue;
-    const baselineBenchmark = data[0].benchmarkValue;
+    const baselinePortfolio = performanceData[0]?.portfolioValue || 0;
+    const baselineBenchmark = performanceData[0]?.benchmarkValue || 0;
     
-    return data.map(point => ({
+    // Skip normalization if baseline values are 0
+    if (baselinePortfolio === 0 || baselineBenchmark === 0) return [];
+    
+    return performanceData.map(point => ({
       date: point.date,
       portfolio: ((point.portfolioValue / baselinePortfolio) - 1) * 100,
       benchmark: ((point.benchmarkValue / baselineBenchmark) - 1) * 100
     }));
-  }
+  }, [performanceData]);
   
   return (
     <Card className="mb-6 border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden">

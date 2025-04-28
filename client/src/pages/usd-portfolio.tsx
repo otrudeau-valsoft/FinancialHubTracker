@@ -19,23 +19,7 @@ import {
 import { parseCSV, convertPortfolioData } from "@/lib/parse-csv";
 import { apiRequest } from "@/lib/queryClient";
 
-// Sample performance data for illustration
-const samplePerformanceData = Array.from({ length: 180 }, (_, i) => {
-  const date = new Date();
-  date.setDate(date.getDate() - (180 - i));
-  
-  const dateStr = date.toISOString().split('T')[0];
-  
-  // Create some reasonable looking performance data
-  const portfolioValue = 100 + (i * 0.05) + Math.sin(i / 10) * 2;
-  const benchmarkValue = 100 + (i * 0.04) + Math.sin(i / 8) * 1.5;
-  
-  return {
-    date: dateStr,
-    portfolioValue,
-    benchmarkValue
-  };
-});
+// Performance data will be fetched from the API
 
 export default function UsdPortfolio() {
   const queryClient = useQueryClient();

@@ -728,6 +728,175 @@ export class DatabaseStorage {
   }
 
   /**
+   * Get historical prices for a specific symbol and region with optional date range
+   */
+  async getHistoricalPrices(symbol: string, region: string, startDate?: Date, endDate?: Date) {
+    try {
+      // Build the query based on provided filters
+      let query = db.select().from(historicalPrices)
+        .where(
+          and(
+            eq(historicalPrices.symbol, symbol),
+            eq(historicalPrices.region, region)
+          )
+        );
+      
+      // Add date range filters if provided
+      if (startDate) {
+        query = query.where(gte(historicalPrices.date, startDate));
+      }
+      
+      if (endDate) {
+        query = query.where(lte(historicalPrices.date, endDate));
+      }
+      
+      // Order by date ascending for time series data
+      const result = await query.orderBy(asc(historicalPrices.date));
+      return result;
+    } catch (error) {
+      console.error(`Error getting historical prices for ${symbol} (${region}):`, error);
+      return [];
+    }
+  }
+  
+  /**
+   * Get historical prices for a region with optional date range
+   */
+  async getHistoricalPricesByRegion(region: string, startDate?: Date, endDate?: Date) {
+    try {
+      // Build the query based on provided filters
+      let query = db.select().from(historicalPrices)
+        .where(eq(historicalPrices.region, region));
+      
+      // Add date range filters if provided
+      if (startDate) {
+        query = query.where(gte(historicalPrices.date, startDate));
+      }
+      
+      if (endDate) {
+        query = query.where(lte(historicalPrices.date, endDate));
+      }
+      
+      // Order by date ascending for time series data
+      const result = await query.orderBy(asc(historicalPrices.date));
+      return result;
+    } catch (error) {
+      console.error(`Error getting historical prices for region ${region}:`, error);
+      return [];
+    }
+  }
+  
+  /**
+   * Get historical prices for multiple symbols in a region with optional date range
+   */
+  async getHistoricalPricesBySymbols(symbols: string[], region: string, startDate?: Date, endDate?: Date) {
+    try {
+      if (!symbols || symbols.length === 0) {
+        return [];
+      }
+      
+      // Build the query based on provided filters
+      let query = db.select().from(historicalPrices)
+        .where(
+          and(
+            inArray(historicalPrices.symbol, symbols),
+            eq(historicalPrices.region, region)
+          )
+        );
+      
+      // Add date range filters if provided
+      if (startDate) {
+        query = query.where(gte(historicalPrices.date, startDate));
+      }
+      
+      if (endDate) {
+        query = query.where(lte(historicalPrices.date, endDate));
+      }
+      
+      // Order by date ascending for time series data
+      const result = await query.orderBy(asc(historicalPrices.date));
+      return result;
+    } catch (error) {
+      console.error(`Error getting historical prices for symbols in ${region}:`, error);
+      return [];
+    }
+  }
+  
+  /**
+   * Create a historical price record
+   */
+  async createHistoricalPrice(data: any) {
+    try {
+      const [result] = await db.insert(historicalPrices).values(sanitizeForDb(data)).returning();
+      return result;
+    } catch (error) {
+      console.error('Error creating historical price:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Bulk create historical price records
+   */
+  async bulkCreateHistoricalPrices(data: any[]) {
+    try {
+      // Process data for insertion
+      const processedData = data.map(item => sanitizeForDb(item));
+      
+      // Insert into the historical_prices table
+      const results = await db.insert(historicalPrices).values(processedData).returning();
+      return results;
+    } catch (error) {
+      console.error('Error bulk creating historical prices:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Delete historical prices for a symbol and region
+   */
+  async deleteHistoricalPrices(symbol: string, region: string) {
+    try {
+      await db.delete(historicalPrices)
+        .where(
+          and(
+            eq(historicalPrices.symbol, symbol),
+            eq(historicalPrices.region, region)
+          )
+        );
+      return true;
+    } catch (error) {
+      console.error(`Error deleting historical prices for ${symbol} (${region}):`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Get stocks by region
+   */
+  async getStocksByRegion(region: string) {
+    try {
+      const upperRegion = region.toUpperCase();
+      let result = [];
+      
+      if (upperRegion === 'USD') {
+        result = await db.select().from(portfolioUSD);
+      } else if (upperRegion === 'CAD') {
+        result = await db.select().from(portfolioCAD);
+      } else if (upperRegion === 'INTL') {
+        result = await db.select().from(portfolioINTL);
+      } else {
+        throw new Error(`Unknown region: ${region}`);
+      }
+      
+      return result;
+    } catch (error) {
+      console.error(`Error getting stocks for region ${region}:`, error);
+      return [];
+    }
+  }
+
+  /**
    * Get user by ID
    */
   async getUser(id: number) {

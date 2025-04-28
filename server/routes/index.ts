@@ -11,6 +11,7 @@ import schedulerRoutes from './scheduler/scheduler.routes';
 import apiHealthRoutes from './api-health.routes';
 import holdingsRoutes from './holdings';
 import cashRoutes from './cash';
+import portfolioHistoryRoutes from './portfolio-history';
 
 const router = Router();
 
@@ -42,6 +43,9 @@ router.use('/holdings', holdingsRoutes);
 
 // Cash management routes
 router.use('/cash', cashRoutes);
+
+// Portfolio history routes for performance charts
+router.use('/portfolio-history', portfolioHistoryRoutes);
 
 // Data management routes (for development and administration)
 router.use('/data-management', dataManagementRoutes);
