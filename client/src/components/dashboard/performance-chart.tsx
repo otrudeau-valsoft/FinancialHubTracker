@@ -108,71 +108,94 @@ export const PerformanceChart = ({
       </div>
       <CardContent className="p-4 bg-[#0A1929]">
         <div className="h-[200px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={percentageData}
-              margin={{
-                top: 5,
-                right: 20,
-                left: 0,
-                bottom: 5,
-              }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#2D3748" />
-              <XAxis 
-                dataKey="date" 
-                stroke="#9AA0A6" 
-                fontSize={10}
-                tickFormatter={(value) => {
-                  // Format date for display (e.g., "Jan", "Feb", etc.)
-                  const date = new Date(value);
-                  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          {isLoading ? (
+            <div className="h-full w-full flex items-center justify-center">
+              <div className="text-[#7A8999] text-sm flex flex-col items-center">
+                <div className="w-6 h-6 border-2 border-t-[#0A7AFF] border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mb-2"></div>
+                <span>Loading chart data...</span>
+              </div>
+            </div>
+          ) : !performanceData || performanceData.length === 0 ? (
+            <div className="h-full w-full flex items-center justify-center">
+              <div className="text-[#7A8999] text-sm text-center">
+                <p>No historical price data available for this period.</p>
+                <p className="text-xs mt-1">Try selecting a different time range or check data settings.</p>
+              </div>
+            </div>
+          ) : percentageData.length === 0 ? (
+            <div className="h-full w-full flex items-center justify-center">
+              <div className="text-[#7A8999] text-sm text-center">
+                <p>Unable to calculate percentage changes.</p>
+                <p className="text-xs mt-1">The historical price data may be incomplete.</p>
+              </div>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={percentageData}
+                margin={{
+                  top: 5,
+                  right: 20,
+                  left: 0,
+                  bottom: 5,
                 }}
-              />
-              <YAxis 
-                stroke="#9AA0A6" 
-                fontSize={10}
-                tickFormatter={(value) => `${value.toFixed(1)}%`}
-              />
-              <Tooltip 
-                formatter={(value: number) => [`${value.toFixed(2)}%`, '']}
-                labelFormatter={(label) => {
-                  const date = new Date(label);
-                  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-                }}
-                contentStyle={{ 
-                  backgroundColor: '#1A202C',
-                  border: '1px solid #2D3748',
-                  borderRadius: '4px',
-                  fontSize: '12px'
-                }}
-              />
-              <Legend 
-                verticalAlign="bottom" 
-                height={36}
-                formatter={(value) => {
-                  return value === 'portfolio' ? 'Portfolio' : benchmark;
-                }}
-              />
-              <Line
-                type="monotone"
-                dataKey="portfolio"
-                stroke="#0A7AFF"
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 4 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="benchmark"
-                stroke="#9AA0A6"
-                strokeWidth={2}
-                strokeDasharray="3 3"
-                dot={false}
-                activeDot={{ r: 4 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#2D3748" />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="#9AA0A6" 
+                  fontSize={10}
+                  tickFormatter={(value) => {
+                    // Format date for display (e.g., "Jan", "Feb", etc.)
+                    const date = new Date(value);
+                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                  }}
+                />
+                <YAxis 
+                  stroke="#9AA0A6" 
+                  fontSize={10}
+                  tickFormatter={(value) => `${value.toFixed(1)}%`}
+                />
+                <Tooltip 
+                  formatter={(value: number) => [`${value.toFixed(2)}%`, '']}
+                  labelFormatter={(label) => {
+                    const date = new Date(label);
+                    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                  }}
+                  contentStyle={{ 
+                    backgroundColor: '#1A202C',
+                    border: '1px solid #2D3748',
+                    borderRadius: '4px',
+                    fontSize: '12px'
+                  }}
+                />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36}
+                  formatter={(value) => {
+                    return value === 'portfolio' ? 'Portfolio' : benchmark;
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="portfolio"
+                  stroke="#0A7AFF"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 4 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="benchmark"
+                  stroke="#9AA0A6"
+                  strokeWidth={2}
+                  strokeDasharray="3 3"
+                  dot={false}
+                  activeDot={{ r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </CardContent>
     </Card>

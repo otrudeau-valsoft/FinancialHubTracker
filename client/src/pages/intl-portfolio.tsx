@@ -212,7 +212,7 @@ export default function IntlPortfolio() {
             
             <div className="md:col-span-2 lg:col-span-1 flex flex-col">
               <PerformanceChart 
-                portfolioData={samplePerformanceData}
+                region="INTL"
                 timeRanges={["1W", "1M", "YTD", "1Y"]}
                 benchmark="ACWX"
               />
