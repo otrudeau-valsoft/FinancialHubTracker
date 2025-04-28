@@ -138,6 +138,13 @@ export function Header() {
         </button>
         
         <button 
+          onClick={() => navigateTo("/economic-calendar")} 
+          className={`text-gray-300 hover:text-white px-3 py-1.5 rounded-md transition-colors duration-200 ease-in-out ${location === '/economic-calendar' ? 'bg-blue-900/40' : 'hover:bg-[#1A304A]'}`}
+        >
+          Economic Calendar
+        </button>
+        
+        <button 
           onClick={() => navigateTo("/news")} 
           className={`text-gray-300 hover:text-white px-3 py-1.5 rounded-md transition-colors duration-200 ease-in-out ${location === '/news' ? 'bg-blue-900/40' : 'hover:bg-[#1A304A]'}`}
         >
@@ -259,6 +266,13 @@ export function Header() {
                 className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/etf-holdings' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
               >
                 ETF Holdings
+              </button>
+              
+              <button 
+                onClick={() => navigateTo("/economic-calendar")} 
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/economic-calendar' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
+              >
+                Economic Calendar
               </button>
               
               <button 
