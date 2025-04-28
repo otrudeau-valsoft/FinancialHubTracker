@@ -73,8 +73,9 @@ export const PerformanceChart = ({
           throw error;
         }),
     enabled: !!selectedRange && !!region,
-    staleTime: 60000, // 1 minute - reduced from 1 hour to make updates more frequent
+    staleTime: 30000, // 30 seconds - reduced for more frequent updates
     refetchOnWindowFocus: true,
+    refetchInterval: 60000, // 1 minute - periodically refetch even without user interaction
   });
   
   // Define the API response and data types

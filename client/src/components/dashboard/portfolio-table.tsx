@@ -79,6 +79,7 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
     queryKey: [`/api/current-prices/${region}`],
     staleTime: 30000, // 30 seconds - reduced for more frequent updates
     refetchOnWindowFocus: true,
+    refetchInterval: 30000, // Fetch every 30 seconds automatically
     enabled: true // Always fetch to ensure we have latest prices
   });
 
