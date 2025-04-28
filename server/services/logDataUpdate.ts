@@ -1,5 +1,5 @@
-import { db } from '@/server/db';
-import { dataUpdateLogs } from '@/shared/schema';
+import { db } from '../db';
+import { dataUpdateLogs } from '../../shared/schema';
 
 /**
  * Logs an update to the database

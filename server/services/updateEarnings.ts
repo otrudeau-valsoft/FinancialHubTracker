@@ -1,7 +1,7 @@
 import yahooFinance from 'yahoo-finance2';
-import { db } from '@/server/db';
+import { db } from '../db';
 import { eq, sql, desc, and } from 'drizzle-orm';
-import { earningsQuarterly, earningsMeta, portfolioUSD, portfolioCAD, portfolioINTL } from '@/shared/schema';
+import { earningsQuarterly, earningsMeta, portfolioUSD, portfolioCAD, portfolioINTL } from '../../shared/schema';
 import { logDataUpdate } from './logDataUpdate';
 
 /**

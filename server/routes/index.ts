@@ -12,6 +12,7 @@ import apiHealthRoutes from './api-health.routes';
 import holdingsRoutes from './holdings';
 import cashRoutes from './cash';
 import portfolioHistoryRoutes from './portfolio-history';
+import earningsRoutes from './earnings';
 import { getNewsBySymbol, getNewsForPortfolio } from './news';
 
 const router = Router();
@@ -47,6 +48,9 @@ router.use('/cash', cashRoutes);
 
 // Portfolio history routes for performance charts
 router.use('/portfolio-history', portfolioHistoryRoutes);
+
+// Earnings routes
+router.use('/', earningsRoutes);
 
 // Data management routes (for development and administration)
 router.use('/data-management', dataManagementRoutes);

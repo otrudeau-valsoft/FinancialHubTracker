@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { db } from '../db';
-import { earningsQuarterly } from '../../shared/schema';
-import { updateEarningsData, beatStatus, revenueStatus } from '../services/updateEarnings';
+import { db } from '../../db';
+import { earningsQuarterly } from '../../../shared/schema';
+import { updateEarningsData, beatStatus, revenueStatus } from '../../services/updateEarnings';
 import { eq, desc, and, sql } from 'drizzle-orm';
-import { asyncHandler } from '../middleware/error-handler';
+import { asyncHandler } from '../../middleware/error-handler';
 
 const router = Router();
 
@@ -141,9 +141,9 @@ router.get('/heatmap', asyncHandler(async (req, res) => {
       };
       
       const scoreStats = {
-        Good: quarterData.filter(d => d.score >= 7).length,
-        Okay: quarterData.filter(d => d.score >= 4 && d.score < 7).length,
-        Bad: quarterData.filter(d => d.score < 4).length,
+        Good: quarterData.filter(d => (d.score || 0) >= 7).length,
+        Okay: quarterData.filter(d => (d.score || 0) >= 4 && (d.score || 0) < 7).length,
+        Bad: quarterData.filter(d => (d.score || 0) < 4).length,
       };
       
       result.push({
