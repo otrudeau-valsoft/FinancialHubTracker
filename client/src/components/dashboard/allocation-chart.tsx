@@ -22,7 +22,8 @@ export const AllocationChart = ({ typeAllocation, ratingAllocation }: Allocation
   const typeColors = {
     Comp: getStockTypeColor('comp'),
     Cat: getStockTypeColor('cat'),
-    Cycl: getStockTypeColor('cycl')
+    Cycl: getStockTypeColor('cycl'),
+    Cash: '#FFD700' // Yellow/Gold for cash
   };
   
   const ratingColors = {
