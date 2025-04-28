@@ -20,11 +20,10 @@ import { and, eq, sql } from 'drizzle-orm';
  * Log an update to the database
  */
 async function logUpdate(type: string, status: 'Success' | 'Error' | 'In Progress', region: string, message: string) {
-  await db.insert(sql`data_update_logs`).values({
-    type,
-    status,
-    details: JSON.stringify({ region, message }),
-  });
+  await db.execute(sql`
+    INSERT INTO data_update_logs (type, status, details)
+    VALUES (${type}, ${status}, ${JSON.stringify({ region, message })})
+  `);
   console.log(`[${status}] ${type} - ${region}: ${message}`);
 }
 
@@ -298,37 +297,26 @@ async function importEarningsData(
             marketReaction
           );
           
-          // Insert or update earnings data
-          await db.insert(earningsQuarterly).values({
-            ticker: dbSymbol,
-            fiscal_year: fiscalYear,
-            fiscal_q: fiscalQ,
-            eps_actual: quarter.actual,
-            eps_estimate: quarter.estimate,
-            rev_actual: revenueActual,
-            rev_estimate: revenueEstimate,
-            guidance: guidance,
-            mkt_reaction: marketReaction,
-            score: score,
-            note: `${epsStatus || 'Unknown'} EPS, ${revenueStatus || 'Unknown'} Revenue`
-          }).onConflictDoUpdate({
-            target: [
-              earningsQuarterly.ticker,
-              earningsQuarterly.fiscal_year,
-              earningsQuarterly.fiscal_q
-            ],
-            set: {
-              eps_actual: quarter.actual,
-              eps_estimate: quarter.estimate,
-              rev_actual: revenueActual,
-              rev_estimate: revenueEstimate,
-              guidance: guidance,
-              mkt_reaction: marketReaction,
-              score: score,
-              note: `${epsStatus || 'Unknown'} EPS, ${revenueStatus || 'Unknown'} Revenue`,
-              updated_at: new Date()
-            }
-          });
+          // Insert or update earnings data using raw SQL to avoid type issues
+          await db.execute(sql`
+            INSERT INTO earnings_quarterly 
+              (ticker, fiscal_year, fiscal_q, eps_actual, eps_estimate, rev_actual, rev_estimate, guidance, mkt_reaction, score, note)
+            VALUES 
+              (${dbSymbol}, ${fiscalYear}, ${fiscalQ}, ${quarter.actual}, ${quarter.estimate}, 
+               ${revenueActual}, ${revenueEstimate}, ${guidance}, ${marketReaction}, ${score}, 
+               ${`${epsStatus || 'Unknown'} EPS, ${revenueStatus || 'Unknown'} Revenue`})
+            ON CONFLICT (ticker, fiscal_year, fiscal_q) 
+            DO UPDATE SET
+              eps_actual = ${quarter.actual},
+              eps_estimate = ${quarter.estimate},
+              rev_actual = ${revenueActual},
+              rev_estimate = ${revenueEstimate},
+              guidance = ${guidance},
+              mkt_reaction = ${marketReaction},
+              score = ${score},
+              note = ${`${epsStatus || 'Unknown'} EPS, ${revenueStatus || 'Unknown'} Revenue`},
+              updated_at = NOW()
+          `);
           
           console.log(`Imported earnings from earnings module for ${symbol} ${fiscalYear}Q${fiscalQ}`);
         }
@@ -373,34 +361,25 @@ async function importEarningsData(
           marketReaction
         );
         
-        await db.insert(earningsQuarterly).values({
-          ticker: dbSymbol,
-          fiscal_year: fiscalYear,
-          fiscal_q: fiscalQ,
-          eps_actual: entry.epsActual,
-          eps_estimate: entry.epsEstimate,
-          rev_actual: null, // Not available in this module
-          rev_estimate: null, // Not available in this module
-          guidance: guidance,
-          mkt_reaction: marketReaction,
-          score: score,
-          note: `${epsStatus || 'Unknown'} EPS (${entry.surprisePercent ? (entry.surprisePercent * 100).toFixed(1) + '%' : 'N/A'} surprise)`
-        }).onConflictDoUpdate({
-          target: [
-            earningsQuarterly.ticker,
-            earningsQuarterly.fiscal_year,
-            earningsQuarterly.fiscal_q
-          ],
-          set: {
-            eps_actual: entry.epsActual,
-            eps_estimate: entry.epsEstimate,
-            guidance: guidance,
-            mkt_reaction: marketReaction,
-            score: score,
-            note: `${epsStatus || 'Unknown'} EPS (${entry.surprisePercent ? (entry.surprisePercent * 100).toFixed(1) + '%' : 'N/A'} surprise)`,
-            updated_at: new Date()
-          }
-        });
+        // Use raw SQL to handle type issues
+        const noteText = `${epsStatus || 'Unknown'} EPS (${entry.surprisePercent ? (entry.surprisePercent * 100).toFixed(1) + '%' : 'N/A'} surprise)`;
+        
+        await db.execute(sql`
+          INSERT INTO earnings_quarterly 
+            (ticker, fiscal_year, fiscal_q, eps_actual, eps_estimate, rev_actual, rev_estimate, guidance, mkt_reaction, score, note)
+          VALUES 
+            (${dbSymbol}, ${fiscalYear}, ${fiscalQ}, ${entry.epsActual}, ${entry.epsEstimate}, 
+             NULL, NULL, ${guidance}, ${marketReaction}, ${score}, ${noteText})
+          ON CONFLICT (ticker, fiscal_year, fiscal_q) 
+          DO UPDATE SET
+            eps_actual = ${entry.epsActual},
+            eps_estimate = ${entry.epsEstimate},
+            guidance = ${guidance},
+            mkt_reaction = ${marketReaction},
+            score = ${score},
+            note = ${noteText},
+            updated_at = NOW()
+        `);
         
         console.log(`Imported earnings from earnings history for ${symbol} ${fiscalYear}Q${fiscalQ}`);
       }
@@ -423,14 +402,13 @@ async function importEarningsData(
       }
     }
     
-    // Update earnings meta to track last fetch time
-    await db.insert(earningsMeta).values({
-      ticker: dbSymbol,
-      last_fetched: new Date()
-    }).onConflictDoUpdate({
-      target: earningsMeta.ticker,
-      set: { last_fetched: new Date() }
-    });
+    // Update earnings meta to track last fetch time using raw SQL
+    await db.execute(sql`
+      INSERT INTO earnings_meta (ticker, last_fetched)
+      VALUES (${dbSymbol}, NOW())
+      ON CONFLICT (ticker)
+      DO UPDATE SET last_fetched = NOW()
+    `);
     
     return true;
   } catch (error) {
