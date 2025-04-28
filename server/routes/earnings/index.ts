@@ -94,12 +94,16 @@ router.get('/earnings', asyncHandler(async (req, res) => {
 router.get('/heatmap', asyncHandler(async (req, res) => {
   try {
     // Get the latest four quarters
+    console.log('DEBUG - Fetching heatmap data');
     const quarters = await db.execute(sql`
       SELECT DISTINCT fiscal_year, fiscal_q 
       FROM earnings_quarterly
       ORDER BY fiscal_year DESC, fiscal_q DESC
       LIMIT 4
     `);
+    
+    console.log('DEBUG - Quarters fetched:', quarters);
+    console.log('DEBUG - Processing quarter rows:', quarters.length);
     
     if (!quarters || quarters.length === 0) {
       return res.json({
@@ -108,11 +112,18 @@ router.get('/heatmap', asyncHandler(async (req, res) => {
       });
     }
     
+    console.log('DEBUG - Rows format:', typeof quarters.rows, Array.isArray(quarters.rows));
+    
     // Initialize result structure
     const result = [];
     
+    // Add additional debugging
+    console.log('DEBUG - Final data structure before sending:', JSON.stringify(result, null, 2));
+    
     // Process each quarter
-    for (const { fiscal_year, fiscal_q } of quarters) {
+    for (const quarter of quarters.rows) {
+      const fiscal_year = quarter.fiscal_year;
+      const fiscal_q = quarter.fiscal_q;
       // Get all earnings for this quarter
       const quarterData = await db.select()
         .from(earningsQuarterly)
@@ -145,7 +156,13 @@ router.get('/heatmap', asyncHandler(async (req, res) => {
       // Create a map for quick lookups
       const stockDataMap = new Map();
       // Make sure stocksQuery is an array before trying to iterate
-      const stocksArray = Array.isArray(stocksQuery) ? stocksQuery : [];
+      console.log(`DEBUG - Processing quarter: ${fiscal_year} ${fiscal_q}`);
+      console.log(`DEBUG - Quarter data length: ${quarterData.length}`);
+      console.log(`DEBUG - stocksQuery:`, stocksQuery);
+      
+      const stocksArray = Array.isArray(stocksQuery.rows) ? stocksQuery.rows : [];
+      console.log(`DEBUG - stocksArray length: ${stocksArray.length}`);
+      
       stocksArray.forEach(s => {
         if (s && s.ticker) {
           stockDataMap.set(s.ticker, s);
