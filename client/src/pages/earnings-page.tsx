@@ -24,6 +24,8 @@ import {
   ArrowLeft,
   Info
 } from "lucide-react";
+import { useEarnings, usePortfolioEarnings, useEarningsHeatmap, formatQuarter } from "@/hooks/useEarnings";
+import { useFormattedHeatmap, useAvailableQuarters, getHeatmapCellColor } from "@/hooks/useHeatmap";
 
 // Define a type for the earnings heatmap data structure
 type EarningsHeatmapDataItem = {
@@ -67,12 +69,13 @@ type EarningsStats = {
   };
 };
 
-// Quarter-specific mock data
-const quarterData: Record<string, {
+// These will be replaced by real data from API
+// Only kept for reference or type checking
+const legacyQuarterData: Record<string, {
   heatmapData: EarningsHeatmapDataItem[],
   stats: EarningsStats
 }> = {
-  // Q4 2024 Data
+  // Q4 2024 Data (for reference)
   "Q4 2024": {
     heatmapData: [
       {
@@ -891,23 +894,21 @@ const getConsensusColor = (value: string) => {
 };
 
 // Define quarter data for navigation
-const quarters = [
-  { quarter: "Q4 2024", year: 2024, quarterNum: 4 },
-  { quarter: "Q3 2024", year: 2024, quarterNum: 3 },
-  { quarter: "Q2 2024", year: 2024, quarterNum: 2 },
-  { quarter: "Q1 2024", year: 2024, quarterNum: 1 },
-  { quarter: "Q4 2023", year: 2023, quarterNum: 4 },
-  { quarter: "Q3 2023", year: 2023, quarterNum: 3 },
-];
-
 export default function EarningsPage() {
   const [activeTab, setActiveTab] = useState("heatmap");
-  const [currentQuarterIndex, setCurrentQuarterIndex] = useState(0); // Start with Q4 2024
+  const [currentQuarterIndex, setCurrentQuarterIndex] = useState(0); // Start with most recent quarter
   const [selectedStock, setSelectedStock] = useState<string | null>(null);
   
-  // Get the current quarter and its data
-  const currentQuarter = quarters[currentQuarterIndex].quarter;
-  const currentQuarterData = quarterData[currentQuarter];
+  // Fetch real data from API using our hooks
+  const { data: formattedHeatmapData, isLoading: isHeatmapLoading } = useFormattedHeatmap();
+  const { quarters = [], isLoading: isQuartersLoading } = useAvailableQuarters();
+  const { data: usdEarningsData, isLoading: isUsdEarningsLoading } = usePortfolioEarnings('USD');
+  
+  // Get the current quarter data
+  const currentQuarter = quarters.length > 0 ? quarters[currentQuarterIndex]?.quarter : "";
+  const currentQuarterData = formattedHeatmapData && formattedHeatmapData.length > 0 
+    ? formattedHeatmapData[currentQuarterIndex]
+    : null;
   
   // Function to navigate to previous quarter
   const previousQuarter = () => {
@@ -940,50 +941,48 @@ export default function EarningsPage() {
     setActiveTab("heatmap");
   };
   
-  // Find stock data across all quarters
+  // Find stock data across all quarters using real data from API
   const getStockAcrossQuarters = (ticker: string) => {
-    // Create entries for all quarters we want to check
-    const allQuartersToCheck = [
-      "Q4 2024", "Q3 2024", "Q2 2024", "Q1 2024", 
-      "Q4 2023", "Q3 2023", "Q2 2023", "Q1 2023",
-      "Q4 2022", "Q3 2022", "Q2 2022", "Q1 2022"
-    ];
+    // Use the data we've fetched from API
+    if (!formattedHeatmapData || formattedHeatmapData.length === 0) {
+      return [];
+    }
     
     const stockData: Array<{
       quarter: string;
-      data: EarningsHeatmapDataItem | undefined;
+      data: any; // Using any temporarily until we settle on a proper type
     }> = [];
     
-    // Loop through all quarters, not just the ones visible in the dropdown
-    allQuartersToCheck.forEach(quarter => {
-      if (quarterData[quarter]) {
-        const quarterDataObj = quarterData[quarter];
-        // Try to find the stock data for this ticker in this quarter
-        const stockInQuarter = quarterDataObj.heatmapData.find(
-          (item: EarningsHeatmapDataItem) => 
-            // Check for exact match or suffixed match (.us, etc)
-            item.ticker === ticker || 
-            item.ticker.startsWith(ticker + '.') ||
-            // Some tickers might be formatted slightly differently
-            item.ticker.replace('.us', '') === ticker ||
-            item.ticker.replace('.r', '') === ticker
-        );
-        
+    // Go through the actual quarter data we have
+    formattedHeatmapData.forEach(quarterData => {
+      // Try to find earnings data for this stock
+      const earningsData = usdEarningsData?.find(e => 
+        e.ticker === ticker || 
+        e.ticker.startsWith(ticker + '.') ||
+        (e.ticker.includes('.') && e.ticker.split('.')[0] === ticker)
+      );
+      
+      if (earningsData) {
         stockData.push({
-          quarter,
-          data: stockInQuarter
-        });
-      } else {
-        // If we don't have data for this quarter, just push the quarter with no data
-        stockData.push({
-          quarter,
-          data: undefined
+          quarter: formatQuarter(quarterData.fiscal_year, quarterData.fiscal_q),
+          data: {
+            ticker: earningsData.ticker,
+            issuerName: "Company Data", // We'd need to fetch this from portfolio data
+            last: earningsData.current_price || 0,
+            eps: earningsData.eps_actual > earningsData.eps_estimate ? "Beat" : 
+                 (earningsData.eps_actual < earningsData.eps_estimate ? "Miss" : "In-Line"),
+            rev: earningsData.rev_actual > earningsData.rev_estimate ? "Beat" : 
+                 (earningsData.rev_actual < earningsData.rev_estimate ? "Miss" : "In-Line"),
+            guidance: earningsData.guidance || "Maintain",
+            mktReaction: earningsData.mkt_reaction || 0,
+            earningsScore: earningsData.score && earningsData.score > 7 ? "Good" : 
+                          (earningsData.score && earningsData.score > 4 ? "Not So Bad" : "Ugly"),
+          }
         });
       }
     });
     
-    // Filter out quarters where we don't have data for this stock
-    return stockData.filter(item => item.data);
+    return stockData;
   };
   
   // Get data for selected stock if any
@@ -992,12 +991,13 @@ export default function EarningsPage() {
     ? selectedStockData[0].data 
     : null;
   
-  // This useEffect would typically fetch data for the selected quarter
+  // This useEffect logs when the quarter changes and could be
+  // used to fetch additional data if needed
   React.useEffect(() => {
-    console.log(`Loading data for: ${quarters[currentQuarterIndex].quarter}`);
-    // In a real application, this would fetch data from the API for the selected quarter
-    // For now, we're just using the mock data from quarterData
-  }, [currentQuarterIndex]);
+    if (quarters.length > 0 && quarters[currentQuarterIndex]) {
+      console.log(`Loading data for: ${quarters[currentQuarterIndex].quarter}`);
+    }
+  }, [currentQuarterIndex, quarters]);
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4 bg-[#061220]">

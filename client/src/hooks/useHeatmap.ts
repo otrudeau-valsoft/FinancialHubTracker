@@ -1,4 +1,4 @@
-import { useEarningsHeatmap } from './useEarnings';
+import { useEarningsHeatmap, HeatmapQuarterData, formatQuarter } from './useEarnings';
 
 export interface HeatmapCategory {
   label: string;
@@ -8,31 +8,11 @@ export interface HeatmapCategory {
   color: string;
 }
 
-export interface HeatmapQuarter {
-  fiscal_year: number;
-  fiscal_q: number;
-  label: string;
-  eps: {
-    Beat: number;
-    'In-Line': number;
-    Miss: number;
-  };
-  revenue: {
-    Up: number;
-    Flat: number;
-    Down: number;
-  };
-  guidance: {
-    Increased: number;
-    Maintain: number;
-    Decreased: number;
-  };
-  score: {
-    Good: number;
-    Okay: number;
-    Bad: number;
-  };
-  count: number;
+export interface FormattedHeatmapQuarter extends HeatmapQuarterData {
+  eps_formatted: HeatmapCategory[];
+  revenue_formatted: HeatmapCategory[];
+  guidance_formatted: HeatmapCategory[];
+  score_formatted: HeatmapCategory[];
 }
 
 /**
@@ -42,28 +22,30 @@ export function useFormattedHeatmap() {
   const { data: heatmapData, isLoading, error } = useEarningsHeatmap();
 
   // Format the data for visualization
-  const formattedData = heatmapData?.map((quarter: HeatmapQuarter) => {
+  const formattedData = heatmapData?.map((quarter: HeatmapQuarterData) => {
+    const quarterCount = quarter.count || 1; // Avoid division by zero
+    
     // EPS Beat/Miss percentages
     const epsCategories: HeatmapCategory[] = [
       {
         label: 'Beat',
         value: quarter.eps.Beat,
-        total: quarter.count,
-        percentage: (quarter.eps.Beat / quarter.count) * 100,
+        total: quarterCount,
+        percentage: (quarter.eps.Beat / quarterCount) * 100,
         color: '#22c55e' // Green
       },
       {
         label: 'In-Line',
         value: quarter.eps['In-Line'],
-        total: quarter.count,
-        percentage: (quarter.eps['In-Line'] / quarter.count) * 100,
+        total: quarterCount,
+        percentage: (quarter.eps['In-Line'] / quarterCount) * 100,
         color: '#f59e0b' // Yellow
       },
       {
         label: 'Miss',
         value: quarter.eps.Miss,
-        total: quarter.count,
-        percentage: (quarter.eps.Miss / quarter.count) * 100,
+        total: quarterCount,
+        percentage: (quarter.eps.Miss / quarterCount) * 100,
         color: '#ef4444' // Red
       }
     ];
@@ -73,22 +55,22 @@ export function useFormattedHeatmap() {
       {
         label: 'Up',
         value: quarter.revenue.Up,
-        total: quarter.count,
-        percentage: (quarter.revenue.Up / quarter.count) * 100,
+        total: quarterCount,
+        percentage: (quarter.revenue.Up / quarterCount) * 100,
         color: '#22c55e' // Green
       },
       {
         label: 'Flat',
         value: quarter.revenue.Flat,
-        total: quarter.count,
-        percentage: (quarter.revenue.Flat / quarter.count) * 100,
+        total: quarterCount,
+        percentage: (quarter.revenue.Flat / quarterCount) * 100,
         color: '#f59e0b' // Yellow
       },
       {
         label: 'Down',
         value: quarter.revenue.Down,
-        total: quarter.count,
-        percentage: (quarter.revenue.Down / quarter.count) * 100,
+        total: quarterCount,
+        percentage: (quarter.revenue.Down / quarterCount) * 100,
         color: '#ef4444' // Red
       }
     ];
@@ -98,22 +80,22 @@ export function useFormattedHeatmap() {
       {
         label: 'Increased',
         value: quarter.guidance.Increased,
-        total: quarter.count,
-        percentage: (quarter.guidance.Increased / quarter.count) * 100,
+        total: quarterCount,
+        percentage: (quarter.guidance.Increased / quarterCount) * 100,
         color: '#22c55e' // Green
       },
       {
         label: 'Maintain',
         value: quarter.guidance.Maintain,
-        total: quarter.count,
-        percentage: (quarter.guidance.Maintain / quarter.count) * 100,
+        total: quarterCount,
+        percentage: (quarter.guidance.Maintain / quarterCount) * 100,
         color: '#f59e0b' // Yellow
       },
       {
         label: 'Decreased',
         value: quarter.guidance.Decreased,
-        total: quarter.count,
-        percentage: (quarter.guidance.Decreased / quarter.count) * 100,
+        total: quarterCount,
+        percentage: (quarter.guidance.Decreased / quarterCount) * 100,
         color: '#ef4444' // Red
       }
     ];
@@ -123,22 +105,22 @@ export function useFormattedHeatmap() {
       {
         label: 'Good',
         value: quarter.score.Good,
-        total: quarter.count,
-        percentage: (quarter.score.Good / quarter.count) * 100,
+        total: quarterCount,
+        percentage: (quarter.score.Good / quarterCount) * 100,
         color: '#22c55e' // Green
       },
       {
         label: 'Okay',
         value: quarter.score.Okay,
-        total: quarter.count,
-        percentage: (quarter.score.Okay / quarter.count) * 100,
+        total: quarterCount,
+        percentage: (quarter.score.Okay / quarterCount) * 100,
         color: '#f59e0b' // Yellow
       },
       {
         label: 'Bad',
         value: quarter.score.Bad,
-        total: quarter.count,
-        percentage: (quarter.score.Bad / quarter.count) * 100,
+        total: quarterCount,
+        percentage: (quarter.score.Bad / quarterCount) * 100,
         color: '#ef4444' // Red
       }
     ];
@@ -157,6 +139,25 @@ export function useFormattedHeatmap() {
     isLoading,
     error
   };
+}
+
+/**
+ * Get available quarters from heatmap data
+ */
+export function useAvailableQuarters() {
+  const { data: heatmapData, isLoading } = useEarningsHeatmap();
+  
+  if (isLoading || !heatmapData) {
+    return { quarters: [], isLoading };
+  }
+  
+  const quarters = heatmapData.map((q) => ({
+    quarter: q.label,
+    year: q.fiscal_year,
+    quarterNum: q.fiscal_q
+  }));
+  
+  return { quarters, isLoading };
 }
 
 /**

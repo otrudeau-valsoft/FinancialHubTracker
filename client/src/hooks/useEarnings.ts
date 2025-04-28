@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 
 export interface EarningsQuarterly {
-  id: number;
+  id?: number;
   ticker: string;
   fiscal_year: number;
   fiscal_q: number;
@@ -15,13 +15,40 @@ export interface EarningsQuarterly {
   score: number | null;
   note: string | null;
   current_price?: number | null;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface UseEarningsOptions {
   tickers?: string[];
   enabled?: boolean;
+}
+
+export interface HeatmapQuarterData {
+  fiscal_year: number;
+  fiscal_q: number;
+  label: string;
+  eps: {
+    Beat: number;
+    'In-Line': number;
+    Miss: number;
+  };
+  revenue: {
+    Up: number;
+    Flat: number;
+    Down: number;
+  };
+  guidance: {
+    Increased: number;
+    Maintain: number;
+    Decreased: number;
+  };
+  score: {
+    Good: number;
+    Okay: number;
+    Bad: number;
+  };
+  count: number;
 }
 
 /**
@@ -56,6 +83,43 @@ export function useEarnings(options: UseEarningsOptions = {}) {
 }
 
 /**
+ * Hook to fetch earnings data for all portfolio stocks
+ */
+export function usePortfolioEarnings(region: string = 'USD') {
+  return useQuery({
+    queryKey: ['earnings', 'portfolio', region],
+    queryFn: async () => {
+      // First fetch portfolio symbols for the region
+      const symbolsResponse = await fetch(`/api/portfolios/${region}/stocks`);
+      
+      if (!symbolsResponse.ok) {
+        throw new Error(`Failed to fetch portfolio symbols for ${region}`);
+      }
+      
+      const symbols = await symbolsResponse.json();
+      
+      if (!symbols || !symbols.length) {
+        return { data: [] };
+      }
+      
+      // Now fetch earnings data for these symbols
+      const tickers = symbols.map((s: any) => s.symbol).join(',');
+      const earningsResponse = await fetch(`/api/earnings?tickers=${tickers}`);
+      
+      if (!earningsResponse.ok) {
+        throw new Error('Failed to fetch earnings data');
+      }
+      
+      return earningsResponse.json();
+    },
+    select: (data) => {
+      return data.data || [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+/**
  * Hook to fetch heatmap data for earnings quarters
  */
 export function useEarningsHeatmap() {
@@ -70,11 +134,18 @@ export function useEarningsHeatmap() {
       
       return response.json();
     },
-    select: (data) => {
+    select: (data): HeatmapQuarterData[] => {
       return data.data || [];
     },
     staleTime: 15 * 60 * 1000, // 15 minutes
   });
+}
+
+/**
+ * Utility to convert fiscal quarter data to a readable string
+ */
+export function formatQuarter(fiscal_year: number, fiscal_q: number): string {
+  return `Q${fiscal_q} ${fiscal_year}`;
 }
 
 /**
