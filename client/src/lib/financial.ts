@@ -40,6 +40,22 @@ export function getProfitLossClass(value: number | string | null | undefined): s
 }
 
 /**
+ * Helper function to get stock value from various possible property names
+ */
+function getStockValue(stock: any): number {
+  // Try netAssetValue first, then currentValue, then nav, then return 0 if none exists
+  if (stock.netAssetValue !== undefined) {
+    return parseFloat(stock.netAssetValue.toString() || '0');
+  } else if (stock.currentValue !== undefined) {
+    return parseFloat(stock.currentValue.toString() || '0');
+  } else if (stock.nav !== undefined) {
+    return parseFloat(stock.nav.toString() || '0');
+  } else {
+    return 0;
+  }
+}
+
+/**
  * Calculate portfolio allocation by stock type (Compounder, Catalyst, Cyclical)
  * @param stocks Array of portfolio stocks
  * @param cashBalance Optional cash balance to include in calculations (not used in allocation display)
@@ -66,8 +82,7 @@ export function calculateAllocationByType(
         return;
       }
       
-      const currentValue = parseFloat(stock.currentValue || '0');
-      totalStocksValue += currentValue;
+      totalStocksValue += getStockValue(stock);
     });
   }
   
@@ -82,7 +97,7 @@ export function calculateAllocationByType(
         return;
       }
       
-      const currentValue = parseFloat(stock.currentValue || '0');
+      const currentValue = getStockValue(stock);
       const percentage = (currentValue / totalStocksValue) * 100;
       
       // Map abbreviated types to our allocation object keys
@@ -134,8 +149,7 @@ export function calculateAllocationByRating(
         return;
       }
       
-      const currentValue = parseFloat(stock.currentValue || '0');
-      totalStocksValue += currentValue;
+      totalStocksValue += getStockValue(stock);
     });
   }
   
@@ -150,7 +164,7 @@ export function calculateAllocationByRating(
         return;
       }
       
-      const currentValue = parseFloat(stock.currentValue || '0');
+      const currentValue = getStockValue(stock);
       const percentage = (currentValue / totalStocksValue) * 100;
       
       // Map ratings to our allocation object keys
@@ -211,8 +225,7 @@ export function calculatePortfolioStats(stocks: any[], cashBalance?: { amount: s
         return;
       }
       
-      // Use netAssetValue if available, otherwise try currentValue
-      const currentValue = parseFloat(stock.netAssetValue || stock.currentValue || '0');
+      const currentValue = getStockValue(stock);
       const dailyChangePercent = parseFloat(stock.dailyChangePercent || '0');
       const ytdChangePercent = parseFloat(stock.ytdChangePercent || '0');
       
@@ -257,11 +270,11 @@ export function calculateEtfDifferences(stocks: any[], etfHoldings: any[]) {
   
   // Create a map of portfolio weights
   const portfolioWeights: Record<string, number> = {};
-  const totalValue = stocks.reduce((sum, stock) => sum + parseFloat(stock.currentValue || '0'), 0);
+  const totalValue = stocks.reduce((sum, stock) => sum + getStockValue(stock), 0);
   
   stocks.forEach(stock => {
     const weight = totalValue > 0 ? 
-      (parseFloat(stock.currentValue || '0') / totalValue) * 100 : 0;
+      (getStockValue(stock) / totalValue) * 100 : 0;
     portfolioWeights[stock.symbol] = weight;
   });
   
