@@ -98,7 +98,7 @@ async function fetchSectorInfo(ticker: string): Promise<string | null> {
 /**
  * Update sector information for a single holding
  */
-async function updateHoldingSector(holding: { id: number; ticker: string; name: string; weight: number | null; sector: string | null }) {
+async function updateHoldingSector(holding: { id: number; ticker: string; name: string; weight: any; sector: string | null }) {
   try {
     // Skip if sector already exists and is not a placeholder
     if (holding.sector && holding.sector !== '-') {
@@ -106,9 +106,19 @@ async function updateHoldingSector(holding: { id: number; ticker: string; name: 
       return true;
     }
     
-    // Convert weight to number first if it's a string
-    const weightValue = holding.weight ? parseFloat(holding.weight.toString()) : null;
-    logProgress(`Fetching sector for ${holding.ticker} (${holding.name}), weight: ${weightValue?.toFixed(2) || 'N/A'}%`);
+    // Format the weight for display (handle any type)
+    let displayWeight = 'N/A';
+    if (holding.weight !== null && holding.weight !== undefined) {
+      const numWeight = typeof holding.weight === 'string' 
+        ? parseFloat(holding.weight) 
+        : Number(holding.weight);
+      
+      if (!isNaN(numWeight)) {
+        displayWeight = numWeight.toFixed(2);
+      }
+    }
+    
+    logProgress(`Fetching sector for ${holding.ticker} (${holding.name}), weight: ${displayWeight}%`);
     const sector = await fetchSectorInfo(holding.ticker);
     
     if (sector) {
