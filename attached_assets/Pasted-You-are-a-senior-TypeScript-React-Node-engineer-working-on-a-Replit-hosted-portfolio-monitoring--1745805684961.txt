@@ -1,0 +1,48 @@
+You are a senior TypeScript / React / Node engineer working on a Replit-hosted portfolio-monitoring app.
+
+📂  Existing tables  
+  • portfolio_usd   (ticker PK, …)  
+  • portfolio_cad   (ticker PK, …)  
+  • portfolio_intl  (ticker PK, …)  
+  • current_prices  (ticker, price, traded_at)          -- intraday  
+  • historical_prices (ticker, close, candle_date, …)   -- EOD  
+
+⚠️  All price candles live in the *shared* current_prices / historical_prices tables — they are **not** split by USD / CAD / INTL.
+
+I need a complete **earnings pipeline** that powers two UI views:  
+  1. **HEATMAP** – aggregated stats for the latest 4 fiscal quarters.  
+  2. **SINGLE-STOCK PANEL** – last 4 quarters side-by-side for any chosen ticker.
+
+🔧  Tech stack  
+Node 20, Express, Neon Postgres (or Prisma), React Query on the client.  
+Use the `yahoo-finance2` npm package **only** for earnings data; whenever you need prices (e.g., next-day market reaction) read them from `historical_prices`.
+
+────────────────────────────────────────────────────────────────────────
+### WHAT TO OUTPUT
+Deliver a single Markdown file with top-level headings **Schema, Service, Routes, Client, Rationale**.  
+Put each code asset in a triple-back-tick block labelled with a file-name comment (e.g. `// src/scripts/updateEarnings.ts`).  
+No discussion outside the required sections.
+
+#### 1 ── DB SCHEMA (raw SQL **and** Prisma model)
+
+```sql
+earnings_quarterly (
+  ticker        TEXT,
+  fiscal_year   INT,
+  fiscal_q      INT,           -- 1-4
+  eps_actual    NUMERIC,
+  eps_estimate  NUMERIC,
+  rev_actual    NUMERIC,
+  rev_estimate  NUMERIC,
+  guidance      TEXT,          -- 'Maintained' | 'Increased' | 'Decreased'
+  mkt_reaction  NUMERIC,       -- next-day % move
+  score         NUMERIC,       -- formula-driven
+  note          TEXT,          -- formula-driven
+  updated_at    TIMESTAMP DEFAULT now(),
+  PRIMARY KEY (ticker, fiscal_year, fiscal_q)
+);
+
+earnings_meta (
+  ticker        TEXT PRIMARY KEY,
+  last_fetched  TIMESTAMP
+);
