@@ -169,11 +169,14 @@ export function Header() {
       <div className="md:hidden flex items-center space-x-1">
         <div className="flex items-center">
           <div className={`flex items-center text-[8px] font-mono py-0.5 px-1 rounded-full ${!marketData ? 'bg-blue-900/30 text-blue-400' : (marketData.sp500.positive ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400')}`}>
-            <span className="font-semibold">S&P</span>
-            <span>
+            <span className="font-semibold">S&P500</span>
+            <span className="ml-1 flex items-center">
               {!marketData ? '--' : (
                 <>
-                  {marketData.sp500.positive ? '+' : ''}
+                  {marketData.sp500.positive ? 
+                    <TrendingUp className="h-2 w-2 mr-0.5" /> : 
+                    <TrendingDown className="h-2 w-2 mr-0.5" />
+                  }
                   {marketData.sp500.return.toFixed(1)}%
                 </>
               )}
@@ -184,10 +187,13 @@ export function Header() {
         <div className="flex items-center">
           <div className={`flex items-center text-[8px] font-mono py-0.5 px-1 rounded-full ${!marketData ? 'bg-blue-900/30 text-blue-400' : (marketData.tsx.positive ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400')}`}>
             <span className="font-semibold">TSX</span>
-            <span>
+            <span className="ml-1 flex items-center">
               {!marketData ? '--' : (
                 <>
-                  {marketData.tsx.positive ? '+' : ''}
+                  {marketData.tsx.positive ? 
+                    <TrendingUp className="h-2 w-2 mr-0.5" /> : 
+                    <TrendingDown className="h-2 w-2 mr-0.5" />
+                  }
                   {marketData.tsx.return.toFixed(1)}%
                 </>
               )}
@@ -197,11 +203,14 @@ export function Header() {
         
         <div className="flex items-center">
           <div className={`flex items-center text-[8px] font-mono py-0.5 px-1 rounded-full ${!marketData ? 'bg-blue-900/30 text-blue-400' : (marketData.acwx.positive ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400')}`}>
-            <span className="font-semibold">ACX</span>
-            <span>
+            <span className="font-semibold">ACWX</span>
+            <span className="ml-1 flex items-center">
               {!marketData ? '--' : (
                 <>
-                  {marketData.acwx.positive ? '+' : ''}
+                  {marketData.acwx.positive ? 
+                    <TrendingUp className="h-2 w-2 mr-0.5" /> : 
+                    <TrendingDown className="h-2 w-2 mr-0.5" />
+                  }
                   {marketData.acwx.return.toFixed(1)}%
                 </>
               )}
