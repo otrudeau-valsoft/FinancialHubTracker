@@ -1,0 +1,562 @@
+12:04:57 AM [express] GET /api/etfs/SPY/holdings/top/10 304 in 2088ms :: [{"id":1639,"ticker":"AAPL",…
+12:04:57 AM [express] GET /api/current-prices/USD 304 in 2096ms :: [{"id":23,"symbol":"AMZN","region"…
+12:05:10 AM [express] GET /api/portfolios/USD/stocks 200 in 14781ms :: [{"id":11,"symbol":"MSFT","com…
+12:05:10 AM [express] GET /api/cash 304 in 25ms :: [{"id":1,"region":"USD","amount":"10000.00","updat…
+12:05:11 AM [express] GET /api/scheduler/config 404 in 1ms :: {"status":"error","message":"Task with …
+12:05:11 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+Updating historical prices for market indices
+Fetching historical prices for index SPY from 2025-04-26
+Fetching historical prices for SPY from 2025-04-26 to 2025-04-28
+[Deprecated] historical() relies on an API that Yahoo have removed.  We'll map this request to chart() for convenience, but, please consider using chart() directly instead; for more info see https://github.com/gadicc/node-yahoo-finance2/issues/795.  This will only be shown once, but you can suppress this message in future with `yahooFinance.suppressNotices(['ripHistorical'])`.
+Stored 1 historical prices for SPY (USD)
+12:05:14 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+Fetching historical prices for index XIC.TO from 2025-04-26
+Fetching historical prices for XIC.TO from 2025-04-26 to 2025-04-28
+Stored 1 historical prices for XIC.TO (CAD)
+Fetching historical prices for index ACWX from 2025-04-26
+Fetching historical prices for ACWX from 2025-04-26 to 2025-04-28
+Stored 1 historical prices for ACWX (INTL)
+Pausing for 2 seconds after updating indices...
+Updating historical prices for market indices
+12:05:17 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+Fetching historical prices for index SPY from 2025-04-26
+Fetching historical prices for SPY from 2025-04-26 to 2025-04-28
+Stored 1 historical prices for SPY (USD)
+Updating historical prices for USD portfolio
+Error getting portfolio stocks for USD: error: relation "assets_us" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getPortfolioStocks (/home/runner/workspace/server/db-storage.ts:27:18)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:327:32)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:458:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:146:22) {
+  length: 109,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '134',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error updating portfolio historical prices for USD: error: relation "assets_us" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getPortfolioStocks (/home/runner/workspace/server/db-storage.ts:27:18)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:327:32)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:458:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:146:22) {
+  length: 109,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '134',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error updating historical prices for USD: error: relation "assets_us" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getPortfolioStocks (/home/runner/workspace/server/db-storage.ts:27:18)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:327:32)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:458:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:146:22) {
+  length: 109,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '134',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Updating historical prices for CAD portfolio
+Error getting portfolio stocks for CAD: error: relation "assets_cad" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getPortfolioStocks (/home/runner/workspace/server/db-storage.ts:30:18)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:331:32)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:458:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:146:22) {
+  length: 110,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '134',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error updating portfolio historical prices for CAD: error: relation "assets_cad" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getPortfolioStocks (/home/runner/workspace/server/db-storage.ts:30:18)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:331:32)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:458:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:146:22) {
+  length: 110,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '134',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error updating historical prices for CAD: error: relation "assets_cad" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getPortfolioStocks (/home/runner/workspace/server/db-storage.ts:30:18)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:331:32)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:458:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:146:22) {
+  length: 110,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '134',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Updating historical prices for INTL portfolio
+Error getting portfolio stocks for INTL: error: relation "assets_intl" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getPortfolioStocks (/home/runner/workspace/server/db-storage.ts:33:18)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:335:33)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:458:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:146:22) {
+  length: 111,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '134',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error updating portfolio historical prices for INTL: error: relation "assets_intl" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getPortfolioStocks (/home/runner/workspace/server/db-storage.ts:33:18)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:335:33)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:458:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:146:22) {
+  length: 111,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '134',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error updating historical prices for INTL: error: relation "assets_intl" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getPortfolioStocks (/home/runner/workspace/server/db-storage.ts:33:18)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:335:33)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:458:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:146:22) {
+  length: 111,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '134',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Automatically updating portfolio holdings after historical price update...
+Updating all portfolio holdings...
+Fetching historical prices for index XIC.TO from 2025-04-26
+Fetching historical prices for XIC.TO from 2025-04-26 to 2025-04-28
+Stored 1 historical prices for XIC.TO (CAD)
+12:05:20 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+Fetching historical prices for index ACWX from 2025-04-26
+Fetching historical prices for ACWX from 2025-04-26 to 2025-04-28
+Stored 1 historical prices for ACWX (INTL)
+Pausing for 2 seconds after updating indices...
+Updating historical prices for USD portfolio
+Error getting portfolio stocks for USD: error: relation "assets_us" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getPortfolioStocks (/home/runner/workspace/server/db-storage.ts:27:18)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:327:32)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:458:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:146:22) {
+  length: 109,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '134',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error updating portfolio historical prices for USD: error: relation "assets_us" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getPortfolioStocks (/home/runner/workspace/server/db-storage.ts:27:18)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:327:32)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:458:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:146:22) {
+  length: 109,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '134',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error updating historical prices for USD: error: relation "assets_us" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getPortfolioStocks (/home/runner/workspace/server/db-storage.ts:27:18)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:327:32)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:458:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:146:22) {
+  length: 109,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '134',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Updating historical prices for CAD portfolio
+Error getting portfolio stocks for CAD: error: relation "assets_cad" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getPortfolioStocks (/home/runner/workspace/server/db-storage.ts:30:18)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:331:32)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:458:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:146:22) {
+  length: 110,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '134',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error updating portfolio historical prices for CAD: error: relation "assets_cad" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getPortfolioStocks (/home/runner/workspace/server/db-storage.ts:30:18)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:331:32)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:458:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:146:22) {
+  length: 110,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '134',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error updating historical prices for CAD: error: relation "assets_cad" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getPortfolioStocks (/home/runner/workspace/server/db-storage.ts:30:18)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:331:32)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:458:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:146:22) {
+  length: 110,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '134',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Updating historical prices for INTL portfolio
+Error getting portfolio stocks for INTL: error: relation "assets_intl" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getPortfolioStocks (/home/runner/workspace/server/db-storage.ts:33:18)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:335:33)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:458:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:146:22) {
+  length: 111,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '134',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error updating portfolio historical prices for INTL: error: relation "assets_intl" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getPortfolioStocks (/home/runner/workspace/server/db-storage.ts:33:18)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:335:33)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:458:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:146:22) {
+  length: 111,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '134',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error updating historical prices for INTL: error: relation "assets_intl" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getPortfolioStocks (/home/runner/workspace/server/db-storage.ts:33:18)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:335:33)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:458:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:146:22) {
+  length: 111,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '134',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Automatically updating portfolio holdings after historical price update...
+Updating all portfolio holdings...
+12:05:24 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+12:05:27 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+12:05:30 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+12:05:33 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+12:05:36 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+12:05:39 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+12:05:42 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+12:05:45 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+Updated 21 holdings for USD portfolio (including CASH)
+12:05:48 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+12:05:52 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+12:05:53 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+Updated 21 holdings for USD portfolio (including CASH)
+12:05:55 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+12:05:58 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+12:06:01 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+12:06:04 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+12:06:07 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+12:06:11 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+12:06:14 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+Updated 21 holdings for CAD portfolio (including CASH)
+12:06:17 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+No current price data found for ATRL
+12:06:20 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+Updated 21 holdings for CAD portfolio (including CASH)
+12:06:23 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+No current price data found for ATRL
+12:06:26 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+12:06:29 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+12:06:32 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+Updated 15 holdings for INTL portfolio (including CASH)
+Updated 57 total holdings across all portfolios (including CASH rows)
+Successfully updated all portfolio holdings with new historical data
+12:06:34 AM [express] POST /api/current-prices/fetch/all 200 in 81388ms :: {"0":{"symbol":"SPY","succ…
+12:06:34 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+12:06:38 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+Updated 15 holdings for INTL portfolio (including CASH)
+Updated 57 total holdings across all portfolios (including CASH rows)
+Successfully updated all portfolio holdings with new historical data
+12:06:39 AM [express] POST /api/historical-prices/fetch/all 200 in 81261ms :: {"0":{"symbol":"SPY","s…
+12:06:39 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+12:06:42 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+12:06:45 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+12:06:48 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+12:06:51 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+12:06:54 AM [express] GET /api/data-updates/logs 304 in 2ms :: []
+12:06:57 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+12:07:01 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+12:07:04 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+12:07:07 AM [express] GET /api/data-updates/logs 304 in 0ms :: []
+12:07:10 AM [express] GET /api/data-updates/logs 304 in 1ms :: []
+12:07:13 AM [express] GET /api/data-updates/logs 304 in 1ms :: []

@@ -1,21 +1,19 @@
 import { Request, Response } from 'express';
 import { AppError } from '../../middleware/error-handler';
-
-// Mock logs array for development
-const logs: Array<{
-  id: number;
-  type: string;
-  status: 'Success' | 'Error' | 'In Progress';
-  details: string;
-  timestamp: string;
-}> = [];
+import { db } from '../../db';
+import { dataUpdateLogs } from '@shared/schema';
+import { desc } from 'drizzle-orm';
 
 /**
  * Get all data update logs
  */
 export async function getLogs(req: Request, res: Response) {
   try {
-    // For now, just return the mock logs array
+    // Retrieve logs from the database instead of using a mock array
+    const logs = await db.select()
+      .from(dataUpdateLogs)
+      .orderBy(desc(dataUpdateLogs.timestamp));
+    
     res.json(logs);
   } catch (error) {
     console.error('Error getting logs:', error);
@@ -28,8 +26,8 @@ export async function getLogs(req: Request, res: Response) {
  */
 export async function clearLogs(req: Request, res: Response) {
   try {
-    // Clear the mock logs array
-    logs.length = 0;
+    // Delete all logs from the database
+    await db.delete(dataUpdateLogs);
     res.json({ message: 'Logs cleared successfully' });
   } catch (error) {
     console.error('Error clearing logs:', error);
@@ -83,13 +81,12 @@ export async function updateSchedulerConfig(req: Request, res: Response) {
       timestamp: new Date().toISOString()
     };
     
-    // Add a mock log for this configuration update
-    logs.push({
-      id: logs.length + 1,
+    // Add a log entry for this configuration update
+    await db.insert(dataUpdateLogs).values({
       type: `Scheduler Configuration: ${type}`,
       status: 'Success',
       details: JSON.stringify(config),
-      timestamp: new Date().toISOString()
+      timestamp: new Date()
     });
     
     res.json(mockResponse);
