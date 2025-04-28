@@ -1,0 +1,971 @@
+{
+  "data": [
+    {
+      "id": "3800251",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-02-15T12:33:18-05:00",
+        "isLockedPro": false,
+        "commentCount": 4,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/1310618429/image_1310618429.jpg",
+        "themes": {},
+        "title": "ChargePoint, Workhorse Group and QuantumScape pace big day for electric vehicle stocks"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "954720",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": []
+        },
+        "secondaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "otherTags": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "/news/3800251-chargepoint-workhorse-grroup-and-quauntumscape-pace-big-day-for-electric-vehicle-stocks"
+      }
+    },
+    {
+      "id": "3799583",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-02-14T10:05:58-05:00",
+        "isLockedPro": false,
+        "commentCount": 93,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/1345912457/image_1345912457.jpg",
+        "themes": {},
+        "title": "Electric vehicle stocks ride higher after Super Bowl exposure, hedge fund love"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "954720",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": []
+        },
+        "secondaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "otherTags": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "/news/3799583-electric-vehicle-stocks-ride-higher-after-super-bowl-exposure-hedge-fund-love"
+      }
+    },
+    {
+      "id": "3799400",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-02-12T09:08:18-05:00",
+        "isLockedPro": false,
+        "commentCount": 116,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/1271407322/image_1271407322.jpg",
+        "themes": {},
+        "title": "Crypto, EVs and sports betting could be this year's Super Bowl stars"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "954720",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": []
+        },
+        "secondaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "otherTags": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "/news/3799400-crypto-evs-and-sports-betting-could-be-this-years-super-bowl-stars"
+      }
+    },
+    {
+      "id": "3798654",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-02-10T10:40:29-05:00",
+        "isLockedPro": false,
+        "commentCount": 20,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/1338679991/image_1338679991.jpg",
+        "themes": {},
+        "title": "SPAC for electric car Polestar gains as company set to debut first ever Super Bowl ad"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "52996117",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": []
+        },
+        "secondaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "otherTags": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "/news/3798654-spac-for-electric-car-polestar-gains-as-company-set-to-debut-first-ever-super-bowl-ad"
+      }
+    },
+    {
+      "id": "3798642",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-02-10T10:16:22-05:00",
+        "isLockedPro": false,
+        "commentCount": 377,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/1292531161/image_1292531161.jpg",
+        "themes": {},
+        "title": "Inflation is soaring - watch these stocks for positive pricing impact"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "954720",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": []
+        },
+        "secondaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "otherTags": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "/news/3798642-inflation-is-soaring-watch-these-stocks-for-positive-pricing-impact"
+      }
+    },
+    {
+      "id": "3798523",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-02-10T08:08:39-05:00",
+        "isLockedPro": false,
+        "commentCount": 157,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/187005526/image_187005526.jpg",
+        "themes": {},
+        "title": "Tesla sees fourth recall action in two weeks"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "954720",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "secondaryTickers": {
+          "data": []
+        },
+        "otherTags": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "/news/3798523-tesla-sees-fourth-recall-action-in-two-weeks"
+      }
+    },
+    {
+      "id": "3798401",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-02-10T06:33:02-05:00",
+        "isLockedPro": false,
+        "commentCount": 97,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/187005526/image_187005526.jpg",
+        "themes": {},
+        "title": "Tesla accused of racial discrimination in California suit"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "51784941",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "secondaryTickers": {
+          "data": []
+        },
+        "otherTags": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "/news/3798401-tesla-accused-of-racial-discrimination-in-california-suit"
+      }
+    },
+    {
+      "id": "3796585",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-02-07T10:56:09-05:00",
+        "isLockedPro": false,
+        "commentCount": 198,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/187005526/image_187005526.jpg",
+        "themes": {},
+        "title": "Tesla gets subpoena from SEC over settlement violation in 2018 - Reuters"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "54370868",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "secondaryTickers": {
+          "data": []
+        },
+        "otherTags": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "/news/3796585-tesla-gets-subpoena-from-sec-over-settlement-violation-in-2018-reuters"
+      }
+    },
+    {
+      "id": "3796519",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-02-07T09:27:50-05:00",
+        "isLockedPro": false,
+        "commentCount": 120,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/459014867/image_459014867.jpg",
+        "themes": {},
+        "title": "Ford ticks lower after two down sessions following earnings, supply chain woes"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "52996117",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": []
+        },
+        "secondaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "otherTags": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "/news/3796519-ford-sinks-for-third-session-following-earnings-supply-chain-woes"
+      }
+    },
+    {
+      "id": "3796292",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-02-06T09:10:03-05:00",
+        "isLockedPro": false,
+        "commentCount": 96,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/547167450/image_547167450.jpg",
+        "themes": {},
+        "title": "Wells Fargo lists 25 big-name stocks to hedge against fund favorites"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "51784941",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "secondaryTickers": {
+          "data": []
+        },
+        "otherTags": {
+          "data": [
+            {
+              "id": "604134",
+              "type": "tag"
+            }
+          ]
+        }
+      },
+      "links": {
+        "self": "/news/3796292-wells-fargo-picks-25-stocks-to-hedge-against-fund-manager-favorites"
+      }
+    },
+    {
+      "id": "3796104",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-02-04T11:08:32-05:00",
+        "isLockedPro": false,
+        "commentCount": 42,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/1150570128/image_1150570128.jpg",
+        "themes": {},
+        "title": "Electric vehicle roundup: Gains for Nikola, Aurora, XPeng; setback for Tesla in India"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "954720",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "secondaryTickers": {
+          "data": []
+        },
+        "otherTags": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "/news/3796104-electric-vehicle-roundup-gains-for-nikola-aurora-xpeng-setback-for-tesla-in-india"
+      }
+    },
+    {
+      "id": "3795656",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-02-03T12:26:10-05:00",
+        "isLockedPro": false,
+        "commentCount": 79,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/81543188/image_81543188.jpg",
+        "themes": {},
+        "title": "Tesla shows small gain after seat belt reminder recall is brushed off by investors"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "954720",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "secondaryTickers": {
+          "data": []
+        },
+        "otherTags": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "/news/3795656-tesla-shows-small-gain-after-seat-belt-reminder-recall-is-brushed-off-by-investors"
+      }
+    },
+    {
+      "id": "3794922",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-02-02T11:05:47-05:00",
+        "isLockedPro": false,
+        "commentCount": 30,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/545144494/image_545144494.jpg",
+        "themes": {},
+        "title": "Like Tesla but fear a correction? Innovator ETFs Trust is working on an ETF for you"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "53367831",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "secondaryTickers": {
+          "data": []
+        },
+        "otherTags": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "/news/3794922-hedged-tesla-etf-aims-to-invest-20-in-call-options-and-us-t-bills-to-soften-downside"
+      }
+    },
+    {
+      "id": "3794150",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-02-01T10:47:46-05:00",
+        "isLockedPro": false,
+        "commentCount": 49,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/1299864530/image_1299864530.jpg",
+        "themes": {},
+        "title": "Electric vehicle roundup: Ayro, Electrameccanica, Hyzon Motors aim to recover, Tesla recalls some cars"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "954720",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "secondaryTickers": {
+          "data": []
+        },
+        "otherTags": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "/news/3794150-electric-vehicle-roundup-ayro-electrameccanica-hyzon-motors-aim-to-recover-tesla-recalls-some-cars"
+      }
+    },
+    {
+      "id": "3794021",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-02-01T08:47:23-05:00",
+        "isLockedPro": false,
+        "commentCount": 164,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/81543188/image_81543188.jpg",
+        "themes": {},
+        "title": "Tesla could cut prices this year to keep its market share - Daiwa"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "954720",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "secondaryTickers": {
+          "data": []
+        },
+        "otherTags": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "/news/3794021-tesla-could-cut-prices-this-year-to-keep-its-market-share-daiwa"
+      }
+    },
+    {
+      "id": "3793543",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-01-31T10:01:31-05:00",
+        "isLockedPro": false,
+        "commentCount": 20,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/1150570128/image_1150570128.jpg",
+        "themes": {},
+        "title": "Tesla, Lordstown Motors and Sono Group lead electric vehicle sector higher"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "954720",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "secondaryTickers": {
+          "data": []
+        },
+        "otherTags": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "/news/3793543-tesla-lordstown-motors-and-sono-group-lead-electric-vehicle-sector-higher"
+      }
+    },
+    {
+      "id": "3793334",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-01-31T08:04:43-05:00",
+        "isLockedPro": false,
+        "commentCount": 27,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/1271270928/image_1271270928.jpg",
+        "themes": {},
+        "title": "Nio shares hit a 52-week low, but does that mean it's a good time to buy?"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "55634950",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": []
+        },
+        "secondaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "otherTags": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "/news/3793334-nio-shares-hit-52-week-low-but-does-that-mean-its-good-time-to-buy"
+      }
+    },
+    {
+      "id": "3793411",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-01-31T07:16:37-05:00",
+        "isLockedPro": false,
+        "commentCount": 67,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/187005526/image_187005526.jpg",
+        "themes": {},
+        "title": "Tesla gains after Credit Suisse turns bullish on long-term margin potential"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "954720",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "secondaryTickers": {
+          "data": []
+        },
+        "otherTags": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "/news/3793411-tesla-gains-after-credit-suisse-turns-bullish-on-long-term-margin-potential"
+      }
+    },
+    {
+      "id": "3793201",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-01-28T15:00:02-05:00",
+        "isLockedPro": false,
+        "commentCount": 47,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/1299864530/image_1299864530.jpg",
+        "themes": {},
+        "title": "Catalyst watch for next week: MicroStrategy event, AMD earnings and OPEC meeting"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "954720",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": []
+        },
+        "secondaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "otherTags": {
+          "data": [
+            {
+              "id": "604134",
+              "type": "tag"
+            }
+          ]
+        }
+      },
+      "links": {
+        "self": "/news/3793201-catalyst-watch-for-next-week-microstrategy-event-amd-earnings-and-opec-meeting"
+      }
+    },
+    {
+      "id": "3793144",
+      "type": "news",
+      "attributes": {
+        "publishOn": "2022-01-28T11:22:44-05:00",
+        "isLockedPro": false,
+        "commentCount": 73,
+        "gettyImageUrl": "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/1367153518/image_1367153518.jpg",
+        "themes": {},
+        "title": "Tesla leads mini-comeback for select EV stocks after House sets autonomous vehicle hearing"
+      },
+      "relationships": {
+        "author": {
+          "data": {
+            "id": "954720",
+            "type": "newsAuthorUser"
+          }
+        },
+        "sentiments": {
+          "data": []
+        },
+        "primaryTickers": {
+          "data": [
+            {
+              "id": "16123",
+              "type": "tag"
+            }
+          ]
+        },
+        "secondaryTickers": {
+          "data": []
+        },
+        "otherTags": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "/news/3793144-tesla-leads-mini-comeback-for-select-ev-stocks-after-house-sets-autonomous-vehicle-hearing"
+      }
+    }
+  ],
+  "included": [
+    {
+      "id": "954720",
+      "type": "newsAuthorUser",
+      "attributes": {
+        "userId": 954720,
+        "image": {
+          "small": "https://static.seekingalpha.com/images/users_profile/000/954/720/small_pic.png?t=c4713ffbc7",
+          "medium": "https://static.seekingalpha.com/images/users_profile/000/954/720/medium_pic.png?t=a6a8962405",
+          "big": "https://static.seekingalpha.com/images/users_profile/000/954/720/big_pic.png?t=82db906312",
+          "extra_large": "https://static.seekingalpha.com/images/users_profile/000/954/720/extra_large_pic.png?t=2ab2a855b7"
+        },
+        "nick": "Clark Schultz, SA News Editor",
+        "bio": "Clark Schultz covers the consumer sector for Seeking Alpha and writes the weekly Stocks to Watch article. He graduated from Washington University in St. Louis with a degree in Economics. He has over 15 years of experience contributing content to major financial websites. In addition, he created the websites <a href=\"http://www.moneyrates.com\">MoneyRates.com</a> and Savings-Investor.com before selling them to a San Francisco-based company. Clark lives in St. Louis, Missouri with his wife and three kids. Follow on Twitter @ClarkSchultz. E-mail tips/suggestions to Clark@SeekingAlpha.com. <br>",
+        "slug": "sa-news-team"
+      },
+      "links": {
+        "self": "/user/954720",
+        "profileUrl": "/author/sa-editor-clark-schultz"
+      }
+    },
+    {
+      "id": "16123",
+      "type": "tag",
+      "attributes": {
+        "slug": "tsla",
+        "name": "TSLA"
+      },
+      "links": {
+        "self": "/symbol/TSLA"
+      }
+    },
+    {
+      "id": "52996117",
+      "type": "newsAuthorUser",
+      "attributes": {
+        "userId": 52996117,
+        "image": {
+          "small": "https://static1.seekingalpha.com/images/users_profile/052/996/117/small_pic.png?t=49dd666de9",
+          "medium": "https://static1.seekingalpha.com/images/users_profile/052/996/117/medium_pic.png?t=d2a6bac4be",
+          "big": "https://static1.seekingalpha.com/images/users_profile/052/996/117/big_pic.png?t=25fa9b7856",
+          "extra_large": "https://static1.seekingalpha.com/images/users_profile/052/996/117/extra_large_pic.png?t=2fdcf26401"
+        },
+        "nick": "Joshua Fineman, SA News Editor",
+        "bio": "<p>Josh Fineman covers M&amp;A, special situations and event-driven news at Seeking Alpha. He spent almost 24 years at Bloomberg News with the last 10 years on Bloomberg's First Word/Markets desk. He has also covered finance, fast food industry, music and entertainment and aerospace at Bloomberg. <br><br>He can be reached at joshua@seekingalpha.com",
+        "slug": "sa-news-team"
+      },
+      "links": {
+        "self": "/user/52996117",
+        "profileUrl": "/author/sa-editor-joshua-fineman"
+      }
+    },
+    {
+      "id": "51784941",
+      "type": "newsAuthorUser",
+      "attributes": {
+        "userId": 51784941,
+        "image": {
+          "small": "https://static1.seekingalpha.com/images/users_profile/051/784/941/small_pic.png?t=0a71ce3bc2",
+          "medium": "https://static1.seekingalpha.com/images/users_profile/051/784/941/medium_pic.png?t=7967d12db1",
+          "big": "https://static1.seekingalpha.com/images/users_profile/051/784/941/big_pic.png?t=5fac6312bb",
+          "extra_large": "https://static1.seekingalpha.com/images/users_profile/051/784/941/extra_large_pic.png?t=4fbaf945c4"
+        },
+        "nick": "Kim Khan, SA News Editor",
+        "bio": "<p>Kim Khan Managing Editor at Seeking Alpha and writes daily for the site. Before his arrival at SA, he was Investing.com's U.S. editor and has served as executive editor for paid content at TheStreet.com and also ran CNBC.com's London team. He attended Columbia Journalism School and the University of Virginia. A lifelong traveler and pop culture aficionado, he can usually be found cooking or sampling streaming services.</p>",
+        "slug": "sa-news-team"
+      },
+      "links": {
+        "self": "/user/51784941",
+        "profileUrl": "/user/51784941/profile"
+      }
+    },
+    {
+      "id": "54370868",
+      "type": "newsAuthorUser",
+      "attributes": {
+        "userId": 54370868,
+        "image": {
+          "small": "https://static.seekingalpha.com/images/users_profile/054/370/868/small_pic.png?t=04861258d3",
+          "medium": "https://static.seekingalpha.com/images/users_profile/054/370/868/medium_pic.png?t=52dd675bb1",
+          "big": "https://static.seekingalpha.com/images/users_profile/054/370/868/big_pic.png?t=0ceda533bc",
+          "extra_large": "https://static.seekingalpha.com/images/users_profile/054/370/868/extra_large_pic.png?t=4b43f29620"
+        },
+        "nick": "Max Gottlich, SA News Editor",
+        "bio": "Max covers financials, cryptos, global macro, insurers, and REITs for Seeking Alpha's breaking news team. He is avid for tracking/studying financial markets, global macro, and central banking. Feel welcome to message him via email at maxg@seekingalpha.com for any tips/suggestions. <br>",
+        "slug": "sa-news-team"
+      },
+      "links": {
+        "self": "/user/54370868",
+        "profileUrl": "/user/54370868/profile"
+      }
+    },
+    {
+      "id": "53367831",
+      "type": "newsAuthorUser",
+      "attributes": {
+        "userId": 53367831,
+        "image": {
+          "small": "https://static3.seekingalpha.com/images/users_profile/053/367/831/small_pic.png?t=da601b7e4e",
+          "medium": "https://static3.seekingalpha.com/images/users_profile/053/367/831/medium_pic.png?t=a1676b2992",
+          "big": "https://static3.seekingalpha.com/images/users_profile/053/367/831/big_pic.png?t=e82d56a5ec",
+          "extra_large": "https://static3.seekingalpha.com/images/users_profile/053/367/831/extra_large_pic.png?t=d8e4cfc44d"
+        },
+        "nick": "Jason Capul, SA News Editor",
+        "bio": "<p>Hello, my name is Jason Capul, and my role here at Seeking Alpha is to uncover and bring forward news and information to the investor community that is meaningful and actionable. Specifically, my focus is on the ETF marketplace.</p><p><br></p><p>I come from a finance and entrepreneurial background as I have a bachelor's degree in Finance from Susquehanna University. Please feel free to follow me on Seeking Alpha, Twitter, or add me on LinkedIn.</p>",
+        "slug": "sa-news-team"
+      },
+      "links": {
+        "self": "/user/53367831",
+        "profileUrl": "/user/53367831/profile"
+      }
+    },
+    {
+      "id": "55634950",
+      "type": "newsAuthorUser",
+      "attributes": {
+        "userId": 55634950,
+        "image": {
+          "small": "https://static2.seekingalpha.com/images/users_profile/055/634/950/small_pic.png?t=4ac5e2bdfd",
+          "medium": "https://static2.seekingalpha.com/images/users_profile/055/634/950/medium_pic.png?t=d0563ecf61",
+          "big": "https://static2.seekingalpha.com/images/users_profile/055/634/950/big_pic.png?t=6eebc44d45",
+          "extra_large": "https://static2.seekingalpha.com/images/users_profile/055/634/950/extra_large_pic.png?t=7c4d160321"
+        },
+        "nick": "Val Kennedy, SA News Editor",
+        "bio": "<p><br></p>",
+        "slug": "sa-news-team"
+      },
+      "links": {
+        "self": "/user/55634950",
+        "profileUrl": "/user/55634950/profile"
+      }
+    }
+  ],
+  "meta": {
+    "page": {
+      "title": "Tesla, Inc. (TSLA) Latest Stock News",
+      "description": "Get the latest news and real-time alerts from Tesla, Inc. (TSLA) stock at Seeking Alpha.",
+      "listTitle": "News",
+      "listDescription": null,
+      "proStatus": 0,
+      "size": 20,
+      "totalPages": 3,
+      "total": 43,
+      "minmaxPublishOn": {
+        "min": 1643386964,
+        "max": 1644946398
+      }
+    },
+    "ads": {
+      "zone": "quotes/stocks/analysis/dashboard"
+    },
+    "mone": {
+      "params": {
+        "pu": ""
+      }
+    }
+  }
+}

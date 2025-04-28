@@ -12,6 +12,7 @@ import apiHealthRoutes from './api-health.routes';
 import holdingsRoutes from './holdings';
 import cashRoutes from './cash';
 import portfolioHistoryRoutes from './portfolio-history';
+import { getNewsBySymbol, getNewsForPortfolio } from './news';
 
 const router = Router();
 
@@ -72,5 +73,9 @@ router.get('/test/historical-prices', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// News routes
+router.get('/news/symbol', getNewsBySymbol);
+router.get('/news/portfolio', getNewsForPortfolio);
 
 export default router;
