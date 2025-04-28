@@ -80,15 +80,17 @@ export default function DiagnosticsPage() {
     setActionStatus('pending');
     
     try {
-      const response = await fetch('/api/cash');
+      const response = await fetch('/api/diagnostics/test/database');
       const data = await response.json();
       
-      const success = Array.isArray(data) && data.length > 0;
+      const success = data.status === 'ok' && data.database && data.database.connection === 'active';
       setTestResults({
         ...testResults,
         database: {
           success,
-          message: success ? 'Database connection successful' : 'Database connection failed',
+          message: success 
+            ? `Database connection successful - ${data.database.rowCounts?.portfolios_usd || 0} USD stocks in database` 
+            : 'Database connection failed',
           timestamp: new Date().toISOString()
         }
       });
@@ -116,13 +118,19 @@ export default function DiagnosticsPage() {
     setActionStatus('pending');
     
     try {
-      const response = await apiRequest('POST', '/api/current-prices/fetch/symbol/USD/AAPL');
+      const response = await fetch('/api/diagnostics/test/yahoo-finance/rate-limit');
+      const data = await response.json();
+      
+      const success = data.status === 'ok' && data.summary && data.summary.successCount > 0;
+      const successRate = data.summary ? Math.round(data.summary.successCount / data.summary.totalRequests * 100) : 0;
       
       setTestResults({
         ...testResults,
         yahooFinance: {
-          success: true,
-          message: 'Yahoo Finance API request successful',
+          success,
+          message: success 
+            ? `Yahoo Finance API: ${successRate}% success rate (${data.totalResponseTime || 'N/A'})` 
+            : 'Yahoo Finance API test failed',
           timestamp: new Date().toISOString()
         }
       });

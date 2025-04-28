@@ -16,6 +16,7 @@ import portfolioPerformanceRoutes from './portfolio-performance';
 import portfolioPerformanceHistoryRoutes from './portfolio-performance-history';
 import earningsRoutes from './earnings';
 import marketIndicesRoutes from './market-indices';
+import diagnosticsRoutes from './diagnostics/diagnostics.routes';
 import { getNewsBySymbol, getNewsForPortfolio } from './news';
 
 const router = Router();
@@ -63,6 +64,9 @@ router.use('/', earningsRoutes);
 
 // Market indices routes
 router.use('/market-indices', marketIndicesRoutes);
+
+// Diagnostics routes
+router.use('/diagnostics', diagnosticsRoutes);
 
 // Data management routes (for development and administration)
 router.use('/data-management', dataManagementRoutes);

@@ -106,7 +106,7 @@ export const getDataUpdateStats = async (req: Request, res: Response) => {
       status: dataUpdateLogs.status
     })
     .from(dataUpdateLogs)
-    .where(gt(dataUpdateLogs.timestamp, oneDayAgo.toISOString()))
+    .where(gt(dataUpdateLogs.timestamp, sql`${oneDayAgo.toISOString()}`))
     .groupBy(dataUpdateLogs.type, dataUpdateLogs.status);
     
     // Get most recent update for each type
@@ -261,13 +261,15 @@ export const testPortfolioConsistency = async (req: Request, res: Response) => {
     const inconsistencies = [];
     
     // 1. Portfolio symbols without prices
-    const symbolsWithoutPrices = [...portfolioMap.keys()].filter(symbol => !pricesMap.has(symbol));
+    const portfolioSymbols = Array.from(portfolioMap.keys());
+    const symbolsWithoutPrices = portfolioSymbols.filter(symbol => !pricesMap.has(symbol));
     
     // 2. Portfolio symbols without holdings
-    const symbolsWithoutHoldings = [...portfolioMap.keys()].filter(symbol => !holdingsMap.has(symbol));
+    const symbolsWithoutHoldings = portfolioSymbols.filter(symbol => !holdingsMap.has(symbol));
     
     // 3. Holdings without portfolio entry
-    const holdingsWithoutPortfolio = [...holdingsMap.keys()].filter(symbol => !portfolioMap.has(symbol));
+    const holdingsSymbols = Array.from(holdingsMap.keys());
+    const holdingsWithoutPortfolio = holdingsSymbols.filter(symbol => !portfolioMap.has(symbol));
     
     if (symbolsWithoutPrices.length > 0) {
       inconsistencies.push({
@@ -304,7 +306,7 @@ export const testPortfolioConsistency = async (req: Request, res: Response) => {
         inconsistencyCount: inconsistencies.length
       },
       inconsistencies: inconsistencies.length > 0 ? inconsistencies : "No inconsistencies found",
-      status: inconsistencies.length === 0 ? 'consistent' : 'inconsistent'
+      consistency: inconsistencies.length === 0 ? 'consistent' : 'inconsistent'
     });
   } catch (error) {
     console.error('Error testing portfolio consistency:', error);
@@ -345,11 +347,11 @@ async function getDatabaseInfo() {
       name: dbName,
       tableCount,
       rowCounts: {
-        portfolios_usd: parseInt(portfolioUsdCount.rows[0].count),
-        portfolios_cad: parseInt(portfolioCadCount.rows[0].count),
-        portfolios_intl: parseInt(portfolioIntlCount.rows[0].count),
-        current_prices: parseInt(currentPricesCount.rows[0].count),
-        data_update_logs: parseInt(updateLogsCount.rows[0].count)
+        portfolios_usd: Number(portfolioUsdCount.rows[0].count || 0),
+        portfolios_cad: Number(portfolioCadCount.rows[0].count || 0),
+        portfolios_intl: Number(portfolioIntlCount.rows[0].count || 0),
+        current_prices: Number(currentPricesCount.rows[0].count || 0),
+        data_update_logs: Number(updateLogsCount.rows[0].count || 0)
       },
       connection: 'active'
     };
