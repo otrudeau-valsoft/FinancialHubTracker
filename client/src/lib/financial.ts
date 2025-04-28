@@ -42,7 +42,7 @@ export function getProfitLossClass(value: number | string | null | undefined): s
 /**
  * Calculate portfolio allocation by stock type (Compounder, Catalyst, Cyclical)
  * @param stocks Array of portfolio stocks
- * @param cashBalance Optional cash balance to include in calculations
+ * @param cashBalance Optional cash balance to include in calculations (not used in allocation display)
  */
 export function calculateAllocationByType(
   stocks: any[], 
@@ -52,52 +52,38 @@ export function calculateAllocationByType(
   const typeAllocation = { 
     Comp: 0, // Compounder
     Cat: 0,  // Catalyst
-    Cycl: 0, // Cyclical
-    Cash: 0  // Cash
+    Cycl: 0  // Cyclical
   };
   
-  // Get cash value from actual cash balance if provided
-  let cashValue = 0;
-  if (cashBalance && cashBalance.amount) {
-    cashValue = typeof cashBalance.amount === 'string' 
-      ? parseFloat(cashBalance.amount) 
-      : cashBalance.amount;
-  }
-  
-  // Calculate total portfolio value (including cash)
-  let totalValue = cashValue;
+  // Calculate total stocks value (excluding cash)
+  let totalStocksValue = 0;
   
   // Add stock values
   if (stocks && stocks.length > 0) {
     stocks.forEach(stock => {
-      // Skip if this is a cash symbol - we're using the actual cash balance instead
+      // Skip if this is a cash symbol
       if (stock.stockType === 'Cash' || stock.symbol === 'CASH') {
         return;
       }
       
       const currentValue = parseFloat(stock.currentValue || '0');
-      totalValue += currentValue;
+      totalStocksValue += currentValue;
     });
   }
   
-  // Skip calculation if total value is 0
-  if (totalValue === 0) return typeAllocation;
-  
-  // Add cash allocation
-  if (cashValue > 0) {
-    typeAllocation.Cash = (cashValue / totalValue) * 100;
-  }
+  // Skip calculation if total stocks value is 0
+  if (totalStocksValue === 0) return typeAllocation;
   
   // Calculate allocation by type for all stocks
   if (stocks && stocks.length > 0) {
     stocks.forEach(stock => {
-      // Skip if this is a cash symbol - we're using the actual cash balance instead
+      // Skip if this is a cash symbol
       if (stock.stockType === 'Cash' || stock.symbol === 'CASH') {
         return;
       }
       
       const currentValue = parseFloat(stock.currentValue || '0');
-      const percentage = (currentValue / totalValue) * 100;
+      const percentage = (currentValue / totalStocksValue) * 100;
       
       // Map abbreviated types to our allocation object keys
       const type = stock.stockType || 'Unknown';
@@ -123,7 +109,7 @@ export function calculateAllocationByType(
 /**
  * Calculate portfolio allocation by rating (1-4)
  * @param stocks Array of portfolio stocks
- * @param cashBalance Optional cash balance to include in calculations
+ * @param cashBalance Optional cash balance to include in calculations (not used in allocation display)
  */
 export function calculateAllocationByRating(
   stocks: any[],
@@ -134,52 +120,38 @@ export function calculateAllocationByRating(
     "1": 0,
     "2": 0,
     "3": 0,
-    "4": 0,
-    "Cash": 0 // Add Cash category
+    "4": 0
   };
   
-  // Get cash value from actual cash balance if provided
-  let cashValue = 0;
-  if (cashBalance && cashBalance.amount) {
-    cashValue = typeof cashBalance.amount === 'string' 
-      ? parseFloat(cashBalance.amount) 
-      : cashBalance.amount;
-  }
-  
-  // Calculate total portfolio value (including cash)
-  let totalValue = cashValue;
+  // Calculate total stocks value (excluding cash)
+  let totalStocksValue = 0;
   
   // Add stock values
   if (stocks && stocks.length > 0) {
     stocks.forEach(stock => {
-      // Skip if this is a cash symbol - we're using the actual cash balance instead
+      // Skip if this is a cash symbol
       if (stock.stockType === 'Cash' || stock.symbol === 'CASH') {
         return;
       }
       
       const currentValue = parseFloat(stock.currentValue || '0');
-      totalValue += currentValue;
+      totalStocksValue += currentValue;
     });
   }
   
-  // Skip calculation if total value is 0
-  if (totalValue === 0) return ratingAllocation;
-  
-  // Add cash allocation
-  if (cashValue > 0) {
-    ratingAllocation.Cash = (cashValue / totalValue) * 100;
-  }
+  // Skip calculation if total stocks value is 0
+  if (totalStocksValue === 0) return ratingAllocation;
   
   // Calculate allocation by rating for all stocks
   if (stocks && stocks.length > 0) {
     stocks.forEach(stock => {
-      // Skip if this is a cash symbol - we're using the actual cash balance instead
+      // Skip if this is a cash symbol
       if (stock.stockType === 'Cash' || stock.symbol === 'CASH') {
         return;
       }
       
       const currentValue = parseFloat(stock.currentValue || '0');
-      const percentage = (currentValue / totalValue) * 100;
+      const percentage = (currentValue / totalStocksValue) * 100;
       
       // Map ratings to our allocation object keys
       const rating = stock.rating ? stock.rating.toString() : "0";
@@ -226,8 +198,8 @@ export function calculatePortfolioStats(stocks: any[], cashBalance?: { amount: s
   // Skip calculation if no stocks and no cash
   if ((!stocks || stocks.length === 0) && cashValue === 0) return stats;
   
-  // Calculate total value and daily change
-  let totalValue = cashValue; // Start with cash balance
+  // Calculate total stocks value (excluding cash)
+  let stocksValue = 0;
   let dailyChange = 0;
   let ytdChange = 0;
   
@@ -243,8 +215,8 @@ export function calculatePortfolioStats(stocks: any[], cashBalance?: { amount: s
       const dailyChangePercent = parseFloat(stock.dailyChangePercent || '0');
       const ytdChangePercent = parseFloat(stock.ytdChangePercent || '0');
       
-      // Add to total value
-      totalValue += currentValue;
+      // Add to stocks value
+      stocksValue += currentValue;
       
       // Calculate daily change
       dailyChange += (currentValue * dailyChangePercent / 100);
@@ -253,6 +225,9 @@ export function calculatePortfolioStats(stocks: any[], cashBalance?: { amount: s
       ytdChange += (currentValue * ytdChangePercent / 100);
     });
   }
+  
+  // Calculate total portfolio value (stocks + cash)
+  const totalValue = stocksValue + cashValue;
   
   // Calculate percentages
   const dailyChangePercent = totalValue > 0 ? (dailyChange / totalValue) * 100 : 0;
