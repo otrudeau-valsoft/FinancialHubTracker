@@ -1,5 +1,5 @@
 import express from 'express';
-import { db } from '../db';
+import { db, pool } from '../db';
 import { historicalPrices } from '@shared/schema';
 import { eq, sql, desc, and, gte, lt, between } from 'drizzle-orm';
 import { DateTime } from 'luxon';
@@ -60,92 +60,88 @@ portfolioHistoryRouter.get('/', async (req, res) => {
     const formattedStartDate = startDate.toFormat('yyyy-MM-dd');
     const formattedEndDate = now.toFormat('yyyy-MM-dd');
     
-    // Get portfolio value history
+    // Get portfolio value history using raw query through the pool
     let portfolioData;
+    let portfolioTableName = '';
     
-    // Use region-specific queries instead of template literals for table names
+    // Determine which portfolio table to use
     if (region === 'USD') {
-      portfolioData = await db.execute(sql`
-        SELECT 
-          historical_prices.date, 
-          SUM(historical_prices.close * portfolio_USD.quantity) as "portfolioValue"
-        FROM 
-          historical_prices
-        INNER JOIN 
-          portfolio_USD ON (
-            historical_prices.symbol = portfolio_USD.symbol OR 
-            historical_prices.symbol = CONCAT(portfolio_USD.symbol, '.TO')
-          )
-        WHERE 
-          historical_prices.region = ${region}
-          AND historical_prices.date >= ${formattedStartDate}
-          AND historical_prices.date < ${formattedEndDate}
-        GROUP BY 
-          historical_prices.date
-        ORDER BY 
-          historical_prices.date
-      `);
+      portfolioTableName = 'portfolio_USD';
     } else if (region === 'CAD') {
-      portfolioData = await db.execute(sql`
-        SELECT 
-          historical_prices.date, 
-          SUM(historical_prices.close * portfolio_CAD.quantity) as "portfolioValue"
-        FROM 
-          historical_prices
-        INNER JOIN 
-          portfolio_CAD ON (
-            historical_prices.symbol = portfolio_CAD.symbol OR 
-            historical_prices.symbol = CONCAT(portfolio_CAD.symbol, '.TO')
-          )
-        WHERE 
-          historical_prices.region = ${region}
-          AND historical_prices.date >= ${formattedStartDate}
-          AND historical_prices.date < ${formattedEndDate}
-        GROUP BY 
-          historical_prices.date
-        ORDER BY 
-          historical_prices.date
-      `);
+      portfolioTableName = 'portfolio_CAD';
     } else if (region === 'INTL') {
-      portfolioData = await db.execute(sql`
-        SELECT 
-          historical_prices.date, 
-          SUM(historical_prices.close * portfolio_INTL.quantity) as "portfolioValue"
-        FROM 
-          historical_prices
-        INNER JOIN 
-          portfolio_INTL ON (
-            historical_prices.symbol = portfolio_INTL.symbol OR 
-            historical_prices.symbol = CONCAT(portfolio_INTL.symbol, '.TO')
-          )
-        WHERE 
-          historical_prices.region = ${region}
-          AND historical_prices.date >= ${formattedStartDate}
-          AND historical_prices.date < ${formattedEndDate}
-        GROUP BY 
-          historical_prices.date
-        ORDER BY 
-          historical_prices.date
-      `);
+      portfolioTableName = 'portfolio_INTL';
     }
     
-    // Get benchmark (ETF) value history
+    // Use direct SQL query with manually constructed table name
+    try {
+      const queryText = `
+        SELECT 
+          historical_prices.date, 
+          SUM(historical_prices.close * ${portfolioTableName}.quantity) as "portfolioValue"
+        FROM 
+          historical_prices
+        INNER JOIN 
+          ${portfolioTableName} ON (
+            historical_prices.symbol = ${portfolioTableName}.symbol OR 
+            historical_prices.symbol = CONCAT(${portfolioTableName}.symbol, '.TO')
+          )
+        WHERE 
+          historical_prices.region = $1
+          AND historical_prices.date >= $2
+          AND historical_prices.date < $3
+        GROUP BY 
+          historical_prices.date
+        ORDER BY 
+          historical_prices.date
+      `;
+      
+      console.log('Executing portfolio history query:', {
+        region, 
+        portfolioTableName,
+        formattedStartDate,
+        formattedEndDate,
+        queryText
+      });
+      
+      portfolioData = await pool.query(queryText, [region, formattedStartDate, formattedEndDate]);
+    } catch (queryError) {
+      console.error('Error in portfolio query:', queryError);
+      throw queryError;
+    }
+    
+    // Get benchmark (ETF) value history using raw pool query
     const benchmarkSymbol = region === 'USD' ? 'SPY' : (region === 'CAD' ? 'XIC' : 'ACWX');
     
-    const benchmarkData = await db.execute(sql`
-      SELECT 
-        date, 
-        close as "benchmarkValue"
-      FROM 
-        historical_prices
-      WHERE 
-        symbol = ${benchmarkSymbol}
-        AND region = 'USD' -- Benchmarks are in USD region
-        AND date >= ${formattedStartDate}
-        AND date < ${formattedEndDate}
-      ORDER BY 
-        date
-    `);
+    // Use direct SQL query for benchmark data as well
+    let benchmarkData;
+    try {
+      const benchmarkQueryText = `
+        SELECT 
+          date, 
+          close as "benchmarkValue"
+        FROM 
+          historical_prices
+        WHERE 
+          symbol = $1
+          AND region = 'USD' -- Benchmarks are in USD region
+          AND date >= $2
+          AND date < $3
+        ORDER BY 
+          date
+      `;
+      
+      console.log('Executing benchmark history query:', {
+        benchmarkSymbol,
+        formattedStartDate,
+        formattedEndDate
+      });
+      
+      benchmarkData = await pool.query(benchmarkQueryText, [benchmarkSymbol, formattedStartDate, formattedEndDate]);
+    } catch (benchmarkError) {
+      console.error('Error in benchmark query:', benchmarkError);
+      throw benchmarkError;
+    }
     
     // Combine the data
     const combinedData = [];
