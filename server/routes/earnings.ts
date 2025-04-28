@@ -60,9 +60,12 @@ router.get('/earnings', asyncHandler(async (req, res) => {
     
     // Create a map of current prices
     const priceMap = new Map();
-    for (const price of prices) {
-      if (!priceMap.has(price.ticker)) {
-        priceMap.set(price.ticker, price.price);
+    // Add defensive check to ensure prices is iterable
+    if (prices && Array.isArray(prices)) {
+      for (const price of prices) {
+        if (price && price.ticker && !priceMap.has(price.ticker)) {
+          priceMap.set(price.ticker, price.price);
+        }
       }
     }
     
@@ -112,14 +115,22 @@ router.get('/heatmap', asyncHandler(async (req, res) => {
     const result = [];
     
     // Process each quarter
-    for (const { fiscal_year, fiscal_q } of quarters) {
-      // Get all earnings for this quarter
-      const quarterData = await db.select()
-        .from(earningsQuarterly)
-        .where(and(
-          eq(earningsQuarterly.fiscal_year, fiscal_year),
-          eq(earningsQuarterly.fiscal_q, fiscal_q)
-        ));
+    // Add defensive check to ensure quarters is iterable
+    if (quarters && Array.isArray(quarters)) {
+      for (const quarter of quarters) {
+        const fiscal_year = quarter?.fiscal_year;
+        const fiscal_q = quarter?.fiscal_q;
+        
+        // Skip if we don't have valid quarter information
+        if (!fiscal_year || !fiscal_q) continue;
+        
+        // Get all earnings for this quarter
+        const quarterData = await db.select()
+          .from(earningsQuarterly)
+          .where(and(
+            eq(earningsQuarterly.fiscal_year, fiscal_year),
+            eq(earningsQuarterly.fiscal_q, fiscal_q)
+          ));
       
       // Calculate aggregations
       const epsStats = {
@@ -156,6 +167,7 @@ router.get('/heatmap', asyncHandler(async (req, res) => {
         score: scoreStats,
         count: quarterData.length
       });
+      }
     }
     
     res.json({

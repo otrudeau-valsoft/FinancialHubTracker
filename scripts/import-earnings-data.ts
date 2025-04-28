@@ -57,7 +57,11 @@ async function getPortfolioTickers(region: string): Promise<{symbol: string, com
     stockRating: portfolioTable.rating,
   }).from(portfolioTable);
 
-  return stocks.map(stock => ({
+  // During development, limit to a few stocks to avoid rate limiting
+  const limitedStocks = stocks.slice(0, 5); // Only process first 5 stocks
+  console.log(`Limited to first ${limitedStocks.length} stocks for development`);
+
+  return limitedStocks.map(stock => ({
     ...stock,
     symbol: symbolModifier(stock.symbol)
   }));
@@ -104,39 +108,54 @@ function determineTimeOfDay(hourUTC: number): string {
 }
 
 /**
- * Calculate earnings score based on EPS, revenue, guidance, and market reaction
+ * Calculate earnings score (Good/Okay/Bad) based on EPS, revenue, guidance 
  */
 function calculateEarningsScore(
   epsBeat: boolean | null,
   revenueBeat: boolean | null,
   guidancePositive: boolean | null,
   marketReaction: number | null
-): number {
-  let score = 5; // Neutral starting point on a 1-10 scale
+): string {
+  // Count positive factors
+  let positiveCount = 0;
+  let negativeCount = 0;
+  let totalFactors = 0;
   
-  // EPS impact (can add or subtract up to 2 points)
+  // EPS impact
   if (epsBeat !== null) {
-    score += epsBeat ? 2 : -2;
+    totalFactors++;
+    if (epsBeat) positiveCount++;
+    else negativeCount++;
   }
   
-  // Revenue impact (can add or subtract up to 2 points)
+  // Revenue impact
   if (revenueBeat !== null) {
-    score += revenueBeat ? 2 : -2;
+    totalFactors++;
+    if (revenueBeat) positiveCount++;
+    else negativeCount++;
   }
   
-  // Guidance impact (can add or subtract up to 1 point)
+  // Guidance impact
   if (guidancePositive !== null) {
-    score += guidancePositive ? 1 : -1;
+    totalFactors++;
+    if (guidancePositive) positiveCount++;
+    else negativeCount++;
   }
   
-  // Market reaction impact (can adjust up to 1 point)
-  if (marketReaction !== null) {
-    if (marketReaction > 5) score += 1;
-    else if (marketReaction < -5) score -= 1;
+  // Determine score based on ratio of positive to total factors
+  if (totalFactors === 0) {
+    return 'Okay'; // Not enough data
   }
   
-  // Ensure score stays within 1-10 range
-  return Math.min(Math.max(score, 1), 10);
+  const positiveRatio = positiveCount / totalFactors;
+  
+  if (positiveRatio >= 0.67) {
+    return 'Good';
+  } else if (positiveRatio <= 0.33) {
+    return 'Bad';
+  } else {
+    return 'Okay';
+  }
 }
 
 /**
@@ -500,10 +519,12 @@ async function main() {
     
     await logUpdate('earnings_data_all', 'In Progress', 'ALL', 'Starting earnings data collection for all portfolios');
     
-    // Import earnings for each portfolio
+    // Import earnings for USD portfolio first - we'll add others once we confirm it works
     const usdCount = await importPortfolioEarnings('USD');
-    const cadCount = await importPortfolioEarnings('CAD');
-    const intlCount = await importPortfolioEarnings('INTL');
+    
+    // Skip other portfolios for now to make development faster
+    const cadCount = 0; // await importPortfolioEarnings('CAD');
+    const intlCount = 0; // await importPortfolioEarnings('INTL');
     
     // Calculate market reactions from historical price data
     const reactionsCalculated = await calculateMarketReactions();
