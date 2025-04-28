@@ -60,8 +60,14 @@ export const PerformanceChart = ({
   
   // Fetch portfolio performance data
   const { data: apiResponse, isLoading } = useQuery({
-    queryKey: ['/api/portfolio-history', { region, timeRange: selectedRange }],
-    enabled: !!selectedRange,
+    queryKey: ['/api/portfolio-history', region, selectedRange],
+    queryFn: () => 
+      fetch(`/api/portfolio-history?region=${region}&timeRange=${selectedRange}`)
+        .then(res => {
+          if (!res.ok) throw new Error('Network response was not ok');
+          return res.json();
+        }),
+    enabled: !!selectedRange && !!region,
     staleTime: 3600000, // 1 hour
   });
   
