@@ -840,13 +840,58 @@ export class DatabaseStorage {
    */
   async bulkCreateHistoricalPrices(data: any[]) {
     try {
+      if (data.length === 0) {
+        return [];
+      }
+
       // Process data for insertion
       const processedData = data.map(item => sanitizeForDb(item));
       
-      // Insert into the historical_prices table
-      const results = await db.insert(historicalPrices).values(processedData).returning();
-      return results;
+      // Handle duplicate entries by using a custom ON CONFLICT approach
+      // Using raw SQL with drizzle for upsert operation
+      // This will update records if they already exist or insert if they don't
+      const query = `
+        INSERT INTO historical_prices (symbol, date, open, high, low, close, volume, adjusted_close, region)
+        VALUES ${processedData.map((_, i) => `($${i * 8 + 1}, $${i * 8 + 2}, $${i * 8 + 3}, $${i * 8 + 4}, $${i * 8 + 5}, $${i * 8 + 6}, $${i * 8 + 7}, $${i * 8 + 8}, $${i * 8 + 9})`).join(', ')}
+        ON CONFLICT (symbol, date, region) DO UPDATE SET
+          open = EXCLUDED.open,
+          high = EXCLUDED.high,
+          low = EXCLUDED.low,
+          close = EXCLUDED.close,
+          volume = EXCLUDED.volume,
+          adjusted_close = EXCLUDED.adjusted_close,
+          updated_at = NOW()
+        RETURNING *;
+      `;
+      
+      // Flatten the values for the SQL query
+      const values = processedData.flatMap(item => [
+        item.symbol, 
+        item.date, 
+        item.open, 
+        item.high, 
+        item.low, 
+        item.close, 
+        item.volume, 
+        item.adjustedClose, 
+        item.region
+      ]);
+      
+      // Execute the query
+      const results = await db.execute(sql.raw(query, values));
+      return results.rows;
     } catch (error) {
+      // If the error is about a missing constraint, log it and use standard insert instead
+      if (error.message?.includes('constraint "historical_prices_symbol_date_region_key" does not exist')) {
+        console.warn('Unique constraint doesn\'t exist, falling back to standard insert');
+        // Process data for insertion
+        const processedData = data.map(item => sanitizeForDb(item));
+        
+        // Use standard insert
+        const results = await db.insert(historicalPrices).values(processedData).returning();
+        return results;
+      }
+      
       console.error('Error bulk creating historical prices:', error);
       throw error;
     }
