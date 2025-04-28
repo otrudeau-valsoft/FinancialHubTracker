@@ -202,17 +202,17 @@ export default function EtfHoldings() {
                       <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] text-xs whitespace-nowrap">{holding.sector || 'N/A'}</td>
                       <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
                         {holding.weight !== null && holding.weight !== undefined
-                          ? `${Number(holding.weight).toFixed(2)}%`
+                          ? `${parseFloat(String(holding.weight)).toFixed(2)}%`
                           : 'N/A'}
                       </td>
                       <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
                         {holding.price !== null && holding.price !== undefined
-                          ? `${currencySymbol}${Number(holding.price).toFixed(2)}`
+                          ? `${currencySymbol}${parseFloat(String(holding.price)).toFixed(2)}`
                           : 'N/A'}
                       </td>
                       <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
                         {holding.quantity !== null && holding.quantity !== undefined
-                          ? Number(holding.quantity).toLocaleString()
+                          ? parseFloat(String(holding.quantity)).toLocaleString()
                           : 'N/A'}
                       </td>
                       <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] text-xs whitespace-nowrap">
