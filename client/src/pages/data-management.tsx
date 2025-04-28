@@ -256,9 +256,25 @@ export default function DataManagement() {
         description: "Successfully updated current prices for all portfolios",
       });
       refetchLogs();
+      
+      // Invalidate current prices data
       queryClient.invalidateQueries({ queryKey: ['/api/current-prices/USD'] });
       queryClient.invalidateQueries({ queryKey: ['/api/current-prices/CAD'] });
       queryClient.invalidateQueries({ queryKey: ['/api/current-prices/INTL'] });
+      
+      // Invalidate portfolio performance history to update charts
+      queryClient.invalidateQueries({ queryKey: ['/api/portfolio-performance-history'] });
+      
+      // Invalidate holdings data to update portfolio tables and summary
+      queryClient.invalidateQueries({ queryKey: ['/api/holdings'] });
+      
+      // Invalidate specific regional holdings
+      queryClient.invalidateQueries({ queryKey: ['/api/holdings/USD'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/holdings/CAD'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/holdings/INTL'] });
+      
+      // Invalidate portfolio summary data
+      queryClient.invalidateQueries({ queryKey: ['/api/portfolio'] });
     },
     onError: (error) => {
       toast({
@@ -278,7 +294,18 @@ export default function DataManagement() {
         description: `Successfully updated historical prices for ${region} portfolio`,
       });
       refetchLogs();
+      
+      // Invalidate historical prices data
       queryClient.invalidateQueries({ queryKey: ['/api/historical-prices/region'] });
+      
+      // Invalidate portfolio performance history to update charts
+      queryClient.invalidateQueries({ queryKey: ['/api/portfolio-performance-history'] });
+      
+      // Invalidate holdings data for the specific region
+      queryClient.invalidateQueries({ queryKey: [`/api/holdings/${region}`] });
+      
+      // Invalidate portfolio summary data for the specific region
+      queryClient.invalidateQueries({ queryKey: [`/api/portfolio/${region}`] });
     },
     onError: (error) => {
       toast({
@@ -297,7 +324,23 @@ export default function DataManagement() {
         description: "Successfully updated historical prices for all portfolios",
       });
       refetchLogs();
+      
+      // Invalidate historical prices data
       queryClient.invalidateQueries({ queryKey: ['/api/historical-prices/region'] });
+      
+      // Invalidate portfolio performance history to update charts
+      queryClient.invalidateQueries({ queryKey: ['/api/portfolio-performance-history'] });
+      
+      // Invalidate holdings data to update portfolio tables and summary
+      queryClient.invalidateQueries({ queryKey: ['/api/holdings'] });
+      
+      // Invalidate specific regional holdings
+      queryClient.invalidateQueries({ queryKey: ['/api/holdings/USD'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/holdings/CAD'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/holdings/INTL'] });
+      
+      // Invalidate portfolio summary data
+      queryClient.invalidateQueries({ queryKey: ['/api/portfolio'] });
     },
     onError: (error) => {
       toast({
