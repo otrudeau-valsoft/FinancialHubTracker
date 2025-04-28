@@ -18,7 +18,7 @@ interface AlertsListProps {
   limit?: number;
 }
 
-export const AlertsList = ({ alerts, limit = 5 }: AlertsListProps) => {
+export const AlertsList = ({ alerts, limit = 10 }: AlertsListProps) => {
   const displayAlerts = alerts.slice(0, limit);
   
   const getSeverityIcon = (severity: string) => {
@@ -48,7 +48,7 @@ export const AlertsList = ({ alerts, limit = 5 }: AlertsListProps) => {
         </div>
       </CardHeader>
       <CardContent className="p-2 bg-[#0A1929]">
-        <div className="space-y-2 max-h-[200px] overflow-y-auto">
+        <div className="space-y-2 max-h-[420px] overflow-y-auto">
           {displayAlerts.length > 0 ? (
             displayAlerts.map((alert) => (
               <div 

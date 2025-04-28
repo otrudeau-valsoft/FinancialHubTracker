@@ -233,8 +233,9 @@ export default function UsdPortfolio() {
                 ytdPerformance: usdStats.ytdPerformance,
                 ytdPerformanceValue: usdStats.ytdValue,
                 benchmarkPerformance: 7.35, // SPY YTD (TODO: Use actual SPY YTD from API)
-                activeAlerts: alerts?.filter(a => a.isActive).length || 0,
-                criticalAlerts: alerts?.filter(a => a.isActive && a.severity === 'critical').length || 0
+                // Remove alerts from summary as they'll be shown in the Matrix Rule Alerts component
+                activeAlerts: 0,
+                criticalAlerts: 0
               }}
               benchmark="SPY"
               cashSymbol="Cash" // Use actual cash instead of an ETF
