@@ -75,7 +75,7 @@ export const Sidebar = () => {
                   : "text-gray-300 hover:bg-primary-50 hover:text-white"
               )}>
                 <BookOpen className="mr-3 h-5 w-5" />
-                Matrix Rules
+                Matrix Engine
               </a>
             </Link>
             

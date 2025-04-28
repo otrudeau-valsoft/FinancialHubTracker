@@ -127,7 +127,7 @@ export function Header() {
           onClick={() => navigateTo("/matrix-rules")} 
           className={`text-gray-300 hover:text-white px-3 py-1.5 rounded-md transition-colors duration-200 ease-in-out ${location === '/matrix-rules' ? 'bg-blue-900/40' : 'hover:bg-[#1A304A]'}`}
         >
-          Matrix Rules
+          Matrix Engine
         </button>
         
         <button 
@@ -258,7 +258,7 @@ export function Header() {
                 onClick={() => navigateTo("/matrix-rules")} 
                 className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/matrix-rules' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
               >
-                Matrix Rules
+                Matrix Engine
               </button>
               
               <button 
