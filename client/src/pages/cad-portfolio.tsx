@@ -211,15 +211,17 @@ export default function CadPortfolio() {
               cashShares={1}
             />
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6">
-              <div className="md:col-span-2 lg:col-span-1 flex flex-col">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6">
+              {/* Allocation Chart - 1 col */}
+              <div className="md:col-span-1 flex flex-col">
                 <AllocationChart 
                   typeAllocation={cadAllocationByType} 
                   ratingAllocation={cadAllocationByRating} 
                 />
               </div>
               
-              <div className="md:col-span-2 lg:col-span-1 flex flex-col">
+              {/* Performance Chart - 2 cols */}
+              <div className="md:col-span-2 flex flex-col">
                 <PerformanceChart 
                   region="CAD"
                   timeRanges={["1W", "1M", "YTD", "1Y"]}
@@ -227,7 +229,8 @@ export default function CadPortfolio() {
                 />
               </div>
               
-              <div className="flex flex-col">
+              {/* Matrix Rule Alerts - 1 col, 2 rows tall */}
+              <div className="md:col-span-1 md:row-span-2 flex flex-col">
                 <AlertsList 
                   alerts={alerts?.filter(a => 
                     cadStocks?.find(s => s.symbol === a.symbol) && a.isActive

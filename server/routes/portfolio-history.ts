@@ -1,128 +1,95 @@
-import { Router, Request, Response } from 'express';
-import { asyncHandler } from '../middleware/error-handler';
+import express from 'express';
 import { db } from '../db';
-import { storage } from '../storage';
+import { historicalPrices } from '@shared/schema';
+import { eq, sql, desc, and, gte, lt, between } from 'drizzle-orm';
+import { DateTime } from 'luxon';
 
-const router = Router();
+const portfolioHistoryRouter = express.Router();
 
-/**
- * Get historical portfolio performance data for a specific region
- */
-router.get('/:region', asyncHandler(async (req: Request, res: Response) => {
-  const { region } = req.params;
-  const startDateStr = req.query.startDate as string | undefined;
-  const endDateStr = req.query.endDate as string | undefined;
-  
-  let startDate: Date = startDateStr ? new Date(startDateStr) : new Date(Date.now() - 365 * 24 * 60 * 60 * 1000); // Default to 1 year ago
-  let endDate: Date = endDateStr ? new Date(endDateStr) : new Date(); // Default to today
-  
+// Get historical portfolio performance data
+portfolioHistoryRouter.get('/', async (req, res) => {
   try {
-    // 1. Get all stocks in the portfolio
-    const stocks = await storage.getStocksByRegion(region.toUpperCase());
+    const { region, timeRange } = req.query;
     
-    if (!stocks || stocks.length === 0) {
-      return res.json([]);
+    if (!region) {
+      return res.status(400).json({ status: 'error', message: 'Region is required' });
     }
     
-    // 2. Get historical prices for all these stocks
-    const symbols = stocks.map(stock => stock.symbol);
-    const historicalPrices = await storage.getHistoricalPricesBySymbols(symbols, region.toUpperCase(), startDate, endDate);
+    // Define date range based on timeRange
+    const now = DateTime.now().setZone('America/New_York');
+    let startDate = now.minus({ days: 30 }); // Default to 1 month
     
-    if (!historicalPrices || historicalPrices.length === 0) {
-      return res.json([]);
+    if (timeRange === '1W') {
+      startDate = now.minus({ weeks: 1 });
+    } else if (timeRange === '1M') {
+      startDate = now.minus({ months: 1 });
+    } else if (timeRange === 'YTD') {
+      startDate = DateTime.fromObject({ year: now.year, month: 1, day: 1 }, { zone: 'America/New_York' });
+    } else if (timeRange === '1Y') {
+      startDate = now.minus({ years: 1 });
     }
     
-    // 3. Process historical prices into daily portfolio values
-    const dailyValues = new Map<string, { 
-      date: string, 
-      portfolioValue: number,
-      benchmarkValue: number
-    }>();
+    // Format dates for SQL query
+    const formattedStartDate = startDate.toFormat('yyyy-MM-dd');
+    const formattedEndDate = now.toFormat('yyyy-MM-dd');
     
-    // Get the benchmark ETF symbol for this region
-    const benchmarkSymbol = getBenchmarkForRegion(region.toUpperCase());
+    // Get portfolio value history
+    const portfolioTable = sql`portfolio_${region}`;
+    const portfolioData = await db.select({
+      date: historicalPrices.date,
+      portfolioValue: sql`SUM(historical_prices.close_price * ${portfolioTable}.quantity)`,
+    })
+    .from(historicalPrices)
+    .innerJoin(portfolioTable, eq(historicalPrices.symbol, sql`${portfolioTable}.symbol`))
+    .where(
+      and(
+        eq(historicalPrices.region, region as string),
+        gte(historicalPrices.date, formattedStartDate),
+        lt(historicalPrices.date, formattedEndDate)
+      )
+    )
+    .groupBy(historicalPrices.date)
+    .orderBy(historicalPrices.date);
     
-    // Process all price records
-    historicalPrices.forEach(priceRecord => {
-      const dateStr = new Date(priceRecord.date).toISOString().split('T')[0];
-      const symbol = priceRecord.symbol;
-      const closePrice = parseFloat(priceRecord.close?.toString() || '0');
-      
-      // Skip invalid prices
-      if (closePrice <= 0) return;
-      
-      // Find the stock data to get quantity
-      const stock = stocks.find(s => s.symbol === symbol);
-      
-      // If this is a benchmark symbol, add it to the benchmark value
-      if (symbol === benchmarkSymbol) {
-        const entry = dailyValues.get(dateStr) || { 
-          date: dateStr, 
-          portfolioValue: 0, 
-          benchmarkValue: 0 
-        };
-        
-        // Normalize benchmark to start at 100 at the beginning
-        entry.benchmarkValue = closePrice;
-        dailyValues.set(dateStr, entry);
-      } 
-      // Regular portfolio stock
-      else if (stock) {
-        const quantity = parseFloat(stock.quantity?.toString() || '0');
-        const stockValue = closePrice * quantity;
-        
-        // Add to daily value
-        const entry = dailyValues.get(dateStr) || { 
-          date: dateStr, 
-          portfolioValue: 0, 
-          benchmarkValue: 0 
-        };
-        
-        entry.portfolioValue += stockValue;
-        dailyValues.set(dateStr, entry);
-      }
+    // Get benchmark (ETF) value history
+    const benchmarkSymbol = region === 'USD' ? 'SPY' : (region === 'CAD' ? 'XIC' : 'ACWX');
+    
+    const benchmarkData = await db.select({
+      date: historicalPrices.date,
+      benchmarkValue: historicalPrices.closePrice, // Access column name as defined in schema
+    })
+    .from(historicalPrices)
+    .where(
+      and(
+        eq(historicalPrices.symbol, benchmarkSymbol),
+        eq(historicalPrices.region, 'USD'), // Benchmarks are in USD region
+        gte(historicalPrices.date, formattedStartDate),
+        lt(historicalPrices.date, formattedEndDate)
+      )
+    )
+    .orderBy(historicalPrices.date);
+    
+    // Combine the data
+    const combinedData = portfolioData.map(portfolioPoint => {
+      const matchingBenchmark = benchmarkData.find(b => b.date === portfolioPoint.date);
+      return {
+        date: portfolioPoint.date,
+        portfolioValue: portfolioPoint.portfolioValue || 0,
+        benchmarkValue: matchingBenchmark?.benchmarkValue || 0
+      };
     });
     
-    // Convert Map to sorted array
-    let result = Array.from(dailyValues.values())
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    
-    // If we have data, normalize values to start at 100 for easier percentage comparison
-    if (result.length > 0) {
-      const startPortfolioValue = result[0].portfolioValue;
-      const startBenchmarkValue = result[0].benchmarkValue;
-      
-      result = result.map(day => ({
-        date: day.date,
-        portfolioValue: startPortfolioValue > 0 ? (day.portfolioValue / startPortfolioValue) * 100 : 0,
-        benchmarkValue: startBenchmarkValue > 0 ? (day.benchmarkValue / startBenchmarkValue) * 100 : 0
-      }));
-    }
-    
-    return res.json(result);
+    return res.json({ 
+      status: 'success', 
+      data: combinedData 
+    });
   } catch (error) {
-    console.error('Error calculating portfolio history:', error);
+    console.error('Error fetching portfolio history:', error);
     return res.status(500).json({ 
-      error: 'Failed to calculate portfolio history', 
-      message: error instanceof Error ? error.message : 'Unknown error' 
+      status: 'error', 
+      message: 'Failed to fetch portfolio history data' 
     });
   }
-}));
+});
 
-/**
- * Get appropriate benchmark ETF symbol for each region
- */
-function getBenchmarkForRegion(region: string): string {
-  switch (region) {
-    case 'USD':
-      return 'SPY';
-    case 'CAD':
-      return 'XIC.TO';
-    case 'INTL':
-      return 'ACWX';
-    default:
-      return 'SPY';
-  }
-}
-
-export default router;
+export default portfolioHistoryRouter;
