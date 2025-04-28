@@ -43,26 +43,73 @@ portfolioHistoryRouter.get('/', async (req, res) => {
     const formattedEndDate = now.toFormat('yyyy-MM-dd');
     
     // Get portfolio value history
-    const portfolioData = await db.execute(sql`
-      SELECT 
-        historical_prices.date, 
-        SUM(historical_prices.close * portfolio_${region}.quantity) as "portfolioValue"
-      FROM 
-        historical_prices
-      INNER JOIN 
-        portfolio_${region} ON (
-          historical_prices.symbol = portfolio_${region}.symbol OR 
-          historical_prices.symbol = CONCAT(portfolio_${region}.symbol, '.TO')
-        )
-      WHERE 
-        historical_prices.region = ${region}
-        AND historical_prices.date >= ${formattedStartDate}
-        AND historical_prices.date < ${formattedEndDate}
-      GROUP BY 
-        historical_prices.date
-      ORDER BY 
-        historical_prices.date
-    `);
+    let portfolioData;
+    
+    // Use region-specific queries instead of template literals for table names
+    if (region === 'USD') {
+      portfolioData = await db.execute(sql`
+        SELECT 
+          historical_prices.date, 
+          SUM(historical_prices.close * portfolio_USD.quantity) as "portfolioValue"
+        FROM 
+          historical_prices
+        INNER JOIN 
+          portfolio_USD ON (
+            historical_prices.symbol = portfolio_USD.symbol OR 
+            historical_prices.symbol = CONCAT(portfolio_USD.symbol, '.TO')
+          )
+        WHERE 
+          historical_prices.region = ${region}
+          AND historical_prices.date >= ${formattedStartDate}
+          AND historical_prices.date < ${formattedEndDate}
+        GROUP BY 
+          historical_prices.date
+        ORDER BY 
+          historical_prices.date
+      `);
+    } else if (region === 'CAD') {
+      portfolioData = await db.execute(sql`
+        SELECT 
+          historical_prices.date, 
+          SUM(historical_prices.close * portfolio_CAD.quantity) as "portfolioValue"
+        FROM 
+          historical_prices
+        INNER JOIN 
+          portfolio_CAD ON (
+            historical_prices.symbol = portfolio_CAD.symbol OR 
+            historical_prices.symbol = CONCAT(portfolio_CAD.symbol, '.TO')
+          )
+        WHERE 
+          historical_prices.region = ${region}
+          AND historical_prices.date >= ${formattedStartDate}
+          AND historical_prices.date < ${formattedEndDate}
+        GROUP BY 
+          historical_prices.date
+        ORDER BY 
+          historical_prices.date
+      `);
+    } else if (region === 'INTL') {
+      portfolioData = await db.execute(sql`
+        SELECT 
+          historical_prices.date, 
+          SUM(historical_prices.close * portfolio_INTL.quantity) as "portfolioValue"
+        FROM 
+          historical_prices
+        INNER JOIN 
+          portfolio_INTL ON (
+            historical_prices.symbol = portfolio_INTL.symbol OR 
+            historical_prices.symbol = CONCAT(portfolio_INTL.symbol, '.TO')
+          )
+        WHERE 
+          historical_prices.region = ${region}
+          AND historical_prices.date >= ${formattedStartDate}
+          AND historical_prices.date < ${formattedEndDate}
+        GROUP BY 
+          historical_prices.date
+        ORDER BY 
+          historical_prices.date
+      `);
+    }
     
     // Get benchmark (ETF) value history
     const benchmarkSymbol = region === 'USD' ? 'SPY' : (region === 'CAD' ? 'XIC' : 'ACWX');
