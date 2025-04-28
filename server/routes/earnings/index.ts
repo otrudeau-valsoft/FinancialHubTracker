@@ -196,6 +196,7 @@ router.get('/heatmap', asyncHandler(async (req, res) => {
       };
       
       // Create stock data for the heatmap table display
+      console.log(`DEBUG - Creating stock data for ${quarterData.length} earnings records`);
       const stocks = quarterData.map(earning => {
         const stockData = stockDataMap.get(earning.ticker) || {};
         const epsStatus = beatStatus(earning.eps_actual, earning.eps_estimate);
