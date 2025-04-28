@@ -11,6 +11,8 @@ portfolioHistoryRouter.get('/', async (req, res) => {
   try {
     const { region, timeRange } = req.query;
     
+    console.log('Portfolio history request:', { region, timeRange, queryParams: req.query });
+    
     if (!region) {
       return res.status(400).json({ status: 'error', message: 'Region is required' });
     }
