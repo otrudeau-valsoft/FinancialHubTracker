@@ -67,10 +67,21 @@ export default function CadPortfolio() {
     staleTime: 30000, // 30 seconds
   });
   
+  // Fetch cash balance
+  const { data: cashBalances, isLoading: cashLoading } = useQuery({
+    queryKey: ['/api/cash'],
+    staleTime: 60000, // 1 minute
+  });
+  
+  // Get CAD cash balance
+  const cadCashBalance = Array.isArray(cashBalances) 
+    ? cashBalances.find(cash => cash.region === 'CAD') 
+    : undefined;
+  
   // Calculate metrics for CAD portfolio
-  const cadAllocationByType = calculateAllocationByType(cadStocks || []);
-  const cadAllocationByRating = calculateAllocationByRating(cadStocks || []);
-  const cadStats = calculatePortfolioStats(cadStocks || []);
+  const cadAllocationByType = calculateAllocationByType(cadStocks || [], cadCashBalance);
+  const cadAllocationByRating = calculateAllocationByRating(cadStocks || [], cadCashBalance);
+  const cadStats = calculatePortfolioStats(cadStocks || [], cadCashBalance);
   
   // Calculate ETF benchmark differences
   const xicComparisonData = xicHoldings && cadStocks 
@@ -196,8 +207,8 @@ export default function CadPortfolio() {
                 criticalAlerts: alerts?.filter(a => a.isActive && a.severity === 'critical' && cadStocks?.find(s => s.symbol === a.symbol)).length || 0
               }}
               benchmark="XIC"
-              cashSymbol={cashHolding?.symbol || "ZGLD"}
-              cashShares={cashHolding?.quantity || 0}
+              cashSymbol="Cash" // Use actual cash instead of an ETF
+              cashShares={1}
             />
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6">

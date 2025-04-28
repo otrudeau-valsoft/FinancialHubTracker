@@ -66,11 +66,22 @@ export default function IntlPortfolio() {
     queryKey: ['/api/data-updates/logs'],
     staleTime: 30000, // 30 seconds
   });
+  
+  // Fetch cash balance
+  const { data: cashBalances, isLoading: cashLoading } = useQuery({
+    queryKey: ['/api/cash'],
+    staleTime: 60000, // 1 minute
+  });
+  
+  // Get INTL cash balance
+  const intlCashBalance = Array.isArray(cashBalances) 
+    ? cashBalances.find(cash => cash.region === 'INTL') 
+    : undefined;
 
   // Calculate metrics for INTL portfolio
-  const intlAllocationByType = calculateAllocationByType(intlStocks || []);
-  const intlAllocationByRating = calculateAllocationByRating(intlStocks || []);
-  const intlStats = calculatePortfolioStats(intlStocks || []);
+  const intlAllocationByType = calculateAllocationByType(intlStocks || [], intlCashBalance);
+  const intlAllocationByRating = calculateAllocationByRating(intlStocks || [], intlCashBalance);
+  const intlStats = calculatePortfolioStats(intlStocks || [], intlCashBalance);
   
   // Calculate ETF benchmark differences
   const acwxComparisonData = acwxHoldings && intlStocks 
@@ -187,6 +198,8 @@ export default function IntlPortfolio() {
               criticalAlerts: alerts?.filter(a => a.isActive && a.severity === 'critical' && intlStocks?.find(s => s.symbol === a.symbol)).length || 0
             }}
             benchmark="ACWX"
+            cashSymbol="Cash" // Use actual cash instead of an ETF
+            cashShares={1}
           />
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6">
