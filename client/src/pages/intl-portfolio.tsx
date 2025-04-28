@@ -194,8 +194,9 @@ export default function IntlPortfolio() {
               ytdPerformance: intlStats.ytdPerformance,
               ytdPerformanceValue: intlStats.ytdValue,
               benchmarkPerformance: 5.46, // ACWX YTD
-              activeAlerts: alerts?.filter(a => a.isActive && intlStocks?.find(s => s.symbol === a.symbol)).length || 0,
-              criticalAlerts: alerts?.filter(a => a.isActive && a.severity === 'critical' && intlStocks?.find(s => s.symbol === a.symbol)).length || 0
+              // Remove alerts from summary as they'll be shown in the Matrix Rule Alerts component
+              activeAlerts: 0,
+              criticalAlerts: 0
             }}
             benchmark="ACWX"
             cashSymbol="Cash" // Use actual cash instead of an ETF

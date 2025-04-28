@@ -203,8 +203,9 @@ export default function CadPortfolio() {
                 ytdPerformance: cadStats.ytdPerformance,
                 ytdPerformanceValue: cadStats.ytdValue,
                 benchmarkPerformance: 6.88, // XIC YTD
-                activeAlerts: alerts?.filter(a => a.isActive && cadStocks?.find(s => s.symbol === a.symbol)).length || 0,
-                criticalAlerts: alerts?.filter(a => a.isActive && a.severity === 'critical' && cadStocks?.find(s => s.symbol === a.symbol)).length || 0
+                // Remove alerts from summary as they'll be shown in the Matrix Rule Alerts component
+                activeAlerts: 0,
+                criticalAlerts: 0
               }}
               benchmark="XIC"
               cashSymbol="Cash" // Use actual cash instead of an ETF
