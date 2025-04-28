@@ -149,8 +149,14 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
             <tbody className="font-mono text-xs">
               {filteredStocks.map((stock) => {
                 // Find current price data for this stock
+                // Handle special case for Canadian stocks in INTL portfolio
+                const lookupSymbol = stock.symbol;
+                const lookupSymbolWithExtension = stock.symbol + '.TO';
+                
                 const currentPrice = Array.isArray(prices) 
-                  ? prices.find((p: CurrentPrice) => p.symbol === stock.symbol) 
+                  ? prices.find((p: CurrentPrice) => 
+                      p.symbol === lookupSymbol || 
+                      p.symbol === lookupSymbolWithExtension)
                   : undefined;
                 const marketPrice = currentPrice ? parseFloat(currentPrice.regularMarketPrice) : null;
                 const marketChange = currentPrice ? parseFloat(currentPrice.regularMarketChangePercent) : null;
