@@ -22,13 +22,20 @@ export const getNewsBySymbol = async (req: Request, res: Response) => {
       });
     }
     
+    // Remove '.TO' suffix from Canadian stocks for Seeking Alpha API
+    const cleanSymbol = typeof symbol === 'string' && symbol.endsWith('.TO') 
+      ? symbol.replace('.TO', '') 
+      : symbol;
+    
+    console.log(`Fetching news for symbol: ${symbol}, using clean symbol: ${cleanSymbol}`);
+    
     const response = await axios.get(`https://seeking-alpha.p.rapidapi.com/news/v2/list-by-symbol`, {
       headers: {
         "x-rapidapi-host": "seeking-alpha.p.rapidapi.com",
         "x-rapidapi-key": apiKey
       },
       params: {
-        id: symbol,
+        id: cleanSymbol,
         size: size,
         number: number
       }
@@ -136,13 +143,18 @@ async function getNewsForSymbol(symbol: string): Promise<any[]> {
       throw new Error("API key not configured");
     }
     
+    // Remove '.TO' suffix from Canadian stocks for Seeking Alpha API
+    const cleanSymbol = symbol.endsWith('.TO') ? symbol.replace('.TO', '') : symbol;
+    
+    console.log(`Fetching news for symbol: ${symbol}, using clean symbol: ${cleanSymbol}`);
+    
     const response = await axios.get(`https://seeking-alpha.p.rapidapi.com/news/v2/list-by-symbol`, {
       headers: {
         "x-rapidapi-host": "seeking-alpha.p.rapidapi.com",
         "x-rapidapi-key": apiKey
       },
       params: {
-        id: symbol,
+        id: cleanSymbol,
         size: 5,  // Limit to 5 news items per symbol
         number: 1
       }
@@ -155,7 +167,8 @@ async function getNewsForSymbol(symbol: string): Promise<any[]> {
         publishOn: item.attributes.publishOn,
         commentCount: item.attributes.commentCount,
         imageUrl: item.attributes.gettyImageUrl || null,
-        link: item.links.self
+        link: item.links.self,
+        sector: item.attributes.categories?.[0]?.name || null
       }));
     }
     
