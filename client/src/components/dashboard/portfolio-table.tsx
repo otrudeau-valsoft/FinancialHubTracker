@@ -77,8 +77,9 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
   // Fetch current prices if not provided
   const { data: fetchedPrices, isLoading: pricesLoading } = useQuery({
     queryKey: [`/api/current-prices/${region}`],
-    staleTime: 60000, // 1 minute
-    enabled: !currentPrices // Only fetch if not provided via props
+    staleTime: 30000, // 30 seconds - reduced for more frequent updates
+    refetchOnWindowFocus: true,
+    enabled: true // Always fetch to ensure we have latest prices
   });
 
   // Use either provided prices or fetched prices

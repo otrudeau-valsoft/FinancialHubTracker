@@ -59,7 +59,7 @@ export const PerformanceChart = ({
   }, [selectedRange]);
   
   // Fetch portfolio performance data from our new history endpoint
-  const { data: apiResponse, isLoading } = useQuery({
+  const { data: apiResponse, isLoading, refetch } = useQuery({
     queryKey: ['/api/portfolio-performance-history', region, selectedRange],
     queryFn: () => 
       fetch(`/api/portfolio-performance-history?region=${region}&timeRange=${selectedRange}`)
@@ -73,7 +73,8 @@ export const PerformanceChart = ({
           throw error;
         }),
     enabled: !!selectedRange && !!region,
-    staleTime: 3600000, // 1 hour
+    staleTime: 60000, // 1 minute - reduced from 1 hour to make updates more frequent
+    refetchOnWindowFocus: true,
   });
   
   // Define the API response and data types

@@ -460,6 +460,9 @@ export const fetchRegionCurrentPrices = async (req: Request, res: Response) => {
       
       console.log(`Successfully updated ${upperRegion} portfolio holdings with new prices`);
       
+      // Update portfolio performance history with new data
+      await updatePortfolioPerformanceHistory();
+      
       return res.json({
         results,
         message: `Successfully updated ${results.length} prices and recalculated ${upperRegion} portfolio metrics`,
