@@ -129,15 +129,19 @@ export function useEarningsHeatmap() {
   return useQuery({
     queryKey: ['earnings', 'heatmap'],
     queryFn: async () => {
+      console.log('DEBUG: Fetching heatmap data');
       const response = await fetch('/api/heatmap');
       
       if (!response.ok) {
         throw new Error('Failed to fetch heatmap data');
       }
       
-      return response.json();
+      const data = await response.json();
+      console.log('DEBUG: Heatmap API response:', data);
+      return data;
     },
     select: (data): HeatmapQuarterData[] => {
+      console.log('DEBUG: Heatmap data select function:', data);
       return data.data || [];
     },
     staleTime: 15 * 60 * 1000, // 15 minutes

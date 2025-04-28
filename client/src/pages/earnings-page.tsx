@@ -1210,13 +1210,13 @@ export default function EarningsPage() {
               <CardContent className="p-1 sm:p-2">
                 <div className="grid grid-cols-2 gap-1 text-[10px] sm:text-xs font-mono">
                   <div className="bg-[#4CAF50] text-white p-1 rounded text-center">
-                    Beat <span className="font-bold">{currentQuarterData?.revenue?.Beat || placeholderStats.revenue.beat}</span>
+                    Beat <span className="font-bold">{currentQuarterData?.revenue?.Up || placeholderStats.revenue.beat}</span>
                   </div>
                   <div className="bg-[#FFD700] text-black p-1 rounded text-center">
-                    In-Line <span className="font-bold">{currentQuarterData?.revenue?.['In-Line'] || placeholderStats.revenue.inLine}</span>
+                    In-Line <span className="font-bold">{currentQuarterData?.revenue?.Flat || placeholderStats.revenue.inLine}</span>
                   </div>
                   <div className="bg-[#FF5252] text-white p-1 rounded text-center col-span-2">
-                    Miss <span className="font-bold">{currentQuarterData?.revenue?.Miss || placeholderStats.revenue.miss}</span>
+                    Miss <span className="font-bold">{currentQuarterData?.revenue?.Down || placeholderStats.revenue.miss}</span>
                   </div>
                 </div>
               </CardContent>
