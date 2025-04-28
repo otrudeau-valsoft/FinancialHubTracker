@@ -34,50 +34,65 @@ portfolioHistoryRouter.get('/', async (req, res) => {
     const formattedEndDate = now.toFormat('yyyy-MM-dd');
     
     // Get portfolio value history
-    const portfolioTable = sql`portfolio_${region}`;
-    const portfolioData = await db.select({
-      date: historicalPrices.date,
-      portfolioValue: sql`SUM(historical_prices.close_price * ${portfolioTable}.quantity)`,
-    })
-    .from(historicalPrices)
-    .innerJoin(portfolioTable, eq(historicalPrices.symbol, sql`${portfolioTable}.symbol`))
-    .where(
-      and(
-        eq(historicalPrices.region, region as string),
-        gte(historicalPrices.date, formattedStartDate),
-        lt(historicalPrices.date, formattedEndDate)
-      )
-    )
-    .groupBy(historicalPrices.date)
-    .orderBy(historicalPrices.date);
+    const portfolioData = await db.execute(sql`
+      SELECT 
+        historical_prices.date, 
+        SUM(historical_prices.close * portfolio_${region}.quantity) as "portfolioValue"
+      FROM 
+        historical_prices
+      INNER JOIN 
+        portfolio_${region} ON historical_prices.symbol = portfolio_${region}.symbol
+      WHERE 
+        historical_prices.region = ${region}
+        AND historical_prices.date >= ${formattedStartDate}
+        AND historical_prices.date < ${formattedEndDate}
+      GROUP BY 
+        historical_prices.date
+      ORDER BY 
+        historical_prices.date
+    `);
     
     // Get benchmark (ETF) value history
     const benchmarkSymbol = region === 'USD' ? 'SPY' : (region === 'CAD' ? 'XIC' : 'ACWX');
     
-    const benchmarkData = await db.select({
-      date: historicalPrices.date,
-      benchmarkValue: historicalPrices.closePrice, // Access column name as defined in schema
-    })
-    .from(historicalPrices)
-    .where(
-      and(
-        eq(historicalPrices.symbol, benchmarkSymbol),
-        eq(historicalPrices.region, 'USD'), // Benchmarks are in USD region
-        gte(historicalPrices.date, formattedStartDate),
-        lt(historicalPrices.date, formattedEndDate)
-      )
-    )
-    .orderBy(historicalPrices.date);
+    const benchmarkData = await db.execute(sql`
+      SELECT 
+        date, 
+        close as "benchmarkValue"
+      FROM 
+        historical_prices
+      WHERE 
+        symbol = ${benchmarkSymbol}
+        AND region = 'USD' -- Benchmarks are in USD region
+        AND date >= ${formattedStartDate}
+        AND date < ${formattedEndDate}
+      ORDER BY 
+        date
+    `);
     
     // Combine the data
-    const combinedData = portfolioData.map(portfolioPoint => {
-      const matchingBenchmark = benchmarkData.find(b => b.date === portfolioPoint.date);
-      return {
-        date: portfolioPoint.date,
-        portfolioValue: portfolioPoint.portfolioValue || 0,
-        benchmarkValue: matchingBenchmark?.benchmarkValue || 0
-      };
-    });
+    const combinedData = [];
+    const portData = portfolioData.rows;
+    const benchData = benchmarkData.rows;
+    
+    // Create a map for faster lookup of benchmark data by date
+    const benchmarkMap = {};
+    for (const row of benchData) {
+      // Convert PostgreSQL date string to yyyy-MM-dd format
+      const dateStr = new Date(row.date).toISOString().split('T')[0];
+      benchmarkMap[dateStr] = row.benchmarkValue;
+    }
+    
+    // Combine the portfolio and benchmark data
+    for (const row of portData) {
+      // Convert PostgreSQL date string to yyyy-MM-dd format
+      const dateStr = new Date(row.date).toISOString().split('T')[0];
+      combinedData.push({
+        date: dateStr,
+        portfolioValue: Number(row.portfolioValue) || 0,
+        benchmarkValue: Number(benchmarkMap[dateStr]) || 0
+      });
+    }
     
     return res.json({ 
       status: 'success', 
