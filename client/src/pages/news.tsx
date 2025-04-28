@@ -92,18 +92,20 @@ export default function NewsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold text-[#E0E0E0] mb-6">Market News</h1>
+    <div className="px-6 py-4 w-full max-w-[1600px] mx-auto">
+      <div className="flex items-center mb-4 border-b border-[#1A3056] pb-1">
+        <h1 className="text-2xl font-mono font-bold text-white tracking-tight">MARKET NEWS</h1>
+      </div>
       
       {/* Filter Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 bg-[#091524] p-4 border border-[#1A3056] rounded-sm">
         <div>
-          <Label htmlFor="region" className="text-[#A0A0A0]">Portfolio Region</Label>
+          <Label htmlFor="region" className="text-[#7A8999] text-xs font-mono pb-1 block">PORTFOLIO REGION</Label>
           <Select
             value={selectedRegion}
             onValueChange={setSelectedRegion}
           >
-            <SelectTrigger id="region" className="bg-[#0A1929] border-[#1A304A]">
+            <SelectTrigger id="region" className="bg-[#0A1929] border-[#1A304A] h-9 text-xs font-mono">
               <SelectValue placeholder="Select Region" />
             </SelectTrigger>
             <SelectContent className="bg-[#0A1929] border-[#1A304A]">
@@ -117,12 +119,12 @@ export default function NewsPage() {
         </div>
         
         <div>
-          <Label htmlFor="stock" className="text-[#A0A0A0]">Stock Symbol</Label>
+          <Label htmlFor="stock" className="text-[#7A8999] text-xs font-mono pb-1 block">STOCK SYMBOL</Label>
           <Select
             value={selectedStock}
             onValueChange={setSelectedStock}
           >
-            <SelectTrigger id="stock" className="bg-[#0A1929] border-[#1A304A]">
+            <SelectTrigger id="stock" className="bg-[#0A1929] border-[#1A304A] h-9 text-xs font-mono">
               <SelectValue placeholder="All Stocks" />
             </SelectTrigger>
             <SelectContent className="bg-[#0A1929] border-[#1A304A] max-h-[300px]">
@@ -139,12 +141,12 @@ export default function NewsPage() {
         </div>
         
         <div>
-          <Label htmlFor="sector" className="text-[#A0A0A0]">Sector</Label>
+          <Label htmlFor="sector" className="text-[#7A8999] text-xs font-mono pb-1 block">SECTOR</Label>
           <Select
             value={selectedSector}
             onValueChange={setSelectedSector}
           >
-            <SelectTrigger id="sector" className="bg-[#0A1929] border-[#1A304A]">
+            <SelectTrigger id="sector" className="bg-[#0A1929] border-[#1A304A] h-9 text-xs font-mono">
               <SelectValue placeholder="All Sectors" />
             </SelectTrigger>
             <SelectContent className="bg-[#0A1929] border-[#1A304A]">
@@ -161,12 +163,12 @@ export default function NewsPage() {
         </div>
         
         <div>
-          <Label htmlFor="days" className="text-[#A0A0A0]">Past Days</Label>
+          <Label htmlFor="days" className="text-[#7A8999] text-xs font-mono pb-1 block">PAST DAYS</Label>
           <Select
             value={days.toString()}
             onValueChange={(value) => setDays(parseInt(value))}
           >
-            <SelectTrigger id="days" className="bg-[#0A1929] border-[#1A304A]">
+            <SelectTrigger id="days" className="bg-[#0A1929] border-[#1A304A] h-9 text-xs font-mono">
               <SelectValue placeholder="7 Days" />
             </SelectTrigger>
             <SelectContent className="bg-[#0A1929] border-[#1A304A]">
@@ -182,10 +184,10 @@ export default function NewsPage() {
         </div>
         
         <div>
-          <Label htmlFor="search" className="text-[#A0A0A0]">Search News</Label>
+          <Label htmlFor="search" className="text-[#7A8999] text-xs font-mono pb-1 block">SEARCH NEWS</Label>
           <Input
             id="search"
-            className="bg-[#0A1929] border-[#1A304A]"
+            className="bg-[#0A1929] border-[#1A304A] h-9 text-xs font-mono"
             placeholder="Search by title..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -196,7 +198,7 @@ export default function NewsPage() {
       {/* News List */}
       <div className="space-y-4">
         {isLoadingNews || isLoadingStocks ? (
-          <div className="flex justify-center items-center h-64">
+          <div className="flex justify-center items-center h-64 bg-[#091524] border border-[#1A3056]">
             <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
             <span className="ml-2 text-[#7A8999] font-mono">LOADING NEWS DATA...</span>
           </div>
@@ -204,25 +206,25 @@ export default function NewsPage() {
           filteredNews.map((article: NewsArticle) => (
             <Card 
               key={article.id} 
-              className="border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md"
+              className="border border-[#1A3056] bg-[#091524] shadow-md overflow-hidden"
             >
-              <CardHeader className="p-4 flex flex-row items-start gap-4">
+              <CardHeader className="p-4 flex flex-row items-start gap-4 pb-2">
                 <div className="flex-1">
                   <div className="flex items-center mb-2">
-                    <span className="bg-blue-600 text-xs px-2 py-1 rounded font-mono">
+                    <span className="bg-blue-600 text-xs px-2 py-0.5 rounded font-mono tracking-tight">
                       {article.symbol || "NEWS"}
                     </span>
                     {article.sector && (
-                      <span className="bg-[#1A304A] ml-2 text-xs px-2 py-1 rounded font-mono">
+                      <span className="bg-[#1A304A] ml-2 text-xs px-2 py-0.5 rounded font-mono tracking-tight">
                         {article.sector}
                       </span>
                     )}
-                    <div className="flex items-center ml-auto text-[10px] sm:text-xs text-[#7A8999]">
+                    <div className="flex items-center ml-auto text-[10px] text-[#7A8999] font-mono">
                       <Calendar className="h-3 w-3 mr-1" />
                       {formatDate(article.publishOn)}
                     </div>
                   </div>
-                  <h3 className="text-md font-semibold text-[#E0E0E0] hover:text-blue-400">
+                  <h3 className="text-sm font-mono text-[#E0E0E0] hover:text-blue-400">
                     <a 
                       href={`https://seekingalpha.com${article.link}`} 
                       target="_blank" 
@@ -230,12 +232,12 @@ export default function NewsPage() {
                       className="flex items-center"
                     >
                       {article.title}
-                      <ExternalLink className="h-3 w-3 ml-1" />
+                      <ExternalLink className="h-3 w-3 ml-1 flex-shrink-0" />
                     </a>
                   </h3>
                 </div>
                 {article.imageUrl && (
-                  <div className="w-16 h-16 rounded overflow-hidden hidden sm:block">
+                  <div className="w-16 h-16 rounded overflow-hidden hidden sm:block flex-shrink-0">
                     <img
                       src={article.imageUrl}
                       alt="News thumbnail"
@@ -245,7 +247,7 @@ export default function NewsPage() {
                 )}
               </CardHeader>
               <CardContent className="p-4 pt-0">
-                <div className="flex items-center text-[10px] sm:text-xs text-[#7A8999]">
+                <div className="flex items-center text-[10px] text-[#7A8999] font-mono">
                   <MessageSquare className="h-3 w-3 mr-1" />
                   <span>{article.commentCount} comments</span>
                 </div>
@@ -253,8 +255,8 @@ export default function NewsPage() {
             </Card>
           ))
         ) : (
-          <div className="text-center p-8 bg-[#0A1524] border border-[#1A304A]">
-            <div className="text-[#7A8999] font-mono">NO NEWS FOUND FOR THE SELECTED FILTERS</div>
+          <div className="flex justify-center items-center h-32 bg-[#091524] border border-[#1A3056] rounded-sm">
+            <div className="text-[#7A8999] font-mono text-xs">NO NEWS FOUND FOR THE SELECTED FILTERS</div>
           </div>
         )}
       </div>
