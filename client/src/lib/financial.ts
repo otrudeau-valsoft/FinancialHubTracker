@@ -211,7 +211,8 @@ export function calculatePortfolioStats(stocks: any[], cashBalance?: { amount: s
         return;
       }
       
-      const currentValue = parseFloat(stock.currentValue || '0');
+      // Use netAssetValue if available, otherwise try currentValue
+      const currentValue = parseFloat(stock.netAssetValue || stock.currentValue || '0');
       const dailyChangePercent = parseFloat(stock.dailyChangePercent || '0');
       const ytdChangePercent = parseFloat(stock.ytdChangePercent || '0');
       
