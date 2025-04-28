@@ -3,12 +3,35 @@
  * This will prevent duplicate entries for the same symbol, date, and region
  */
 
+// Use ES module import
+import { Pool } from '@neondatabase/serverless';
+import ws from 'ws';
+import { config } from 'dotenv';
+
+// Configure environment variables if needed
+config();
+
+// For Neon serverless
+if (typeof process !== 'undefined') {
+  // @ts-ignore
+  if (process.env && process.env.NEON_DB) {
+    // @ts-ignore
+    process.env.DATABASE_URL = process.env.NEON_DB;
+  }
+}
+
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL must be set');
+}
+
+// Set up WebSocket constructor for Neon
+const neonConfig = { webSocketConstructor: ws };
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
 async function runMigration() {
   try {
     console.log("Running migration: Add unique constraint to historical_prices table");
-    
-    // Import the database pool
-    const { pool } = require('../server/db');
     
     // Step 1: First remove any duplicates that might exist
     console.log("Step 1: Removing duplicate historical price records...");

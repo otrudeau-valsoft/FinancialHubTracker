@@ -454,10 +454,29 @@ class HistoricalPriceService {
     }
   }
 
+  // Flag to prevent concurrent executions
+  private isUpdatingAllHistoricalPrices = false;
+
   /**
    * Update historical prices for all portfolios with batch processing
+   * Uses a mutex pattern to prevent duplicate concurrent executions
    */
   async updateAllHistoricalPrices() {
+    // Check if already running to prevent duplicate executions
+    if (this.isUpdatingAllHistoricalPrices) {
+      console.log('Historical price update already in progress, skipping duplicate request');
+      return {
+        message: 'Update already in progress, please wait for the current operation to complete',
+        results: [],
+        successCount: 0,
+        totalCount: 0,
+        alreadyRunning: true
+      };
+    }
+    
+    // Set the flag to indicate this process is running
+    this.isUpdatingAllHistoricalPrices = true;
+    
     try {
       const regions = ['USD', 'CAD', 'INTL'];
       let allResults: {symbol: string, success: boolean, result?: any, error?: string}[] = [];
@@ -503,10 +522,19 @@ class HistoricalPriceService {
         }
       }
       
-      return allResults;
+      const successCount = allResults.filter(r => r.success).length;
+      return {
+        message: `Updated historical prices for ${regions.length} portfolios and market indices`,
+        results: allResults,
+        successCount,
+        totalCount: allResults.length
+      };
     } catch (error) {
       console.error('Error updating all historical prices:', error);
       throw error;
+    } finally {
+      // Always reset the flag when done, even if there was an error
+      this.isUpdatingAllHistoricalPrices = false;
     }
   }
 }
