@@ -13,6 +13,7 @@ import holdingsRoutes from './holdings';
 import cashRoutes from './cash';
 import portfolioHistoryRoutes from './portfolio-history';
 import portfolioPerformanceRoutes from './portfolio-performance';
+import portfolioPerformanceHistoryRoutes from './portfolio-performance-history';
 import earningsRoutes from './earnings';
 import marketIndicesRoutes from './market-indices';
 import { getNewsBySymbol, getNewsForPortfolio } from './news';
