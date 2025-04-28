@@ -27,7 +27,8 @@ export default function UsdPortfolio() {
   // Fetch USD portfolio data
   const { data: usdStocks, isLoading: usdLoading } = useQuery({
     queryKey: ['/api/portfolios/USD/stocks'],
-    staleTime: 60000, // 1 minute
+    staleTime: 30000, // 30 seconds - reduced for more frequent updates
+    refetchOnWindowFocus: true,
   });
   
   // Function to refetch USD stocks data
@@ -38,7 +39,8 @@ export default function UsdPortfolio() {
   // Fetch current prices
   const { data: currentPrices } = useQuery({
     queryKey: ['/api/current-prices/USD'],
-    staleTime: 60000, // 1 minute
+    staleTime: 30000, // 30 seconds
+    refetchOnWindowFocus: true,
   });
   
   // Fetch update logs

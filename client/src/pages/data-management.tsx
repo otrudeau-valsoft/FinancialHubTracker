@@ -265,16 +265,13 @@ export default function DataManagement() {
       // Invalidate portfolio performance history to update charts
       queryClient.invalidateQueries({ queryKey: ['/api/portfolio-performance-history'] });
       
-      // Invalidate holdings data to update portfolio tables and summary
-      queryClient.invalidateQueries({ queryKey: ['/api/holdings'] });
+      // Invalidate portfolio data to update tables and summary
+      queryClient.invalidateQueries({ queryKey: ['/api/portfolios'] });
       
-      // Invalidate specific regional holdings
-      queryClient.invalidateQueries({ queryKey: ['/api/holdings/USD'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/holdings/CAD'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/holdings/INTL'] });
-      
-      // Invalidate portfolio summary data
-      queryClient.invalidateQueries({ queryKey: ['/api/portfolio'] });
+      // Invalidate specific regional portfolio data
+      queryClient.invalidateQueries({ queryKey: ['/api/portfolios/USD/stocks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/portfolios/CAD/stocks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/portfolios/INTL/stocks'] });
     },
     onError: (error) => {
       toast({
@@ -301,11 +298,9 @@ export default function DataManagement() {
       // Invalidate portfolio performance history to update charts
       queryClient.invalidateQueries({ queryKey: ['/api/portfolio-performance-history'] });
       
-      // Invalidate holdings data for the specific region
-      queryClient.invalidateQueries({ queryKey: [`/api/holdings/${region}`] });
-      
-      // Invalidate portfolio summary data for the specific region
-      queryClient.invalidateQueries({ queryKey: [`/api/portfolio/${region}`] });
+      // Invalidate portfolio data for the specific region
+      queryClient.invalidateQueries({ queryKey: [`/api/portfolios/${region}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/portfolios/${region}/stocks`] });
     },
     onError: (error) => {
       toast({
@@ -331,16 +326,13 @@ export default function DataManagement() {
       // Invalidate portfolio performance history to update charts
       queryClient.invalidateQueries({ queryKey: ['/api/portfolio-performance-history'] });
       
-      // Invalidate holdings data to update portfolio tables and summary
-      queryClient.invalidateQueries({ queryKey: ['/api/holdings'] });
+      // Invalidate portfolio data to update tables and summary
+      queryClient.invalidateQueries({ queryKey: ['/api/portfolios'] });
       
-      // Invalidate specific regional holdings
-      queryClient.invalidateQueries({ queryKey: ['/api/holdings/USD'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/holdings/CAD'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/holdings/INTL'] });
-      
-      // Invalidate portfolio summary data
-      queryClient.invalidateQueries({ queryKey: ['/api/portfolio'] });
+      // Invalidate specific regional portfolio data
+      queryClient.invalidateQueries({ queryKey: ['/api/portfolios/USD/stocks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/portfolios/CAD/stocks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/portfolios/INTL/stocks'] });
     },
     onError: (error) => {
       toast({
