@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { asyncHandler } from '../middleware/error-handler';
 import { db } from '../db';
 import { storage } from '../storage';
@@ -8,7 +8,7 @@ const router = Router();
 /**
  * Get historical portfolio performance data for a specific region
  */
-router.get('/:region', asyncHandler(async (req, res) => {
+router.get('/:region', asyncHandler(async (req: Request, res: Response) => {
   const { region } = req.params;
   const startDateStr = req.query.startDate as string | undefined;
   const endDateStr = req.query.endDate as string | undefined;

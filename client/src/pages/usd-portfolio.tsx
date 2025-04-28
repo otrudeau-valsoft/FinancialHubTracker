@@ -251,7 +251,7 @@ export default function UsdPortfolio() {
               
               <div className="md:col-span-2 lg:col-span-1 flex flex-col">
                 <PerformanceChart 
-                  portfolioData={samplePerformanceData}
+                  region="USD"
                   timeRanges={["1W", "1M", "YTD", "1Y"]}
                   benchmark="SPY"
                 />
