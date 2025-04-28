@@ -47,7 +47,7 @@ export function PortfolioCashPanel({ className, region = 'USD' }: PortfolioCashP
   };
 
   // Get the cash balance for the current region
-  const currentCashBalance = cashBalances?.find(cash => cash.region === region);
+  const currentCashBalance = Array.isArray(cashBalances) ? cashBalances.find(cash => cash.region === region) : undefined;
 
   // Mutation to update cash balance
   const updateCashMutation = useMutation({
