@@ -89,11 +89,22 @@ router.get('/earnings', asyncHandler(async (req, res) => {
       }
     }
     
-    // Add current price to each earnings record
-    const earningsWithPrices = earnings.map(e => ({
-      ...e,
-      current_price: priceMap.get(e.ticker) || null
-    }));
+    // Add current price to each earnings record and convert score to string format
+    const earningsWithPrices = earnings.map(e => {
+      // Convert numeric score to string format needed by the UI
+      let scoreString: string | null = null;
+      if (e.score !== null) {
+        if (e.score >= 7) scoreString = 'Good';
+        else if (e.score >= 4) scoreString = 'Okay';
+        else scoreString = 'Bad';
+      }
+      
+      return {
+        ...e,
+        current_price: priceMap.get(e.ticker) || null,
+        score: scoreString
+      };
+    });
     
     res.json({
       status: 'success',
@@ -172,9 +183,9 @@ router.get('/heatmap', asyncHandler(async (req, res) => {
       };
       
       const scoreStats = {
-        Good: quarterData.filter(d => d.score === 'Good').length,
-        Okay: quarterData.filter(d => d.score === 'Okay').length,
-        Bad: quarterData.filter(d => d.score === 'Bad').length,
+        Good: quarterData.filter(d => typeof d.score === 'number' && d.score >= 7).length,
+        Okay: quarterData.filter(d => typeof d.score === 'number' && d.score >= 4 && d.score < 7).length,
+        Bad: quarterData.filter(d => typeof d.score === 'number' && d.score < 4).length,
       };
       
       result.push({
