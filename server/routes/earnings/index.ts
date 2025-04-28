@@ -124,6 +124,7 @@ router.get('/heatmap', asyncHandler(async (req, res) => {
     for (const quarter of quarters.rows) {
       const fiscal_year = quarter.fiscal_year;
       const fiscal_q = quarter.fiscal_q;
+      console.log(`DEBUG - Starting processing for quarter: ${fiscal_year} Q${fiscal_q}`);
       // Get all earnings for this quarter
       const quarterData = await db.select()
         .from(earningsQuarterly)
@@ -259,6 +260,12 @@ router.get('/heatmap', asyncHandler(async (req, res) => {
       });
     }
     
+    // Add final debug before sending response
+    console.log('DEBUG - Final data structure:', JSON.stringify(result, null, 2));
+    console.log('DEBUG - Does the first quarter have a stocks array?', 
+                result.length > 0 && Array.isArray(result[0].stocks) ? 
+                `Yes, with ${result[0].stocks.length} elements` : 'No');
+                
     res.json({
       status: 'success',
       data: result
