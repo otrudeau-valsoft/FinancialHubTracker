@@ -1,473 +1,231 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRoute } from "wouter";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Upload, DownloadCloud, Search } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
-import { parseCSV, convertAcwxHoldings, convertXicHoldings } from "@/lib/parse-csv";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/financial";
+import { BarChart3, Info } from "lucide-react";
 
 interface EtfHolding {
   id: number;
-  etfSymbol: string;
   ticker: string;
   name: string;
-  sector: string;
-  assetClass: string;
-  marketValue: number;
-  weight: number;
-  quantity: number;
-  price: number;
-  location: string;
-  exchange: string;
-  currency: string;
-  fxRate: number;
-  marketCurrency: string;
+  sector: string | null;
+  assetClass: string | null;
+  marketValue: number | null;
+  weight: number | null;
+  price: number | null;
+  quantity: number | null;
+  location: string | null;
+  exchange: string | null;
+  currency: string | null;
 }
 
 export default function EtfHoldings() {
-  const [activeTab, setActiveTab] = useState("spy");
-  const [searchTerm, setSearchTerm] = useState("");
-  const fileInputRef = React.createRef<HTMLInputElement>();
+  const [activeEtf, setActiveEtf] = useState<string>("SPY");
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   // Fetch ETF holdings
-  const { data: spyHoldings, isLoading: spyLoading, refetch: refetchSpyHoldings } = useQuery({
-    queryKey: ['/api/etfs/SPY/holdings'],
+  const { data: spyHoldings, isLoading: spyLoading } = useQuery({
+    queryKey: ["/api/etfs/SPY/holdings"],
     staleTime: 3600000, // 1 hour
   });
 
-  const { data: xicHoldings, isLoading: xicLoading, refetch: refetchXicHoldings } = useQuery({
-    queryKey: ['/api/etfs/XIC/holdings'],
+  const { data: xicHoldings, isLoading: xicLoading } = useQuery({
+    queryKey: ["/api/etfs/XIC/holdings"],
     staleTime: 3600000, // 1 hour
   });
 
-  const { data: acwxHoldings, isLoading: acwxLoading, refetch: refetchAcwxHoldings } = useQuery({
-    queryKey: ['/api/etfs/ACWX/holdings'],
+  const { data: acwxHoldings, isLoading: acwxLoading } = useQuery({
+    queryKey: ["/api/etfs/ACWX/holdings"],
     staleTime: 3600000, // 1 hour
   });
 
-  // Import ETF holdings from CSV
-  const handleImportData = async (file: File) => {
-    try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const csvData = e.target?.result as string;
-          const parsed = parseCSV(csvData);
-          
-          if (parsed.data.length > 0) {
-            let formattedData;
-            let etfSymbol = '';
-            
-            // Detect which ETF data is being imported based on file content or activeTab
-            if (csvData.includes('ACWX') || activeTab === 'acwx') {
-              formattedData = convertAcwxHoldings(parsed.data);
-              etfSymbol = 'ACWX';
-            } else if (csvData.includes('XIC') || activeTab === 'xic') {
-              formattedData = convertXicHoldings(parsed.data);
-              etfSymbol = 'XIC';
-            } else {
-              // Default to SPY or let user choose
-              const confirmation = confirm("ETF type not detected. Import as SPY holdings?");
-              if (confirmation) {
-                etfSymbol = 'SPY';
-                formattedData = convertAcwxHoldings(parsed.data); // Use the same converter for SPY
-                // Update the etfSymbol for each holding
-                formattedData = formattedData.map(holding => ({
-                  ...holding,
-                  etfSymbol: 'SPY'
-                }));
-              } else {
-                alert("Import cancelled.");
-                return;
-              }
-            }
-            
-            // Send the formatted data to the server using the new import endpoint
-            const response = await apiRequest('POST', `/api/import/etf/${etfSymbol}`, {
-              holdings: formattedData
-            });
-            
-            if (response.ok) {
-              // Refetch data
-              if (etfSymbol === 'SPY') refetchSpyHoldings();
-              else if (etfSymbol === 'XIC') refetchXicHoldings();
-              else if (etfSymbol === 'ACWX') refetchAcwxHoldings();
-              
-              const result = await response.json();
-              alert(result.message || `Successfully imported holdings for ${etfSymbol} ETF`);
-            } else {
-              const error = await response.text();
-              throw new Error(error);
-            }
-          }
-        } catch (error) {
-          console.error("Error processing import:", error);
-          alert("Failed to process the imported data. Please check the file format.");
-        }
-      };
-      reader.readAsText(file);
-    } catch (error) {
-      console.error("Error importing data:", error);
-      alert("Failed to import data. Please check the file format.");
-    }
-  };
+  // Determine which holdings to display based on activeEtf
+  const displayHoldings = (() => {
+    if (activeEtf === "SPY") return spyHoldings || [];
+    if (activeEtf === "XIC") return xicHoldings || [];
+    if (activeEtf === "ACWX") return acwxHoldings || [];
+    return [];
+  })();
 
   // Filter holdings based on search term
-  const filterHoldings = (holdings: EtfHolding[] | undefined) => {
-    if (!holdings) return [];
-    if (!searchTerm) return holdings;
-    
-    return holdings.filter(holding => 
-      holding.ticker.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      holding.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      holding.sector.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredHoldings = displayHoldings.filter((holding: EtfHolding) => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      holding.ticker?.toLowerCase().includes(term) ||
+      holding.name?.toLowerCase().includes(term) ||
+      holding.sector?.toLowerCase().includes(term)
     );
-  };
+  });
 
-  const filteredSpyHoldings = filterHoldings(spyHoldings);
-  const filteredXicHoldings = filterHoldings(xicHoldings);
-  const filteredAcwxHoldings = filterHoldings(acwxHoldings);
+  // Loading states
+  const isLoading = (() => {
+    if (activeEtf === "SPY") return spyLoading;
+    if (activeEtf === "XIC") return xicLoading;
+    if (activeEtf === "ACWX") return acwxLoading;
+    return false;
+  })();
 
-  // Group holdings by sector for sector breakdown
-  const getSectorBreakdown = (holdings: EtfHolding[] | undefined) => {
-    if (!holdings || holdings.length === 0) return [];
-    
-    const sectors: {[key: string]: number} = {};
-    
-    holdings.forEach(holding => {
-      const sector = holding.sector || 'Unknown';
-      sectors[sector] = (sectors[sector] || 0) + (holding.weight || 0);
-    });
-    
-    return Object.entries(sectors)
-      .map(([sector, weight]) => ({ sector, weight }))
-      .sort((a, b) => b.weight - a.weight);
-  };
+  // Currency symbol based on ETF
+  const currencySymbol = (() => {
+    if (activeEtf === "SPY") return "$";
+    if (activeEtf === "XIC") return "C$";
+    if (activeEtf === "ACWX") return "$";
+    return "$";
+  })();
 
-  const spySectorBreakdown = getSectorBreakdown(spyHoldings);
-  const xicSectorBreakdown = getSectorBreakdown(xicHoldings);
-  const acwxSectorBreakdown = getSectorBreakdown(acwxHoldings);
+  // Determine ETF description
+  const etfDescription = (() => {
+    if (activeEtf === "SPY") return "S&P 500 ETF (US Large Cap)";
+    if (activeEtf === "XIC") return "S&P/TSX Composite Index ETF (Canada)";
+    if (activeEtf === "ACWX") return "MSCI ACWI ex US ETF (International)";
+    return "";
+  })();
 
   return (
-    <div className="py-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-        {/* Top navigation */}
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-semibold">ETF Holdings Analysis</h1>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-              <Upload className="mr-2 h-4 w-4" />
-              Import ETF Data
-            </Button>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept=".csv" 
-              onChange={(e) => e.target.files && handleImportData(e.target.files[0])} 
+    <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4 bg-[#061220]">
+      <div className="mb-4 sm:mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-base sm:text-xl font-medium text-[#EFEFEF] font-mono tracking-tight">ETF HOLDINGS VIEWER</h1>
+            <div className="flex mt-1">
+              <div className="h-0.5 w-8 bg-[#38AAFD]"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Tabs
+        value={activeEtf}
+        onValueChange={setActiveEtf}
+        className="mb-4"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <TabsList className="h-9 bg-[#111E2E] border border-[#1A304A]">
+            <TabsTrigger 
+              value="SPY" 
+              className="data-[state=active]:bg-[#0A7AFF] data-[state=active]:text-white"
+            >
+              SPY
+            </TabsTrigger>
+            <TabsTrigger 
+              value="XIC" 
+              className="data-[state=active]:bg-[#0A7AFF] data-[state=active]:text-white"
+            >
+              XIC
+            </TabsTrigger>
+            <TabsTrigger 
+              value="ACWX" 
+              className="data-[state=active]:bg-[#0A7AFF] data-[state=active]:text-white"
+            >
+              ACWX
+            </TabsTrigger>
+          </TabsList>
+
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search by ticker, name, or sector..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="bg-[#0B1728] border border-[#1A304A] text-[#EFEFEF] text-sm rounded-md px-3 py-2 w-full sm:w-64 focus:outline-none focus:ring-1 focus:ring-[#38AAFD] focus:border-[#38AAFD]"
             />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[#7A8999] hover:text-[#EFEFEF]"
+              >
+                ×
+              </button>
+            )}
           </div>
         </div>
 
-        <div className="mb-6">
-          <p className="text-gray-400 text-sm">
-            Compare your portfolio to benchmark ETFs to identify allocation differences and potential opportunities.
-            The system tracks SPY (S&P 500), XIC (Canadian Market), and ACWX (International) ETF holdings.
-          </p>
+        <div className="py-2 px-3 rounded-md bg-[#0A1929]/80 border border-[#1A304A] mb-4">
+          <div className="flex items-center gap-2 text-xs">
+            <BarChart3 size={14} className="text-[#38AAFD]" />
+            <div className="text-[#EFEFEF] font-mono">
+              {activeEtf} - {etfDescription}
+            </div>
+            <div className="ml-auto text-[#7A8999] font-mono">
+              {filteredHoldings.length} holdings
+            </div>
+          </div>
         </div>
-        
-        <div className="flex items-center mb-4 gap-2">
-          <Search className="h-5 w-5 text-gray-400" />
-          <Input
-            type="text"
-            placeholder="Search by ticker, name, or sector..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full max-w-md"
-          />
-        </div>
-        
-        <Tabs defaultValue="spy" className="mb-6" onValueChange={setActiveTab}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="spy">SPY (S&P 500)</TabsTrigger>
-            <TabsTrigger value="xic">XIC (Canada)</TabsTrigger>
-            <TabsTrigger value="acwx">ACWX (International)</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="spy">
-            {spyLoading ? (
-              <div className="text-center p-8">Loading SPY holdings data...</div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-                <div className="lg:col-span-3">
-                  <Card className="bg-card">
-                    <CardHeader className="card-header flex justify-between items-center">
-                      <h3>SPY Holdings ({filteredSpyHoldings?.length || 0} of {spyHoldings?.length || 0})</h3>
-                      <div className="text-xs text-gray-400">Last updated: {new Date().toLocaleDateString()}</div>
-                    </CardHeader>
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-800 data-table">
-                        <thead>
-                          <tr>
-                            <th scope="col">Ticker</th>
-                            <th scope="col">Name</th>
-                            <th scope="col">Sector</th>
-                            <th scope="col">Weight (%)</th>
-                            <th scope="col">Price ($)</th>
-                            <th scope="col">Market Value</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-800 text-xs mono">
-                          {filteredSpyHoldings?.length > 0 ? (
-                            filteredSpyHoldings.map(holding => (
-                              <tr key={holding.id}>
-                                <td>{holding.ticker}</td>
-                                <td>{holding.name}</td>
-                                <td>{holding.sector}</td>
-                                <td>{holding.weight?.toFixed(2)}%</td>
-                                <td>{formatCurrency(holding.price, '$')}</td>
-                                <td>{formatCurrency(holding.marketValue, '$')}</td>
-                              </tr>
-                            ))
-                          ) : (
-                            <tr>
-                              <td colSpan={6} className="text-center p-4">
-                                {searchTerm ? "No holdings match your search criteria." : "No holdings data available. Import data to get started."}
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </Card>
-                </div>
-                <div>
-                  <Card className="bg-card">
-                    <CardHeader className="card-header">
-                      <h3>Sector Breakdown</h3>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {spySectorBreakdown.map((item, index) => (
-                          <div key={index} className="flex justify-between items-center">
-                            <div className="flex items-center">
-                              <div 
-                                className="w-3 h-3 rounded-full mr-2" 
-                                style={{ backgroundColor: `hsl(${index * 25}, 70%, 50%)` }}
-                              ></div>
-                              <span className="text-xs">{item.sector}</span>
-                            </div>
-                            <span className="text-xs font-mono">{item.weight.toFixed(2)}%</span>
-                          </div>
-                        ))}
+
+        <Card className="mb-6 border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden">
+          <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
+            <div className="w-full flex items-center justify-between">
+              <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">ETF HOLDINGS</h3>
+              <div className="h-1 w-8 bg-[#38AAFD]"></div>
+            </div>
+          </CardHeader>
+          <div className="overflow-x-auto p-0">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr key="header" className="text-xs h-8 border-b border-[#0F1A2A] bg-[#0D1F32]">
+                  <th scope="col" className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">TICKER</th>
+                  <th scope="col" className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">NAME</th>
+                  <th scope="col" className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">SECTOR</th>
+                  <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">WEIGHT</th>
+                  <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">PRICE</th>
+                  <th scope="col" className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">QUANTITY</th>
+                  <th scope="col" className="hidden md:table-cell px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">LOCATION</th>
+                </tr>
+              </thead>
+              <tbody className="text-xs font-mono">
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={7} className="px-2 sm:px-3 py-4 text-center text-[#7A8999]">
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="w-6 h-6 border-2 border-t-[#0A7AFF] border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin mb-2"></div>
+                        <div>Loading ETF holdings...</div>
                       </div>
-                      
-                      <div className="w-full bg-gray-800 h-6 rounded-full overflow-hidden mt-4">
-                        <div className="flex h-full">
-                          {spySectorBreakdown.map((item, index) => (
-                            <div 
-                              key={index}
-                              style={{ 
-                                width: `${item.weight}%`, 
-                                backgroundColor: `hsl(${index * 25}, 70%, 50%)` 
-                              }} 
-                              className="h-full"
-                            ></div>
-                          ))}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="xic">
-            {xicLoading ? (
-              <div className="text-center p-8">Loading XIC holdings data...</div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-                <div className="lg:col-span-3">
-                  <Card className="bg-card">
-                    <CardHeader className="card-header flex justify-between items-center">
-                      <h3>XIC Holdings ({filteredXicHoldings?.length || 0} of {xicHoldings?.length || 0})</h3>
-                      <div className="text-xs text-gray-400">Last updated: {new Date().toLocaleDateString()}</div>
-                    </CardHeader>
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-800 data-table">
-                        <thead>
-                          <tr>
-                            <th scope="col">Ticker</th>
-                            <th scope="col">Name</th>
-                            <th scope="col">Sector</th>
-                            <th scope="col">Weight (%)</th>
-                            <th scope="col">Price (C$)</th>
-                            <th scope="col">Market Value</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-800 text-xs mono">
-                          {filteredXicHoldings?.length > 0 ? (
-                            filteredXicHoldings.map(holding => (
-                              <tr key={holding.id}>
-                                <td>{holding.ticker}</td>
-                                <td>{holding.name}</td>
-                                <td>{holding.sector}</td>
-                                <td>{holding.weight?.toFixed(2)}%</td>
-                                <td>{formatCurrency(holding.price, 'C$')}</td>
-                                <td>{formatCurrency(holding.marketValue, 'C$')}</td>
-                              </tr>
-                            ))
-                          ) : (
-                            <tr>
-                              <td colSpan={6} className="text-center p-4">
-                                {searchTerm ? "No holdings match your search criteria." : "No holdings data available. Import data to get started."}
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </Card>
-                </div>
-                <div>
-                  <Card className="bg-card">
-                    <CardHeader className="card-header">
-                      <h3>Sector Breakdown</h3>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {xicSectorBreakdown.map((item, index) => (
-                          <div key={index} className="flex justify-between items-center">
-                            <div className="flex items-center">
-                              <div 
-                                className="w-3 h-3 rounded-full mr-2" 
-                                style={{ backgroundColor: `hsl(${index * 25}, 70%, 50%)` }}
-                              ></div>
-                              <span className="text-xs">{item.sector}</span>
-                            </div>
-                            <span className="text-xs font-mono">{item.weight.toFixed(2)}%</span>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      <div className="w-full bg-gray-800 h-6 rounded-full overflow-hidden mt-4">
-                        <div className="flex h-full">
-                          {xicSectorBreakdown.map((item, index) => (
-                            <div 
-                              key={index}
-                              style={{ 
-                                width: `${item.weight}%`, 
-                                backgroundColor: `hsl(${index * 25}, 70%, 50%)` 
-                              }} 
-                              className="h-full"
-                            ></div>
-                          ))}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="acwx">
-            {acwxLoading ? (
-              <div className="text-center p-8">Loading ACWX holdings data...</div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-                <div className="lg:col-span-3">
-                  <Card className="bg-card">
-                    <CardHeader className="card-header flex justify-between items-center">
-                      <h3>ACWX Holdings ({filteredAcwxHoldings?.length || 0} of {acwxHoldings?.length || 0})</h3>
-                      <div className="text-xs text-gray-400">Last updated: {new Date().toLocaleDateString()}</div>
-                    </CardHeader>
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-800 data-table">
-                        <thead>
-                          <tr>
-                            <th scope="col">Ticker</th>
-                            <th scope="col">Name</th>
-                            <th scope="col">Sector</th>
-                            <th scope="col">Weight (%)</th>
-                            <th scope="col">Price ($)</th>
-                            <th scope="col">Market Value</th>
-                            <th scope="col">Location</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-800 text-xs mono">
-                          {filteredAcwxHoldings?.length > 0 ? (
-                            filteredAcwxHoldings.map(holding => (
-                              <tr key={holding.id}>
-                                <td>{holding.ticker}</td>
-                                <td>{holding.name}</td>
-                                <td>{holding.sector}</td>
-                                <td>{holding.weight?.toFixed(2)}%</td>
-                                <td>{formatCurrency(holding.price, holding.currency)}</td>
-                                <td>{formatCurrency(holding.marketValue, 'USD')}</td>
-                                <td>{holding.location}</td>
-                              </tr>
-                            ))
-                          ) : (
-                            <tr>
-                              <td colSpan={7} className="text-center p-4">
-                                {searchTerm ? "No holdings match your search criteria." : "No holdings data available. Import data to get started."}
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </Card>
-                </div>
-                <div>
-                  <Card className="bg-card">
-                    <CardHeader className="card-header">
-                      <h3>Sector Breakdown</h3>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {acwxSectorBreakdown.map((item, index) => (
-                          <div key={index} className="flex justify-between items-center">
-                            <div className="flex items-center">
-                              <div 
-                                className="w-3 h-3 rounded-full mr-2" 
-                                style={{ backgroundColor: `hsl(${index * 25}, 70%, 50%)` }}
-                              ></div>
-                              <span className="text-xs">{item.sector}</span>
-                            </div>
-                            <span className="text-xs font-mono">{item.weight.toFixed(2)}%</span>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      <div className="w-full bg-gray-800 h-6 rounded-full overflow-hidden mt-4">
-                        <div className="flex h-full">
-                          {acwxSectorBreakdown.map((item, index) => (
-                            <div 
-                              key={index}
-                              style={{ 
-                                width: `${item.weight}%`, 
-                                backgroundColor: `hsl(${index * 25}, 70%, 50%)` 
-                              }} 
-                              className="h-full"
-                            ></div>
-                          ))}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
+                    </td>
+                  </tr>
+                ) : filteredHoldings.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-2 sm:px-3 py-4 text-center text-[#7A8999]">
+                      {searchTerm ? (
+                        <div>No holdings match your search criteria.</div>
+                      ) : (
+                        <div>No holdings available for this ETF.</div>
+                      )}
+                    </td>
+                  </tr>
+                ) : (
+                  filteredHoldings.map((holding: EtfHolding) => (
+                    <tr key={holding.id} className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542]">
+                      <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#38AAFD] text-xs font-medium whitespace-nowrap">{holding.ticker}</td>
+                      <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-xs whitespace-nowrap overflow-hidden" style={{ maxWidth: '150px', textOverflow: 'ellipsis' }}>{holding.name}</td>
+                      <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] text-xs whitespace-nowrap">{holding.sector || 'N/A'}</td>
+                      <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
+                        {holding.weight !== null && holding.weight !== undefined
+                          ? `${Number(holding.weight).toFixed(2)}%`
+                          : 'N/A'}
+                      </td>
+                      <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
+                        {holding.price !== null && holding.price !== undefined
+                          ? `${currencySymbol}${Number(holding.price).toFixed(2)}`
+                          : 'N/A'}
+                      </td>
+                      <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
+                        {holding.quantity !== null && holding.quantity !== undefined
+                          ? Number(holding.quantity).toLocaleString()
+                          : 'N/A'}
+                      </td>
+                      <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] text-xs whitespace-nowrap">
+                        {holding.location || 'N/A'}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </Tabs>
     </div>
   );
 }
