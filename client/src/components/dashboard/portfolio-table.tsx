@@ -199,7 +199,9 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                     </td>
                     <td className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{stock.quantity}</td>
                     <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
-                      {formatCurrency(stock.netAssetValue || stock.nav, currencySymbol)}
+                      {stock.netAssetValue || stock.nav 
+                        ? formatCurrency(stock.netAssetValue || stock.nav, currencySymbol)
+                        : formatCurrency(stock.price * stock.quantity, currencySymbol)}
                     </td>
                     <td className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
                       {stock.pbr !== undefined ? stock.pbr.toFixed(2) : '--'}

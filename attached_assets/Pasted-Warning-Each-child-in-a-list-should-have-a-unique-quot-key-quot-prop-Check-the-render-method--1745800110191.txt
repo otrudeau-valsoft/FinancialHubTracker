@@ -1,0 +1,43 @@
+Warning: Each child in a list should have a unique &quot;key&quot; prop.
+
+Check the render method of `EtfComparison`. See https://reactjs.org/link/warning-keys for more information.
+    at tr
+    at EtfComparison (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/src/components/dashboard/etf-comparison.tsx:20:3)
+    at div
+    at div
+    at UsdPortfolio (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/src/pages/usd-portfolio.tsx:51:23)
+    at Route (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=9232028c:323:16)
+    at Switch (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=9232028c:379:17)
+    at main
+    at div
+    at div
+    at Router
+    at Provider (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-P23V4H6I.js?v=9232028c:48:15)
+    at TooltipProvider (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=9232028c:61:5)
+    at QueryClientProvider (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=9232028c:2805:3)
+    at App
+    at V (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=9232028c:44:25)
+    at J (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=9232028c:42:18)
+Cannot read properties of null (reading 'toLocaleString')
+The above error occurred in the <PortfolioTable> component:
+
+    at PortfolioTable (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/src/components/dashboard/portfolio-table.tsx:28:34)
+    at div
+    at div
+    at UsdPortfolio (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/src/pages/usd-portfolio.tsx:51:23)
+    at Route (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=9232028c:323:16)
+    at Switch (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=9232028c:379:17)
+    at main
+    at div
+    at div
+    at Router
+    at Provider (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-P23V4H6I.js?v=9232028c:48:15)
+    at TooltipProvider (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=9232028c:61:5)
+    at QueryClientProvider (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=9232028c:2805:3)
+    at App
+    at V (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=9232028c:44:25)
+    at J (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=9232028c:42:18)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+Cannot read properties of null (reading 'toLocaleString')

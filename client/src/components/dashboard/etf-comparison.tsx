@@ -41,7 +41,7 @@ export const EtfComparison = ({
       <div className="overflow-x-auto p-0">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="text-xs h-8 border-b border-[#0F1A2A] bg-[#0D1F32]">
+            <tr key="header" className="text-xs h-8 border-b border-[#0F1A2A] bg-[#0D1F32]">
               <th scope="col" className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">SYMBOL</th>
               <th scope="col" className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">NAME</th>
               <th scope="col" className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">SECTOR</th>
