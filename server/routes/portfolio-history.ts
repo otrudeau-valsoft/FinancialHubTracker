@@ -9,22 +9,38 @@ const portfolioHistoryRouter = express.Router();
 // Get historical portfolio performance data
 portfolioHistoryRouter.get('/', async (req, res) => {
   try {
-    const { region, timeRange } = req.query;
+    // Get query parameters directly from URL to avoid any potential parsing issues
+    const regionStr = typeof req.query.region === 'string' ? req.query.region : '';
+    const timeRangeStr = typeof req.query.timeRange === 'string' ? req.query.timeRange : '1M';
+
+    console.log('Portfolio history raw query:', req.query);
+    console.log('Portfolio history parsed params:', { 
+      region: regionStr, 
+      timeRange: timeRangeStr,
+      regionType: typeof req.query.region
+    });
     
-    console.log('Portfolio history request:', { region, timeRange, queryParams: req.query });
-    
-    if (!region) {
+    if (!regionStr) {
       return res.status(400).json({ status: 'error', message: 'Region is required' });
     }
     
-    // Validate region is one of the allowed values
-    const validRegions = ['USD', 'CAD', 'INTL'];
-    if (!validRegions.includes(region as string)) {
+    // Validate region is one of the allowed values and force it to a fixed value
+    let region: string;
+    if (regionStr === 'USD') {
+      region = 'USD';
+    } else if (regionStr === 'CAD') {
+      region = 'CAD';
+    } else if (regionStr === 'INTL') {
+      region = 'INTL';
+    } else {
       return res.status(400).json({
         status: 'error',
         message: 'Invalid region. Must be one of: USD, CAD, INTL'
       });
     }
+    
+    // Use a local variable for timeRange
+    const timeRange = timeRangeStr;
     
     // Define date range based on timeRange
     const now = DateTime.now().setZone('America/New_York');
