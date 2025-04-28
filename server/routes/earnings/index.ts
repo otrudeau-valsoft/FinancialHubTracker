@@ -121,6 +121,37 @@ router.get('/heatmap', asyncHandler(async (req, res) => {
           eq(earningsQuarterly.fiscal_q, fiscal_q)
         ));
       
+      // Fetch additional data to enhance the stocks array
+      const stocksQuery = await db.execute(sql`
+        SELECT 
+          eq.ticker, 
+          cp.regular_market_price as last,
+          cp.target_mean_price as target_price,
+          cp.recommendation_mean as recommendation_mean,
+          cp.recommendation_key as consensus_recommendation,
+          p.company_name as issuer_name
+        FROM earnings_quarterly eq
+        LEFT JOIN current_prices cp ON eq.ticker = cp.symbol
+        LEFT JOIN (
+          SELECT symbol, company_name FROM usd_portfolio
+          UNION
+          SELECT symbol, company_name FROM cad_portfolio
+          UNION 
+          SELECT symbol, company_name FROM intl_portfolio
+        ) p ON eq.ticker = p.symbol
+        WHERE eq.fiscal_year = ${fiscal_year} AND eq.fiscal_q = ${fiscal_q}
+      `);
+      
+      // Create a map for quick lookups
+      const stockDataMap = new Map();
+      // Make sure stocksQuery is an array before trying to iterate
+      const stocksArray = Array.isArray(stocksQuery) ? stocksQuery : [];
+      stocksArray.forEach(s => {
+        if (s && s.ticker) {
+          stockDataMap.set(s.ticker, s);
+        }
+      });
+
       // Calculate aggregations
       const epsStats = {
         Beat: quarterData.filter(d => beatStatus(d.eps_actual, d.eps_estimate) === 'Beat').length,
@@ -146,6 +177,58 @@ router.get('/heatmap', asyncHandler(async (req, res) => {
         Bad: quarterData.filter(d => (d.score || 0) < 4).length,
       };
       
+      // Create stock data for the heatmap table display
+      const stocks = quarterData.map(earning => {
+        const stockData = stockDataMap.get(earning.ticker) || {};
+        const epsStatus = beatStatus(earning.eps_actual, earning.eps_estimate);
+        const revStatus = revenueStatus(earning.rev_actual, earning.rev_estimate);
+        
+        // Convert score integer to string for UI
+        let earningsScore = 'N/A';
+        const scoreVal = typeof earning.score === 'number' ? earning.score : 0;
+        if (earning.score !== null) {
+          if (scoreVal >= 7) earningsScore = 'Good';
+          else if (scoreVal >= 4) earningsScore = 'Okay';
+          else earningsScore = 'Bad';
+        }
+        
+        // Calculate market reaction commentary
+        let mktReactionCommentary = 'Normal';
+        const mktReaction = typeof earning.mkt_reaction === 'number' ? earning.mkt_reaction : 0;
+        if (mktReaction !== 0 && earning.score !== null) {
+          // Determine if the reaction is abnormal based on the score and reaction direction
+          const isAbnormal = (scoreVal >= 7 && mktReaction < 0) || 
+                             (scoreVal < 4 && mktReaction > 0);
+          
+          // Check for extreme reactions (more than 10%)
+          const isExtreme = Math.abs(mktReaction) > 10;
+          
+          if (isExtreme) {
+            mktReactionCommentary = 'Explosive';
+          } else if (isAbnormal) {
+            mktReactionCommentary = 'Abnormal';
+          }
+        }
+        
+        return {
+          ticker: earning.ticker,
+          issuerName: stockData.issuer_name || earning.ticker,
+          consensusRecommendation: stockData.consensus_recommendation || 'N/A',
+          last: stockData.last || 0,
+          price: {
+            earningsRate: earning.mkt_reaction || 0,
+            ytd: 0, // We could calculate this from historical prices if needed
+            pctOf52w: 0, // We could calculate this from historical prices if needed
+          },
+          eps: epsStatus,
+          rev: revStatus,
+          guidance: earning.guidance || 'N/A',
+          earningsScore: earningsScore,
+          mktReaction: earning.mkt_reaction || 0,
+          mktReactionCommentary: mktReactionCommentary
+        };
+      });
+      
       result.push({
         fiscal_year,
         fiscal_q,
@@ -154,7 +237,8 @@ router.get('/heatmap', asyncHandler(async (req, res) => {
         revenue: revStats,
         guidance: guidanceStats,
         score: scoreStats,
-        count: quarterData.length
+        count: quarterData.length,
+        stocks: stocks // Add the stocks array for the heatmap table
       });
     }
     

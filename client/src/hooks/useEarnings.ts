@@ -24,6 +24,24 @@ export interface UseEarningsOptions {
   enabled?: boolean;
 }
 
+export interface HeatmapStock {
+  ticker: string;
+  issuerName: string;
+  consensusRecommendation: string;
+  last: number;
+  price: {
+    earningsRate: number;
+    ytd: number;
+    pctOf52w: number;
+  };
+  eps: string;
+  rev: string;
+  guidance: string;
+  earningsScore: string;
+  mktReaction: number;
+  mktReactionCommentary: string;
+}
+
 export interface HeatmapQuarterData {
   fiscal_year: number;
   fiscal_q: number;
@@ -49,6 +67,7 @@ export interface HeatmapQuarterData {
     Bad: number;
   };
   count: number;
+  stocks: HeatmapStock[];
 }
 
 /**

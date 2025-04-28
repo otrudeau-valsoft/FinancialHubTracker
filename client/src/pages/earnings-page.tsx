@@ -1241,7 +1241,7 @@ export default function EarningsPage() {
                     Flat <span className="font-bold">{currentQuarterData?.guidance?.Maintain || placeholderStats.guidance.maintain}</span>
                   </div>
                   <div className="bg-[#FF5252] text-white p-1 rounded text-center col-span-2">
-                    Down <span className="font-bold">{currentQuarterData?.guidance?.Reduced || placeholderStats.guidance.reduced}</span>
+                    Down <span className="font-bold">{currentQuarterData?.guidance?.Decreased || placeholderStats.guidance.reduced}</span>
                   </div>
                 </div>
               </CardContent>
@@ -1263,10 +1263,10 @@ export default function EarningsPage() {
                     Good <span className="font-bold">{currentQuarterData?.score?.Good || placeholderStats.earningScore.greatGood}</span>
                   </div>
                   <div className="bg-[#FFD700] text-black p-1 rounded text-center">
-                    Okay <span className="font-bold">{currentQuarterData?.score?.["Not So Bad"] || placeholderStats.earningScore.notSoBad}</span>
+                    Okay <span className="font-bold">{currentQuarterData?.score?.Okay || placeholderStats.earningScore.notSoBad}</span>
                   </div>
                   <div className="bg-[#FF5252] text-white p-1 rounded text-center col-span-2">
-                    Bad <span className="font-bold">{currentQuarterData?.score?.Ugly || placeholderStats.earningScore.ugly}</span>
+                    Bad <span className="font-bold">{currentQuarterData?.score?.Bad || placeholderStats.earningScore.ugly}</span>
                   </div>
                 </div>
               </CardContent>
