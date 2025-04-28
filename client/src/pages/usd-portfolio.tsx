@@ -63,6 +63,17 @@ export default function UsdPortfolio() {
     staleTime: 30000, // 30 seconds
   });
   
+  // Fetch cash balance
+  const { data: cashBalances, isLoading: cashLoading } = useQuery({
+    queryKey: ['/api/cash'],
+    staleTime: 60000, // 1 minute
+  });
+  
+  // Get USD cash balance
+  const usdCashBalance = Array.isArray(cashBalances) 
+    ? cashBalances.find(cash => cash.region === 'USD') 
+    : undefined;
+  
   // Fetch alerts
   const { data: alerts, isLoading: alertsLoading } = useQuery({
     queryKey: ['/api/alerts'],
@@ -116,9 +127,9 @@ export default function UsdPortfolio() {
   };
   
   // Calculate metrics for USD portfolio
-  const usdAllocationByType = calculateAllocationByType(usdStocks || []);
-  const usdAllocationByRating = calculateAllocationByRating(usdStocks || []);
-  const usdStats = calculatePortfolioStats(usdStocks || []);
+  const usdAllocationByType = calculateAllocationByType(usdStocks || [], usdCashBalance);
+  const usdAllocationByRating = calculateAllocationByRating(usdStocks || [], usdCashBalance);
+  const usdStats = calculatePortfolioStats(usdStocks || [], usdCashBalance);
   
   // Calculate ETF benchmark differences
   const spyComparisonData = spyHoldings && usdStocks 
@@ -232,18 +243,18 @@ export default function UsdPortfolio() {
                 value: usdStats.totalValue,
                 dailyChange: usdStats.dailyChange,
                 dailyChangePercent: usdStats.dailyChangePercent,
-                benchmarkDiff: 0.42, // Vs S&P 500
+                benchmarkDiff: 0.42, // Vs S&P 500 (TODO: Use actual SPY data)
                 cashPosition: usdStats.cashValue,
                 cashPositionPercent: usdStats.cashPercent,
                 ytdPerformance: usdStats.ytdPerformance,
                 ytdPerformanceValue: usdStats.ytdValue,
-                benchmarkPerformance: 7.35, // SPY YTD
+                benchmarkPerformance: 7.35, // SPY YTD (TODO: Use actual SPY YTD from API)
                 activeAlerts: alerts?.filter(a => a.isActive).length || 0,
                 criticalAlerts: alerts?.filter(a => a.isActive && a.severity === 'critical').length || 0
               }}
               benchmark="SPY"
-              cashSymbol={cashHolding?.symbol || "BIL"}
-              cashShares={cashHolding?.quantity || 0}
+              cashSymbol="Cash" // Use actual cash instead of an ETF
+              cashShares={1}
             />
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6">
