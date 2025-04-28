@@ -902,7 +902,14 @@ export default function EarningsPage() {
   // Fetch real data from API using our hooks
   const { data: formattedHeatmapData, isLoading: isHeatmapLoading } = useFormattedHeatmap();
   const { quarters = [], isLoading: isQuartersLoading } = useAvailableQuarters();
+  
+  // Fetch earnings data from all three portfolios
   const { data: usdEarningsData, isLoading: isUsdEarningsLoading } = usePortfolioEarnings('USD');
+  const { data: cadEarningsData, isLoading: isCadEarningsLoading } = usePortfolioEarnings('CAD');
+  const { data: intlEarningsData, isLoading: isIntlEarningsLoading } = usePortfolioEarnings('INTL');
+  
+  // Fetch all earnings data without filtering by portfolio (for complete view)
+  const { data: allEarningsData, isLoading: isAllEarningsLoading } = useEarnings({ enabled: true });
   
   // Get the current quarter data with proper error handling
   const currentQuarter = quarters && quarters.length > 0 && currentQuarterIndex < quarters.length 
@@ -964,12 +971,40 @@ export default function EarningsPage() {
     
     // Go through the actual quarter data we have
     formattedHeatmapData.forEach(quarterData => {
-      // Try to find earnings data for this stock
-      const earningsData = usdEarningsData?.find(e => 
+      // Try to find earnings data for this stock in any portfolio
+      // First check allEarningsData (unfiltered data)
+      let earningsData = allEarningsData?.find(e => 
         e.ticker === ticker || 
         e.ticker.startsWith(ticker + '.') ||
         (e.ticker.includes('.') && e.ticker.split('.')[0] === ticker)
       );
+      
+      // If not found in general search, check USD portfolio
+      if (!earningsData) {
+        earningsData = usdEarningsData?.find(e => 
+          e.ticker === ticker || 
+          e.ticker.startsWith(ticker + '.') ||
+          (e.ticker.includes('.') && e.ticker.split('.')[0] === ticker)
+        );
+      }
+      
+      // If still not found, check CAD portfolio
+      if (!earningsData) {
+        earningsData = cadEarningsData?.find(e => 
+          e.ticker === ticker || 
+          e.ticker.startsWith(ticker + '.') ||
+          (e.ticker.includes('.') && e.ticker.split('.')[0] === ticker)
+        );
+      }
+      
+      // If still not found, check INTL portfolio
+      if (!earningsData) {
+        earningsData = intlEarningsData?.find(e => 
+          e.ticker === ticker || 
+          e.ticker.startsWith(ticker + '.') ||
+          (e.ticker.includes('.') && e.ticker.split('.')[0] === ticker)
+        );
+      }
       
       if (earningsData) {
         stockData.push({
@@ -984,8 +1019,11 @@ export default function EarningsPage() {
                  (earningsData.rev_actual < earningsData.rev_estimate ? "Miss" : "In-Line"),
             guidance: earningsData.guidance || "Maintain",
             mktReaction: earningsData.mkt_reaction || 0,
-            earningsScore: earningsData.score && earningsData.score > 7 ? "Good" : 
-                          (earningsData.score && earningsData.score > 4 ? "Not So Bad" : "Ugly"),
+            earningsScore: typeof earningsData.score === 'string' ? 
+                          (earningsData.score === 'Good' ? 'Good' : 
+                           earningsData.score === 'Okay' ? 'Not So Bad' : 'Ugly') : 
+                          (earningsData.score && earningsData.score > 7 ? "Good" : 
+                           earningsData.score && earningsData.score > 4 ? "Not So Bad" : "Ugly"),
           }
         });
       }
