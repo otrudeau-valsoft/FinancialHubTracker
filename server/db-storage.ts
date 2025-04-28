@@ -1,5 +1,5 @@
 import { db, sanitizeForDb } from './db';
-import { desc, eq, and } from 'drizzle-orm';
+import { desc, eq, and, inArray, gte, lte, or } from 'drizzle-orm';
 import { 
   etfHoldingsSPY, 
   etfHoldingsXIC, 
@@ -7,7 +7,8 @@ import {
   portfolioUSD,
   portfolioCAD,
   portfolioINTL,
-  currentPrices
+  currentPrices,
+  historicalPrices
 } from '../shared/schema';
 
 /**

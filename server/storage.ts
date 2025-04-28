@@ -57,6 +57,7 @@ export interface IStorage {
   // Historical price methods
   getHistoricalPrices(symbol: string, region: string, startDate?: Date, endDate?: Date): Promise<HistoricalPrice[]>;
   getHistoricalPricesByRegion(region: string, startDate?: Date, endDate?: Date): Promise<HistoricalPrice[]>;
+  getHistoricalPricesBySymbols(symbols: string[], region: string, startDate?: Date, endDate?: Date): Promise<HistoricalPrice[]>;
   createHistoricalPrice(price: InsertHistoricalPrice): Promise<HistoricalPrice>;
   bulkCreateHistoricalPrices(prices: InsertHistoricalPrice[]): Promise<HistoricalPrice[]>;
   deleteHistoricalPrices(symbol: string, region: string): Promise<boolean>;
