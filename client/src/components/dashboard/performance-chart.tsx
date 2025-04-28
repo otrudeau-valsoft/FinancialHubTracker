@@ -59,11 +59,30 @@ export const PerformanceChart = ({
   }, [selectedRange]);
   
   // Fetch portfolio performance data
-  const { data: performanceData, isLoading } = useQuery({
+  const { data: apiResponse, isLoading } = useQuery({
     queryKey: ['/api/portfolio-history', region, startDate, endDate],
     enabled: !!startDate && !!endDate,
     staleTime: 3600000, // 1 hour
   });
+  
+  // Define the API response and data types
+  interface PerformanceDataPoint {
+    date: string;
+    portfolioValue: number;
+    benchmarkValue: number;
+  }
+  
+  interface ApiResponse {
+    status: string;
+    data: PerformanceDataPoint[];
+  }
+  
+  // Prepare the performance data from the API response
+  const performanceData = useMemo(() => {
+    return (apiResponse as ApiResponse)?.status === 'success' 
+      ? (apiResponse as ApiResponse).data 
+      : [];
+  }, [apiResponse]);
   
   // Format data for chart display
   const percentageData = useMemo(() => {

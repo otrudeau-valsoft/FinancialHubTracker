@@ -15,6 +15,15 @@ portfolioHistoryRouter.get('/', async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Region is required' });
     }
     
+    // Validate region is one of the allowed values
+    const validRegions = ['USD', 'CAD', 'INTL'];
+    if (!validRegions.includes(region as string)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid region. Must be one of: USD, CAD, INTL'
+      });
+    }
+    
     // Define date range based on timeRange
     const now = DateTime.now().setZone('America/New_York');
     let startDate = now.minus({ days: 30 }); // Default to 1 month
@@ -76,22 +85,30 @@ portfolioHistoryRouter.get('/', async (req, res) => {
     const benchData = benchmarkData.rows;
     
     // Create a map for faster lookup of benchmark data by date
-    const benchmarkMap = {};
+    const benchmarkMap: Record<string, number> = {};
     for (const row of benchData) {
-      // Convert PostgreSQL date string to yyyy-MM-dd format
-      const dateStr = new Date(row.date).toISOString().split('T')[0];
-      benchmarkMap[dateStr] = row.benchmarkValue;
+      if (row && typeof row.date === 'string') {
+        // Convert PostgreSQL date string to yyyy-MM-dd format
+        const dateStr = new Date(row.date).toISOString().split('T')[0];
+        benchmarkMap[dateStr] = typeof row.benchmarkValue === 'number' 
+          ? row.benchmarkValue 
+          : Number(row.benchmarkValue) || 0;
+      }
     }
     
     // Combine the portfolio and benchmark data
     for (const row of portData) {
-      // Convert PostgreSQL date string to yyyy-MM-dd format
-      const dateStr = new Date(row.date).toISOString().split('T')[0];
-      combinedData.push({
-        date: dateStr,
-        portfolioValue: Number(row.portfolioValue) || 0,
-        benchmarkValue: Number(benchmarkMap[dateStr]) || 0
-      });
+      if (row && typeof row.date === 'string') {
+        // Convert PostgreSQL date string to yyyy-MM-dd format
+        const dateStr = new Date(row.date).toISOString().split('T')[0];
+        combinedData.push({
+          date: dateStr,
+          portfolioValue: typeof row.portfolioValue === 'number' 
+            ? row.portfolioValue 
+            : Number(row.portfolioValue) || 0,
+          benchmarkValue: benchmarkMap[dateStr] || 0
+        });
+      }
     }
     
     return res.json({ 
