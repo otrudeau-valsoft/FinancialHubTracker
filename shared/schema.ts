@@ -426,7 +426,45 @@ export const insertMarketIndexSchema = createInsertSchema(marketIndices).omit({
 export type InsertMarketIndex = z.infer<typeof insertMarketIndexSchema>;
 export type MarketIndex = typeof marketIndices.$inferSelect;
 
-// Earnings Data
+// Earnings Quarterly
+export const earningsQuarterly = pgTable("earnings_quarterly", {
+  ticker: text("ticker").notNull(),
+  fiscal_year: integer("fiscal_year").notNull(),
+  fiscal_q: integer("fiscal_q").notNull(),
+  eps_actual: numeric("eps_actual"),
+  eps_estimate: numeric("eps_estimate"),
+  rev_actual: numeric("rev_actual"),
+  rev_estimate: numeric("rev_estimate"),
+  guidance: text("guidance"),
+  mkt_reaction: numeric("mkt_reaction"),
+  score: integer("score"),
+  note: text("note"),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => {
+  return {
+    pk: uniqueIndex("earnings_quarterly_pk").on(table.ticker, table.fiscal_year, table.fiscal_q),
+  };
+});
+
+export const insertEarningsQuarterlySchema = createInsertSchema(earningsQuarterly).omit({
+  updated_at: true,
+});
+
+export type InsertEarningsQuarterly = z.infer<typeof insertEarningsQuarterlySchema>;
+export type EarningsQuarterly = typeof earningsQuarterly.$inferSelect;
+
+// Earnings Meta
+export const earningsMeta = pgTable("earnings_meta", {
+  ticker: text("ticker").primaryKey(),
+  last_fetched: timestamp("last_fetched").defaultNow().notNull(),
+});
+
+export const insertEarningsMetaSchema = createInsertSchema(earningsMeta);
+
+export type InsertEarningsMeta = z.infer<typeof insertEarningsMetaSchema>;
+export type EarningsMeta = typeof earningsMeta.$inferSelect;
+
+// Earnings Data (original - keep for reference)
 export const earnings = pgTable("earnings", {
   id: serial("id").primaryKey(),
   symbol: text("symbol").notNull(),

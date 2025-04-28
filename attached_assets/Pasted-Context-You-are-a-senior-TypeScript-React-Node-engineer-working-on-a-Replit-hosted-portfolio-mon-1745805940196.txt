@@ -1,0 +1,93 @@
+Context
+You are a senior TypeScript / React / Node engineer working on a Replit-hosted portfolio-monitoring app.
+
+Current data tables
+
+portfolio_usd (ticker primary key, plus weight and any extra fields)
+
+portfolio_cad (ticker primary key, plus weight and any extra fields)
+
+portfolio_intl (ticker primary key, plus weight and any extra fields)
+
+current_prices (ticker, price, traded_at)     ← intraday candles for every ticker and currency
+
+historical_prices (ticker, close, candle_date, …) ← daily candles for every ticker and currency
+
+All price candles are in the shared current_prices / historical_prices tables; nothing is split by USD / CAD / INTL.
+
+Goal
+Build a complete “earnings” pipeline that feeds the existing Earnings Center UI:
+
+HEATMAP view – shows the latest four fiscal quarters as four separate blocks.
+Each block displays counts for EPS, REVENUE, GUIDANCE and SCORE buckets.
+Inside each bucket we show the green / yellow / red pills exactly as on the screenshot:
+Beat / Up / Good (green), In-Line / Flat / Okay (yellow), Miss / Down / Bad (red).
+
+SINGLE-STOCK PANEL – for any chosen ticker, render a row strip of the last four quarters with these columns, in the same order and pill colours the UI already uses:
+Ticker Issuer Name Cons (analyst rating such as Buy, Hold, Strong Buy) Last (price) EPS REV GUIDE SCORE MKT (next-day % move) NOTE.
+
+The new backend must fit those exact columns and keep the same styling logic so the React components can remain almost unchanged.
+
+Technology rules
+
+Node 20, Express, Neon Postgres (or Prisma), React Query on the client.
+
+Use the yahoo-finance2 npm package strictly for earnings data.
+
+Whenever you need prices (for the MKT column) read them from historical_prices.
+
+WHAT THE AGENT MUST DELIVER
+Return ONE markdown file that contains five sections in this order: Schema, Service, Routes, Client, Rationale.
+Each code asset goes in a triple-back-ticked block and starts with an inline file-name comment, for example
+// src/scripts/updateEarnings.ts
+No extra discussion outside those five sections.
+
+Schema
+Provide both raw SQL and a Prisma model for two tables:
+
+earnings_quarterly (ticker, fiscal_year, fiscal_q, eps_actual, eps_estimate, rev_actual, rev_estimate, guidance, mkt_reaction, score, note, updated_at, primary key on ticker+fiscal_year+fiscal_q)
+
+earnings_meta (ticker primary key, last_fetched timestamp)
+
+The schema must store everything needed to reproduce every UI column exactly.
+
+Service – implementation file updateEarnings.ts
+
+Query one DISTINCT list of tickers from the three portfolio tables.
+
+Call yahooFinance.quoteSummary(ticker, { modules: ['earnings', 'earningsTrend'] }).
+
+For each record in earnings.earningsChart.quarterly:
+• Parse date strings like "4Q2024" into { year: 2024, q: 4 }.
+• Capture eps_actual and eps_estimate from that object.
+• Find the matching entry in earnings.financialsChart.quarterly to get rev_actual.
+• Find the matching entry in earningsTrend.trend (period –1q, –2q, etc.) to get rev_estimate.
+• guidance is derived by compare current EPS in epsTrend.current with epsTrend.30daysAgo using classifyGuidance (Maintain, Increased, Decreased).
+• Compute mkt_reaction by selecting close price on earningsDate and close price on the next trading day from historical_prices, then storing the percentage change.
+• Compute score and note with helper functions that mimic the formula already used in the UI.
+• UPSERT into earnings_quarterly on the (ticker, fiscal_year, fiscal_q) composite key.
+
+Update earnings_meta.last_fetched after each ticker is processed.
+
+Export helper functions beatStatus, classifyGuidance and computeScore.
+
+Routes
+
+POST /api/admin/update-earnings → invokes the service and returns { ok: true }.
+
+Provide a sample Replit cron YAML that sends a POST to that endpoint every day at 08:00 UTC.
+
+Client
+
+API endpoint /api/earnings?tickers=… returns all rows for the requested tickers.
+
+API endpoint /api/heatmap returns the four-quarter aggregation used by the Heatmap.
+
+Provide React Query hooks useEarnings and useHeatmap, and skeleton React components that map each returned field to the existing green, yellow and red pills.
+The components must match the exact column order and styling of the current UI.
+
+Rationale
+In at least fifty words, explain how the composite primary key (ticker, fiscal_year, fiscal_q) automatically preserves historical quarters while letting the same script update any quarter when analyst consensus changes, without ever deleting data or causing duplicates.
+
+Crucial UI alignment
+Before coding, the agent must mentally walk through the screenshot and verify column names, order, and colour-coding. Any data field or pill that appears on screen must have a corresponding column in earnings_quarterly and must be calculated in the service. The deliverable code should drop into the repo and immediately satisfy the current components with no prop changes other than the new API hooks.
