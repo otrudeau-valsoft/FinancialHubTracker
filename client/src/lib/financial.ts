@@ -41,15 +41,18 @@ export function getProfitLossClass(value: number | string | null | undefined): s
 
 /**
  * Helper function to get stock value from various possible property names
+ * with improved null handling
  */
 function getStockValue(stock: any): number {
+  if (!stock) return 0;
+  
   // Try netAssetValue first, then currentValue, then nav, then return 0 if none exists
-  if (stock.netAssetValue !== undefined) {
-    return parseFloat(stock.netAssetValue.toString() || '0');
-  } else if (stock.currentValue !== undefined) {
-    return parseFloat(stock.currentValue.toString() || '0');
-  } else if (stock.nav !== undefined) {
-    return parseFloat(stock.nav.toString() || '0');
+  if (stock.netAssetValue !== undefined && stock.netAssetValue !== null) {
+    return parseFloat((stock.netAssetValue || '0').toString());
+  } else if (stock.currentValue !== undefined && stock.currentValue !== null) {
+    return parseFloat((stock.currentValue || '0').toString());
+  } else if (stock.nav !== undefined && stock.nav !== null) {
+    return parseFloat((stock.nav || '0').toString());
   } else {
     return 0;
   }
