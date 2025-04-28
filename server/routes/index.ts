@@ -55,6 +55,9 @@ router.use('/portfolio-history', portfolioHistoryRoutes);
 // New portfolio performance routes (alternative implementation with raw SQL)
 router.use('/portfolio-performance', portfolioPerformanceRoutes);
 
+// Portfolio performance history routes (from dedicated history table)
+router.use('/portfolio-performance-history', portfolioPerformanceHistoryRoutes);
+
 // Earnings routes
 router.use('/', earningsRoutes);
 

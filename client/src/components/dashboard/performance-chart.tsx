@@ -58,14 +58,19 @@ export const PerformanceChart = ({
     setEndDate(now.toISOString().split('T')[0]);
   }, [selectedRange]);
   
-  // Fetch portfolio performance data from our new endpoint
+  // Fetch portfolio performance data from our new history endpoint
   const { data: apiResponse, isLoading } = useQuery({
-    queryKey: ['/api/portfolio-performance', region, selectedRange],
+    queryKey: ['/api/portfolio-performance-history', region, selectedRange],
     queryFn: () => 
-      fetch(`/api/portfolio-performance?region=${region}&timeRange=${selectedRange}`)
+      fetch(`/api/portfolio-performance-history?region=${region}&timeRange=${selectedRange}`)
         .then(res => {
+          console.log('Performance history response:', res.status);
           if (!res.ok) throw new Error('Network response was not ok');
           return res.json();
+        })
+        .catch(error => {
+          console.error('Error fetching performance data:', error);
+          throw error;
         }),
     enabled: !!selectedRange && !!region,
     staleTime: 3600000, // 1 hour
@@ -76,6 +81,11 @@ export const PerformanceChart = ({
     date: string;
     portfolioValue: number;
     benchmarkValue: number;
+    portfolioCumulativeReturn: number | null;
+    benchmarkCumulativeReturn: number | null;
+    portfolioReturnDaily: number | null;
+    benchmarkReturnDaily: number | null;
+    relativePerformance: number | null;
   }
   
   interface ApiResponse {
@@ -90,20 +100,14 @@ export const PerformanceChart = ({
       : [];
   }, [apiResponse]);
   
-  // Format data for chart display
+  // Format data for chart display - using precalculated cumulative returns from database
   const percentageData = useMemo(() => {
     if (!performanceData || !performanceData.length) return [];
     
-    const baselinePortfolio = performanceData[0]?.portfolioValue || 0;
-    const baselineBenchmark = performanceData[0]?.benchmarkValue || 0;
-    
-    // Skip normalization if baseline values are 0
-    if (baselinePortfolio === 0 || baselineBenchmark === 0) return [];
-    
     return performanceData.map(point => ({
       date: point.date,
-      portfolio: ((point.portfolioValue / baselinePortfolio) - 1) * 100,
-      benchmark: ((point.benchmarkValue / baselineBenchmark) - 1) * 100
+      portfolio: point.portfolioCumulativeReturn || 0,
+      benchmark: point.benchmarkCumulativeReturn || 0
     }));
   }, [performanceData]);
   
