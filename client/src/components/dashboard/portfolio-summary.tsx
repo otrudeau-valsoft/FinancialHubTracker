@@ -43,8 +43,10 @@ export const PortfolioSummary = ({
         </CardHeader>
         <CardContent className="p-2 pt-1.5">
           <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-            <span className="text-lg sm:text-xl font-semibold text-[#EFEFEF] mono">{formatCurrency(summary.value, currencySymbol)}</span>
-            <span className={`text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full ${summary.dailyChangePercent >= 0 ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
+            <span className="text-lg sm:text-xl font-semibold text-[#EFEFEF] mono">
+              {formatCurrency(summary.value, currencySymbol)}
+            </span>
+            <span className={`text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full ${(summary.dailyChangePercent || 0) >= 0 ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
               {formatPercentage(summary.dailyChangePercent)}
             </span>
           </div>
@@ -65,8 +67,12 @@ export const PortfolioSummary = ({
         </CardHeader>
         <CardContent className="p-2 pt-1.5">
           <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-            <span className="text-lg sm:text-xl font-semibold text-[#EFEFEF] mono">{formatCurrency(summary.cashPosition, currencySymbol)}</span>
-            <span className="text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full bg-blue-900/20 text-blue-400">{summary.cashPositionPercent.toFixed(1)}%</span>
+            <span className="text-lg sm:text-xl font-semibold text-[#EFEFEF] mono">
+              {formatCurrency(summary.cashPosition, currencySymbol)}
+            </span>
+            <span className="text-[10px] sm:text-xs mono font-medium px-2 py-0.5 rounded-full bg-blue-900/20 text-blue-400">
+              {(summary.cashPositionPercent || 0).toFixed(1)}%
+            </span>
           </div>
           <div className="text-[10px] sm:text-xs text-gray-400 mt-2 flex justify-between">
             <span>{cashSymbol}:</span> 
