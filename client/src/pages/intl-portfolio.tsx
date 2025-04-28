@@ -73,15 +73,15 @@ export default function IntlPortfolio() {
     staleTime: 60000, // 1 minute
   });
   
-  // Get INTL cash balance
+  // Get INTL cash balance with defensive checks
   const intlCashBalance = Array.isArray(cashBalances) 
-    ? cashBalances.find(cash => cash.region === 'INTL') 
+    ? cashBalances.find(cash => cash?.region === 'INTL') 
     : undefined;
 
-  // Calculate metrics for INTL portfolio
-  const intlAllocationByType = calculateAllocationByType(intlStocks || [], intlCashBalance);
-  const intlAllocationByRating = calculateAllocationByRating(intlStocks || [], intlCashBalance);
-  const intlStats = calculatePortfolioStats(intlStocks || [], intlCashBalance);
+  // Calculate metrics for INTL portfolio with defensive checks to handle possible null values
+  const intlAllocationByType = calculateAllocationByType(Array.isArray(intlStocks) ? intlStocks : [], intlCashBalance);
+  const intlAllocationByRating = calculateAllocationByRating(Array.isArray(intlStocks) ? intlStocks : [], intlCashBalance);
+  const intlStats = calculatePortfolioStats(Array.isArray(intlStocks) ? intlStocks : [], intlCashBalance);
   
   // Calculate ETF benchmark differences
   const acwxComparisonData = acwxHoldings && intlStocks 

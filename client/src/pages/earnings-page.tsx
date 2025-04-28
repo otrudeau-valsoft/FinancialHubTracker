@@ -1042,12 +1042,23 @@ export default function EarningsPage() {
   const getQuarterCompanies = (quarterData: any): any[] => {
     if (!quarterData) return [];
     
+    // Debug the quarter data
+    console.log("DEBUG: First quarter data:", {
+      fiscal_year: quarterData.fiscal_year,
+      fiscal_q: quarterData.fiscal_q,
+      label: quarterData.label,
+      count: quarterData.count,
+      hasStocks: quarterData.stocks !== undefined
+    });
+    
     // If quarterData already has company entries, use them
     if (quarterData.stocks && Array.isArray(quarterData.stocks) && quarterData.stocks.length > 0) {
       return quarterData.stocks;
+    } else {
+      console.log("WARNING: No stocks array found in quarter data!");
     }
     
-    // Generate synthetic company rows based on our earnings data if no stocks are in the quarter data
+    // Generate company rows based on our earnings data if no stocks are in the quarter data
     console.log("Creating company data rows from earnings data");
     
     // Use the earnings data from the appropriate APIs
@@ -1055,11 +1066,13 @@ export default function EarningsPage() {
     
     if (allEarningsData && Array.isArray(allEarningsData)) {
       // Extract fiscal year and quarter from the current quarter
-      const fiscalYearMatch = quarterData.label.match(/Q\d+ (\d+)/);
-      const fiscalYear = fiscalYearMatch ? parseInt(fiscalYearMatch[1]) : null;
+      const fiscalYearMatch = quarterData.label?.match(/Q\d+ (\d+)/);
+      const fiscalYear = fiscalYearMatch ? parseInt(fiscalYearMatch[1]) : 
+                        (quarterData.fiscal_year ? quarterData.fiscal_year : null);
       
-      const fiscalQMatch = quarterData.label.match(/Q(\d+)/);
-      const fiscalQ = fiscalQMatch ? parseInt(fiscalQMatch[1]) : null;
+      const fiscalQMatch = quarterData.label?.match(/Q(\d+)/);
+      const fiscalQ = fiscalQMatch ? parseInt(fiscalQMatch[1]) : 
+                     (quarterData.fiscal_q ? quarterData.fiscal_q : null);
       
       if (fiscalYear && fiscalQ) {
         // Filter earnings data for the current fiscal year and quarter
