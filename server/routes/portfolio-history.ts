@@ -50,7 +50,10 @@ portfolioHistoryRouter.get('/', async (req, res) => {
       FROM 
         historical_prices
       INNER JOIN 
-        portfolio_${region} ON historical_prices.symbol = portfolio_${region}.symbol
+        portfolio_${region} ON (
+          historical_prices.symbol = portfolio_${region}.symbol OR 
+          historical_prices.symbol = CONCAT(portfolio_${region}.symbol, '.TO')
+        )
       WHERE 
         historical_prices.region = ${region}
         AND historical_prices.date >= ${formattedStartDate}
