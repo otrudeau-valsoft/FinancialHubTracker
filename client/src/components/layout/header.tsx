@@ -1,12 +1,18 @@
 import { useLocation } from "wouter";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Menu, X, TrendingUp, TrendingDown } from "lucide-react";
+import {
+  ChevronDown,
+  Menu,
+  X,
+  TrendingUp,
+  TrendingDown
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 export function Header() {
@@ -14,7 +20,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Fetch real-time market index data
-  const { data: marketData, isLoading: isLoadingMarketData } = useQuery({
+  const { data: marketData } = useQuery({
     queryKey: ['market-data'],
     queryFn: async () => {
       const response = await fetch('/api/market-indices/real-time');
@@ -23,8 +29,10 @@ export function Header() {
       }
       return await response.json();
     },
-    // Refresh every 5 minutes
-    refetchInterval: 5 * 60 * 1000
+    // Refresh every 30 seconds for continuous real-time updates
+    refetchInterval: 30 * 1000,
+    // Ensure it refetches in the background
+    refetchIntervalInBackground: true
   });
   
   const toggleMobileMenu = () => {
