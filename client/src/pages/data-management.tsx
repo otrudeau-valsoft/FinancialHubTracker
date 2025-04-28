@@ -116,81 +116,8 @@ export default function DataManagement() {
     }
   });
   
-  // Update all holdings mutation
-  const updateAllHoldingsMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/holdings/update'),
-    onSuccess: () => {
-      toast({
-        title: "Holdings updated",
-        description: "All portfolio holdings have been updated",
-      });
-      refetchLogs();
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to update holdings",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-  
-  // Update USD holdings mutation
-  const updateUSDHoldingsMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/holdings/update/USD'),
-    onSuccess: () => {
-      toast({
-        title: "USD Holdings updated",
-        description: "USD portfolio holdings have been updated",
-      });
-      refetchLogs();
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to update USD holdings", 
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-  
-  // Update CAD holdings mutation
-  const updateCADHoldingsMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/data-management/update-holdings/CAD'),
-    onSuccess: () => {
-      toast({
-        title: "CAD Holdings updated",
-        description: "CAD portfolio holdings have been updated",
-      });
-      refetchLogs();
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to update CAD holdings",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-  
-  // Update INTL holdings mutation
-  const updateINTLHoldingsMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/data-management/update-holdings/INTL'),
-    onSuccess: () => {
-      toast({
-        title: "INTL Holdings updated",
-        description: "INTL portfolio holdings have been updated",
-      });
-      refetchLogs();
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to update INTL holdings",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
+  // Note: Holdings updates are now automatically performed when updating prices
+  // The standalone holdings update mutations have been removed since they're no longer needed
   
   // Process and consolidate logs
   const processedLogs = useMemo(() => {
@@ -505,85 +432,42 @@ export default function DataManagement() {
       </div>
       
       <div className="grid gap-3 sm:gap-4">
-        {/* Update Panels - Top Row */}
+        {/* Information Card About Automated Updates */}
         <Card className="bg-[#0A1524] border border-[#1A304A] rounded-none shadow-lg">
           <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-2 sm:p-3">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
+            <div className="flex flex-row justify-between items-center">
               <CardTitle className="text-[#EFEFEF] text-base sm:text-lg font-mono flex items-center">
-                <FileBarChart className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-[#FFCA28]" />
-                PORTFOLIO HOLDINGS
+                <InfoIcon className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-[#38AAFD]" />
+                AUTOMATED PORTFOLIO UPDATES
               </CardTitle>
-              <Button 
-                variant="default" 
-                onClick={() => updateAllHoldingsMutation.mutate()}
-                disabled={updateAllHoldingsMutation.isPending}
-                className="bg-[#FFCA28] hover:bg-[#FFA000] text-black rounded-sm h-8 px-2 sm:px-3 py-1 text-xs sm:text-sm w-full sm:w-auto"
-                size="sm"
-              >
-                {updateAllHoldingsMutation.isPending ? (
-                  <>
-                    <div className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin rounded-full border-2 border-black border-t-transparent"></div>
-                    RUNNING
-                  </>
-                ) : (
-                  <>
-                    <RotateCw className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">UPDATE ALL HOLDINGS</span>
-                    <span className="inline sm:hidden">UPDATE ALL</span>
-                  </>
-                )}
-              </Button>
             </div>
           </CardHeader>
           <CardContent className="p-3 pt-4">
             <div className="text-xs text-[#EFEFEF] mb-3">
-              Update pre-calculated metrics in portfolio holdings tables including NAV, weights, benchmark comparison, and performance data.
+              Portfolio holdings are now automatically calculated whenever price data is updated. When you update current or historical prices, the system will:
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => updateUSDHoldingsMutation.mutate()}
-                disabled={updateUSDHoldingsMutation.isPending}
-                className="bg-[#1C2938] hover:bg-[#243447] text-[#38AAFD] border-[#1A304A] font-mono text-xs"
-              >
-                {updateUSDHoldingsMutation.isPending ? (
-                  <div className="h-3 w-3 mr-1 animate-spin rounded-full border-2 border-[#38AAFD] border-t-transparent"></div>
-                ) : (
-                  <RotateCw className="h-3 w-3 mr-1" />
-                )}
-                USD
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                onClick={() => updateCADHoldingsMutation.mutate()}
-                disabled={updateCADHoldingsMutation.isPending}
-                className="bg-[#1C2938] hover:bg-[#243447] text-[#4CAF50] border-[#1A304A] font-mono text-xs"
-              >
-                {updateCADHoldingsMutation.isPending ? (
-                  <div className="h-3 w-3 mr-1 animate-spin rounded-full border-2 border-[#4CAF50] border-t-transparent"></div>
-                ) : (
-                  <RotateCw className="h-3 w-3 mr-1" />
-                )}
-                CAD
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                onClick={() => updateINTLHoldingsMutation.mutate()}
-                disabled={updateINTLHoldingsMutation.isPending}
-                className="bg-[#1C2938] hover:bg-[#243447] text-[#FFCA28] border-[#1A304A] font-mono text-xs"
-              >
-                {updateINTLHoldingsMutation.isPending ? (
-                  <div className="h-3 w-3 mr-1 animate-spin rounded-full border-2 border-[#FFCA28] border-t-transparent"></div>
-                ) : (
-                  <RotateCw className="h-3 w-3 mr-1" />
-                )}
-                INTL
-              </Button>
+            <div className="grid grid-cols-1 gap-2">
+              <div className="bg-[#1C2938] border border-[#1A304A] p-3 text-xs rounded-sm">
+                <div className="flex items-start mb-2">
+                  <CheckCircle2 className="h-4 w-4 mr-2 text-[#4CAF50] flex-shrink-0 mt-0.5" />
+                  <span>Calculate Net Asset Values (NAV) for each portfolio</span>
+                </div>
+                <div className="flex items-start mb-2">
+                  <CheckCircle2 className="h-4 w-4 mr-2 text-[#4CAF50] flex-shrink-0 mt-0.5" />
+                  <span>Update portfolio weights based on current prices and quantities</span>
+                </div>
+                <div className="flex items-start mb-2">
+                  <CheckCircle2 className="h-4 w-4 mr-2 text-[#4CAF50] flex-shrink-0 mt-0.5" />
+                  <span>Recalculate performance metrics relative to benchmarks</span>
+                </div>
+                <div className="flex items-start">
+                  <CheckCircle2 className="h-4 w-4 mr-2 text-[#4CAF50] flex-shrink-0 mt-0.5" />
+                  <span>Update sector and rating allocations automatically</span>
+                </div>
+              </div>
             </div>
             <div className="mt-3 text-xs text-[#7A8999] border-t border-[#1A304A] pt-3">
-              Cash balances are used in all portfolio calculations for NAV and weights
+              Cash balances are included in all portfolio calculations for NAV and weights
             </div>
           </CardContent>
         </Card>
