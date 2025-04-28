@@ -17,8 +17,8 @@ import { Loader2, Calendar, MessageSquare, ExternalLink } from "lucide-react";
 
 export default function NewsPage() {
   const [selectedRegion, setSelectedRegion] = useState<string>("USD");
-  const [selectedStock, setSelectedStock] = useState<string>("");
-  const [selectedSector, setSelectedSector] = useState<string>("");
+  const [selectedStock, setSelectedStock] = useState<string>("all_stocks");
+  const [selectedSector, setSelectedSector] = useState<string>("all_sectors");
   const [days, setDays] = useState<number>(7);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -57,12 +57,12 @@ export default function NewsPage() {
   // Filter news based on selected stock, sector, and search query
   const filteredNews = newsData?.data?.filter((article: NewsArticle) => {
     // Filter by stock if one is selected
-    if (selectedStock && article.symbol !== selectedStock) {
+    if (selectedStock && selectedStock !== "all_stocks" && article.symbol !== selectedStock) {
       return false;
     }
     
     // Filter by sector if one is selected
-    if (selectedSector) {
+    if (selectedSector && selectedSector !== "all_sectors") {
       const stockWithSector = portfolioStocks?.find((stock: PortfolioStock) => 
         stock.symbol === article.symbol && stock.sector === selectedSector
       );
@@ -127,7 +127,7 @@ export default function NewsPage() {
             </SelectTrigger>
             <SelectContent className="bg-[#0A1929] border-[#1A304A] max-h-[300px]">
               <SelectGroup>
-                <SelectItem value="">All Stocks</SelectItem>
+                <SelectItem value="all_stocks">All Stocks</SelectItem>
                 {portfolioStocks && portfolioStocks.map((stock: PortfolioStock) => (
                   <SelectItem key={stock.symbol} value={stock.symbol}>
                     {stock.symbol} - {stock.company}
@@ -149,7 +149,7 @@ export default function NewsPage() {
             </SelectTrigger>
             <SelectContent className="bg-[#0A1929] border-[#1A304A]">
               <SelectGroup>
-                <SelectItem value="">All Sectors</SelectItem>
+                <SelectItem value="all_sectors">All Sectors</SelectItem>
                 {sectors.map((sector: string) => (
                   <SelectItem key={sector} value={sector}>
                     {sector}
