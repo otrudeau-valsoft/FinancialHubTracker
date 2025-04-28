@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { LayoutGrid, TrendingUp, LineChart, BookOpen, Bell, History, Cog } from "lucide-react";
+import { LayoutGrid, TrendingUp, LineChart, BookOpen, Bell, History, Cog, Calendar } from "lucide-react";
 
 export const Sidebar = () => {
   const [location] = useLocation();
@@ -112,6 +112,18 @@ export const Sidebar = () => {
               )}>
                 <LineChart className="mr-3 h-5 w-5" />
                 ETF Holdings
+              </a>
+            </Link>
+            
+            <Link href="/economic-calendar">
+              <a className={cn(
+                "flex items-center px-2 py-2 text-sm font-medium rounded-md group",
+                isActive("/economic-calendar") 
+                  ? "bg-primary-50 text-white" 
+                  : "text-gray-300 hover:bg-primary-50 hover:text-white"
+              )}>
+                <Calendar className="mr-3 h-5 w-5" />
+                Economic Calendar
               </a>
             </Link>
           </nav>
