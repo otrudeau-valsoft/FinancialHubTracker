@@ -437,7 +437,7 @@ export const earningsQuarterly = pgTable("earnings_quarterly", {
   rev_estimate: numeric("rev_estimate"),
   guidance: text("guidance"),
   mkt_reaction: numeric("mkt_reaction"),
-  score: integer("score"),
+  score: text("score"), // Changed from integer to text for Good/Okay/Bad values
   note: text("note"),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => {
