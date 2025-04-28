@@ -135,7 +135,10 @@ router.get('/heatmap', asyncHandler(async (req, res) => {
       LIMIT 4
     `);
     
+    console.log('DEBUG - Quarters fetched:', JSON.stringify(quarters, null, 2));
+    
     if (!quarters || quarters.length === 0) {
+      console.log('DEBUG - No quarters found');
       return res.json({
         status: 'success',
         data: []
@@ -146,11 +149,15 @@ router.get('/heatmap', asyncHandler(async (req, res) => {
     const result = [];
     
     // Process each quarter
-    // Add defensive check to ensure quarters is iterable
-    if (quarters && Array.isArray(quarters)) {
-      for (const quarter of quarters) {
+    // The quarters result has a 'rows' property that contains the actual data
+    if (quarters && quarters.rows && Array.isArray(quarters.rows)) {
+      console.log('DEBUG - Processing quarter rows:', quarters.rows.length);
+      
+      for (const quarter of quarters.rows) {
         const fiscal_year = quarter?.fiscal_year;
         const fiscal_q = quarter?.fiscal_q;
+        
+        console.log('DEBUG - Processing quarter:', fiscal_year, fiscal_q);
         
         // Skip if we don't have valid quarter information
         if (!fiscal_year || !fiscal_q) continue;
