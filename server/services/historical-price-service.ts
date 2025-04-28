@@ -215,6 +215,7 @@ class HistoricalPriceService {
    * 
    * This implementation focuses on fetching only newer data than what we already have
    * Can handle both Date objects and period strings for startDate and endDate
+   * Uses upsert to avoid duplicate entries
    */
   async fetchAndStoreHistoricalPrices(symbol: string, region: string, startDate: Date | string, endDate: Date | string = new Date()) {
     try {
@@ -226,6 +227,14 @@ class HistoricalPriceService {
       if (startDateObj >= endDateObj) {
         console.log(`No new data to fetch for ${symbol} (${region}): start date ${startDateObj.toISOString()} is after end date ${endDateObj.toISOString()}`);
         return [];
+      }
+      
+      // For shorter time frames, use more detailed logging
+      const daysDiff = Math.floor((endDateObj.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysDiff <= 30) {
+        console.log(`Fetching historical prices for ${symbol} from ${startDateObj.toISOString().split('T')[0]} to ${endDateObj.toISOString().split('T')[0]} (${daysDiff} days)`);
+      } else {
+        console.log(`Fetching historical prices for ${symbol} from ${startDateObj.toISOString().split('T')[0]} to ${endDateObj.toISOString().split('T')[0]}`);
       }
       
       // Fetch historical prices from Yahoo Finance
@@ -250,8 +259,28 @@ class HistoricalPriceService {
         adjustedClose: data.adjClose?.toString() || data.close.toString()
       }));
       
-      // Store historical prices
-      const results = await storage.bulkCreateHistoricalPrices(insertData);
+      // Check for abnormal values that could indicate bad data
+      // For example, unusually large daily changes
+      const sanitizedData = insertData.filter(data => {
+        const close = parseFloat(data.close);
+        const open = parseFloat(data.open);
+        
+        // Skip entries with abnormal daily changes (>20%)
+        if (Math.abs((close - open) / open) > 0.20) {
+          console.warn(`Abnormal price movement detected for ${symbol} on ${data.date}: Open ${open}, Close ${close} (${((close - open) / open * 100).toFixed(2)}% change)`);
+          
+          // For market indices specifically (SPY, XIC, ACWX), require additional verification
+          if (symbol === 'SPY' || symbol === 'XIC.TO' || symbol === 'ACWX') {
+            console.warn(`Skipping abnormal market index data for ${symbol} on ${data.date}`);
+            return false;
+          }
+        }
+        
+        return true;
+      });
+      
+      // Store historical prices with upsert pattern to avoid duplicates
+      const results = await storage.bulkCreateHistoricalPrices(sanitizedData);
       
       console.log(`Stored ${results.length} historical prices for ${symbol} (${region})`);
       

@@ -171,19 +171,32 @@ export type InsertEtfHoldingsACWX = z.infer<typeof insertEtfHoldingsACWXSchema>;
 export type EtfHoldingsACWX = typeof etfHoldingsACWX.$inferSelect;
 
 // Historical Prices
-export const historicalPrices = pgTable("historical_prices", {
-  id: serial("id").primaryKey(),
-  symbol: text("symbol").notNull(),
-  date: date("date").notNull(),
-  open: numeric("open"),
-  high: numeric("high"),
-  low: numeric("low"),
-  close: numeric("close").notNull(),
-  volume: numeric("volume"),
-  adjustedClose: numeric("adjusted_close"),
-  region: text("region").notNull(),  // USD, CAD, INTL
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+export const historicalPrices = pgTable(
+  "historical_prices", 
+  {
+    id: serial("id").primaryKey(),
+    symbol: text("symbol").notNull(),
+    date: date("date").notNull(),
+    open: numeric("open"),
+    high: numeric("high"),
+    low: numeric("low"),
+    close: numeric("close").notNull(),
+    volume: numeric("volume"),
+    adjustedClose: numeric("adjusted_close"),
+    region: text("region").notNull(),  // USD, CAD, INTL
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => {
+    return {
+      // Add a unique constraint on symbol, date, and region to prevent duplicates
+      symbolDateRegionIdx: uniqueIndex("historical_prices_symbol_date_region_key").on(
+        table.symbol, 
+        table.date, 
+        table.region
+      ),
+    };
+  }
+);
 
 export const insertHistoricalPriceSchema = createInsertSchema(historicalPrices).omit({
   id: true,

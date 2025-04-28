@@ -1,5 +1,5 @@
 import { db, sanitizeForDb } from './db';
-import { desc, eq, and, inArray, gte, lte, or } from 'drizzle-orm';
+import { desc, eq, and, inArray, gte, lte, or, asc, sql } from 'drizzle-orm';
 import { 
   etfHoldingsSPY, 
   etfHoldingsXIC, 
@@ -558,10 +558,7 @@ export class DatabaseStorage {
   /**
    * Bulk create historical prices
    */
-  async bulkCreateHistoricalPrices(data: any[]) {
-    // Placeholder for actual implementation
-    return data.map((item, index) => ({ ...item, id: index + 1 }));
-  }
+  // Method moved and improved at line ~840
 
   /**
    * Delete historical prices
