@@ -13,6 +13,8 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { PageHeader } from '@/components/page-header';
+import { PageContainer } from '@/components/page-container';
 
 // Icons for different event significance and impact
 const ImpactIndicator = ({ impact }: { impact: string }) => {
@@ -114,6 +116,7 @@ const TimelineIndicator = ({ actual, forecast, previous }: {
 };
 
 export default function EconomicCalendarPage() {
+  // Make sure React hooks are at the top of the component
   const [dateRange, setDateRange] = useState<'current' | 'custom'>('current');
   const [year, setYear] = useState(new Date().getFullYear());
   const [month, setMonth] = useState(new Date().getMonth() + 1);
@@ -300,11 +303,11 @@ export default function EconomicCalendarPage() {
   const dates = Object.keys(filteredEvents).sort();
 
   return (
-    <div className="min-h-screen bg-[#0d1117] text-gray-200">
-      <div className="p-6">
-        <h1 className="text-3xl font-bold tracking-tight">Economic Calendar</h1>
-        <p className="text-gray-400 mt-2">Track important economic events and indicators</p>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Economic Calendar"
+        description="Track important economic events and indicators"
+      />
 
       <div className="mx-auto max-w-7xl px-4 py-4 flex flex-col gap-6">
         {/* Filter controls */}
@@ -655,6 +658,6 @@ export default function EconomicCalendarPage() {
           Refresh the page to force a new data fetch if needed.
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }

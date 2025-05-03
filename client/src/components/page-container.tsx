@@ -1,13 +1,13 @@
-import { ReactNode } from 'react';
+import React from 'react';
 
 interface PageContainerProps {
-  children: ReactNode;
+  children: React.ReactNode;
   className?: string;
 }
 
 export function PageContainer({ children, className = '' }: PageContainerProps) {
   return (
-    <div className={`container mx-auto px-4 py-4 max-w-7xl ${className}`}>
+    <div className={`min-h-screen bg-[#0d1117] text-gray-200 ${className}`}>
       {children}
     </div>
   );
