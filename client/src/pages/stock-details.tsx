@@ -13,6 +13,19 @@ import {
   Info,
   Clock
 } from 'lucide-react';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip as RechartTooltip, 
+  ResponsiveContainer, 
+  Legend,
+  ReferenceLine,
+  Area,
+  AreaChart
+} from 'recharts';
 
 import {
   Tabs,
@@ -151,16 +164,34 @@ export default function StockDetailsPage() {
   });
   
   // Fetch historical price data for chart
-  const { data: historicalPrices } = useQuery({
+  const { data: historicalPrices, isLoading: isLoadingHistorical } = useQuery({
     queryKey: ['historicalPrices', symbol, region],
     queryFn: async () => {
-      const response = await fetch(`/api/historical-prices/${region}/${symbol}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch historical price data');
+      // Try the main path first
+      try {
+        const response = await fetch(`/api/historical-prices/${symbol}/${region}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed with main path');
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.log('Trying alternative historical prices path...');
+        // Try alternative path if the first one fails
+        try {
+          const response = await fetch(`/api/portfolios/${region}/stocks/${symbol}/historical`);
+          
+          if (!response.ok) {
+            throw new Error('Failed to fetch historical price data');
+          }
+          
+          return response.json();
+        } catch (secondError) {
+          console.error('Both historical price paths failed:', secondError);
+          throw secondError;
+        }
       }
-      
-      return response.json();
     },
     enabled: !!symbol && defaultTab === 'chart',
     staleTime: 3600000 // 1 hour
@@ -704,20 +735,111 @@ export default function StockDetailsPage() {
               <div className="h-1 w-28 bg-[#38AAFD]"></div>
             </div>
             <div className="p-4">
-              {!historicalPrices || historicalPrices.length === 0 ? (
+              {isLoadingHistorical ? (
+                <div className="flex justify-center items-center h-64">
+                  <Loader2 className="h-8 w-8 animate-spin text-[#38AAFD]" />
+                </div>
+              ) : !historicalPrices || historicalPrices.length === 0 ? (
                 <div className="text-center py-6">
                   <div className="text-[#7A8999] font-mono text-sm mb-2">No chart data available</div>
-                  <div className="text-[#EFEFEF] font-mono text-xs">Historical price data is loading or unavailable</div>
+                  <div className="text-[#EFEFEF] font-mono text-xs">Historical price data is unavailable for this stock</div>
                 </div>
               ) : (
-                <div className="h-64 flex items-center justify-center">
-                  <div className="text-[#EFEFEF] font-mono text-sm flex flex-col items-center">
-                    <BarChart3 className="h-16 w-16 text-[#38AAFD] mb-4" />
-                    <span>Interactive chart will be implemented in a future update</span>
-                    <div className="text-[#7A8999] font-mono text-xs mt-2">
-                      {historicalPrices.length} days of historical data available
+                <div className="h-80">
+                  <div className="text-[#EFEFEF] font-mono text-xs mb-4 flex justify-between items-center">
+                    <div>
+                      <span className="text-[#7A8999]">HISTORICAL PRICE CHART</span>
+                      <span className="text-[#38AAFD] ml-2">{symbol}</span>
+                    </div>
+                    <div className="text-[#7A8999]">
+                      {historicalPrices.length} DAYS OF DATA
                     </div>
                   </div>
+                  
+                  <ResponsiveContainer width="100%" height="90%">
+                    <AreaChart
+                      data={historicalPrices.slice(-90).map(p => ({
+                        date: new Date(p.date).toLocaleDateString(),
+                        close: parseFloat(p.adjClose || p.close),
+                        open: parseFloat(p.open),
+                        high: parseFloat(p.high),
+                        low: parseFloat(p.low)
+                      }))}
+                      margin={{ top: 10, right: 10, left: 20, bottom: 20 }}
+                    >
+                      <defs>
+                        <linearGradient id="colorClose" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#0A7AFF" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#0A7AFF" stopOpacity={0.1} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1A304A" vertical={false} />
+                      <XAxis 
+                        dataKey="date" 
+                        tick={{ fontSize: 10, fill: '#7A8999' }}
+                        tickCount={5}
+                        tickMargin={10}
+                        stroke="#1A304A"
+                      />
+                      <YAxis 
+                        domain={['dataMin', 'dataMax']}
+                        tick={{ fontSize: 10, fill: '#7A8999' }}
+                        tickFormatter={(val) => `${currencySymbol}${val.toFixed(2)}`}
+                        width={60}
+                        stroke="#1A304A"
+                      />
+                      <RechartTooltip
+                        labelFormatter={(label) => `Date: ${label}`}
+                        formatter={(value: number) => [`${currencySymbol}${value.toFixed(2)}`, 'Price']}
+                        contentStyle={{ 
+                          backgroundColor: '#0A1524', 
+                          borderColor: '#1A304A',
+                          color: '#EFEFEF',
+                          fontSize: 12,
+                          fontFamily: 'monospace'
+                        }}
+                        itemStyle={{ color: '#38AAFD' }}
+                        labelStyle={{ color: '#7A8999', fontFamily: 'monospace' }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="close" 
+                        stroke="#0A7AFF" 
+                        fill="url(#colorClose)"
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={{ r: 5, stroke: '#0A7AFF', fill: '#FFFFFF' }}
+                      />
+                      {priceData && (
+                        <ReferenceLine 
+                          y={parseFloat(priceData.regularMarketPrice)} 
+                          stroke="#4CAF50" 
+                          strokeDasharray="3 3"
+                          strokeWidth={1}
+                          label={{ 
+                            value: `Current: ${currencySymbol}${parseFloat(priceData.regularMarketPrice).toFixed(2)}`,
+                            position: 'insideBottomRight',
+                            fill: '#4CAF50',
+                            fontSize: 10
+                          }}
+                        />
+                      )}
+                      {stockData && (
+                        <ReferenceLine 
+                          y={parseFloat(stockData.price)} 
+                          stroke="#FFD700" 
+                          strokeDasharray="3 3"
+                          strokeWidth={1}
+                          label={{ 
+                            value: `Book: ${currencySymbol}${parseFloat(stockData.price).toFixed(2)}`,
+                            position: 'insideTopRight',
+                            fill: '#FFD700',
+                            fontSize: 10
+                          }}
+                        />
+                      )}
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
               )}
             </div>
