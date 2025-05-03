@@ -11,10 +11,10 @@ let tradingEconomicsClient: TradingEconomicsClient | null = null;
 
 // Function to initialize the client if not already initialized
 function getClient(): TradingEconomicsClient {
-  const apiKey = process.env.RAPIDAPI_KEY;
+  const apiKey = process.env.TradingEcon_RAPIDAPI_KEY;
   
   if (!apiKey) {
-    throw new Error("RapidAPI key not configured");
+    throw new Error("TradingEcon_RAPIDAPI_KEY not configured");
   }
   
   if (!tradingEconomicsClient) {
