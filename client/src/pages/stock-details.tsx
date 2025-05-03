@@ -106,57 +106,82 @@ const guidanceColorMap: Record<string, string> = {
 };
 
 // Process historical price data based on the selected time range
-const processHistoricalData = (data: any[], timeRange: '1m' | '3m' | '6m' | '1y' | '5y') => {
-  if (!data || data.length === 0) return [];
+const processHistoricalData = (data: any[] | null | undefined, timeRange: '1m' | '3m' | '6m' | '1y' | '5y') => {
+  if (!data || !Array.isArray(data) || data.length === 0) return [];
   
   // Sort data by date in ascending order
-  const sortedData = [...data].sort((a, b) => 
-    new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
-
-  // Determine how many days to include based on time range
-  let daysToInclude = 90; // default to 3m
-  switch (timeRange) {
-    case '1m':
-      daysToInclude = 30;
-      break;
-    case '3m':
-      daysToInclude = 90;
-      break;
-    case '6m':
-      daysToInclude = 180;
-      break;
-    case '1y':
-      daysToInclude = 365;
-      break;
-    case '5y':
-      daysToInclude = 1826; // ~5 years
-      break;
-  }
-  
-  // Get the last N days of data
-  const filteredData = sortedData.slice(-Math.min(daysToInclude, sortedData.length));
-  
-  // Format dates for display
-  return filteredData.map(p => {
-    const date = new Date(p.date);
-    // Format the date more cleanly (e.g., "Mar 2023")
-    const formattedDate = date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      year: '2-digit' 
-    });
+  try {
+    // Create a safe copy of the data
+    const safeData = data.filter(item => item && typeof item === 'object' && item.date);
     
-    return {
-      date: date.toLocaleDateString(),
-      formattedDate,
-      close: parseFloat(p.adjClose || p.close),
-      open: parseFloat(p.open),
-      high: parseFloat(p.high),
-      low: parseFloat(p.low),
-      // Keep the original date object for sorting and calculations
-      dateObj: date
-    };
-  });
+    const sortedData = [...safeData].sort((a, b) => {
+      const dateA = a.date ? new Date(a.date).getTime() : 0;
+      const dateB = b.date ? new Date(b.date).getTime() : 0;
+      return dateA - dateB;
+    });
+
+    // Determine how many days to include based on time range
+    let daysToInclude = 90; // default to 3m
+    switch (timeRange) {
+      case '1m':
+        daysToInclude = 30;
+        break;
+      case '3m':
+        daysToInclude = 90;
+        break;
+      case '6m':
+        daysToInclude = 180;
+        break;
+      case '1y':
+        daysToInclude = 365;
+        break;
+      case '5y':
+        daysToInclude = 1826; // ~5 years
+        break;
+    }
+    
+    // Get the last N days of data
+    const filteredData = sortedData.slice(-Math.min(daysToInclude, sortedData.length));
+    
+    // Format dates for display with null safety
+    return filteredData.map(p => {
+      try {
+        const date = p.date ? new Date(p.date) : new Date();
+        // Format the date more cleanly (e.g., "Mar 2023")
+        const formattedDate = date.toLocaleDateString('en-US', { 
+          month: 'short', 
+          year: '2-digit' 
+        });
+        
+        return {
+          date: date.toLocaleDateString(),
+          formattedDate,
+          close: p.adjClose ? parseFloat(p.adjClose) : (p.close ? parseFloat(p.close) : 0),
+          open: p.open ? parseFloat(p.open) : 0,
+          high: p.high ? parseFloat(p.high) : 0,
+          low: p.low ? parseFloat(p.low) : 0,
+          // Keep the original date object for sorting and calculations
+          dateObj: date
+        };
+      } catch (error) {
+        // Return a safe fallback object if anything goes wrong
+        console.error("Error processing historical price data item:", error);
+        const now = new Date();
+        return {
+          date: now.toLocaleDateString(),
+          formattedDate: now.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+          close: 0,
+          open: 0,
+          high: 0,
+          low: 0,
+          dateObj: now
+        };
+      }
+    });
+  } catch (error) {
+    console.error("Error processing historical price data:", error);
+    return [];
+  }
 };
 
 export default function StockDetailsPage() {
@@ -294,24 +319,31 @@ export default function StockDetailsPage() {
     return 'text-[#7A8999]';
   }, [priceData]);
   
-  // Calculate stock metrics
+  // Calculate stock metrics with null safety
   const stockMetrics = React.useMemo(() => {
-    if (!stockData || !priceData) return {};
+    if (!stockData || !priceData) return {
+      nav: 0,
+      marketValue: 0,
+      bookValue: 0,
+      profitLoss: 0,
+      profitLossPercent: 0,
+      unrealizedProfitLoss: 'Profit'
+    };
     
-    const bookPrice = parseFloat(stockData.price);
-    const marketPrice = parseFloat(priceData.regularMarketPrice);
-    const quantity = parseFloat(stockData.quantity);
+    // Add null safety checks
+    const bookPrice = stockData.price ? parseFloat(stockData.price) : 0;
+    const marketPrice = priceData.regularMarketPrice ? parseFloat(priceData.regularMarketPrice) : 0;
+    const quantity = stockData.quantity ? parseFloat(stockData.quantity) : 0;
     
     // Calculate metrics
-    const nav = marketPrice * quantity;
     const marketValue = marketPrice * quantity;
     const bookValue = bookPrice * quantity;
     const profitLoss = marketValue - bookValue;
-    const profitLossPercent = (profitLoss / bookValue) * 100;
-    const unrealizedProfitLoss = profitLoss > 0 ? 'Profit' : 'Loss';
+    const profitLossPercent = bookValue !== 0 ? (profitLoss / bookValue) * 100 : 0;
+    const unrealizedProfitLoss = profitLoss >= 0 ? 'Profit' : 'Loss';
     
     return {
-      nav,
+      nav: marketValue,
       marketValue,
       bookValue,
       profitLoss,
@@ -805,71 +837,93 @@ export default function StockDetailsPage() {
                       </tr>
                     </thead>
                     <tbody className="font-mono text-xs">
-                      {earningsData.map((earnings: StockEarnings) => {
-                        const fiscalQuarter = `Q${earnings.fiscalQ} ${earnings.fiscalYear}`;
-                        const earningsDate = new Date(earnings.earningsDate).toLocaleDateString();
-                        const revenueActualB = (earnings.revenueActual / 1000000000).toFixed(2);
-                        const revenueEstimateB = (earnings.revenueEstimate / 1000000000).toFixed(2);
-                        
-                        return (
-                          <tr key={earnings.id} className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542]">
-                            <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
-                              {fiscalQuarter}
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
-                              {earningsDate}
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-center">
-                              <div className="flex items-center justify-center">
-                                <Clock className="h-3 w-3 mr-1 text-[#7A8999]" />
-                                <span className="font-mono text-[#EFEFEF] text-xs">
-                                  {earnings.earningsTime || 'AMC'}
-                                </span>
-                              </div>
-                            </td>
-                            <td className={`px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap ${
-                              earnings.epsActual > earnings.epsEstimate ? 'text-[#4CAF50]' : 
-                              earnings.epsActual < earnings.epsEstimate ? 'text-[#F44336]' : 
-                              'text-[#EFEFEF]'
-                            }`}>
-                              {earnings.epsActual.toFixed(2)}
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#38AAFD] text-xs whitespace-nowrap">
-                              {earnings.epsEstimate.toFixed(2)}
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
-                              <span className={
-                                earnings.revenueActual > earnings.revenueEstimate ? 'text-[#4CAF50]' : 
-                                earnings.revenueActual < earnings.revenueEstimate ? 'text-[#F44336]' : 
+                      {earningsData && Array.isArray(earningsData) ? earningsData.map((earnings: any) => {
+                        try {
+                          if (!earnings || typeof earnings !== 'object') return null;
+                          
+                          // Safely extract values with fallbacks
+                          const fiscalQ = earnings.fiscalQ || 1;
+                          const fiscalYear = earnings.fiscalYear || new Date().getFullYear();
+                          const fiscalQuarter = `Q${fiscalQ} ${fiscalYear}`;
+                          
+                          const earningsDate = earnings.earningsDate ? 
+                            new Date(earnings.earningsDate).toLocaleDateString() : 
+                            'N/A';
+                          
+                          const epsActual = typeof earnings.epsActual === 'number' ? earnings.epsActual : 0;
+                          const epsEstimate = typeof earnings.epsEstimate === 'number' ? earnings.epsEstimate : 0;
+                          
+                          const revenueActual = typeof earnings.revenueActual === 'number' ? earnings.revenueActual : 0;
+                          const revenueEstimate = typeof earnings.revenueEstimate === 'number' ? earnings.revenueEstimate : 0;
+                          
+                          const revenueActualB = (revenueActual / 1000000000).toFixed(2);
+                          const revenueEstimateB = (revenueEstimate / 1000000000).toFixed(2);
+                          
+                          const stockReaction = typeof earnings.stockReaction === 'number' ? earnings.stockReaction : 0;
+                          
+                          return (
+                            <tr key={earnings.id || Math.random()} className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542]">
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
+                                {fiscalQuarter}
+                              </td>
+                              <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
+                                {earningsDate}
+                              </td>
+                              <td className="px-2 sm:px-3 py-0 text-center">
+                                <div className="flex items-center justify-center">
+                                  <Clock className="h-3 w-3 mr-1 text-[#7A8999]" />
+                                  <span className="font-mono text-[#EFEFEF] text-xs">
+                                    {earnings.earningsTime || 'AMC'}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className={`px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap ${
+                                epsActual > epsEstimate ? 'text-[#4CAF50]' : 
+                                epsActual < epsEstimate ? 'text-[#F44336]' : 
                                 'text-[#EFEFEF]'
-                              }>
-                                {revenueActualB}
-                              </span>
-                              <span className="text-[#7A8999] ml-1">
-                                ({revenueEstimateB})
-                              </span>
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-center">
-                              <div className={`px-2 py-0.5 rounded-sm text-center font-mono text-[10px] ${guidanceColorMap[earnings.guidanceStatus] || 'bg-gray-800/30 text-gray-400 border border-gray-700'}`}>
-                                {earnings.guidanceStatus || 'N/A'}
-                              </div>
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-center">
-                              <div className={`px-2 py-0.5 rounded-sm text-center font-mono text-[10px] ${scoreColorMap[earnings.earningsScore] || 'bg-gray-800/30 text-gray-400 border border-gray-700'}`}>
-                                {earnings.earningsScore || 'N/A'}
-                              </div>
-                            </td>
-                            <td className={`px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap ${
-                              earnings.stockReaction > 0 ? 'text-[#4CAF50]' : 
-                              earnings.stockReaction < 0 ? 'text-[#F44336]' : 
-                              'text-[#EFEFEF]'
-                            }`}>
-                              {earnings.stockReaction > 0 ? '+' : ''}
-                              {earnings.stockReaction.toFixed(2)}%
-                            </td>
-                          </tr>
-                        );
-                      })}
+                              }`}>
+                                {epsActual.toFixed(2)}
+                              </td>
+                              <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#38AAFD] text-xs whitespace-nowrap">
+                                {epsEstimate.toFixed(2)}
+                              </td>
+                              <td className="px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
+                                <span className={
+                                  revenueActual > revenueEstimate ? 'text-[#4CAF50]' : 
+                                  revenueActual < revenueEstimate ? 'text-[#F44336]' : 
+                                  'text-[#EFEFEF]'
+                                }>
+                                  {revenueActualB}
+                                </span>
+                                <span className="text-[#7A8999] ml-1">
+                                  ({revenueEstimateB})
+                                </span>
+                              </td>
+                              <td className="px-2 sm:px-3 py-0 text-center">
+                                <div className={`px-2 py-0.5 rounded-sm text-center font-mono text-[10px] ${guidanceColorMap[earnings.guidanceStatus] || 'bg-gray-800/30 text-gray-400 border border-gray-700'}`}>
+                                  {earnings.guidanceStatus || 'N/A'}
+                                </div>
+                              </td>
+                              <td className="px-2 sm:px-3 py-0 text-center">
+                                <div className={`px-2 py-0.5 rounded-sm text-center font-mono text-[10px] ${scoreColorMap[earnings.earningsScore] || 'bg-gray-800/30 text-gray-400 border border-gray-700'}`}>
+                                  {earnings.earningsScore || 'N/A'}
+                                </div>
+                              </td>
+                              <td className={`px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap ${
+                                stockReaction > 0 ? 'text-[#4CAF50]' : 
+                                stockReaction < 0 ? 'text-[#F44336]' : 
+                                'text-[#EFEFEF]'
+                              }`}>
+                                {stockReaction > 0 ? '+' : ''}
+                                {stockReaction.toFixed(2)}%
+                              </td>
+                            </tr>
+                          );
+                        } catch (error) {
+                          console.error("Error rendering earnings row:", error);
+                          return null;
+                        }
+                      }) : <tr><td colSpan={9} className="text-center py-4 text-[#7A8999]">No earnings data available</td></tr>}
                     </tbody>
                   </table>
                 </div>
