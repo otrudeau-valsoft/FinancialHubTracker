@@ -105,8 +105,63 @@ const guidanceColorMap: Record<string, string> = {
   'Down': 'bg-red-950/30 text-red-500 border border-red-800',
 };
 
+// Process historical price data based on the selected time range
+const processHistoricalData = (data: any[], timeRange: '1m' | '3m' | '6m' | '1y' | '5y') => {
+  if (!data || data.length === 0) return [];
+  
+  // Sort data by date in ascending order
+  const sortedData = [...data].sort((a, b) => 
+    new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+
+  // Determine how many days to include based on time range
+  let daysToInclude = 90; // default to 3m
+  switch (timeRange) {
+    case '1m':
+      daysToInclude = 30;
+      break;
+    case '3m':
+      daysToInclude = 90;
+      break;
+    case '6m':
+      daysToInclude = 180;
+      break;
+    case '1y':
+      daysToInclude = 365;
+      break;
+    case '5y':
+      daysToInclude = 1826; // ~5 years
+      break;
+  }
+  
+  // Get the last N days of data
+  const filteredData = sortedData.slice(-Math.min(daysToInclude, sortedData.length));
+  
+  // Format dates for display
+  return filteredData.map(p => {
+    const date = new Date(p.date);
+    // Format the date more cleanly (e.g., "Mar 2023")
+    const formattedDate = date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      year: '2-digit' 
+    });
+    
+    return {
+      date: date.toLocaleDateString(),
+      formattedDate,
+      close: parseFloat(p.adjClose || p.close),
+      open: parseFloat(p.open),
+      high: parseFloat(p.high),
+      low: parseFloat(p.low),
+      // Keep the original date object for sorting and calculations
+      dateObj: date
+    };
+  });
+};
+
 export default function StockDetailsPage() {
   const queryClient = useQueryClient();
+  const [timeRange, setTimeRange] = useState<'1m' | '3m' | '6m' | '1y' | '5y'>('3m');
   
   // Get symbol from URL - route pattern is /stock/:symbol
   const [, params] = useRoute('/stock/:symbol');
@@ -746,25 +801,33 @@ export default function StockDetailsPage() {
                 </div>
               ) : (
                 <div className="h-80">
-                  <div className="text-[#EFEFEF] font-mono text-xs mb-4 flex justify-between items-center">
-                    <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="text-[#EFEFEF] font-mono text-xs">
                       <span className="text-[#7A8999]">HISTORICAL PRICE CHART</span>
                       <span className="text-[#38AAFD] ml-2">{symbol}</span>
                     </div>
-                    <div className="text-[#7A8999]">
-                      {historicalPrices.length} DAYS OF DATA
+                    
+                    {/* Time period selector */}
+                    <div className="flex items-center space-x-1">
+                      {(['1m', '3m', '6m', '1y', '5y'] as const).map((period) => (
+                        <button
+                          key={period}
+                          onClick={() => setTimeRange(period)}
+                          className={`px-2 py-1 text-xs font-mono rounded-sm ${
+                            timeRange === period 
+                              ? 'bg-[#0A7AFF] text-white' 
+                              : 'bg-[#0D1F32] text-[#7A8999] hover:bg-[#162639]'
+                          }`}
+                        >
+                          {period.toUpperCase()}
+                        </button>
+                      ))}
                     </div>
                   </div>
                   
                   <ResponsiveContainer width="100%" height="90%">
                     <AreaChart
-                      data={historicalPrices.slice(-90).map(p => ({
-                        date: new Date(p.date).toLocaleDateString(),
-                        close: parseFloat(p.adjClose || p.close),
-                        open: parseFloat(p.open),
-                        high: parseFloat(p.high),
-                        low: parseFloat(p.low)
-                      }))}
+                      data={processHistoricalData(historicalPrices, timeRange)}
                       margin={{ top: 10, right: 10, left: 20, bottom: 20 }}
                     >
                       <defs>
@@ -775,11 +838,12 @@ export default function StockDetailsPage() {
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#1A304A" vertical={false} />
                       <XAxis 
-                        dataKey="date" 
+                        dataKey="formattedDate" 
                         tick={{ fontSize: 10, fill: '#7A8999' }}
-                        tickCount={5}
+                        interval="preserveStartEnd"
                         tickMargin={10}
                         stroke="#1A304A"
+                        minTickGap={30}
                       />
                       <YAxis 
                         domain={['dataMin', 'dataMax']}
@@ -813,7 +877,7 @@ export default function StockDetailsPage() {
                       {priceData && (
                         <ReferenceLine 
                           y={parseFloat(priceData.regularMarketPrice)} 
-                          stroke="#4CAF50" 
+                          stroke="#4CAF50"
                           strokeDasharray="3 3"
                           strokeWidth={1}
                           label={{ 
