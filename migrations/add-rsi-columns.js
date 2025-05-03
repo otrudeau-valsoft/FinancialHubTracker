@@ -1,5 +1,6 @@
-const { Pool } = require('pg');
-const dotenv = require('dotenv');
+import pkg from 'pg';
+const { Pool } = pkg;
+import dotenv from 'dotenv';
 
 // Load .env file if present
 dotenv.config();

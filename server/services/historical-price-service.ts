@@ -4,6 +4,7 @@ import yahooFinance from 'yahoo-finance2';
 import { dateToSQLDateString } from '../util';
 import { historicalPrices, type InsertHistoricalPrice } from '@shared/schema';
 import { and, eq, desc, asc, sql } from 'drizzle-orm';
+import { calculateMultipleRSI } from '../utils/technical-indicators';
 
 // Rate limiting configuration for Yahoo Finance API - match the same settings as current-price-service
 const RATE_LIMIT = {
@@ -279,10 +280,50 @@ class HistoricalPriceService {
         return true;
       });
       
+      // Before saving, we need to calculate RSI values
+      // First, we need to get all existing historical prices for this symbol
+      // to ensure accurate RSI calculations (which require more historical data)
+      console.log(`Retrieving existing historical prices for ${symbol} (${region}) to calculate RSI`);
+      const existingPrices = await this.getHistoricalPrices(symbol, region);
+      
+      // Combine existing and new prices for RSI calculation
+      const allPrices = [...existingPrices, ...sanitizedData].sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateA.getTime() - dateB.getTime();
+      });
+      
+      // Extract closing prices for RSI calculation
+      const closingPrices = allPrices.map(price => 
+        parseFloat(price.adjustedClose || price.close));
+      
+      // Calculate RSI values for different periods
+      console.log(`Calculating RSI values for ${symbol} (${region})`);
+      const rsiValues = calculateMultipleRSI(closingPrices, [9, 14, 21]);
+      
+      // Enrich the sanitized data with RSI values
+      // We need to map the calculated RSI values to the appropriate entries in sanitizedData
+      for (let i = 0; i < sanitizedData.length; i++) {
+        const newDataIndex = existingPrices.length + i;
+        
+        // Only assign RSI if it was calculated (it might be null for the first few entries)
+        if (newDataIndex < rsiValues[9].length && rsiValues[9][newDataIndex] !== null) {
+          sanitizedData[i].rsi9 = rsiValues[9][newDataIndex]?.toString();
+        }
+        
+        if (newDataIndex < rsiValues[14].length && rsiValues[14][newDataIndex] !== null) {
+          sanitizedData[i].rsi14 = rsiValues[14][newDataIndex]?.toString();
+        }
+        
+        if (newDataIndex < rsiValues[21].length && rsiValues[21][newDataIndex] !== null) {
+          sanitizedData[i].rsi21 = rsiValues[21][newDataIndex]?.toString();
+        }
+      }
+      
       // Store historical prices with upsert pattern to avoid duplicates
       const results = await storage.bulkCreateHistoricalPrices(sanitizedData);
       
-      console.log(`Stored ${results.length} historical prices for ${symbol} (${region})`);
+      console.log(`Stored ${results.length} historical prices with RSI data for ${symbol} (${region})`);
       
       return results;
     } catch (error) {
