@@ -248,7 +248,7 @@ export default function StockDetailsPage() {
         }
       }
     },
-    enabled: !!symbol && defaultTab === 'chart',
+    enabled: !!symbol, // Always fetch historical prices
     staleTime: 3600000 // 1 hour
   });
   
@@ -265,7 +265,7 @@ export default function StockDetailsPage() {
       const data = await response.json();
       return data.data || [];
     },
-    enabled: !!symbol && defaultTab === 'earnings',
+    enabled: !!symbol, // Always fetch earnings data when symbol is available
     staleTime: 3600000 // 1 hour
   });
   
@@ -363,428 +363,247 @@ export default function StockDetailsPage() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6">
-          {/* Stock info card - 1 col */}
-          <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden">
-            <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
-              <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">{symbol}</h3>
-              <div className="h-1 w-28 bg-[#38AAFD]"></div>
-            </div>
-            <div className="p-4">
-              <h2 className="text-base sm:text-lg font-medium text-[#EFEFEF] font-mono tracking-wide mb-3">{stockData.company}</h2>
-              
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <div className="text-[#7A8999] font-mono text-xs mb-0.5">REGION</div>
-                  <div className="text-[#EFEFEF] font-mono text-sm">{region}</div>
-                </div>
-                <div>
-                  <div className="text-[#7A8999] font-mono text-xs mb-0.5">SECTOR</div>
-                  <div className="text-[#EFEFEF] font-mono text-sm">{stockData.sector || 'N/A'}</div>
-                </div>
-                <div>
-                  <div className="text-[#7A8999] font-mono text-xs mb-0.5">TYPE</div>
-                  <div className="text-[#EFEFEF] font-mono text-sm">
-                    <span className={`inline-block font-mono px-2 py-0.5 rounded-sm text-[10px] sm:text-[11px] font-medium ${getStockTypeBackground(stockData.stockType)}`}>
-                      {stockData.stockType}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-[#7A8999] font-mono text-xs mb-0.5">RATING</div>
-                  <div className="text-[#EFEFEF] font-mono text-sm">
-                    <span className={`inline-block font-mono min-w-[1.5rem] px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-medium ${getRatingClass(stockData.stockRating || stockData.rating)}`}>
-                      {stockData.stockRating || stockData.rating}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-[#7A8999] font-mono text-xs mb-0.5">NEXT EARNINGS</div>
-                  <div className="text-[#EFEFEF] font-mono text-sm">{stockData.nextEarningsDate || 'N/A'}</div>
-                </div>
-                <div>
-                  <div className="text-[#7A8999] font-mono text-xs mb-0.5">QUANTITY</div>
-                  <div className="text-[#EFEFEF] font-mono text-sm">{stockData.quantity}</div>
-                </div>
+        <>
+          {/* Top cards section - 3 columns */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6">
+            {/* Stock info card - 1 col */}
+            <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden">
+              <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
+                <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">{symbol}</h3>
+                <div className="h-1 w-28 bg-[#38AAFD]"></div>
               </div>
-              
-              <div className="border-t border-[#1A304A] pt-3">
-                <div className="text-[#7A8999] font-mono text-xs mb-2">PRICE HISTORY</div>
-                <div className="grid grid-cols-2 gap-3">
+              <div className="p-4">
+                <h2 className="text-base sm:text-lg font-medium text-[#EFEFEF] font-mono tracking-wide mb-3">{stockData.company}</h2>
+                
+                <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <div className="text-[#7A8999] font-mono text-[10px]">52W HIGH</div>
-                    <div className="text-[#4CAF50] font-mono text-sm">
-                      {priceData?.fiftyTwoWeekHigh 
-                        ? formatCurrency(parseFloat(priceData.fiftyTwoWeekHigh), currencySymbol)
-                        : '--'}
+                    <div className="text-[#7A8999] font-mono text-xs mb-0.5">REGION</div>
+                    <div className="text-[#EFEFEF] font-mono text-sm">{region}</div>
+                  </div>
+                  <div>
+                    <div className="text-[#7A8999] font-mono text-xs mb-0.5">SECTOR</div>
+                    <div className="text-[#EFEFEF] font-mono text-sm">{stockData.sector || 'N/A'}</div>
+                  </div>
+                  <div>
+                    <div className="text-[#7A8999] font-mono text-xs mb-0.5">TYPE</div>
+                    <div className="text-[#EFEFEF] font-mono text-sm">
+                      <span className={`inline-block font-mono px-2 py-0.5 rounded-sm text-[10px] sm:text-[11px] font-medium ${getStockTypeBackground(stockData.stockType)}`}>
+                        {stockData.stockType}
+                      </span>
                     </div>
                   </div>
                   <div>
-                    <div className="text-[#7A8999] font-mono text-[10px]">52W LOW</div>
-                    <div className="text-[#F44336] font-mono text-sm">
-                      {priceData?.fiftyTwoWeekLow 
-                        ? formatCurrency(parseFloat(priceData.fiftyTwoWeekLow), currencySymbol)
-                        : '--'}
+                    <div className="text-[#7A8999] font-mono text-xs mb-0.5">RATING</div>
+                    <div className="text-[#EFEFEF] font-mono text-sm">
+                      <span className={`inline-block font-mono min-w-[1.5rem] px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-medium ${getRatingClass(stockData.stockRating || stockData.rating)}`}>
+                        {stockData.stockRating || stockData.rating}
+                      </span>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Price card - 1 col */}
-          <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden">
-            <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
-              <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">CURRENT PRICE</h3>
-              <div className="h-1 w-28 bg-[#4CAF50]"></div>
-            </div>
-            <div className="p-4">
-              {!priceData ? (
-                <div className="flex items-center justify-center h-full">
-                  <Loader2 className="h-8 w-8 animate-spin text-[#38AAFD]" />
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-end gap-2 mb-6">
-                    <div className="text-[#EFEFEF] font-mono text-2xl font-bold">
-                      {formatCurrency(parseFloat(priceData.regularMarketPrice), currencySymbol)}
-                    </div>
-                    <div className={cn("font-mono text-base", priceChangeColor)}>
-                      {parseFloat(priceData.regularMarketChange) > 0 ? '+' : ''}
-                      {formatCurrency(parseFloat(priceData.regularMarketChange), currencySymbol)} 
-                      ({parseFloat(priceData.regularMarketChangePercent) > 0 ? '+' : ''}
-                      {formatPercentage(parseFloat(priceData.regularMarketChangePercent))})
-                    </div>
+                  <div>
+                    <div className="text-[#7A8999] font-mono text-xs mb-0.5">NEXT EARNINGS</div>
+                    <div className="text-[#EFEFEF] font-mono text-sm">{stockData.nextEarningsDate || 'N/A'}</div>
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <div className="text-[#7A8999] font-mono text-xs mb-0.5">QUANTITY</div>
+                    <div className="text-[#EFEFEF] font-mono text-sm">{stockData.quantity}</div>
+                  </div>
+                </div>
+                
+                <div className="border-t border-[#1A304A] pt-3">
+                  <div className="text-[#7A8999] font-mono text-xs mb-2">PRICE HISTORY</div>
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <div className="text-[#7A8999] font-mono text-[10px]">OPEN</div>
-                      <div className="text-[#EFEFEF] font-mono text-sm">
-                        {formatCurrency(parseFloat(priceData.regularMarketOpen || '0'), currencySymbol)}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-[#7A8999] font-mono text-[10px]">VOLUME</div>
-                      <div className="text-[#EFEFEF] font-mono text-sm">
-                        {priceData.regularMarketVolume 
-                          ? parseInt(priceData.regularMarketVolume).toLocaleString() 
+                      <div className="text-[#7A8999] font-mono text-[10px]">52W HIGH</div>
+                      <div className="text-[#4CAF50] font-mono text-sm">
+                        {priceData?.fiftyTwoWeekHigh 
+                          ? formatCurrency(parseFloat(priceData.fiftyTwoWeekHigh), currencySymbol)
                           : '--'}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[#7A8999] font-mono text-[10px]">DAY HIGH</div>
-                      <div className="text-[#4CAF50] font-mono text-sm">
-                        {formatCurrency(parseFloat(priceData.regularMarketDayHigh || '0'), currencySymbol)}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-[#7A8999] font-mono text-[10px]">DAY LOW</div>
+                      <div className="text-[#7A8999] font-mono text-[10px]">52W LOW</div>
                       <div className="text-[#F44336] font-mono text-sm">
-                        {formatCurrency(parseFloat(priceData.regularMarketDayLow || '0'), currencySymbol)}
+                        {priceData?.fiftyTwoWeekLow 
+                          ? formatCurrency(parseFloat(priceData.fiftyTwoWeekLow), currencySymbol)
+                          : '--'}
                       </div>
                     </div>
                   </div>
-                  
-                  <div className="border-t border-[#1A304A] pt-3">
-                    <div className="text-[#7A8999] font-mono text-xs mb-2">RATIOS</div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <div className="text-[#7A8999] font-mono text-[10px]">P/E (TTM)</div>
-                        <div className="text-[#EFEFEF] font-mono text-sm">
-                          {priceData.trailingPE ? parseFloat(priceData.trailingPE).toFixed(2) : '--'}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-[#7A8999] font-mono text-[10px]">P/E (FWD)</div>
-                        <div className="text-[#EFEFEF] font-mono text-sm">
-                          {priceData.forwardPE ? parseFloat(priceData.forwardPE).toFixed(2) : '--'}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-[#7A8999] font-mono text-[10px]">DIVIDEND</div>
-                        <div className="text-[#EFEFEF] font-mono text-sm">
-                          {priceData.dividendYield 
-                            ? parseFloat(priceData.dividendYield).toFixed(2) + '%'
-                            : '--'}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-[#7A8999] font-mono text-[10px]">MARKET CAP</div>
-                        <div className="text-[#EFEFEF] font-mono text-sm">
-                          {priceData.marketCap 
-                            ? (parseFloat(priceData.marketCap) / 1000000000).toFixed(2) + 'B'
-                            : '--'}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-          
-          {/* Position card - 1 col */}
-          <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden">
-            <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
-              <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">POSITION SUMMARY</h3>
-              <div className="h-1 w-28 bg-[#FFD700]"></div>
-            </div>
-            <div className="p-4">
-              {!stockMetrics.nav ? (
-                <div className="flex items-center justify-center h-full">
-                  <Loader2 className="h-8 w-8 animate-spin text-[#38AAFD]" />
-                </div>
-              ) : (
-                <>
-                  <div className="mb-6">
-                    <div className="text-[#7A8999] font-mono text-xs">NET ASSET VALUE</div>
-                    <div className="text-[#EFEFEF] font-mono text-2xl font-bold">
-                      {formatCurrency(stockMetrics.nav, currencySymbol)}
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3 mb-3">
-                    <div>
-                      <div className="text-[#7A8999] font-mono text-[10px]">BOOK PRICE</div>
-                      <div className="text-[#EFEFEF] font-mono text-sm">
-                        {formatCurrency(parseFloat(stockData.price), currencySymbol)}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-[#7A8999] font-mono text-[10px]">MARKET PRICE</div>
-                      <div className="text-[#EFEFEF] font-mono text-sm">
-                        {formatCurrency(parseFloat(priceData?.regularMarketPrice || '0'), currencySymbol)}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-[#7A8999] font-mono text-[10px]">BOOK VALUE</div>
-                      <div className="text-[#EFEFEF] font-mono text-sm">
-                        {formatCurrency(stockMetrics.bookValue, currencySymbol)}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-[#7A8999] font-mono text-[10px]">MARKET VALUE</div>
-                      <div className="text-[#EFEFEF] font-mono text-sm">
-                        {formatCurrency(stockMetrics.marketValue, currencySymbol)}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="border-t border-[#1A304A] pt-3">
-                    <div className="text-[#7A8999] font-mono text-xs mb-2">PERFORMANCE</div>
-                    <div className="flex items-center">
-                      <div>
-                        <div className="text-[#7A8999] font-mono text-[10px]">UNREALIZED {stockMetrics.unrealizedProfitLoss}</div>
-                        <div className={stockMetrics.profitLoss >= 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
-                          <div className="font-mono text-sm">
-                            {formatCurrency(Math.abs(stockMetrics.profitLoss), currencySymbol)}
-                            <span className="ml-1">
-                              ({stockMetrics.profitLoss >= 0 ? '+' : '-'}{formatPercentage(Math.abs(stockMetrics.profitLossPercent))})
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="ml-2">
-                        {stockMetrics.profitLoss >= 0 ? (
-                          <TrendingUp className="h-10 w-10 text-[#4CAF50]" />
-                        ) : (
-                          <TrendingDown className="h-10 w-10 text-[#F44336]" />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Tabs for different sections */}
-      <Tabs defaultValue={defaultTab} className="mt-6" onValueChange={handleTabChange}>
-        <TabsList className="mb-6 flex h-auto space-x-1 bg-[#0A1524] p-1 rounded-sm border border-[#1A304A]">
-          <TabsTrigger 
-            value="overview" 
-            className="flex-1 h-8 data-[state=active]:bg-[#0A7AFF] data-[state=active]:text-[#EFEFEF] font-mono text-xs data-[state=inactive]:text-[#7A8999] data-[state=inactive]:bg-transparent rounded-sm"
-          >
-            Overview
-          </TabsTrigger>
-          <TabsTrigger 
-            value="analyst-ratings" 
-            className="flex-1 h-8 data-[state=active]:bg-[#0A7AFF] data-[state=active]:text-[#EFEFEF] font-mono text-xs data-[state=inactive]:text-[#7A8999] data-[state=inactive]:bg-transparent rounded-sm"
-          >
-            Analyst Ratings
-          </TabsTrigger>
-          <TabsTrigger 
-            value="earnings" 
-            className="flex-1 h-8 data-[state=active]:bg-[#0A7AFF] data-[state=active]:text-[#EFEFEF] font-mono text-xs data-[state=inactive]:text-[#7A8999] data-[state=inactive]:bg-transparent rounded-sm"
-          >
-            Earnings
-          </TabsTrigger>
-          <TabsTrigger 
-            value="chart" 
-            className="flex-1 h-8 data-[state=active]:bg-[#0A7AFF] data-[state=active]:text-[#EFEFEF] font-mono text-xs data-[state=inactive]:text-[#7A8999] data-[state=inactive]:bg-transparent rounded-sm"
-          >
-            Chart
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="overview" className="space-y-6">
-          <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden">
-            <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
-              <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">COMPANY OVERVIEW</h3>
-              <div className="h-1 w-28 bg-[#38AAFD]"></div>
-            </div>
-            <div className="p-4">
-              <div className="text-[#EFEFEF] font-mono text-sm">
-                {/* Placeholder for company description - would typically come from an API like Yahoo Finance */}
-                <p className="mb-3">{stockData?.company || symbol} is a {stockData?.stockType || 'Compounder'} stock in the {stockData?.sector || 'Technology'} sector with a rating of {stockData?.stockRating || stockData?.rating || 'N/A'}.</p>
-                
-                <div className="p-3 bg-[#0B1B2F] border border-[#1A304A] rounded-sm mb-3">
-                  <div className="flex items-center gap-2 text-[#38AAFD]">
-                    <Info className="h-4 w-4" />
-                    <span className="font-semibold">Analyst Consensus</span>
-                  </div>
-                  <p className="mt-2 text-[#7A8999]">For detailed analyst recommendations and price targets, check the Analyst Ratings tab.</p>
-                </div>
-                
-                <div className="p-3 bg-[#0B1B2F] border border-[#1A304A] rounded-sm">
-                  <div className="flex items-center gap-2 text-[#4CAF50]">
-                    <Calendar className="h-4 w-4" />
-                    <span className="font-semibold">Upcoming Earnings</span>
-                  </div>
-                  <p className="mt-2 text-[#7A8999]">
-                    {stockData?.nextEarningsDate 
-                      ? `Next earnings date: ${stockData.nextEarningsDate}`
-                      : 'No upcoming earnings date available'}
-                  </p>
                 </div>
               </div>
             </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="analyst-ratings" className="space-y-6">
-          <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden">
-            <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
-              <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">ANALYST RATINGS</h3>
-              <div className="h-1 w-28 bg-[#38AAFD]"></div>
+            
+            {/* Price card - 1 col */}
+            <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden">
+              <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
+                <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">CURRENT PRICE</h3>
+                <div className="h-1 w-28 bg-[#4CAF50]"></div>
+              </div>
+              <div className="p-4">
+                {!priceData ? (
+                  <div className="flex items-center justify-center h-full">
+                    <Loader2 className="h-8 w-8 animate-spin text-[#38AAFD]" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-end gap-2 mb-6">
+                      <div className="text-[#EFEFEF] font-mono text-2xl font-bold">
+                        {formatCurrency(parseFloat(priceData.regularMarketPrice), currencySymbol)}
+                      </div>
+                      <div className={cn("font-mono text-base", priceChangeColor)}>
+                        {parseFloat(priceData.regularMarketChange) > 0 ? '+' : ''}
+                        {formatCurrency(parseFloat(priceData.regularMarketChange), currencySymbol)} 
+                        ({parseFloat(priceData.regularMarketChangePercent) > 0 ? '+' : ''}
+                        {formatPercentage(parseFloat(priceData.regularMarketChangePercent))})
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <div className="text-[#7A8999] font-mono text-[10px]">OPEN</div>
+                        <div className="text-[#EFEFEF] font-mono text-sm">
+                          {formatCurrency(parseFloat(priceData.regularMarketOpen || '0'), currencySymbol)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[#7A8999] font-mono text-[10px]">VOLUME</div>
+                        <div className="text-[#EFEFEF] font-mono text-sm">
+                          {priceData.regularMarketVolume 
+                            ? parseInt(priceData.regularMarketVolume).toLocaleString() 
+                            : '--'}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[#7A8999] font-mono text-[10px]">DAY HIGH</div>
+                        <div className="text-[#4CAF50] font-mono text-sm">
+                          {formatCurrency(parseFloat(priceData.regularMarketDayHigh || '0'), currencySymbol)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[#7A8999] font-mono text-[10px]">DAY LOW</div>
+                        <div className="text-[#F44336] font-mono text-sm">
+                          {formatCurrency(parseFloat(priceData.regularMarketDayLow || '0'), currencySymbol)}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="border-t border-[#1A304A] pt-3">
+                      <div className="text-[#7A8999] font-mono text-xs mb-2">RATIOS</div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <div className="text-[#7A8999] font-mono text-[10px]">P/E (TTM)</div>
+                          <div className="text-[#EFEFEF] font-mono text-sm">
+                            {priceData.trailingPE ? parseFloat(priceData.trailingPE).toFixed(2) : '--'}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-[#7A8999] font-mono text-[10px]">P/E (FWD)</div>
+                          <div className="text-[#EFEFEF] font-mono text-sm">
+                            {priceData.forwardPE ? parseFloat(priceData.forwardPE).toFixed(2) : '--'}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-[#7A8999] font-mono text-[10px]">DIVIDEND</div>
+                          <div className="text-[#EFEFEF] font-mono text-sm">
+                            {priceData.dividendYield 
+                              ? parseFloat(priceData.dividendYield).toFixed(2) + '%'
+                              : '--'}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-[#7A8999] font-mono text-[10px]">MARKET CAP</div>
+                          <div className="text-[#EFEFEF] font-mono text-sm">
+                            {priceData.marketCap 
+                              ? (parseFloat(priceData.marketCap) / 1000000000).toFixed(2) + 'B'
+                              : '--'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-            <div className="p-4">
-              <UpgradeDowngradeTable 
-                region={region as 'USD' | 'CAD' | 'INTL'} 
-                symbol={symbol} 
-                limit={50} 
-              />
-            </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="earnings" className="space-y-6">
-          <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden">
-            <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
-              <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">EARNINGS HISTORY</h3>
-              <div className="h-1 w-28 bg-[#38AAFD]"></div>
-            </div>
-            <div className="p-4">
-              {!earningsData || earningsData.length === 0 ? (
-                <div className="text-center py-6">
-                  <div className="text-[#7A8999] font-mono text-sm mb-2">No earnings data available</div>
-                  <div className="text-[#EFEFEF] font-mono text-xs">Check back later for updates</div>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead className="sticky top-0 z-10">
-                      <tr className="text-xs h-8 border-b border-[#0F1A2A] bg-[#0D1F32]">
-                        <th scope="col" className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">QUARTER</th>
-                        <th scope="col" className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">DATE</th>
-                        <th scope="col" className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">TIME</th>
-                        <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">EPS</th>
-                        <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">EST.</th>
-                        <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">REV ($B)</th>
-                        <th scope="col" className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">GUIDE</th>
-                        <th scope="col" className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">SCORE</th>
-                        <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">MKT REACTION</th>
-                      </tr>
-                    </thead>
-                    <tbody className="font-mono text-xs">
-                      {earningsData.map((earnings: StockEarnings) => {
-                        const fiscalQuarter = `Q${earnings.fiscalQ} ${earnings.fiscalYear}`;
-                        const earningsDate = new Date(earnings.earningsDate).toLocaleDateString();
-                        const revenueActualB = (earnings.revenueActual / 1000000000).toFixed(2);
-                        const revenueEstimateB = (earnings.revenueEstimate / 1000000000).toFixed(2);
-                        
-                        return (
-                          <tr key={earnings.id} className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542]">
-                            <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
-                              {fiscalQuarter}
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
-                              {earningsDate}
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-center">
-                              <div className="flex items-center justify-center">
-                                <Clock className="h-3 w-3 mr-1 text-[#7A8999]" />
-                                <span className="font-mono text-[#EFEFEF] text-xs">
-                                  {earnings.earningsTime || 'AMC'}
-                                </span>
-                              </div>
-                            </td>
-                            <td className={`px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap ${
-                              earnings.epsActual > earnings.epsEstimate ? 'text-[#4CAF50]' : 
-                              earnings.epsActual < earnings.epsEstimate ? 'text-[#F44336]' : 
-                              'text-[#EFEFEF]'
-                            }`}>
-                              {earnings.epsActual.toFixed(2)}
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#38AAFD] text-xs whitespace-nowrap">
-                              {earnings.epsEstimate.toFixed(2)}
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
-                              <span className={
-                                earnings.revenueActual > earnings.revenueEstimate ? 'text-[#4CAF50]' : 
-                                earnings.revenueActual < earnings.revenueEstimate ? 'text-[#F44336]' : 
-                                'text-[#EFEFEF]'
-                              }>
-                                {revenueActualB}
+            
+            {/* Position card - 1 col */}
+            <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden">
+              <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
+                <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">POSITION SUMMARY</h3>
+                <div className="h-1 w-28 bg-[#FFD700]"></div>
+              </div>
+              <div className="p-4">
+                {!stockMetrics.nav ? (
+                  <div className="flex items-center justify-center h-full">
+                    <Loader2 className="h-8 w-8 animate-spin text-[#38AAFD]" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-6">
+                      <div className="text-[#7A8999] font-mono text-xs">NET ASSET VALUE</div>
+                      <div className="text-[#EFEFEF] font-mono text-2xl font-bold">
+                        {formatCurrency(stockMetrics.nav, currencySymbol)}
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <div className="text-[#7A8999] font-mono text-[10px]">BOOK PRICE</div>
+                        <div className="text-[#EFEFEF] font-mono text-sm">
+                          {formatCurrency(parseFloat(stockData.price), currencySymbol)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[#7A8999] font-mono text-[10px]">MARKET PRICE</div>
+                        <div className="text-[#EFEFEF] font-mono text-sm">
+                          {formatCurrency(parseFloat(priceData?.regularMarketPrice || '0'), currencySymbol)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[#7A8999] font-mono text-[10px]">BOOK VALUE</div>
+                        <div className="text-[#EFEFEF] font-mono text-sm">
+                          {formatCurrency(stockMetrics.bookValue, currencySymbol)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[#7A8999] font-mono text-[10px]">MARKET VALUE</div>
+                        <div className="text-[#EFEFEF] font-mono text-sm">
+                          {formatCurrency(stockMetrics.marketValue, currencySymbol)}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="border-t border-[#1A304A] pt-3">
+                      <div className="text-[#7A8999] font-mono text-xs mb-2">PERFORMANCE</div>
+                      <div className="flex items-center">
+                        <div>
+                          <div className="text-[#7A8999] font-mono text-[10px]">UNREALIZED {stockMetrics.unrealizedProfitLoss}</div>
+                          <div className={stockMetrics.profitLoss >= 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
+                            <div className="font-mono text-sm">
+                              {formatCurrency(Math.abs(stockMetrics.profitLoss), currencySymbol)}
+                              <span className="ml-1">
+                                ({stockMetrics.profitLoss >= 0 ? '+' : '-'}{formatPercentage(Math.abs(stockMetrics.profitLossPercent))})
                               </span>
-                              <span className="text-[#7A8999] ml-1">
-                                ({revenueEstimateB})
-                              </span>
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-center">
-                              <div className={`px-2 py-0.5 rounded-sm text-center font-mono text-[10px] ${guidanceColorMap[earnings.guidanceStatus] || 'bg-gray-800/30 text-gray-400 border border-gray-700'}`}>
-                                {earnings.guidanceStatus || 'N/A'}
-                              </div>
-                            </td>
-                            <td className="px-2 sm:px-3 py-0 text-center">
-                              <div className={`px-2 py-0.5 rounded-sm text-center font-mono text-[10px] ${scoreColorMap[earnings.earningsScore] || 'bg-gray-800/30 text-gray-400 border border-gray-700'}`}>
-                                {earnings.earningsScore || 'N/A'}
-                              </div>
-                            </td>
-                            <td className={`px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap ${
-                              earnings.stockReaction > 0 ? 'text-[#4CAF50]' : 
-                              earnings.stockReaction < 0 ? 'text-[#F44336]' : 
-                              'text-[#EFEFEF]'
-                            }`}>
-                              {earnings.stockReaction > 0 ? '+' : ''}
-                              {earnings.stockReaction.toFixed(2)}%
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="ml-2">
+                          {stockMetrics.profitLoss >= 0 ? (
+                            <TrendingUp className="h-10 w-10 text-[#4CAF50]" />
+                          ) : (
+                            <TrendingDown className="h-10 w-10 text-[#F44336]" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </TabsContent>
-        
-        <TabsContent value="chart" className="space-y-6">
-          <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden">
+          
+          {/* Price Chart Section - Full Width */}
+          <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden mb-6">
             <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
               <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">PRICE CHART</h3>
               <div className="h-1 w-28 bg-[#38AAFD]"></div>
@@ -908,8 +727,157 @@ export default function StockDetailsPage() {
               )}
             </div>
           </div>
-        </TabsContent>
-      </Tabs>
+          
+          {/* Company Overview Section - Full Width */}
+          <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden mb-6">
+            <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
+              <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">COMPANY OVERVIEW</h3>
+              <div className="h-1 w-28 bg-[#38AAFD]"></div>
+            </div>
+            <div className="p-4">
+              <div className="text-[#EFEFEF] font-mono text-sm">
+                <p className="mb-3">{stockData?.company || symbol} is a {stockData?.stockType || 'Compounder'} stock in the {stockData?.sector || 'Technology'} sector with a rating of {stockData?.stockRating || stockData?.rating || 'N/A'}.</p>
+                
+                <div className="p-3 bg-[#0B1B2F] border border-[#1A304A] rounded-sm mb-3">
+                  <div className="flex items-center gap-2 text-[#38AAFD]">
+                    <Info className="h-4 w-4" />
+                    <span className="font-semibold">Analyst Consensus</span>
+                  </div>
+                  <p className="mt-2 text-[#7A8999]">Check the Analyst Ratings section below for detailed recommendations and price targets.</p>
+                </div>
+                
+                <div className="p-3 bg-[#0B1B2F] border border-[#1A304A] rounded-sm">
+                  <div className="flex items-center gap-2 text-[#4CAF50]">
+                    <Calendar className="h-4 w-4" />
+                    <span className="font-semibold">Upcoming Earnings</span>
+                  </div>
+                  <p className="mt-2 text-[#7A8999]">
+                    {stockData?.nextEarningsDate 
+                      ? `Next earnings date: ${stockData.nextEarningsDate}`
+                      : 'No upcoming earnings date available'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Analyst Ratings Section - Full Width */}
+          <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden mb-6">
+            <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
+              <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">ANALYST RATINGS</h3>
+              <div className="h-1 w-28 bg-[#38AAFD]"></div>
+            </div>
+            <div className="p-4">
+              <UpgradeDowngradeTable 
+                region={region as 'USD' | 'CAD' | 'INTL'} 
+                symbol={symbol} 
+                limit={10} 
+              />
+            </div>
+          </div>
+          
+          {/* Earnings History Section - Full Width */}
+          <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden">
+            <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
+              <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">EARNINGS HISTORY</h3>
+              <div className="h-1 w-28 bg-[#38AAFD]"></div>
+            </div>
+            <div className="p-4">
+              {!earningsData || earningsData.length === 0 ? (
+                <div className="text-center py-6">
+                  <div className="text-[#7A8999] font-mono text-sm mb-2">No earnings data available</div>
+                  <div className="text-[#EFEFEF] font-mono text-xs">Check back later for updates</div>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead className="sticky top-0 z-10">
+                      <tr className="text-xs h-8 border-b border-[#0F1A2A] bg-[#0D1F32]">
+                        <th scope="col" className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">QUARTER</th>
+                        <th scope="col" className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">DATE</th>
+                        <th scope="col" className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">TIME</th>
+                        <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">EPS</th>
+                        <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">EST.</th>
+                        <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">REV ($B)</th>
+                        <th scope="col" className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">GUIDE</th>
+                        <th scope="col" className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">SCORE</th>
+                        <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">MKT REACTION</th>
+                      </tr>
+                    </thead>
+                    <tbody className="font-mono text-xs">
+                      {earningsData.map((earnings: StockEarnings) => {
+                        const fiscalQuarter = `Q${earnings.fiscalQ} ${earnings.fiscalYear}`;
+                        const earningsDate = new Date(earnings.earningsDate).toLocaleDateString();
+                        const revenueActualB = (earnings.revenueActual / 1000000000).toFixed(2);
+                        const revenueEstimateB = (earnings.revenueEstimate / 1000000000).toFixed(2);
+                        
+                        return (
+                          <tr key={earnings.id} className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542]">
+                            <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
+                              {fiscalQuarter}
+                            </td>
+                            <td className="px-2 sm:px-3 py-0 text-left font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
+                              {earningsDate}
+                            </td>
+                            <td className="px-2 sm:px-3 py-0 text-center">
+                              <div className="flex items-center justify-center">
+                                <Clock className="h-3 w-3 mr-1 text-[#7A8999]" />
+                                <span className="font-mono text-[#EFEFEF] text-xs">
+                                  {earnings.earningsTime || 'AMC'}
+                                </span>
+                              </div>
+                            </td>
+                            <td className={`px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap ${
+                              earnings.epsActual > earnings.epsEstimate ? 'text-[#4CAF50]' : 
+                              earnings.epsActual < earnings.epsEstimate ? 'text-[#F44336]' : 
+                              'text-[#EFEFEF]'
+                            }`}>
+                              {earnings.epsActual.toFixed(2)}
+                            </td>
+                            <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#38AAFD] text-xs whitespace-nowrap">
+                              {earnings.epsEstimate.toFixed(2)}
+                            </td>
+                            <td className="px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
+                              <span className={
+                                earnings.revenueActual > earnings.revenueEstimate ? 'text-[#4CAF50]' : 
+                                earnings.revenueActual < earnings.revenueEstimate ? 'text-[#F44336]' : 
+                                'text-[#EFEFEF]'
+                              }>
+                                {revenueActualB}
+                              </span>
+                              <span className="text-[#7A8999] ml-1">
+                                ({revenueEstimateB})
+                              </span>
+                            </td>
+                            <td className="px-2 sm:px-3 py-0 text-center">
+                              <div className={`px-2 py-0.5 rounded-sm text-center font-mono text-[10px] ${guidanceColorMap[earnings.guidanceStatus] || 'bg-gray-800/30 text-gray-400 border border-gray-700'}`}>
+                                {earnings.guidanceStatus || 'N/A'}
+                              </div>
+                            </td>
+                            <td className="px-2 sm:px-3 py-0 text-center">
+                              <div className={`px-2 py-0.5 rounded-sm text-center font-mono text-[10px] ${scoreColorMap[earnings.earningsScore] || 'bg-gray-800/30 text-gray-400 border border-gray-700'}`}>
+                                {earnings.earningsScore || 'N/A'}
+                              </div>
+                            </td>
+                            <td className={`px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap ${
+                              earnings.stockReaction > 0 ? 'text-[#4CAF50]' : 
+                              earnings.stockReaction < 0 ? 'text-[#F44336]' : 
+                              'text-[#EFEFEF]'
+                            }`}>
+                              {earnings.stockReaction > 0 ? '+' : ''}
+                              {earnings.stockReaction.toFixed(2)}%
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
