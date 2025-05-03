@@ -1,19 +1,15 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Calendar, ChevronLeft, ChevronRight, Download, Filter, RefreshCw, FileDown } from 'lucide-react';
+import { RefreshCw, FileDown, Filter } from 'lucide-react';
 
+// Import components
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { PageHeader } from '@/components/page-header';
-import { PageContainer } from '@/components/page-container';
+import { Badge } from '@/components/ui/badge';
 
 // Icons for different event significance and impact
 const ImpactIndicator = ({ impact }: { impact: string }) => {
@@ -239,31 +235,6 @@ export default function EconomicCalendarPage() {
     staleTime: 24 * 60 * 60 * 1000, // 24 hours due to rate limit
   });
 
-  // Navigate to previous/next month
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    let newMonth = month;
-    let newYear = year;
-    
-    if (direction === 'prev') {
-      if (month === 1) {
-        newMonth = 12;
-        newYear = year - 1;
-      } else {
-        newMonth = month - 1;
-      }
-    } else {
-      if (month === 12) {
-        newMonth = 1;
-        newYear = year + 1;
-      } else {
-        newMonth = month + 1;
-      }
-    }
-    
-    setMonth(newMonth);
-    setYear(newYear);
-  };
-
   // Apply filters to the events
   const getFilteredEvents = () => {
     if (!calendarData?.data) return {};
@@ -315,234 +286,308 @@ export default function EconomicCalendarPage() {
   };
 
   return (
-    <PageContainer>
-      <div className="text-white">
-        <h1 className="text-2xl font-bold mt-6 mb-1 ml-6">Economic Calendar</h1>
-        <p className="text-gray-400 ml-6 mb-6">Track important economic events and indicators</p>
-        
-        <div className="flex flex-wrap items-center gap-2 mx-6 mb-6">
-          <Button variant="outline" size="sm" className="bg-transparent border-[#333] text-gray-300 hover:bg-[#121a24]">
-            <Filter className="h-4 w-4 mr-2" />
-            Filters
-          </Button>
-          
-          <div className="flex h-9 rounded-md overflow-hidden">
-            <button 
-              className={`px-3 h-full text-sm font-medium ${activeTab === '1W' ? 'bg-[#0A7AFF] text-white' : 'bg-[#121a24] text-gray-300 hover:bg-[#1a2536]'}`}
-              onClick={() => setActiveTab('1W')}
-            >
-              1W
-            </button>
-            <button 
-              className={`px-3 h-full text-sm font-medium ${activeTab === '1M' ? 'bg-[#0A7AFF] text-white' : 'bg-[#121a24] text-gray-300 hover:bg-[#1a2536]'}`}
-              onClick={() => setActiveTab('1M')}
-            >
-              1M
-            </button>
-            <button 
-              className={`px-3 h-full text-sm font-medium ${activeTab === 'YTD' ? 'bg-[#0A7AFF] text-white' : 'bg-[#121a24] text-gray-300 hover:bg-[#1a2536]'}`}
-              onClick={() => setActiveTab('YTD')}
-            >
-              YTD
-            </button>
-            <button 
-              className={`px-3 h-full text-sm font-medium ${activeTab === '1Y' ? 'bg-[#0A7AFF] text-white' : 'bg-[#121a24] text-gray-300 hover:bg-[#1a2536]'}`}
-              onClick={() => setActiveTab('1Y')}
-            >
-              1Y
-            </button>
-          </div>
-          
-          <Select 
-            value={dateRange === 'current' ? 'current' : 'custom'}
-            onValueChange={(val) => setDateRange(val as 'current' | 'custom')}
-          >
-            <SelectTrigger className="h-9 bg-[#121a24] border-[#333] text-gray-300 w-[150px]">
-              <SelectValue placeholder="Select date range" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#121a24] border-[#333] text-gray-200">
-              <SelectItem value="current">Current Month</SelectItem>
-              <SelectItem value="custom">Custom Range</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <div className="flex-grow"></div>
-          
-          <Button 
-            size="sm" 
-            onClick={forceRefresh}
-            className="bg-[#0A7AFF] hover:bg-blue-700"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh Data
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="bg-transparent border-[#333] text-gray-300 hover:bg-[#121a24]"
-          >
-            <FileDown className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-        </div>
-        
-        {/* API Usage Note */}
-        <div className="mx-6 mb-6">
-          <Card className="bg-[#121a24] border-0">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4 px-6">
-              <CardTitle className="text-amber-400 font-medium text-sm tracking-wide">API USAGE NOTE</CardTitle>
-              <div className="h-1 w-28 bg-amber-500"></div>
-            </CardHeader>
-            <CardContent className="px-6 py-2">
-              <p className="text-sm text-amber-500">
-                Due to API rate limits (15 requests/month), calendar data is cached to minimize API usage. Use the Refresh Data button to force a new data fetch if needed.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* Error message */}
-        {error && (
-          <div className="mx-6 mb-6">
-            <Card className="bg-[#121a24] border-0">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4 px-6">
-                <CardTitle className="text-red-400 font-medium text-sm tracking-wide">ERROR</CardTitle>
-                <div className="h-1 w-28 bg-red-500"></div>
-              </CardHeader>
-              <CardContent className="px-6 py-2">
-                <p className="text-sm text-red-400">Error loading calendar data. Please try again later.</p>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-        
-        {/* Events Table */}
-        <div className="space-y-6">
-          {isLoading ? (
-            <div className="mx-6 mb-6">
-              <Card className="bg-[#121a24] border-0">
-                <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4 px-6">
-                  <CardTitle className="text-white font-medium text-lg">Loading...</CardTitle>
-                  <div className="h-1 w-28 bg-blue-500"></div>
-                </CardHeader>
-                <CardContent className="px-6 py-4">
-                  <div className="space-y-2">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <div key={i} className="flex items-center justify-between">
-                        <Skeleton className="h-4 w-20 bg-gray-700" />
-                        <Skeleton className="h-4 w-40 bg-gray-700" />
-                        <Skeleton className="h-4 w-20 bg-gray-700" />
-                        <Skeleton className="h-4 w-20 bg-gray-700" />
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+    <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4 bg-[#061220]">
+      <div className="mb-4 sm:mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-base sm:text-xl font-medium text-[#EFEFEF] font-mono tracking-tight">Economic Calendar</h1>
+            <div className="flex mt-1">
+              <div className="h-0.5 w-8 bg-[#38AAFD]"></div>
             </div>
-          ) : dates.length === 0 ? (
-            <div className="mx-6 mb-6">
-              <Card className="bg-[#121a24] border-0">
-                <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4 px-6">
-                  <CardTitle className="text-white font-medium text-lg">No Events Found</CardTitle>
-                  <div className="h-1 w-28 bg-blue-500"></div>
-                </CardHeader>
-                <CardContent className="px-6 py-4 text-center">
-                  <p className="text-gray-400">No economic events found for the selected filters.</p>
-                </CardContent>
-              </Card>
-            </div>
-          ) : (
-            dates.map(date => (
-              <div key={date} className="mx-6 mb-6">
-                <Card className="bg-[#121a24] border-0">
-                  <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4 px-6">
-                    <CardTitle className="text-white font-medium text-lg">{date}</CardTitle>
-                    <div className="h-1 w-28 bg-blue-500"></div>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="hover:bg-transparent border-t border-b border-gray-800">
-                            <TableHead className="text-gray-400 text-xs uppercase px-6">Time</TableHead>
-                            <TableHead className="text-gray-400 text-xs uppercase">Country</TableHead>
-                            <TableHead className="text-gray-400 text-xs uppercase">Event</TableHead>
-                            <TableHead className="text-gray-400 text-xs uppercase">Impact</TableHead>
-                            <TableHead className="text-gray-400 text-xs uppercase">Actual</TableHead>
-                            <TableHead className="text-gray-400 text-xs uppercase">Forecast</TableHead>
-                            <TableHead className="text-gray-400 text-xs uppercase">Previous</TableHead>
-                            <TableHead className="text-gray-400 text-xs uppercase pr-6">Trend</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {filteredEvents[date].map((event, index) => (
-                            <TableRow 
-                              key={index} 
-                              className="hover:bg-[#1a2536] border-b border-gray-800"
-                            >
-                              <TableCell className="font-mono text-sm text-gray-300 px-6">
-                                {formatTime(event.time)}
-                              </TableCell>
-                              <TableCell>
-                                <CountryDisplay country={event.country} />
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <ImpactIndicator impact={event.impact || 'Medium'} />
-                                  <span className={`font-medium ${
-                                    event.impact?.toLowerCase() === 'high' 
-                                      ? 'text-red-300' 
-                                      : 'text-gray-200'
-                                  }`}>{event.event}</span>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <Badge 
-                                  variant="outline" 
-                                  className={`
-                                    ${event.impact?.toLowerCase() === 'high' ? 'border-red-500 text-red-400' : ''}
-                                    ${event.impact?.toLowerCase() === 'medium' ? 'border-amber-500 text-amber-400' : ''}
-                                    ${event.impact?.toLowerCase() === 'low' ? 'border-green-500 text-green-400' : ''}
-                                    ${!event.impact ? 'border-gray-500 text-gray-400' : ''}
-                                  `}
-                                >
-                                  {event.impact || 'Medium'}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className={`font-mono ${
-                                event.actual > event.previous ? 'text-green-400' : 
-                                event.actual < event.previous ? 'text-red-400' : 'text-gray-300'
-                              }`}>
-                                {event.actual ?? '-'}
-                              </TableCell>
-                              <TableCell className="font-mono text-blue-400">
-                                {event.forecast ?? '-'}
-                              </TableCell>
-                              <TableCell className="font-mono text-gray-400">
-                                {event.previous ?? '-'}
-                              </TableCell>
-                              <TableCell className="pr-6">
-                                {event.actual && event.forecast && event.previous && (
-                                  <TimelineIndicator 
-                                    actual={parseFloat(event.actual)} 
-                                    forecast={parseFloat(event.forecast)} 
-                                    previous={parseFloat(event.previous)} 
-                                  />
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            ))
-          )}
+            <p className="text-sm text-[#7A8999] mt-2">Track important economic events and indicators</p>
+          </div>
         </div>
       </div>
-    </PageContainer>
+
+      {/* Filter bar similar to portfolio page */}
+      <div className="flex flex-wrap items-center gap-2 mb-6">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button 
+              variant="outline" 
+              className="h-8 rounded-sm bg-[#0B1728] text-[#7A8999] text-xs font-mono border-[#1A304A] hover:bg-[#162639] hover:text-[#EFEFEF]"
+            >
+              <Filter className="h-3.5 w-3.5 mr-1.5" />
+              Filters
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-72 bg-[#0B1728] border-[#1A304A] p-3 rounded-sm shadow-xl">
+            <div className="space-y-3">
+              <div>
+                <h4 className="font-mono text-xs text-[#7A8999] mb-2">COUNTRIES</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {countries.map(country => (
+                    <div key={country.value} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`country-${country.value}`} 
+                        checked={selectedCountries.includes(country.value)}
+                        onCheckedChange={() => toggleCountry(country.value)}
+                        className="h-3.5 w-3.5 rounded-sm data-[state=checked]:bg-[#38AAFD] data-[state=checked]:border-[#38AAFD]"
+                      />
+                      <Label 
+                        htmlFor={`country-${country.value}`}
+                        className="text-xs font-mono text-[#EFEFEF] cursor-pointer"
+                      >
+                        {country.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="font-mono text-xs text-[#7A8999] mb-2">IMPACT</h4>
+                <div className="flex flex-col gap-2">
+                  {impacts.map(impact => (
+                    <div key={impact.value} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`impact-${impact.value}`} 
+                        checked={selectedImpact.includes(impact.value)}
+                        onCheckedChange={() => toggleImpact(impact.value)}
+                        className="h-3.5 w-3.5 rounded-sm data-[state=checked]:bg-[#38AAFD] data-[state=checked]:border-[#38AAFD]"
+                      />
+                      <Label 
+                        htmlFor={`impact-${impact.value}`}
+                        className="text-xs font-mono text-[#EFEFEF] cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2">
+                          <ImpactIndicator impact={impact.value} />
+                          {impact.label}
+                        </div>
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="font-mono text-xs text-[#7A8999] mb-2">CATEGORIES</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {categories.map(category => (
+                    <div key={category.value} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={`category-${category.value}`} 
+                        checked={selectedCategories.includes(category.value)}
+                        onCheckedChange={() => toggleCategory(category.value)}
+                        className="h-3.5 w-3.5 rounded-sm data-[state=checked]:bg-[#38AAFD] data-[state=checked]:border-[#38AAFD]"
+                      />
+                      <Label 
+                        htmlFor={`category-${category.value}`}
+                        className="text-xs font-mono text-[#EFEFEF] cursor-pointer"
+                      >
+                        {category.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+        
+        {/* Time period buttons - exactly like portfolio */}
+        <div className="flex h-8 rounded-sm overflow-hidden">
+          <button 
+            className={`px-3 h-full text-xs font-mono font-medium border-y border-l border-[#1A304A] ${activeTab === '1W' ? 'bg-[#38AAFD] text-white' : 'bg-[#0B1728] text-[#7A8999] hover:bg-[#162639] hover:text-[#EFEFEF]'}`}
+            onClick={() => setActiveTab('1W')}
+          >
+            1W
+          </button>
+          <button 
+            className={`px-3 h-full text-xs font-mono font-medium border-y border-l border-[#1A304A] ${activeTab === '1M' ? 'bg-[#38AAFD] text-white' : 'bg-[#0B1728] text-[#7A8999] hover:bg-[#162639] hover:text-[#EFEFEF]'}`}
+            onClick={() => setActiveTab('1M')}
+          >
+            1M
+          </button>
+          <button 
+            className={`px-3 h-full text-xs font-mono font-medium border-y border-l border-[#1A304A] ${activeTab === 'YTD' ? 'bg-[#38AAFD] text-white' : 'bg-[#0B1728] text-[#7A8999] hover:bg-[#162639] hover:text-[#EFEFEF]'}`}
+            onClick={() => setActiveTab('YTD')}
+          >
+            YTD
+          </button>
+          <button 
+            className={`px-3 h-full text-xs font-mono font-medium border border-[#1A304A] ${activeTab === '1Y' ? 'bg-[#38AAFD] text-white' : 'bg-[#0B1728] text-[#7A8999] hover:bg-[#162639] hover:text-[#EFEFEF]'}`}
+            onClick={() => setActiveTab('1Y')}
+          >
+            1Y
+          </button>
+        </div>
+        
+        <Select 
+          value={dateRange === 'current' ? 'current' : 'custom'}
+          onValueChange={(val) => setDateRange(val as 'current' | 'custom')}
+        >
+          <SelectTrigger className="h-8 w-[150px] rounded-sm bg-[#0B1728] text-[#EFEFEF] text-xs border-[#1A304A] font-mono">
+            <SelectValue placeholder="Current Month" />
+          </SelectTrigger>
+          <SelectContent className="bg-[#0B1728] border-[#1A304A] rounded-sm text-[#EFEFEF] font-mono text-xs">
+            <SelectItem value="current" className="rounded-sm">Current Month</SelectItem>
+            <SelectItem value="custom" className="rounded-sm">Custom Range</SelectItem>
+          </SelectContent>
+        </Select>
+        
+        <div className="flex-grow"></div>
+        
+        <Button 
+          className="h-8 rounded-sm bg-[#38AAFD] hover:bg-[#2196F3] text-white text-xs font-mono"
+          onClick={forceRefresh}
+        >
+          <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+          Refresh Data
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          className="h-8 rounded-sm bg-[#0B1728] text-[#7A8999] text-xs font-mono border-[#1A304A] hover:bg-[#162639] hover:text-[#EFEFEF]"
+        >
+          <FileDown className="h-3.5 w-3.5 mr-1.5" />
+          Export
+        </Button>
+      </div>
+      
+      {/* API Usage Note - with the exact same styling as portfolio alert cards */}
+      <div className="mb-6 bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden">
+        <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
+          <h3 className="text-amber-400 font-mono text-xs font-medium tracking-wide">API USAGE NOTE</h3>
+          <div className="h-1 w-28 bg-amber-500"></div>
+        </div>
+        <div className="p-4">
+          <p className="text-amber-500 text-xs font-mono">
+            Due to API rate limits (15 requests/month), calendar data is cached to minimize API usage. Use the Refresh Data button to force a new data fetch if needed.
+          </p>
+        </div>
+      </div>
+      
+      {/* Error message with the exact same styling as portfolio cards */}
+      {error && (
+        <div className="mb-6 bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden">
+          <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
+            <h3 className="text-red-400 font-mono text-xs font-medium tracking-wide">ERROR</h3>
+            <div className="h-1 w-28 bg-red-500"></div>
+          </div>
+          <div className="p-4">
+            <p className="text-red-400 text-xs font-mono">
+              Error loading calendar data. Please try again later.
+            </p>
+          </div>
+        </div>
+      )}
+      
+      {/* Events Table with the exact same styling as portfolio tables */}
+      {isLoading ? (
+        <div className="mb-6 bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden">
+          <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
+            <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">Loading...</h3>
+            <div className="h-1 w-28 bg-[#38AAFD]"></div>
+          </div>
+          <div className="p-4">
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <Skeleton className="h-4 w-20 bg-[#1A304A]" />
+                  <Skeleton className="h-4 w-40 bg-[#1A304A]" />
+                  <Skeleton className="h-4 w-20 bg-[#1A304A]" />
+                  <Skeleton className="h-4 w-20 bg-[#1A304A]" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : dates.length === 0 ? (
+        <div className="mb-6 bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden">
+          <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
+            <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">No Events Found</h3>
+            <div className="h-1 w-28 bg-[#38AAFD]"></div>
+          </div>
+          <div className="p-4 text-center">
+            <p className="text-[#7A8999] text-xs font-mono">
+              No economic events found for the selected filters.
+            </p>
+          </div>
+        </div>
+      ) : (
+        dates.map(date => (
+          <div key={date} className="mb-6 bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden">
+            <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
+              <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">{date}</h3>
+              <div className="h-1 w-28 bg-[#38AAFD]"></div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-[#1A304A]">
+                    <th className="px-4 py-2 text-[#7A8999] font-mono text-xs uppercase font-normal">Time</th>
+                    <th className="px-4 py-2 text-[#7A8999] font-mono text-xs uppercase font-normal">Country</th>
+                    <th className="px-4 py-2 text-[#7A8999] font-mono text-xs uppercase font-normal">Event</th>
+                    <th className="px-4 py-2 text-[#7A8999] font-mono text-xs uppercase font-normal">Impact</th>
+                    <th className="px-4 py-2 text-[#7A8999] font-mono text-xs uppercase font-normal">Actual</th>
+                    <th className="px-4 py-2 text-[#7A8999] font-mono text-xs uppercase font-normal">Forecast</th>
+                    <th className="px-4 py-2 text-[#7A8999] font-mono text-xs uppercase font-normal">Previous</th>
+                    <th className="px-4 py-2 text-[#7A8999] font-mono text-xs uppercase font-normal">Trend</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredEvents[date].map((event, index) => (
+                    <tr 
+                      key={index} 
+                      className="border-b border-[#1A304A] hover:bg-[#0F1F35]"
+                    >
+                      <td className="px-4 py-2.5 font-mono text-xs text-[#EFEFEF]">
+                        {formatTime(event.time)}
+                      </td>
+                      <td className="px-4 py-2.5 font-mono text-xs text-[#EFEFEF]">
+                        <CountryDisplay country={event.country} />
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <ImpactIndicator impact={event.impact || 'Medium'} />
+                          <span className={`font-mono text-xs ${
+                            event.impact?.toLowerCase() === 'high' 
+                              ? 'text-red-300' 
+                              : 'text-[#EFEFEF]'
+                          }`}>{event.event}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <div className={`
+                          rounded px-2 py-0.5 text-center font-mono text-xs
+                          ${event.impact?.toLowerCase() === 'high' ? 'bg-red-950/30 text-red-400 border border-red-800' : ''}
+                          ${event.impact?.toLowerCase() === 'medium' ? 'bg-amber-950/30 text-amber-400 border border-amber-800' : ''}
+                          ${event.impact?.toLowerCase() === 'low' ? 'bg-green-950/30 text-green-400 border border-green-800' : ''}
+                          ${!event.impact ? 'bg-gray-800/30 text-gray-400 border border-gray-700' : ''}
+                        `}>
+                          {event.impact || 'Medium'}
+                        </div>
+                      </td>
+                      <td className={`px-4 py-2.5 font-mono text-xs ${
+                        event.actual > event.previous ? 'text-green-400' : 
+                        event.actual < event.previous ? 'text-red-400' : 'text-[#EFEFEF]'
+                      }`}>
+                        {event.actual ?? '-'}
+                      </td>
+                      <td className="px-4 py-2.5 font-mono text-xs text-[#38AAFD]">
+                        {event.forecast ?? '-'}
+                      </td>
+                      <td className="px-4 py-2.5 font-mono text-xs text-[#7A8999]">
+                        {event.previous ?? '-'}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        {event.actual && event.forecast && event.previous && (
+                          <TimelineIndicator 
+                            actual={parseFloat(event.actual)} 
+                            forecast={parseFloat(event.forecast)} 
+                            previous={parseFloat(event.previous)} 
+                          />
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
   );
 }
