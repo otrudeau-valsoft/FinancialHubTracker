@@ -184,6 +184,9 @@ export const historicalPrices = pgTable(
     volume: numeric("volume"),
     adjustedClose: numeric("adjusted_close"),
     region: text("region").notNull(),  // USD, CAD, INTL
+    rsi14: numeric("rsi_14"),          // RSI with 14-day period
+    rsi9: numeric("rsi_9"),            // RSI with 9-day period
+    rsi21: numeric("rsi_21"),          // RSI with 21-day period
     updatedAt: timestamp("updated_at").defaultNow(),
   },
   (table) => {
