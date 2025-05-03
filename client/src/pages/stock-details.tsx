@@ -11,7 +11,8 @@ import {
   TrendingDown, 
   RefreshCw, 
   Info,
-  Clock
+  Clock,
+  Activity
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -51,6 +52,9 @@ interface HistoricalPrice {
   close: number;
   volume: number;
   adjClose: number;
+  rsi9?: number;
+  rsi14?: number;
+  rsi21?: number;
 }
 
 // Stock earnings interface
@@ -160,6 +164,10 @@ const processHistoricalData = (data: any[] | null | undefined, timeRange: '1m' |
           open: p.open ? parseFloat(p.open) : 0,
           high: p.high ? parseFloat(p.high) : 0,
           low: p.low ? parseFloat(p.low) : 0,
+          // Add RSI values if they exist
+          rsi9: p.rsi9 ? parseFloat(p.rsi9) : undefined,
+          rsi14: p.rsi14 ? parseFloat(p.rsi14) : undefined,
+          rsi21: p.rsi21 ? parseFloat(p.rsi21) : undefined,
           // Keep the original date object for sorting and calculations
           dateObj: date
         };
