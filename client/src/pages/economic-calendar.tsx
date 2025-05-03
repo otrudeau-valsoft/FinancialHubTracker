@@ -290,7 +290,7 @@ export default function EconomicCalendarPage() {
       <div className="mb-4 sm:mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-base sm:text-xl font-medium text-[#EFEFEF] font-mono tracking-tight">Economic Calendar</h1>
+            <h1 className="text-base sm:text-xl font-medium text-[#EFEFEF] font-mono tracking-tight">ECONOMIC CALENDAR</h1>
             <div className="flex mt-1">
               <div className="h-0.5 w-8 bg-[#38AAFD]"></div>
             </div>
