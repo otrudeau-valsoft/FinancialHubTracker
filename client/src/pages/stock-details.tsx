@@ -777,9 +777,7 @@ export default function StockDetailsPage() {
                           fontSize: 12,
                           fontFamily: 'monospace'
                         }}
-                        itemStyle={(name) => ({
-                          color: name.startsWith('RSI') ? '#805AD5' : '#38AAFD'
-                        })}
+                        itemStyle={{ color: '#38AAFD' }}
                         labelStyle={{ color: '#7A8999', fontFamily: 'monospace' }}
                       />
                       <Area 
@@ -830,9 +828,21 @@ export default function StockDetailsPage() {
                             </linearGradient>
                           </defs>
                           
+                          {/* RSI-specific Y-axis scaled from 0-100 */}
+                          <YAxis 
+                            yAxisId="rsi"
+                            orientation="right"
+                            domain={[0, 100]}
+                            tick={{ fontSize: 10, fill: '#805AD5' }}
+                            tickFormatter={(val) => `${val}`}
+                            width={30}
+                            stroke="#1A304A"
+                          />
+                          
                           {/* RSI Reference Lines for Overbought/Oversold */}
                           <ReferenceLine 
                             y={70} 
+                            yAxisId="rsi"
                             stroke="#F44336" 
                             strokeDasharray="3 3" 
                             strokeWidth={1}
@@ -846,6 +856,7 @@ export default function StockDetailsPage() {
                           
                           <ReferenceLine 
                             y={30} 
+                            yAxisId="rsi"
                             stroke="#4CAF50" 
                             strokeDasharray="3 3" 
                             strokeWidth={1}
@@ -859,6 +870,7 @@ export default function StockDetailsPage() {
                           
                           {/* RSI Line based on selected period */}
                           <Line
+                            yAxisId="rsi"
                             type="monotone"
                             dataKey={`rsi${rsiPeriod}`}
                             stroke="#805AD5"

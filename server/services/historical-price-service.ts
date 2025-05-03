@@ -263,8 +263,9 @@ class HistoricalPriceService {
       // Check for abnormal values that could indicate bad data
       // For example, unusually large daily changes
       const sanitizedData = insertData.filter(data => {
-        const close = parseFloat(data.close);
-        const open = parseFloat(data.open);
+        // Add null/undefined check before parsing
+        const close = data.close ? parseFloat(data.close) : 0;
+        const open = data.open ? parseFloat(data.open) : 0;
         
         // Skip entries with abnormal daily changes (>20%)
         if (Math.abs((close - open) / open) > 0.20) {
@@ -293,9 +294,13 @@ class HistoricalPriceService {
         return dateA.getTime() - dateB.getTime();
       });
       
-      // Extract closing prices for RSI calculation
-      const closingPrices = allPrices.map(price => 
-        parseFloat(price.adjustedClose || price.close));
+      // Extract closing prices for RSI calculation with null safety
+      const closingPrices = allPrices.map(price => {
+        // Use adjustedClose if available, otherwise use close
+        const priceValue = price.adjustedClose || price.close;
+        // Make sure we have a valid value to parse
+        return priceValue ? parseFloat(priceValue) : 0;
+      });
       
       // Calculate RSI values for different periods
       console.log(`Calculating RSI values for ${symbol} (${region})`);
