@@ -1,5 +1,24 @@
 import { Request, Response } from "express";
 import axios from "axios";
+import { SeekingAlphaClient } from "../utils/seeking-alpha-client";
+
+// Create a singleton client instance
+let seekingAlphaClient: SeekingAlphaClient | null = null;
+
+// Function to initialize the client if not already initialized
+function getClient(): SeekingAlphaClient {
+  const apiKey = process.env.SEEKING_ALPHA_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error("Seeking Alpha API key not configured");
+  }
+  
+  if (!seekingAlphaClient) {
+    seekingAlphaClient = new SeekingAlphaClient(apiKey);
+  }
+  
+  return seekingAlphaClient;
+}
 
 // Function to fetch news by symbol from Seeking Alpha
 export const getNewsBySymbol = async (req: Request, res: Response) => {
@@ -12,39 +31,23 @@ export const getNewsBySymbol = async (req: Request, res: Response) => {
         message: "Symbol parameter is required" 
       });
     }
-
-    const apiKey = process.env.SEEKING_ALPHA_API_KEY;
     
-    if (!apiKey) {
-      return res.status(500).json({ 
-        status: "error", 
-        message: "API key not configured" 
-      });
-    }
+    // Get client instance
+    const client = getClient();
     
-    // Remove '.TO' suffix from Canadian stocks for Seeking Alpha API
-    const cleanSymbol = typeof symbol === 'string' && symbol.endsWith('.TO') 
-      ? symbol.replace('.TO', '') 
-      : symbol;
+    console.log(`[NewsAPI] Request for news by symbol: ${symbol}`);
     
-    console.log(`Fetching news for symbol: ${symbol}, using clean symbol: ${cleanSymbol}`);
-    
-    const response = await axios.get(`https://seeking-alpha.p.rapidapi.com/news/v2/list-by-symbol`, {
-      headers: {
-        "x-rapidapi-host": "seeking-alpha.p.rapidapi.com",
-        "x-rapidapi-key": apiKey
-      },
-      params: {
-        id: cleanSymbol,
-        size: size,
-        number: number
-      }
-    });
+    // Use the client to make the request
+    const response = await client.getNewsBySymbol(
+      symbol as string, 
+      Number(size), 
+      Number(number)
+    );
     
     res.json(response.data);
     
   } catch (error: any) {
-    console.error("Error fetching news:", error.message);
+    console.error("[NewsAPI] Error fetching news:", error.message);
     res.status(500).json({ 
       status: "error", 
       message: "Failed to fetch news from Seeking Alpha",
@@ -65,6 +68,8 @@ export const getNewsForPortfolio = async (req: Request, res: Response) => {
       });
     }
     
+    console.log(`[NewsAPI] Fetching news for ${region} portfolio with ${days} days of history`);
+    
     // First, fetch the portfolio stocks for the specified region
     const portfolioResponse = await axios.get(`http://localhost:5000/api/portfolios/${region}/stocks`);
     const stocks = portfolioResponse.data;
@@ -82,42 +87,54 @@ export const getNewsForPortfolio = async (req: Request, res: Response) => {
       .slice(0, 10)
       .map(stock => stock.symbol);
     
-    const newsPromises = topSymbols.map(async (symbol) => {
-      try {
-        const symbolNews = await getNewsForSymbol(symbol);
-        return {
-          symbol,
-          news: symbolNews
-        };
-      } catch (error) {
-        console.error(`Error fetching news for ${symbol}:`, error);
-        return {
-          symbol,
-          news: []
-        };
-      }
-    });
+    console.log(`[NewsAPI] Fetching news for top ${topSymbols.length} symbols by market value`);
     
-    const allNews = await Promise.all(newsPromises);
+    // Get client instance
+    const client = getClient();
+    
+    // Use our new batch approach with the rate limiter
+    const allNewsResult = await Promise.allSettled(
+      topSymbols.map(async symbol => {
+        try {
+          const symbolNews = await getNewsForSymbol(symbol);
+          return {
+            symbol,
+            news: symbolNews
+          };
+        } catch (error) {
+          console.error(`[NewsAPI] Error fetching news for ${symbol}:`, error);
+          return {
+            symbol,
+            news: []
+          };
+        }
+      })
+    );
+    
+    const allNews = allNewsResult
+      .filter(result => result.status === 'fulfilled')
+      .map(result => (result as PromiseFulfilledResult<any>).value);
     
     // Flatten all news and sort by publish date
     const flattenedNews = allNews
       .flatMap(item => 
-        item.news.map(news => ({
+        item.news.map((news: any) => ({
           ...news,
           symbol: item.symbol
         }))
       )
-      .filter(news => {
+      .filter((news: any) => {
         // Filter by date - only include news from the last 'days' days
         const publishDate = new Date(news.publishOn);
         const daysAgo = new Date();
         daysAgo.setDate(daysAgo.getDate() - Number(days));
         return publishDate >= daysAgo;
       })
-      .sort((a, b) => 
+      .sort((a: any, b: any) => 
         new Date(b.publishOn).getTime() - new Date(a.publishOn).getTime()
       );
+    
+    console.log(`[NewsAPI] Retrieved ${flattenedNews.length} news items for portfolio`);
     
     res.json({
       status: "success",
@@ -125,7 +142,7 @@ export const getNewsForPortfolio = async (req: Request, res: Response) => {
     });
     
   } catch (error: any) {
-    console.error("Error fetching portfolio news:", error.message);
+    console.error("[NewsAPI] Error fetching portfolio news:", error.message);
     res.status(500).json({ 
       status: "error", 
       message: "Failed to fetch portfolio news",
@@ -137,28 +154,13 @@ export const getNewsForPortfolio = async (req: Request, res: Response) => {
 // Helper function to fetch news for a single symbol
 async function getNewsForSymbol(symbol: string): Promise<any[]> {
   try {
-    const apiKey = process.env.SEEKING_ALPHA_API_KEY;
+    // Get client instance
+    const client = getClient();
     
-    if (!apiKey) {
-      throw new Error("API key not configured");
-    }
+    console.log(`[NewsHelper] Fetching news for symbol: ${symbol}`);
     
-    // Remove '.TO' suffix from Canadian stocks for Seeking Alpha API
-    const cleanSymbol = symbol.endsWith('.TO') ? symbol.replace('.TO', '') : symbol;
-    
-    console.log(`Fetching news for symbol: ${symbol}, using clean symbol: ${cleanSymbol}`);
-    
-    const response = await axios.get(`https://seeking-alpha.p.rapidapi.com/news/v2/list-by-symbol`, {
-      headers: {
-        "x-rapidapi-host": "seeking-alpha.p.rapidapi.com",
-        "x-rapidapi-key": apiKey
-      },
-      params: {
-        id: cleanSymbol,
-        size: 5,  // Limit to 5 news items per symbol
-        number: 1
-      }
-    });
+    // Use the rate-limited client
+    const response = await client.getNewsBySymbol(symbol, 5, 1);
     
     if (response.data && response.data.data) {
       return response.data.data.map((item: any) => ({
@@ -175,7 +177,7 @@ async function getNewsForSymbol(symbol: string): Promise<any[]> {
     return [];
     
   } catch (error) {
-    console.error(`Error fetching news for ${symbol}:`, error);
+    console.error(`[NewsHelper] Error fetching news for ${symbol}:`, error);
     return [];
   }
 }
