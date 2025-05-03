@@ -18,6 +18,7 @@ import earningsRoutes from './earnings';
 import marketIndicesRoutes from './market-indices';
 import diagnosticsRoutes from './diagnostics/diagnostics.routes';
 import { getNewsBySymbol, getNewsForPortfolio } from './news';
+import economicCalendarRoutes from './economic-calendar/economic-calendar.routes';
 
 const router = Router();
 
@@ -97,5 +98,8 @@ router.get('/test/historical-prices', (req, res) => {
 // News routes
 router.get('/news/symbol', getNewsBySymbol);
 router.get('/news/portfolio', getNewsForPortfolio);
+
+// Economic calendar routes
+router.use('/economic-calendar', economicCalendarRoutes);
 
 export default router;
