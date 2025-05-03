@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { format, parseISO } from 'date-fns';
-import { Calendar, ChevronLeft, ChevronRight, Download, Filter, Star } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Download, Filter, Star, FileDown } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
