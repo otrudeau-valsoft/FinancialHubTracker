@@ -763,7 +763,13 @@ export default function StockDetailsPage() {
                       />
                       <RechartTooltip
                         labelFormatter={(label) => `Date: ${label}`}
-                        formatter={(value: number) => [`${currencySymbol}${value.toFixed(2)}`, 'Price']}
+                        formatter={(value: number, name: string) => {
+                          // Format RSI values differently than price values
+                          if (name.startsWith('RSI')) {
+                            return [`${value.toFixed(1)}`, name];
+                          }
+                          return [`${currencySymbol}${value.toFixed(2)}`, 'Price'];
+                        }}
                         contentStyle={{ 
                           backgroundColor: '#0A1524', 
                           borderColor: '#1A304A',
@@ -771,7 +777,9 @@ export default function StockDetailsPage() {
                           fontSize: 12,
                           fontFamily: 'monospace'
                         }}
-                        itemStyle={{ color: '#38AAFD' }}
+                        itemStyle={(name) => ({
+                          color: name.startsWith('RSI') ? '#805AD5' : '#38AAFD'
+                        })}
                         labelStyle={{ color: '#7A8999', fontFamily: 'monospace' }}
                       />
                       <Area 
