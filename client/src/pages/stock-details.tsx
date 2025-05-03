@@ -182,6 +182,9 @@ const processHistoricalData = (data: any[] | null | undefined, timeRange: '1m' |
           open: 0,
           high: 0,
           low: 0,
+          rsi9: undefined,
+          rsi14: undefined,
+          rsi21: undefined,
           dateObj: now
         };
       }
@@ -195,6 +198,8 @@ const processHistoricalData = (data: any[] | null | undefined, timeRange: '1m' |
 export default function StockDetailsPage() {
   const queryClient = useQueryClient();
   const [timeRange, setTimeRange] = useState<'1m' | '3m' | '6m' | '1y' | '5y'>('3m');
+  const [showRSI, setShowRSI] = useState<boolean>(false);
+  const [rsiPeriod, setRsiPeriod] = useState<'9' | '14' | '21'>('14');
   
   // Get symbol from URL - route pattern is /stock/:symbol
   const [, params] = useRoute('/stock/:symbol');
@@ -666,28 +671,73 @@ export default function StockDetailsPage() {
                       <span className="text-[#38AAFD] ml-2">{symbol}</span>
                     </div>
                     
-                    {/* Time period selector */}
-                    <div className="flex items-center space-x-1">
-                      {(['1m', '3m', '6m', '1y', '5y'] as const).map((period) => (
-                        <button
-                          key={period}
-                          onClick={() => setTimeRange(period)}
-                          className={`px-2 py-1 text-xs font-mono rounded-sm ${
-                            timeRange === period 
-                              ? 'bg-[#0A7AFF] text-white' 
-                              : 'bg-[#0D1F32] text-[#7A8999] hover:bg-[#162639]'
-                          }`}
-                        >
-                          {period.toUpperCase()}
-                        </button>
-                      ))}
+                    {/* Time period and RSI selector */}
+                    <div className="flex items-center space-x-4">
+                      {/* Time period buttons */}
+                      <div className="flex items-center space-x-1">
+                        {(['1m', '3m', '6m', '1y', '5y'] as const).map((period) => (
+                          <button
+                            key={period}
+                            onClick={() => setTimeRange(period)}
+                            className={`px-2 py-1 text-xs font-mono rounded-sm ${
+                              timeRange === period 
+                                ? 'bg-[#0A7AFF] text-white' 
+                                : 'bg-[#0D1F32] text-[#7A8999] hover:bg-[#162639]'
+                            }`}
+                          >
+                            {period.toUpperCase()}
+                          </button>
+                        ))}
+                      </div>
+                      
+                      {/* RSI Controls */}
+                      <div className="flex items-center space-x-2">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                onClick={() => setShowRSI(!showRSI)}
+                                className={`flex items-center px-2 py-1 text-xs font-mono rounded-sm ${
+                                  showRSI
+                                    ? 'bg-[#805AD5] text-white' 
+                                    : 'bg-[#0D1F32] text-[#7A8999] hover:bg-[#162639]'
+                                }`}
+                              >
+                                <Activity className="h-3 w-3 mr-1" />
+                                RSI
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="text-xs">Show/Hide Relative Strength Index</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        
+                        {showRSI && (
+                          <div className="flex items-center space-x-1">
+                            {(['9', '14', '21'] as const).map((period) => (
+                              <button
+                                key={period}
+                                onClick={() => setRsiPeriod(period)}
+                                className={`px-2 py-1 text-xs font-mono rounded-sm ${
+                                  rsiPeriod === period 
+                                    ? 'bg-[#805AD5] text-white' 
+                                    : 'bg-[#0D1F32] text-[#7A8999] hover:bg-[#162639]'
+                                }`}
+                              >
+                                {period}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                   
                   <ResponsiveContainer width="100%" height="90%">
                     <AreaChart
                       data={processHistoricalData(historicalPrices, timeRange)}
-                      margin={{ top: 10, right: 10, left: 20, bottom: 20 }}
+                      margin={{ top: 10, right: 10, left: 20, bottom: showRSI ? 100 : 20 }}
                     >
                       <defs>
                         <linearGradient id="colorClose" x1="0" y1="0" x2="0" y2="1">
@@ -760,6 +810,56 @@ export default function StockDetailsPage() {
                             fontSize: 10
                           }}
                         />
+                      )}
+                      
+                      {/* RSI Display when enabled */}
+                      {showRSI && (
+                        <>
+                          <defs>
+                            <linearGradient id="rsiGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#805AD5" stopOpacity={0.6} />
+                              <stop offset="95%" stopColor="#805AD5" stopOpacity={0.1} />
+                            </linearGradient>
+                          </defs>
+                          
+                          {/* RSI Reference Lines for Overbought/Oversold */}
+                          <ReferenceLine 
+                            y={70} 
+                            stroke="#F44336" 
+                            strokeDasharray="3 3" 
+                            strokeWidth={1}
+                            label={{ 
+                              value: "Overbought (70)", 
+                              position: "insideLeft",
+                              fill: "#F44336",
+                              fontSize: 10
+                            }}
+                          />
+                          
+                          <ReferenceLine 
+                            y={30} 
+                            stroke="#4CAF50" 
+                            strokeDasharray="3 3" 
+                            strokeWidth={1}
+                            label={{ 
+                              value: "Oversold (30)", 
+                              position: "insideLeft",
+                              fill: "#4CAF50",
+                              fontSize: 10
+                            }}
+                          />
+                          
+                          {/* RSI Line based on selected period */}
+                          <Line
+                            type="monotone"
+                            dataKey={`rsi${rsiPeriod}`}
+                            stroke="#805AD5"
+                            strokeWidth={2}
+                            dot={false}
+                            activeDot={{ r: 4, stroke: '#805AD5', fill: '#FFFFFF' }}
+                            name={`RSI-${rsiPeriod}`}
+                          />
+                        </>
                       )}
                     </AreaChart>
                   </ResponsiveContainer>
