@@ -1006,7 +1006,7 @@ class HistoricalPriceService {
         });
         
         // Calculate MACD values using default parameters (12, 26, 9)
-        const { macd: macdLine, signal: signalLine, histogram } = calculateMACD(closingPrices);
+        const { macd: macdLine, signal: signalLine, histogram, fast: fastEMA, slow: slowEMA } = calculateMACD(closingPrices);
         
         // Prepare data for update
         const macdDataToUpdate: any[] = [];
@@ -1037,7 +1037,21 @@ class HistoricalPriceService {
             let macdValue = null;
             let signalValue = null;
             let histogramValue = null;
+            let fastValue = null;
+            let slowValue = null;
             let hasMacdValues = false;
+            
+            // For Fast EMA (12-period)
+            if (i < fastEMA.length && fastEMA[i] !== null) {
+              fastValue = fastEMA[i]?.toString();
+              hasMacdValues = true;
+            }
+            
+            // For Slow EMA (26-period)
+            if (i < slowEMA.length && slowEMA[i] !== null) {
+              slowValue = slowEMA[i]?.toString();
+              hasMacdValues = true;
+            }
             
             // For MACD line
             if (i < macdLine.length && macdLine[i] !== null) {
@@ -1059,7 +1073,7 @@ class HistoricalPriceService {
             
             // Log if this is the most recent price point and we're updating it
             if (i === sortedPrices.length - 1 && hasMacdValues) {
-              console.log(`Updating most recent price for ${symbol} from ${price.date} with MACD values: MACD=${macdValue}, Signal=${signalValue}, Histogram=${histogramValue}`);
+              console.log(`Updating most recent price for ${symbol} from ${price.date} with MACD values: MACD=${macdValue}, Signal=${signalValue}, Histogram=${histogramValue}, Fast=${fastValue}, Slow=${slowValue}`);
             }
             
             // If we have any MACD values, add to update list
@@ -1072,7 +1086,9 @@ class HistoricalPriceService {
                 macd: macdValue,
                 signal: signalValue,
                 histogram: histogramValue,
-                fastPeriod: 12,  // Default values
+                fast: fastValue,     // Add fast EMA (12-period)
+                slow: slowValue,     // Add slow EMA (26-period)
+                fastPeriod: 12,      // Default values
                 slowPeriod: 26, 
                 signalPeriod: 9
               });
@@ -1088,7 +1104,7 @@ class HistoricalPriceService {
           // Log a sample of the updated MACD data to verify values are set correctly
           if (results && results.length > 0) {
             const sample = results[results.length - 1]; // Most recent
-            console.log(`Updated MACD data for ${symbol} (${region}) on ${sample.date}: MACD=${sample.macd}, Signal=${sample.signal}, Histogram=${sample.histogram}`);
+            console.log(`Updated MACD data for ${symbol} (${region}) on ${sample.date}: MACD=${sample.macd}, Signal=${sample.signal}, Histogram=${sample.histogram}, Fast=${sample.fast}, Slow=${sample.slow}`);
             
             // Check if MACD values are still null
             if (!sample.macd || sample.macd === 'null') {
