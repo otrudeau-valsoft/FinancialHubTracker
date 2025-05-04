@@ -610,23 +610,24 @@ class HistoricalPriceService {
         }
       }
       
+      // Define more clearly how many recent days to ALWAYS refresh
+      const RECENT_DAYS_TO_REFRESH = 10; // Increase from 5 to 10 to ensure we capture more days
+      
       for (let i = 0; i < sortedPrices.length; i++) {
         // Use type assertion to avoid spread type error
         const price = Object.assign({}, sortedPrices[i]) as any;
         let needsUpdate = false;
         
-        // Always update the 5 most recent data points to ensure we're not lagging
-        const isVeryRecentPrice = i >= sortedPrices.length - 5;
+        // Mark a price point as "recent" if it's in the last RECENT_DAYS_TO_REFRESH days
+        const isRecentPrice = i >= sortedPrices.length - RECENT_DAYS_TO_REFRESH;
+        
+        // When forced refresh, explicitly mark more recent price points to ensure RSI is refreshed
+        const forceRefreshThisPrice = forceRsiRefresh && (isRecentPrice || (i >= sortedPrices.length - 20));
         
         // For RSI 9-day period
         if (i < rsiValues[9].length && rsiValues[9][i] !== null) {
-          // Force refresh recent data points if forceRsiRefresh is true
-          if (forceRsiRefresh && isVeryRecentPrice) {
-            price.rsi9 = rsiValues[9][i]?.toString();
-            needsUpdate = true;
-          }
-          // Otherwise, only update if missing or very recent
-          else if (isVeryRecentPrice || !price.rsi9) {
+          // If forcing refresh or if it's recent or missing, update it
+          if (forceRefreshThisPrice || isRecentPrice || !price.rsi9 || price.rsi9 === 'null') {
             price.rsi9 = rsiValues[9][i]?.toString();
             needsUpdate = true;
           }
@@ -634,13 +635,8 @@ class HistoricalPriceService {
         
         // For RSI 14-day period  
         if (i < rsiValues[14].length && rsiValues[14][i] !== null) {
-          // Force refresh recent data points if forceRsiRefresh is true
-          if (forceRsiRefresh && isVeryRecentPrice) {
-            price.rsi14 = rsiValues[14][i]?.toString();
-            needsUpdate = true;
-          }
-          // Otherwise, only update if missing or very recent
-          else if (isVeryRecentPrice || !price.rsi14) {
+          // If forcing refresh or if it's recent or missing, update it
+          if (forceRefreshThisPrice || isRecentPrice || !price.rsi14 || price.rsi14 === 'null') {
             price.rsi14 = rsiValues[14][i]?.toString();
             needsUpdate = true;
           }
@@ -648,16 +644,16 @@ class HistoricalPriceService {
         
         // For RSI 21-day period
         if (i < rsiValues[21].length && rsiValues[21][i] !== null) {
-          // Force refresh recent data points if forceRsiRefresh is true
-          if (forceRsiRefresh && isVeryRecentPrice) {
+          // If forcing refresh or if it's recent or missing, update it
+          if (forceRefreshThisPrice || isRecentPrice || !price.rsi21 || price.rsi21 === 'null') {
             price.rsi21 = rsiValues[21][i]?.toString();
             needsUpdate = true;
           }
-          // Otherwise, only update if missing or very recent
-          else if (isVeryRecentPrice || !price.rsi21) {
-            price.rsi21 = rsiValues[21][i]?.toString();
-            needsUpdate = true;
-          }
+        }
+        
+        // Log if this is the most recent price point and we're updating it
+        if (i === sortedPrices.length - 1 && needsUpdate) {
+          console.log(`Updating most recent price for ${symbol} from ${price.date} with RSI values: 9=${price.rsi9}, 14=${price.rsi14}, 21=${price.rsi21}`);
         }
         
         if (needsUpdate) {
@@ -674,6 +670,21 @@ class HistoricalPriceService {
         if (results.length > 0) {
           const sample = results[results.length - 1]; // Most recent price
           console.log(`Updated sample price for ${symbol} (${region}) on ${sample.date}: RSI9=${sample.rsi9}, RSI14=${sample.rsi14}, RSI21=${sample.rsi21}`);
+          
+          // Check if RSI values are still null
+          if (!sample.rsi14 || sample.rsi14 === 'null') {
+            console.warn(`WARNING: RSI values are still null for ${symbol} even after update. Will try again with direct SQL update.`);
+            
+            // Get the most recent RSI values from our calculation
+            const recentPrices = sortedPrices.slice(-10);
+            for (const recentPrice of recentPrices) {
+              const priceIndex = sortedPrices.findIndex(p => p.id === recentPrice.id);
+              if (priceIndex !== -1 && priceIndex < rsiValues[14].length && rsiValues[14][priceIndex] !== null) {
+                // Print detailed debug for this specific price point
+                console.log(`Price ID ${recentPrice.id} from ${recentPrice.date} has calculated RSI14=${rsiValues[14][priceIndex]}`);
+              }
+            }
+          }
         }
         
         return results;
