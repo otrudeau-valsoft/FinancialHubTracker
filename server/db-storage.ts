@@ -888,7 +888,9 @@ export class DatabaseStorage {
               VALUES 
                 (${item.symbol}, ${item.date}, ${item.open}, ${item.high}, ${item.low}, 
                  ${item.close}, ${item.volume}, ${item.adjustedClose}, ${item.region}, 
-                 ${item.rsi9 || null}, ${item.rsi14 || null}, ${item.rsi21 || null})
+                 ${item.rsi9 === 'null' ? null : item.rsi9 || null}, 
+                 ${item.rsi14 === 'null' ? null : item.rsi14 || null}, 
+                 ${item.rsi21 === 'null' ? null : item.rsi21 || null})
               ON CONFLICT (symbol, date, region) DO UPDATE SET
                 open = EXCLUDED.open,
                 high = EXCLUDED.high,
