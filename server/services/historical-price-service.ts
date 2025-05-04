@@ -519,8 +519,9 @@ class HistoricalPriceService {
   
   /**
    * Update historical prices for market indices
+   * @param forceRsiRefresh If true, forces updating RSI for recent price points
    */
-  async updateIndicesHistoricalPrices() {
+  async updateIndicesHistoricalPrices(forceRsiRefresh: boolean = false) {
     try {
       // Get historical data for market indices
       const indices = [
@@ -549,12 +550,26 @@ class HistoricalPriceService {
           
           // Only fetch if there's potentially new data
           if (startDate < new Date()) {
-            console.log(`Fetching historical prices for index ${index.symbol} from ${startDate.toISOString().split('T')[0]}`);
-            const result = await this.fetchAndStoreHistoricalPrices(index.symbol, index.region, startDate);
-            results.push({ symbol: index.symbol, success: true, result });
+            console.log(`Fetching historical prices for index ${index.symbol} from ${startDate.toISOString().split('T')[0]} with forceRsiRefresh=${forceRsiRefresh}`);
+            const result = await this.fetchAndStoreHistoricalPrices(
+              index.symbol, 
+              index.region, 
+              startDate, 
+              undefined, // endDate - use default current date
+              forceRsiRefresh
+            );
+            results.push({ symbol: index.symbol, success: true, result, rsiCalculated: forceRsiRefresh });
           } else {
-            console.log(`Historical prices for index ${index.symbol} are already up to date`);
-            results.push({ symbol: index.symbol, success: true, result: [] });
+            console.log(`Historical prices for index ${index.symbol} are already up to date, checking if RSI needs refresh`);
+            
+            // Even if no new data to fetch, we can still refresh RSI values for existing data
+            if (forceRsiRefresh) {
+              console.log(`Forcing RSI refresh for index ${index.symbol} even though prices are up to date`);
+              const result = await this.calculateAndUpdateRSIForSymbol(index.symbol, index.region, forceRsiRefresh);
+              results.push({ symbol: index.symbol, success: true, result, rsiCalculated: true });
+            } else {
+              results.push({ symbol: index.symbol, success: true, result: [], rsiCalculated: false });
+            }
           }
           
           // Add a pause between indices
@@ -760,8 +775,8 @@ class HistoricalPriceService {
       
       // First update market indices
       try {
-        console.log('Updating historical prices for market indices');
-        const indicesResults = await this.updateIndicesHistoricalPrices();
+        console.log(`Updating historical prices for market indices with forceRsiRefresh=${forceRsiRefresh}`);
+        const indicesResults = await this.updateIndicesHistoricalPrices(forceRsiRefresh);
         allResults = [...allResults, ...indicesResults];
         
         // Calculate and update RSI for market indices
@@ -797,8 +812,8 @@ class HistoricalPriceService {
       for (const region of regions) {
         try {
           // First fetch new historical prices
-          console.log(`Updating historical prices for ${region} portfolio`);
-          const regionResults = await this.updatePortfolioHistoricalPrices(region);
+          console.log(`Updating historical prices for ${region} portfolio with forceRsiRefresh=${forceRsiRefresh}`);
+          const regionResults = await this.updatePortfolioHistoricalPrices(region, forceRsiRefresh);
           allResults = [...allResults, ...regionResults];
           
           // Then get all symbols in this portfolio
