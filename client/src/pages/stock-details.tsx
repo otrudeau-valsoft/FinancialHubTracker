@@ -734,10 +734,12 @@ export default function StockDetailsPage() {
                     </div>
                   </div>
                   
-                  <ResponsiveContainer width="100%" height="90%">
+                  {/* Main price chart */}
+                  <ResponsiveContainer width="100%" height={showRSI ? "70%" : "90%"}>
                     <AreaChart
                       data={processHistoricalData(historicalPrices, timeRange)}
-                      margin={{ top: 10, right: 10, left: 20, bottom: showRSI ? 100 : 20 }}
+                      margin={{ top: 10, right: 10, left: 20, bottom: 20 }}
+                      syncId="stockChart" // Synchronize with RSI chart
                     >
                       <defs>
                         <linearGradient id="colorClose" x1="0" y1="0" x2="0" y2="1">
@@ -753,6 +755,7 @@ export default function StockDetailsPage() {
                         tickMargin={10}
                         stroke="#1A304A"
                         minTickGap={30}
+                        hide={showRSI} // Hide X-axis labels on main chart when RSI is shown
                       />
                       <YAxis 
                         domain={['dataMin', 'dataMax']}
@@ -763,13 +766,7 @@ export default function StockDetailsPage() {
                       />
                       <RechartTooltip
                         labelFormatter={(label) => `Date: ${label}`}
-                        formatter={(value: number, name: string) => {
-                          // Format RSI values differently than price values
-                          if (name.startsWith('RSI')) {
-                            return [`${value.toFixed(1)}`, name];
-                          }
-                          return [`${currencySymbol}${value.toFixed(2)}`, 'Price'];
-                        }}
+                        formatter={(value: number) => [`${currencySymbol}${value.toFixed(2)}`, 'Price']}
                         contentStyle={{ 
                           backgroundColor: '#0A1524', 
                           borderColor: '#1A304A',
@@ -817,37 +814,66 @@ export default function StockDetailsPage() {
                           }}
                         />
                       )}
-                      
-                      {/* RSI Display when enabled */}
-                      {showRSI && (
-                        <>
-                          <defs>
-                            <linearGradient id="rsiGradient" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#805AD5" stopOpacity={0.6} />
-                              <stop offset="95%" stopColor="#805AD5" stopOpacity={0.1} />
-                            </linearGradient>
-                          </defs>
-                          
-                          {/* RSI-specific Y-axis scaled from 0-100 */}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                  
+                  {/* RSI chart - separate chart below main price chart */}
+                  {showRSI && (
+                    <div className="w-full mt-0 border-t border-[#1A304A]">
+                      <div className="flex items-center justify-between p-1 bg-[#061220] text-[#805AD5]">
+                        <div className="text-xs font-mono flex items-center">
+                          <span className="mr-1">RSI</span>
+                          <span className="font-bold">{rsiPeriod}</span>
+                        </div>
+                      </div>
+                      <ResponsiveContainer width="100%" height={120}>
+                        <LineChart
+                          data={processHistoricalData(historicalPrices, timeRange)}
+                          margin={{ top: 10, right: 10, left: 20, bottom: 5 }}
+                          syncId="stockChart" // Synchronize with main chart
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="#1A304A" vertical={false} />
+                          <XAxis 
+                            dataKey="formattedDate" 
+                            tick={{ fontSize: 10, fill: '#7A8999' }}
+                            interval="preserveStartEnd"
+                            tickMargin={5}
+                            stroke="#1A304A"
+                            minTickGap={30}
+                          />
                           <YAxis 
-                            yAxisId="rsi"
-                            orientation="right"
                             domain={[0, 100]}
                             tick={{ fontSize: 10, fill: '#805AD5' }}
                             tickFormatter={(val) => `${val}`}
                             width={30}
                             stroke="#1A304A"
                           />
+                          <RechartTooltip
+                            labelFormatter={(label) => `Date: ${label}`}
+                            formatter={(value: number) => [`${value.toFixed(1)}`, `RSI-${rsiPeriod}`]}
+                            contentStyle={{ 
+                              backgroundColor: '#0A1524', 
+                              borderColor: '#1A304A',
+                              color: '#EFEFEF',
+                              fontSize: 12,
+                              fontFamily: 'monospace'
+                            }}
+                            itemStyle={{ color: '#805AD5' }}
+                            labelStyle={{ color: '#7A8999', fontFamily: 'monospace' }}
+                          />
+                          
+                          {/* Background fill for overbought/oversold regions */}
+                          <rect x="0" y="0" width="100%" height="30%" fill="#4CAF5015" /> {/* Oversold region */}
+                          <rect x="0" y="70%" width="100%" height="30%" fill="#F4433615" /> {/* Overbought region */}
                           
                           {/* RSI Reference Lines for Overbought/Oversold */}
                           <ReferenceLine 
                             y={70} 
-                            yAxisId="rsi"
                             stroke="#F44336" 
                             strokeDasharray="3 3" 
                             strokeWidth={1}
                             label={{ 
-                              value: "Overbought (70)", 
+                              value: "70", 
                               position: "insideLeft",
                               fill: "#F44336",
                               fontSize: 10
@@ -856,21 +882,19 @@ export default function StockDetailsPage() {
                           
                           <ReferenceLine 
                             y={30} 
-                            yAxisId="rsi"
                             stroke="#4CAF50" 
                             strokeDasharray="3 3" 
                             strokeWidth={1}
                             label={{ 
-                              value: "Oversold (30)", 
+                              value: "30", 
                               position: "insideLeft",
                               fill: "#4CAF50",
                               fontSize: 10
                             }}
                           />
                           
-                          {/* RSI Line based on selected period */}
+                          {/* RSI Line */}
                           <Line
-                            yAxisId="rsi"
                             type="monotone"
                             dataKey={`rsi${rsiPeriod}`}
                             stroke="#805AD5"
@@ -878,11 +902,12 @@ export default function StockDetailsPage() {
                             dot={false}
                             activeDot={{ r: 4, stroke: '#805AD5', fill: '#FFFFFF' }}
                             name={`RSI-${rsiPeriod}`}
+                            connectNulls
                           />
-                        </>
-                      )}
-                    </AreaChart>
-                  </ResponsiveContainer>
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
