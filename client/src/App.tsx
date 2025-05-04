@@ -13,6 +13,7 @@ import EtfHoldings from "@/pages/etf-holdings";
 import DataManagement from "@/pages/data-management";
 import EarningsPage from "@/pages/earnings-page";
 import StockDetails from "@/pages/stock-details";
+import StockDirectory from "@/pages/stock-directory";
 import NewsPage from "@/pages/news";
 import EconomicCalendarPage from "@/pages/economic-calendar";
 import DiagnosticsPage from "@/pages/diagnostics";
@@ -37,7 +38,8 @@ function Router() {
             <Route path="/news" component={NewsPage} />
             <Route path="/economic-calendar" component={EconomicCalendarPage} />
             <Route path="/diagnostics" component={DiagnosticsPage} />
-            <Route path="/stock/:symbol" component={StockDetails} />
+            <Route path="/stock-directory" component={StockDirectory} />
+            <Route path="/stock-details/:symbol/:region" component={StockDetails} />
             <Route component={NotFound} />
           </Switch>
         </main>

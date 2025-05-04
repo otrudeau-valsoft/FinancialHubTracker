@@ -202,18 +202,18 @@ export default function StockDetailsPage() {
   const [showRSI, setShowRSI] = useState<boolean>(true); // Default to showing RSI
   const [rsiPeriod, setRsiPeriod] = useState<'9' | '14' | '21'>('21'); // Default to 21-period RSI
   
-  // Get symbol from URL - route pattern is /stock/:symbol
-  const [, params] = useRoute('/stock/:symbol');
+  // Get symbol and region from URL - route pattern is /stock-details/:symbol/:region
+  const [, params] = useRoute('/stock-details/:symbol/:region');
   const [, setLocation] = useLocation();
   
-  // Get region from query params (default to USD)
-  const urlParams = new URLSearchParams(window.location.search);
-  const regionParam = urlParams.get('region');
-  const region = (regionParam && ['USD', 'CAD', 'INTL'].includes(regionParam)) 
-    ? regionParam as 'USD' | 'CAD' | 'INTL' 
+  // Get region from URL params (default to USD)
+  const regionParam = params?.region || 'USD';
+  const region = (regionParam && ['USD', 'CAD', 'INTL'].includes(regionParam.toUpperCase())) 
+    ? regionParam.toUpperCase() as 'USD' | 'CAD' | 'INTL' 
     : 'USD';
     
   // Get the tab from query params (default to overview)
+  const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
   const defaultTab = tabParam || 'overview';
   
