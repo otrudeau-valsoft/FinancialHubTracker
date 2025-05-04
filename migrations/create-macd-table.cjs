@@ -8,12 +8,22 @@
 async function runMigration() {
   console.log('Starting migration: Create MACD table');
   
-  // Use the imported client
-  const { pool } = require('../server/db.js');
+  // Connect directly to database using environment variable
+  const { Client } = require('pg');
+  
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL environment variable is not set');
+  }
+  
+  const client = new Client({
+    connectionString: process.env.DATABASE_URL,
+  });
+  
+  await client.connect();
   
   try {
     // Create the MACD data table
-    await pool.query(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS macd_data (
         id SERIAL PRIMARY KEY,
         historical_price_id INTEGER NOT NULL REFERENCES historical_prices(id),
@@ -39,7 +49,7 @@ async function runMigration() {
     `);
     
     // Create an index on symbol, date, and region for faster lookups
-    await pool.query(`
+    await client.query(`
       CREATE UNIQUE INDEX IF NOT EXISTS macd_data_symbol_date_region_key
       ON macd_data (symbol, date, region);
     `);
@@ -49,6 +59,9 @@ async function runMigration() {
   } catch (error) {
     console.error('Error creating MACD data table:', error);
     throw error;
+  } finally {
+    // Close the client connection
+    await client.end();
   }
 }
 
