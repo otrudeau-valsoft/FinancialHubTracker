@@ -652,7 +652,7 @@ class HistoricalPriceService {
       const recentPricesNeedingRefresh: any[] = [];
       
       // Define how many recent days to ALWAYS refresh
-      const RECENT_DAYS_TO_REFRESH = 5; // Fewer days for better performance
+      const RECENT_DAYS_TO_REFRESH = 10; // Increased to ensure recent data has RSI values
       
       // Find the most recent date to check if we have today's data
       let hasRecentData = false;
@@ -665,10 +665,12 @@ class HistoricalPriceService {
         const diffDays = Math.floor((today.getTime() - latestDate.getTime()) / (1000 * 60 * 60 * 24));
         hasRecentData = diffDays <= 3; // Consider data as recent if it's within the last 3 days
         
+        console.log(`Latest price for ${symbol} is from ${latestDate.toISOString().split('T')[0]}, which is ${diffDays} days ago ${hasRecentData ? '' : '- data may be stale'}`);
+        
+        // Force refresh for the most recent data to ensure we have RSI values
         if (hasRecentData) {
-          console.log(`Latest price for ${symbol} is from ${latestDate.toISOString().split('T')[0]}, which is ${diffDays} days ago`);
-        } else {
-          console.log(`Latest price for ${symbol} is from ${latestDate.toISOString().split('T')[0]}, which is ${diffDays} days ago - data may be stale`);
+          forceRsiRefresh = true;
+          console.log(`Forcing RSI refresh for recent data of ${symbol}`);
         }
       }
       
