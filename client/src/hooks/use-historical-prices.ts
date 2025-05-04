@@ -14,6 +14,9 @@ export interface HistoricalPrice {
   rsi9?: string;
   rsi14?: string;
   rsi21?: string;
+  macd?: string;
+  signal?: string;
+  histogram?: string;
 }
 
 /**
@@ -135,6 +138,9 @@ export const processHistoricalData = (
           rsi9: p.rsi9 ? parseFloat(p.rsi9) : undefined,
           rsi14: p.rsi14 ? parseFloat(p.rsi14) : undefined,
           rsi21: p.rsi21 ? parseFloat(p.rsi21) : undefined,
+          macd: p.macd ? parseFloat(p.macd) : undefined,
+          signal: p.signal ? parseFloat(p.signal) : undefined,
+          histogram: p.histogram ? parseFloat(p.histogram) : undefined,
           dateObj: date
         };
       } catch (error) {
