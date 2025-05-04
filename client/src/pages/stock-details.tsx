@@ -482,39 +482,8 @@ export default function StockDetailsPage() {
     refetchInterval: 30000 // Refetch every 30 seconds
   });
   
-  // Fetch historical price data for chart
-  const { data: historicalPrices, isLoading: isLoadingHistorical } = useQuery({
-    queryKey: [`/api/historical-prices/${symbol}/${region}`],
-    queryFn: async () => {
-      // Try the main path first
-      try {
-        const response = await fetch(`/api/historical-prices/${symbol}/${region}`);
-        
-        if (!response.ok) {
-          throw new Error('Failed with main path');
-        }
-        
-        return response.json();
-      } catch (error) {
-        console.log('Trying alternative historical prices path...');
-        // Try alternative path if the first one fails
-        try {
-          const response = await fetch(`/api/portfolios/${region}/stocks/${symbol}/historical`);
-          
-          if (!response.ok) {
-            throw new Error('Failed to fetch historical price data');
-          }
-          
-          return response.json();
-        } catch (secondError) {
-          console.error('Both historical price paths failed:', secondError);
-          throw secondError;
-        }
-      }
-    },
-    enabled: !!symbol, // Always fetch historical prices
-    staleTime: 3600000 // 1 hour
-  });
+  // Fetch historical price data for chart - use the hook for consistency
+  const { data: historicalPrices, isLoading: isLoadingHistorical } = useHistoricalPrices(symbol, region);
   
   // Fetch earnings data
   const { data: earningsData } = useQuery({
@@ -564,9 +533,9 @@ export default function StockDetailsPage() {
           console.log('Historical prices and RSI updated successfully');
           
           // Refetch the historical price data to get the updated RSI values
-          await queryClient.refetchQueries({
-            queryKey: [`/api/historical-prices/${symbol}/${region}`],
-            exact: true
+          // Use the correct query key format and invalidate instead of refetch
+          await queryClient.invalidateQueries({
+            queryKey: ['historicalPrices', symbol, region]
           });
           
           toast({
