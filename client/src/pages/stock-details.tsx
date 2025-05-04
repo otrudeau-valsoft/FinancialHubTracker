@@ -1243,17 +1243,29 @@ export default function StockDetailsPage() {
                   // More explicit check for the presence of MACD data
                   let hasMacdData = false;
                   if (historicalPrices && historicalPrices.length > 0) {
-                    for (let i = 0; i < historicalPrices.length; i++) {
-                      const price = historicalPrices[i];
+                    // Get processed data which is what the chart actually uses
+                    const processedData = processHistoricalData(historicalPrices, timeRange);
+                    
+                    // Check if any processed data point has MACD values
+                    for (let i = 0; i < processedData.length; i++) {
+                      const price = processedData[i];
                       if (
-                        price.macd !== null && price.macd !== undefined &&
-                        price.signal !== null && price.signal !== undefined &&
-                        price.histogram !== null && price.histogram !== undefined
+                        price.macd !== undefined &&
+                        price.signal !== undefined &&
+                        price.histogram !== undefined
                       ) {
                         hasMacdData = true;
                         break;
                       }
                     }
+                    
+                    // Add additional debugging
+                    console.log("MACD Chart Data Check:", {
+                      rawDataLength: historicalPrices.length,
+                      processedDataLength: processedData.length,
+                      hasMacdData,
+                      sampleProcessedPoint: processedData[processedData.length - 1]
+                    });
                   }
                   
                   return hasMacdData;
@@ -1311,13 +1323,13 @@ export default function StockDetailsPage() {
                           }}
                         />
                         
-                        {/* MACD Histogram */}
+                        {/* MACD Histogram with dynamic coloring */}
                         <Bar
                           dataKey="histogram"
-                          fill="#38AAFD"
-                          stroke="#38AAFD"
                           name="Histogram"
                           barSize={3}
+                          fill={(data) => data.histogram >= 0 ? "#4CAF50" : "#FF3D00"}
+                          stroke={(data) => data.histogram >= 0 ? "#4CAF50" : "#FF3D00"}
                         />
                         
                         {/* MACD Line */}
