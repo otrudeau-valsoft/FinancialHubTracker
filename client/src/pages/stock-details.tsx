@@ -335,57 +335,77 @@ function StockDirectorySelector({ currentRegion }: { currentRegion: string }) {
       </div>
       
       <div className="relative">
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={open}
-              className="w-full justify-between font-mono rounded-sm bg-[#0B1728] text-[#EFEFEF] text-xs border-[#1A304A] hover:bg-[#162639]"
-            >
-              {searchValue || "Search for a stock..."}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-full p-0 bg-[#0B1728] border-[#1A304A]">
-            <Command className="bg-transparent">
-              <CommandInput 
-                placeholder="Search by symbol or company name..." 
-                className="h-9 text-[#EFEFEF] bg-[#0B1728]"
-                value={searchValue}
-                onValueChange={setSearchValue}
-              />
-              <CommandList className="max-h-[300px] overflow-auto">
-                <CommandEmpty className="py-6 text-center text-sm text-[#7A8999]">
-                  No stocks found.
-                </CommandEmpty>
-                <CommandGroup heading={`${selectedRegion} Stocks`}>
-                  {stockOptions.map((stock) => (
-                    <CommandItem
-                      key={stock.symbol}
-                      value={`${stock.symbol}-${stock.company}`}
-                      onSelect={() => handleStockSelected(stock)}
-                      className="cursor-pointer text-[#EFEFEF] hover:bg-[#162639]"
-                    >
-                      <div className="flex flex-col w-full">
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono font-medium">{stock.symbol}</span>
-                          {stock.stockType && (
-                            <span className={`inline-block font-mono px-2 py-0.5 rounded-sm text-[10px] font-medium ${getStockTypeBackground(stock.stockType)}`}>
-                              {stock.stockType}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-sm text-[#7A8999]">{stock.company}</span>
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+        <div className="flex flex-col">
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+            <Input
+              placeholder="Search for a stock..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              onFocus={() => setOpen(true)}
+              className="pl-8 bg-[#0B1728] border-[#1A304A] text-[#EFEFEF] text-xs font-mono placeholder-gray-500 w-full"
+            />
+          </div>
+          
+          {open && (
+            <div className="absolute top-full left-0 w-full z-50 mt-1 bg-[#0B1728] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden">
+              <div className="max-h-[300px] overflow-y-auto py-1">
+                {searchValue && stockOptions.filter(stock => 
+                  stock.symbol.toLowerCase().includes(searchValue.toLowerCase()) || 
+                  stock.company.toLowerCase().includes(searchValue.toLowerCase())
+                ).length === 0 ? (
+                  <div className="py-6 text-center text-sm text-[#7A8999]">
+                    No stocks found.
+                  </div>
+                ) : (
+                  <div>
+                    <div className="px-2 py-1.5 text-xs text-[#7A8999] font-mono font-semibold border-b border-[#1A304A]">
+                      {selectedRegion} STOCKS
+                    </div>
+                    <div>
+                      {stockOptions
+                        .filter(stock => 
+                          searchValue ? (
+                            stock.symbol.toLowerCase().includes(searchValue.toLowerCase()) || 
+                            stock.company.toLowerCase().includes(searchValue.toLowerCase())
+                          ) : true
+                        )
+                        .map((stock) => (
+                          <div
+                            key={stock.symbol}
+                            onClick={() => handleStockSelected(stock)}
+                            className="px-2 py-2 hover:bg-[#162639] cursor-pointer border-b border-[#1A304A]/30"
+                          >
+                            <div className="flex flex-col w-full">
+                              <div className="flex items-center justify-between">
+                                <span className="font-mono font-medium text-[#EFEFEF]">{stock.symbol}</span>
+                                {stock.stockType && (
+                                  <span className={`inline-block font-mono px-2 py-0.5 rounded-sm text-[10px] font-medium ${getStockTypeBackground(stock.stockType)}`}>
+                                    {stock.stockType}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-sm text-[#7A8999]">{stock.company}</span>
+                            </div>
+                          </div>
+                        ))
+                      }
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+      
+      {/* Add click outside handler to close dropdown */}
+      {open && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setOpen(false)}
+        />
+      )}
     </div>
   );
 }
