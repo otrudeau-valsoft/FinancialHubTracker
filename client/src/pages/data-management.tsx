@@ -26,7 +26,9 @@ import {
   FileBarChart,
   LineChart,
   Info as InfoIcon,
-  Trash2
+  Trash2,
+  Activity,
+  TrendingUp
 } from 'lucide-react';
 import CashManagementPanel from '@/components/dashboard/cash-management-panel';
 import { useToast } from '@/hooks/use-toast';
@@ -286,6 +288,7 @@ export default function DataManagement() {
     mutationFn: (region: string) => 
       apiRequest('POST', `/api/historical-prices/fetch/portfolio/${region}`, {
         forceRsiRefresh: true, // Force RSI refresh to ensure values are saved to database
+        forceMacdRefresh: true, // Force MACD refresh to ensure values are saved to database
         includeRSI: true // Additional explicit parameter to include RSI calculation
       }),
     onSuccess: (data, region) => {
