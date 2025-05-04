@@ -848,8 +848,8 @@ export class DatabaseStorage {
       // Using raw SQL with drizzle for upsert operation
       // This will update records if they already exist or insert if they don't
       const query = `
-        INSERT INTO historical_prices (symbol, date, open, high, low, close, volume, adjusted_close, region)
-        VALUES ${processedData.map((_, i) => `($${i * 8 + 1}, $${i * 8 + 2}, $${i * 8 + 3}, $${i * 8 + 4}, $${i * 8 + 5}, $${i * 8 + 6}, $${i * 8 + 7}, $${i * 8 + 8}, $${i * 8 + 9})`).join(', ')}
+        INSERT INTO historical_prices (symbol, date, open, high, low, close, volume, adjusted_close, region, rsi_9, rsi_14, rsi_21)
+        VALUES ${processedData.map((_, i) => `($${i * 12 + 1}, $${i * 12 + 2}, $${i * 12 + 3}, $${i * 12 + 4}, $${i * 12 + 5}, $${i * 12 + 6}, $${i * 12 + 7}, $${i * 12 + 8}, $${i * 12 + 9}, $${i * 12 + 10}, $${i * 12 + 11}, $${i * 12 + 12})`).join(', ')}
         ON CONFLICT (symbol, date, region) DO UPDATE SET
           open = EXCLUDED.open,
           high = EXCLUDED.high,
@@ -857,6 +857,9 @@ export class DatabaseStorage {
           close = EXCLUDED.close,
           volume = EXCLUDED.volume,
           adjusted_close = EXCLUDED.adjusted_close,
+          rsi_9 = EXCLUDED.rsi_9,
+          rsi_14 = EXCLUDED.rsi_14,
+          rsi_21 = EXCLUDED.rsi_21,
           updated_at = NOW()
         RETURNING *;
       `;
@@ -871,7 +874,10 @@ export class DatabaseStorage {
         item.close, 
         item.volume, 
         item.adjustedClose, 
-        item.region
+        item.region,
+        item.rsi9 || null,
+        item.rsi14 || null,
+        item.rsi21 || null
       ]);
       
       // Execute the query
