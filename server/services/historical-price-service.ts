@@ -306,6 +306,10 @@ class HistoricalPriceService {
       console.log(`Calculating RSI values for ${symbol} (${region})`);
       const rsiValues = calculateMultipleRSI(closingPrices, [9, 14, 21]);
       
+      // Prepare arrays to store both new and updated prices
+      const newPrices = [...sanitizedData];
+      const updatedExistingPrices: any[] = [];
+      
       // Enrich the sanitized data with RSI values
       // We need to map the calculated RSI values to the appropriate entries in sanitizedData
       for (let i = 0; i < sanitizedData.length; i++) {
@@ -313,20 +317,61 @@ class HistoricalPriceService {
         
         // Only assign RSI if it was calculated (it might be null for the first few entries)
         if (newDataIndex < rsiValues[9].length && rsiValues[9][newDataIndex] !== null) {
-          sanitizedData[i].rsi9 = rsiValues[9][newDataIndex]?.toString();
+          newPrices[i].rsi9 = rsiValues[9][newDataIndex]?.toString();
         }
         
         if (newDataIndex < rsiValues[14].length && rsiValues[14][newDataIndex] !== null) {
-          sanitizedData[i].rsi14 = rsiValues[14][newDataIndex]?.toString();
+          newPrices[i].rsi14 = rsiValues[14][newDataIndex]?.toString();
         }
         
         if (newDataIndex < rsiValues[21].length && rsiValues[21][newDataIndex] !== null) {
-          sanitizedData[i].rsi21 = rsiValues[21][newDataIndex]?.toString();
+          newPrices[i].rsi21 = rsiValues[21][newDataIndex]?.toString();
         }
       }
       
-      // Store historical prices with upsert pattern to avoid duplicates
-      const results = await storage.bulkCreateHistoricalPrices(sanitizedData);
+      // Update existing prices with RSI values
+      for (let i = 0; i < existingPrices.length; i++) {
+        const existingPrice = {...existingPrices[i]};
+        
+        // Only update existing prices if their RSI values are missing
+        if (!existingPrice.rsi9 || !existingPrice.rsi14 || !existingPrice.rsi21) {
+          // Only assign RSI if it was calculated
+          if (i < rsiValues[9].length && rsiValues[9][i] !== null) {
+            existingPrice.rsi9 = rsiValues[9][i]?.toString();
+          }
+          
+          if (i < rsiValues[14].length && rsiValues[14][i] !== null) {
+            existingPrice.rsi14 = rsiValues[14][i]?.toString();
+          }
+          
+          if (i < rsiValues[21].length && rsiValues[21][i] !== null) {
+            existingPrice.rsi21 = rsiValues[21][i]?.toString();
+          }
+          
+          // Only add to update list if any RSI values were assigned
+          if (existingPrice.rsi9 || existingPrice.rsi14 || existingPrice.rsi21) {
+            updatedExistingPrices.push(existingPrice);
+          }
+        }
+      }
+      
+      // Log counts for visibility
+      console.log(`Processing ${newPrices.length} new prices and updating RSI for ${updatedExistingPrices.length} existing prices`);
+      
+      // Store both new and updated prices
+      let results = [];
+      
+      // Store new historical prices with upsert pattern to avoid duplicates
+      if (newPrices.length > 0) {
+        const newResults = await storage.bulkCreateHistoricalPrices(newPrices);
+        results = [...results, ...newResults];
+      }
+      
+      // Update RSI values for existing prices that need it
+      if (updatedExistingPrices.length > 0) {
+        const updatedResults = await storage.bulkCreateHistoricalPrices(updatedExistingPrices);
+        results = [...results, ...updatedResults];
+      }
       
       console.log(`Stored ${results.length} historical prices with RSI data for ${symbol} (${region})`);
       
@@ -504,6 +549,82 @@ class HistoricalPriceService {
   private isUpdatingAllHistoricalPrices = false;
 
   /**
+   * Calculate and update RSI values for all existing historical prices for a symbol
+   */
+  async calculateAndUpdateRSIForSymbol(symbol: string, region: string) {
+    try {
+      console.log(`Calculating and updating RSI values for ${symbol} (${region})`);
+      
+      // Get all historical prices for this symbol
+      const historicalPrices = await this.getHistoricalPrices(symbol, region);
+      
+      if (!historicalPrices || historicalPrices.length === 0) {
+        console.log(`No historical prices found for ${symbol} (${region})`);
+        return [];
+      }
+      
+      // Sort by date (oldest to newest)
+      const sortedPrices = [...historicalPrices].sort((a: any, b: any) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateA.getTime() - dateB.getTime();
+      });
+      
+      // Extract closing prices for RSI calculation
+      const closingPrices = sortedPrices.map((price: any) => {
+        const priceValue = price.adjustedClose || price.close;
+        return priceValue ? parseFloat(priceValue) : 0;
+      });
+      
+      // Calculate RSI values
+      console.log(`Calculating RSI for ${sortedPrices.length} prices for ${symbol} (${region})`);
+      const rsiValues = calculateMultipleRSI(closingPrices, [9, 14, 21]);
+      
+      // Identify prices with missing RSI values and update them
+      const pricesToUpdate: any[] = [];
+      
+      for (let i = 0; i < sortedPrices.length; i++) {
+        // Use type assertion to avoid spread type error
+        const price = Object.assign({}, sortedPrices[i]) as any;
+        let needsUpdate = false;
+        
+        // Check if any RSI value is missing
+        if (!price.rsi9 && i < rsiValues[9].length && rsiValues[9][i] !== null) {
+          price.rsi9 = rsiValues[9][i]?.toString();
+          needsUpdate = true;
+        }
+        
+        if (!price.rsi14 && i < rsiValues[14].length && rsiValues[14][i] !== null) {
+          price.rsi14 = rsiValues[14][i]?.toString();
+          needsUpdate = true;
+        }
+        
+        if (!price.rsi21 && i < rsiValues[21].length && rsiValues[21][i] !== null) {
+          price.rsi21 = rsiValues[21][i]?.toString();
+          needsUpdate = true;
+        }
+        
+        if (needsUpdate) {
+          pricesToUpdate.push(price);
+        }
+      }
+      
+      // Update the database with the new RSI values
+      if (pricesToUpdate.length > 0) {
+        console.log(`Updating ${pricesToUpdate.length} historical prices with RSI values for ${symbol} (${region})`);
+        const results = await storage.bulkCreateHistoricalPrices(pricesToUpdate);
+        return results;
+      } else {
+        console.log(`No historical prices need RSI updates for ${symbol} (${region})`);
+        return [];
+      }
+    } catch (error) {
+      console.error(`Error calculating and updating RSI for ${symbol} (${region}):`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Update historical prices for all portfolios with batch processing
    * Uses a mutex pattern to prevent duplicate concurrent executions
    */
@@ -533,6 +654,23 @@ class HistoricalPriceService {
         const indicesResults = await this.updateIndicesHistoricalPrices();
         allResults = [...allResults, ...indicesResults];
         
+        // Calculate and update RSI for market indices
+        console.log('Calculating and updating RSI for market indices');
+        const indices = [
+          { symbol: 'SPY', region: 'USD' },
+          { symbol: 'XIC.TO', region: 'CAD' },
+          { symbol: 'ACWX', region: 'INTL' }
+        ];
+        
+        for (const index of indices) {
+          try {
+            console.log(`Calculating RSI for index ${index.symbol}`);
+            await this.calculateAndUpdateRSIForSymbol(index.symbol, index.region);
+          } catch (rsiError) {
+            console.error(`Error calculating RSI for index ${index.symbol}:`, rsiError);
+          }
+        }
+        
         // Add a pause after updating indices
         console.log(`Pausing for 2 seconds after updating indices...`);
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -548,9 +686,51 @@ class HistoricalPriceService {
       // Then update portfolio stocks
       for (const region of regions) {
         try {
+          // First fetch new historical prices
           console.log(`Updating historical prices for ${region} portfolio`);
           const regionResults = await this.updatePortfolioHistoricalPrices(region);
           allResults = [...allResults, ...regionResults];
+          
+          // Then get all symbols in this portfolio
+          let symbols: string[] = [];
+          
+          switch (region) {
+            case 'USD':
+              const usdPortfolio = await storage.getPortfolioStocks('USD');
+              symbols = usdPortfolio.map(stock => stock.symbol);
+              break;
+            case 'CAD':
+              const cadPortfolio = await storage.getPortfolioStocks('CAD');
+              symbols = cadPortfolio.map(stock => stock.symbol);
+              break;
+            case 'INTL':
+              const intlPortfolio = await storage.getPortfolioStocks('INTL');
+              symbols = intlPortfolio.map(stock => stock.symbol);
+              break;
+          }
+          
+          // Calculate and update RSI for all symbols in the portfolio
+          console.log(`Calculating and updating RSI for ${symbols.length} symbols in ${region} portfolio`);
+          
+          // Process RSI calculations in batches
+          const batchSize = 5;
+          for (let i = 0; i < symbols.length; i += batchSize) {
+            const batch = symbols.slice(i, i + batchSize);
+            console.log(`Processing RSI batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(symbols.length/batchSize)} for ${region}`);
+            
+            for (const symbol of batch) {
+              try {
+                await this.calculateAndUpdateRSIForSymbol(symbol, region);
+              } catch (rsiError) {
+                console.error(`Error calculating RSI for ${symbol} (${region}):`, rsiError);
+              }
+            }
+            
+            // Add a small pause between RSI batches
+            if (i + batchSize < symbols.length) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          }
           
           // Add a pause between regions to avoid overwhelming the API
           if (region !== regions[regions.length - 1]) {
