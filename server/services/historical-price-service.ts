@@ -585,7 +585,7 @@ class HistoricalPriceService {
       console.log(`Calculating RSI for ${sortedPrices.length} prices for ${symbol} (${region})`);
       const rsiValues = calculateMultipleRSI(closingPrices, [9, 14, 21]);
       
-      // Identify prices with missing RSI values and update them
+      // Identify prices that need RSI values updated
       const pricesToUpdate: any[] = [];
       
       for (let i = 0; i < sortedPrices.length; i++) {
@@ -593,20 +593,32 @@ class HistoricalPriceService {
         const price = Object.assign({}, sortedPrices[i]) as any;
         let needsUpdate = false;
         
-        // Check if any RSI value is missing
-        if (!price.rsi9 && i < rsiValues[9].length && rsiValues[9][i] !== null) {
-          price.rsi9 = rsiValues[9][i]?.toString();
-          needsUpdate = true;
+        // Check for RSI values - always update the most recent 30 days,
+        // and update any missing values for older dates
+        const isRecentPrice = i >= sortedPrices.length - 30; // Most recent 30 days
+        
+        // For RSI 9-day period
+        if (i < rsiValues[9].length && rsiValues[9][i] !== null) {
+          if (isRecentPrice || !price.rsi9) {
+            price.rsi9 = rsiValues[9][i]?.toString();
+            needsUpdate = true;
+          }
         }
         
-        if (!price.rsi14 && i < rsiValues[14].length && rsiValues[14][i] !== null) {
-          price.rsi14 = rsiValues[14][i]?.toString();
-          needsUpdate = true;
+        // For RSI 14-day period
+        if (i < rsiValues[14].length && rsiValues[14][i] !== null) {
+          if (isRecentPrice || !price.rsi14) {
+            price.rsi14 = rsiValues[14][i]?.toString();
+            needsUpdate = true;
+          }
         }
         
-        if (!price.rsi21 && i < rsiValues[21].length && rsiValues[21][i] !== null) {
-          price.rsi21 = rsiValues[21][i]?.toString();
-          needsUpdate = true;
+        // For RSI 21-day period
+        if (i < rsiValues[21].length && rsiValues[21][i] !== null) {
+          if (isRecentPrice || !price.rsi21) {
+            price.rsi21 = rsiValues[21][i]?.toString();
+            needsUpdate = true;
+          }
         }
         
         if (needsUpdate) {
@@ -618,6 +630,13 @@ class HistoricalPriceService {
       if (pricesToUpdate.length > 0) {
         console.log(`Updating ${pricesToUpdate.length} historical prices with RSI values for ${symbol} (${region})`);
         const results: any[] = await storage.bulkCreateHistoricalPrices(pricesToUpdate) || [];
+        
+        // Log a sample of the updated prices to verify RSI values are set correctly
+        if (results.length > 0) {
+          const sample = results[results.length - 1]; // Most recent price
+          console.log(`Updated sample price for ${symbol} (${region}) on ${sample.date}: RSI9=${sample.rsi9}, RSI14=${sample.rsi14}, RSI21=${sample.rsi21}`);
+        }
+        
         return results;
       } else {
         console.log(`No historical prices need RSI updates for ${symbol} (${region})`);
