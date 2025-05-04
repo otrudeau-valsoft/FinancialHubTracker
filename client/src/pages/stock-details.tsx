@@ -259,7 +259,7 @@ export default function StockDetailsPage() {
   
   // Fetch historical price data for chart
   const { data: historicalPrices, isLoading: isLoadingHistorical } = useQuery({
-    queryKey: ['historicalPrices', symbol, region],
+    queryKey: [`/api/historical-prices/${symbol}/${region}`],
     queryFn: async () => {
       // Try the main path first
       try {
@@ -324,11 +324,12 @@ export default function StockDetailsPage() {
       // This will trigger RSI calculation on the backend
       try {
         // Make API call to update historical prices with RSI calculation
-        const updateResponse = await fetch(`/api/historical-prices/update/${symbol}/${region}`, {
+        const updateResponse = await fetch(`/api/historical-prices/fetch/${symbol}/${region}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
-          }
+          },
+          body: JSON.stringify({ period: '5y' })
         });
         
         if (updateResponse.ok) {
@@ -336,7 +337,7 @@ export default function StockDetailsPage() {
           
           // Refetch the historical price data to get the updated RSI values
           await queryClient.refetchQueries({
-            queryKey: ['historicalPrices', symbol, region],
+            queryKey: [`/api/historical-prices/${symbol}/${region}`],
             exact: true
           });
           
