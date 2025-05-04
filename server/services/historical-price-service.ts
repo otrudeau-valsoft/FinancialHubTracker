@@ -651,10 +651,8 @@ class HistoricalPriceService {
       const missingRsiPrices: any[] = [];
       const recentPricesNeedingRefresh: any[] = [];
       
-      // Define how many recent days to ALWAYS refresh
-      // This needs to be at least as large as the longest RSI period (21 days) plus a buffer
-      // to ensure proper recalculation of the lookback period
-      const RECENT_DAYS_TO_REFRESH = 30; // Increased to ensure RSI has enough data for lookback
+      // We don't need to use a recent days window anymore
+      // Instead we'll simply identify any prices without RSI data and calculate for those
       
       // Find the most recent date to check if we have today's data
       let hasRecentData = false;
@@ -697,19 +695,21 @@ class HistoricalPriceService {
           hasRsiData = rsiByDate.has(dateStr);
         }
         
-        // Mark a price point as "recent" if it's in the last RECENT_DAYS_TO_REFRESH days
-        const isRecentPrice = i >= sortedPrices.length - RECENT_DAYS_TO_REFRESH;
-        
-        // If it's a recent price and force refresh is enabled, always update it
-        const forceRefreshThisPrice = forceRsiRefresh && isRecentPrice;
-        
-        // Add to appropriate list based on conditions
+        // Simple logic: If we don't have RSI data, add it to the missing list
         if (!hasRsiData) {
           // No RSI data at all - add to missing list
           missingRsiPrices.push(price);
-        } else if (forceRefreshThisPrice) {
-          // Has RSI data but needs refresh due to being recent
-          recentPricesNeedingRefresh.push(price);
+        } 
+        
+        // If force refresh is enabled and this is the most recent price,
+        // also add it to make sure it's up to date
+        if (forceRsiRefresh && i === sortedPrices.length - 1) {
+          // Always refresh the most recent price point when forced
+          console.log(`Forcing refresh of most recent price point for ${symbol}`);
+          // Only add if not already in the missing list
+          if (hasRsiData) {
+            recentPricesNeedingRefresh.push(price);
+          }
         }
       }
       
@@ -750,10 +750,12 @@ class HistoricalPriceService {
               ? price.date.toISOString().split('T')[0]
               : new Date(price.date).toISOString().split('T')[0];
           
-          // Check if this price needs update
-          const isRecentPrice = i >= sortedPrices.length - RECENT_DAYS_TO_REFRESH;
+          // Check if this price needs update - simple approach:
+          // 1. If we don't have RSI data at all for this price, calculate it
+          // 2. If forceRsiRefresh is true and this is the most recent price, recalculate it
           const needsInitialCalculation = !rsiByHistoricalPriceId.has(price.id) && !rsiByDate.has(priceDate);
-          const needsRefresh = forceRsiRefresh && isRecentPrice;
+          const isLatestPrice = i === sortedPrices.length - 1; 
+          const needsRefresh = forceRsiRefresh && isLatestPrice; // Only force refresh most recent point
           
           if (needsInitialCalculation || needsRefresh) {
             // Prepare RSI values for this price point
