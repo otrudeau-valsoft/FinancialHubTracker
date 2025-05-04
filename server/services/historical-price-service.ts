@@ -288,14 +288,14 @@ class HistoricalPriceService {
       const existingPrices = await this.getHistoricalPrices(symbol, region);
       
       // Combine existing and new prices for RSI calculation
-      const allPrices = [...existingPrices, ...sanitizedData].sort((a, b) => {
+      const allPrices = [...existingPrices, ...sanitizedData].sort((a: any, b: any) => {
         const dateA = new Date(a.date);
         const dateB = new Date(b.date);
         return dateA.getTime() - dateB.getTime();
       });
       
       // Extract closing prices for RSI calculation with null safety
-      const closingPrices = allPrices.map(price => {
+      const closingPrices = allPrices.map((price: any) => {
         // Use adjustedClose if available, otherwise use close
         const priceValue = price.adjustedClose || price.close;
         // Make sure we have a valid value to parse
@@ -307,7 +307,7 @@ class HistoricalPriceService {
       const rsiValues = calculateMultipleRSI(closingPrices, [9, 14, 21]);
       
       // Prepare arrays to store both new and updated prices
-      const newPrices = [...sanitizedData];
+      const newPrices: any[] = sanitizedData.map(item => ({...item} as any));
       const updatedExistingPrices: any[] = [];
       
       // Enrich the sanitized data with RSI values
@@ -331,25 +331,30 @@ class HistoricalPriceService {
       
       // Update existing prices with RSI values
       for (let i = 0; i < existingPrices.length; i++) {
-        const existingPrice = {...existingPrices[i]};
+        // Use Object.assign instead of spread operator to avoid type errors
+        const existingPrice = Object.assign({}, existingPrices[i]) as any;
+        let needsUpdate = false;
         
         // Only update existing prices if their RSI values are missing
         if (!existingPrice.rsi9 || !existingPrice.rsi14 || !existingPrice.rsi21) {
           // Only assign RSI if it was calculated
           if (i < rsiValues[9].length && rsiValues[9][i] !== null) {
             existingPrice.rsi9 = rsiValues[9][i]?.toString();
+            needsUpdate = true;
           }
           
           if (i < rsiValues[14].length && rsiValues[14][i] !== null) {
             existingPrice.rsi14 = rsiValues[14][i]?.toString();
+            needsUpdate = true;
           }
           
           if (i < rsiValues[21].length && rsiValues[21][i] !== null) {
             existingPrice.rsi21 = rsiValues[21][i]?.toString();
+            needsUpdate = true;
           }
           
           // Only add to update list if any RSI values were assigned
-          if (existingPrice.rsi9 || existingPrice.rsi14 || existingPrice.rsi21) {
+          if (needsUpdate) {
             updatedExistingPrices.push(existingPrice);
           }
         }
@@ -359,18 +364,18 @@ class HistoricalPriceService {
       console.log(`Processing ${newPrices.length} new prices and updating RSI for ${updatedExistingPrices.length} existing prices`);
       
       // Store both new and updated prices
-      let results = [];
+      let results: any[] = [];
       
       // Store new historical prices with upsert pattern to avoid duplicates
       if (newPrices.length > 0) {
         const newResults = await storage.bulkCreateHistoricalPrices(newPrices);
-        results = [...results, ...newResults];
+        results = results.concat(newResults || []);
       }
       
       // Update RSI values for existing prices that need it
       if (updatedExistingPrices.length > 0) {
         const updatedResults = await storage.bulkCreateHistoricalPrices(updatedExistingPrices);
-        results = [...results, ...updatedResults];
+        results = results.concat(updatedResults || []);
       }
       
       console.log(`Stored ${results.length} historical prices with RSI data for ${symbol} (${region})`);
@@ -612,7 +617,7 @@ class HistoricalPriceService {
       // Update the database with the new RSI values
       if (pricesToUpdate.length > 0) {
         console.log(`Updating ${pricesToUpdate.length} historical prices with RSI values for ${symbol} (${region})`);
-        const results = await storage.bulkCreateHistoricalPrices(pricesToUpdate);
+        const results: any[] = await storage.bulkCreateHistoricalPrices(pricesToUpdate) || [];
         return results;
       } else {
         console.log(`No historical prices need RSI updates for ${symbol} (${region})`);

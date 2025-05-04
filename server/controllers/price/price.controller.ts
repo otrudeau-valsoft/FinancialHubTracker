@@ -368,8 +368,9 @@ export const fetchAllHistoricalPrices = async (req: Request, res: Response) => {
       
       return res.json({
         ...response,
-        message: `${response.message} and recalculated all portfolio metrics`,
-        holdingsUpdated: true
+        message: `${response.message}, calculated RSI values, and recalculated all portfolio metrics`,
+        holdingsUpdated: true,
+        rsiCalculated: true
       });
     } catch (holdingsError) {
       console.error('Error updating holdings after historical price update:', holdingsError);
@@ -377,8 +378,9 @@ export const fetchAllHistoricalPrices = async (req: Request, res: Response) => {
       // Still return success for historical price update, but indicate holdings update failed
       return res.json({
         ...response,
-        message: `${response.message}, but failed to recalculate portfolio metrics`,
+        message: `${response.message}, calculated RSI values, but failed to recalculate portfolio metrics`,
         holdingsUpdated: false,
+        rsiCalculated: true,
         holdingsError: holdingsError.message
       });
     }
