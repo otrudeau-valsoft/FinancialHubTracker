@@ -3,7 +3,9 @@ import {
   PortfolioRegion,
   historicalPrices, type HistoricalPrice, type InsertHistoricalPrice,
   currentPrices, type CurrentPrice, type InsertCurrentPrice,
-  Alert, InsertAlert, MatrixRule, InsertMatrixRule, PortfolioSummary, InsertPortfolioSummary
+  Alert, InsertAlert, MatrixRule, InsertMatrixRule, PortfolioSummary, InsertPortfolioSummary,
+  macdData, type MacdData, type InsertMacdData,
+  rsiData, type RsiData, type InsertRsiData
 } from "@shared/schema";
 
 // Import compatibility types for transitioning
@@ -69,6 +71,16 @@ export interface IStorage {
   updateCurrentPrice(id: number, price: Partial<InsertCurrentPrice>): Promise<CurrentPrice | undefined>;
   deleteCurrentPrice(id: number): Promise<boolean>;
   bulkCreateCurrentPrices(prices: InsertCurrentPrice[]): Promise<CurrentPrice[]>;
+  
+  // RSI data methods
+  getRsiData(symbol: string, region: string): Promise<RsiData[]>;
+  bulkCreateOrUpdateRsiData(data: any[]): Promise<any[]>;
+  deleteRsiDataForSymbol(symbol: string, region: string): Promise<boolean>;
+  
+  // MACD data methods
+  getMacdData(symbol: string, region: string): Promise<MacdData[]>;
+  bulkCreateOrUpdateMacdData(data: any[]): Promise<any[]>;
+  deleteMacdDataForSymbol(symbol: string, region: string): Promise<boolean>;
 }
 
 // Import and export the database storage implementation
