@@ -348,9 +348,12 @@ export const fetchAllHistoricalPrices = async (req: Request, res: Response) => {
   try {
     const period = (req.query.period || req.body.period || '5y') as string;
     
-    // Step 1: Update historical prices
-    // Added a forceRsiRefresh flag to ensure recent RSI values are refreshed
-    const response = await historicalPriceService.updateAllHistoricalPrices(true);
+    // Get forceRsiRefresh parameter from request body (defaults to true regardless)
+    const forceRsiRefresh = req.body.forceRsiRefresh !== false; // default to true unless explicitly set to false
+    console.log(`Bulk update with forceRsiRefresh=${forceRsiRefresh}`);
+    
+    // Step 1: Update historical prices with RSI refresh
+    const response = await historicalPriceService.updateAllHistoricalPrices(forceRsiRefresh);
     
     // Step 2: Automatically update portfolio holdings to reflect new historical data
     console.log('Automatically updating portfolio holdings after historical price update...');

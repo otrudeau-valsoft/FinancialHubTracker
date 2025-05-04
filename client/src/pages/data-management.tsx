@@ -312,7 +312,9 @@ export default function DataManagement() {
   });
   
   const updateAllHistoricalPricesMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/historical-prices/fetch/all'),
+    mutationFn: () => apiRequest('POST', '/api/historical-prices/fetch/all', {
+      forceRsiRefresh: true // Add parameter to force RSI refresh
+    }),
     onSuccess: () => {
       toast({
         title: "All historical prices updated",
