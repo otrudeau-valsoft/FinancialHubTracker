@@ -34,7 +34,20 @@ export const useHistoricalPrices = (symbol: string, region: string) => {
           throw new Error('Failed with main path');
         }
         
-        return response.json();
+        const data = await response.json();
+        
+        // Add debugging to see if RSI data is present in the response
+        if (data && data.length > 0) {
+          const latestEntry = data[data.length - 1];
+          console.log(`Latest historical price entry for ${symbol} (${region}):`, {
+            date: latestEntry.date,
+            rsi9: latestEntry.rsi9,
+            rsi14: latestEntry.rsi14,
+            rsi21: latestEntry.rsi21
+          });
+        }
+        
+        return data;
       } catch (error) {
         console.log('Trying alternative historical prices path...');
         // Try alternative path if the first one fails
@@ -53,7 +66,8 @@ export const useHistoricalPrices = (symbol: string, region: string) => {
       }
     },
     enabled: !!symbol && !!region, // Only fetch when both symbol and region are available
-    staleTime: 3600000 // 1 hour
+    staleTime: 60000, // Reduce stale time to 1 minute to refresh more often
+    refetchOnWindowFocus: true // Refetch when window gains focus
   });
 };
 
