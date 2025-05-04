@@ -286,8 +286,8 @@ function StockDirectorySelector({ currentRegion }: { currentRegion: string }) {
   // Handle stock selection
   const handleStockSelected = (stock: StockOption) => {
     setOpen(false);
-    // Navigate to the selected stock details page using the new route format
-    setLocation(`/stock-details/${stock.symbol}/${stock.region}`);
+    // Navigate to the selected stock details page using the working route format
+    setLocation(`/stock/${stock.symbol}?region=${stock.region}`);
   };
   
   return (

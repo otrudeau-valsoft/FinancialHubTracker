@@ -155,7 +155,7 @@ export function Header() {
         
         {/* Stocks button - links to default stock */}
         <button 
-          onClick={() => navigateTo("/stock-details/MSFT/USD")} 
+          onClick={() => navigateTo("/stock/MSFT?region=USD")} 
           className={`text-gray-300 hover:text-white px-2 py-1.5 rounded-sm transition-colors duration-200 ease-in-out ${location.startsWith('/stock-details') || location.startsWith('/stock/') ? 'bg-blue-900/40' : 'hover:bg-[#1A304A]'} font-mono tracking-wide`}
         >
           STOCKS
@@ -326,7 +326,7 @@ export function Header() {
               </div>
               
               <button 
-                onClick={() => navigateTo("/stock-details/MSFT/USD")} 
+                onClick={() => navigateTo("/stock/MSFT?region=USD")} 
                 className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location.startsWith('/stock-details') || location.startsWith('/stock/') ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
               >
                 STOCKS
