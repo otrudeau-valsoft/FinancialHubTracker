@@ -253,6 +253,8 @@ export const macdData = pgTable(
     symbol: text("symbol").notNull(),
     date: date("date").notNull(),
     region: text("region").notNull(),
+    fast: numeric("fast"),              // Fast EMA (12-period)
+    slow: numeric("slow"),              // Slow EMA (26-period)
     macd: numeric("macd"),              // MACD line (difference between fast and slow EMAs)
     signal: numeric("signal"),          // Signal line (EMA of MACD line)
     histogram: numeric("histogram"),    // Histogram (MACD line - Signal line)

@@ -132,11 +132,18 @@ export function calculateEMA(prices: number[], period: number): (number | null)[
 /**
  * Calculate MACD (Moving Average Convergence Divergence) for a series of price data
  * 
+ * MACD is calculated as follows:
+ * 1. Calculate the 12-period EMA of the price (fast line)
+ * 2. Calculate the 26-period EMA of the price (slow line)
+ * 3. MACD Line = Fast EMA - Slow EMA
+ * 4. Signal Line = 9-period EMA of the MACD Line
+ * 5. Histogram = MACD Line - Signal Line
+ * 
  * @param prices Array of closing prices in chronological order (oldest to newest)
  * @param fastPeriod The period for the fast EMA line (default 12)
  * @param slowPeriod The period for the slow EMA line (default 26)
  * @param signalPeriod The period for the signal line EMA (default 9)
- * @returns Object containing MACD line, signal line, and histogram values
+ * @returns Object containing fast EMA, slow EMA, and histogram values
  */
 export function calculateMACD(
   prices: number[], 
@@ -144,9 +151,11 @@ export function calculateMACD(
   slowPeriod: number = 26, 
   signalPeriod: number = 9
 ): {
-  macd: (number | null)[];
-  signal: (number | null)[];
-  histogram: (number | null)[];
+  fast: (number | null)[];   // 12-period EMA
+  slow: (number | null)[];   // 26-period EMA
+  macd: (number | null)[];   // MACD line (fast - slow)
+  signal: (number | null)[]; // Signal line (9-period EMA of MACD)
+  histogram: (number | null)[]; // Histogram (MACD - Signal)
 } {
   // Calculate the fast and slow EMAs
   const fastEMA = calculateEMA(prices, fastPeriod);
@@ -197,5 +206,11 @@ export function calculateMACD(
     }
   }
   
-  return { macd: macdLine, signal: signalLine, histogram };
+  return { 
+    fast: fastEMA,         // Fast EMA (12-period)
+    slow: slowEMA,         // Slow EMA (26-period)
+    macd: macdLine,        // MACD Line (Fast EMA - Slow EMA)
+    signal: signalLine,    // Signal Line (9-period EMA of MACD)
+    histogram: histogram   // Histogram (MACD - Signal)
+  };
 }

@@ -754,6 +754,8 @@ export class DatabaseStorage {
         symbol, 
         date, 
         region, 
+        fast,           // Fast EMA (12-period)
+        slow,           // Slow EMA (26-period)
         macd, 
         signal, 
         histogram, 
@@ -774,6 +776,8 @@ export class DatabaseStorage {
         // Update existing MACD data
         const [result] = await db.update(macdData)
           .set({
+            fast: fast !== undefined ? fast : existing.fast,
+            slow: slow !== undefined ? slow : existing.slow,
             macd: macd !== undefined ? macd : existing.macd,
             signal: signal !== undefined ? signal : existing.signal,
             histogram: histogram !== undefined ? histogram : existing.histogram,
@@ -791,6 +795,8 @@ export class DatabaseStorage {
             symbol,
             date, 
             region,
+            fast,
+            slow,
             macd,
             signal,
             histogram,
@@ -806,6 +812,8 @@ export class DatabaseStorage {
               macdData.signalPeriod
             ],
             set: {
+              fast: fast !== undefined ? fast : sql`EXCLUDED.fast`,
+              slow: slow !== undefined ? slow : sql`EXCLUDED.slow`,
               macd: macd !== undefined ? macd : sql`EXCLUDED.macd`,
               signal: signal !== undefined ? signal : sql`EXCLUDED.signal`,
               histogram: histogram !== undefined ? histogram : sql`EXCLUDED.histogram`,
@@ -846,9 +854,11 @@ export class DatabaseStorage {
           symbol: item.symbol,
           date: item.date,
           region: item.region,
-          macd: item.macd,
-          signal: item.signal,
-          histogram: item.histogram,
+          fast: item.fast,         // Fast EMA (12-period)
+          slow: item.slow,         // Slow EMA (26-period)
+          macd: item.macd,         // MACD line (fast - slow)
+          signal: item.signal,     // Signal line (9-period EMA of MACD)
+          histogram: item.histogram, // Histogram (MACD - signal)
           fastPeriod: item.fastPeriod || 12,
           slowPeriod: item.slowPeriod || 26,
           signalPeriod: item.signalPeriod || 9
@@ -865,6 +875,8 @@ export class DatabaseStorage {
               macdData.signalPeriod
             ],
             set: {
+              fast: sql`EXCLUDED.fast`,
+              slow: sql`EXCLUDED.slow`,
               macd: sql`EXCLUDED.macd`,
               signal: sql`EXCLUDED.signal`,
               histogram: sql`EXCLUDED.histogram`,
