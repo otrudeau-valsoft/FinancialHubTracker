@@ -12,7 +12,9 @@ import {
   RefreshCw, 
   Info,
   Clock,
-  Activity
+  Activity,
+  Search,
+  ChevronsUpDown
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -43,6 +45,20 @@ import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from "@/components/ui/input";
+import { 
+  Command, 
+  CommandEmpty, 
+  CommandGroup, 
+  CommandInput, 
+  CommandItem,
+  CommandList
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 // Historical price interface
 interface HistoricalPrice {
@@ -195,6 +211,184 @@ const processHistoricalData = (data: any[] | null | undefined, timeRange: '1m' |
     return [];
   }
 };
+
+// Define a stock interface for the selector
+interface StockOption {
+  symbol: string;
+  company: string;
+  region: string;
+  stockType?: string;
+  stockRating?: string;
+}
+
+// Stock Directory Selector Component
+function StockDirectorySelector({ currentRegion }: { currentRegion: string }) {
+  const [, setLocation] = useLocation();
+  const [open, setOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const [selectedRegion, setSelectedRegion] = useState<'USD' | 'CAD' | 'INTL'>(currentRegion as any);
+  
+  // Fetch stocks for all regions
+  const { data: usdStocks } = useQuery({
+    queryKey: ['allUSDStocks'],
+    queryFn: async () => {
+      const response = await fetch(`/api/portfolios/USD/stocks`);
+      if (!response.ok) throw new Error('Failed to fetch USD stocks');
+      return response.json();
+    },
+    staleTime: 3600000 // 1 hour
+  });
+  
+  const { data: cadStocks } = useQuery({
+    queryKey: ['allCADStocks'],
+    queryFn: async () => {
+      const response = await fetch(`/api/portfolios/CAD/stocks`);
+      if (!response.ok) throw new Error('Failed to fetch CAD stocks');
+      return response.json();
+    },
+    staleTime: 3600000 // 1 hour
+  });
+  
+  const { data: intlStocks } = useQuery({
+    queryKey: ['allINTLStocks'],
+    queryFn: async () => {
+      const response = await fetch(`/api/portfolios/INTL/stocks`);
+      if (!response.ok) throw new Error('Failed to fetch INTL stocks');
+      return response.json();
+    },
+    staleTime: 3600000 // 1 hour
+  });
+  
+  // Combine stocks based on selected region
+  const stockOptions = React.useMemo(() => {
+    let stocks: StockOption[] = [];
+    
+    if (selectedRegion === 'USD' && usdStocks) {
+      stocks = usdStocks.map((stock: any) => ({
+        ...stock,
+        region: 'USD'
+      }));
+    } else if (selectedRegion === 'CAD' && cadStocks) {
+      stocks = cadStocks.map((stock: any) => ({
+        ...stock,
+        region: 'CAD'
+      }));
+    } else if (selectedRegion === 'INTL' && intlStocks) {
+      stocks = intlStocks.map((stock: any) => ({
+        ...stock,
+        region: 'INTL'
+      }));
+    }
+    
+    return stocks;
+  }, [selectedRegion, usdStocks, cadStocks, intlStocks]);
+  
+  // Handle stock selection
+  const handleStockSelected = (stock: StockOption) => {
+    setOpen(false);
+    // Navigate to the selected stock details page
+    setLocation(`/stock-details/${stock.symbol}/${stock.region}`);
+  };
+  
+  return (
+    <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg p-4 mb-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">STOCK DIRECTORY</h3>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline" 
+            size="sm"
+            onClick={() => setSelectedRegion('USD')}
+            className={`rounded-sm h-7 text-xs font-mono border-[#1A304A] ${
+              selectedRegion === 'USD' 
+                ? 'bg-[#38AAFD]/20 text-[#38AAFD] border-[#38AAFD]' 
+                : 'bg-[#0B1728] text-[#7A8999] hover:bg-[#162639] hover:text-[#EFEFEF]'
+            }`}
+          >
+            USD
+          </Button>
+          <Button
+            variant="outline" 
+            size="sm"
+            onClick={() => setSelectedRegion('CAD')}
+            className={`rounded-sm h-7 text-xs font-mono border-[#1A304A] ${
+              selectedRegion === 'CAD' 
+                ? 'bg-[#38AAFD]/20 text-[#38AAFD] border-[#38AAFD]' 
+                : 'bg-[#0B1728] text-[#7A8999] hover:bg-[#162639] hover:text-[#EFEFEF]'
+            }`}
+          >
+            CAD
+          </Button>
+          <Button
+            variant="outline" 
+            size="sm"
+            onClick={() => setSelectedRegion('INTL')}
+            className={`rounded-sm h-7 text-xs font-mono border-[#1A304A] ${
+              selectedRegion === 'INTL' 
+                ? 'bg-[#38AAFD]/20 text-[#38AAFD] border-[#38AAFD]' 
+                : 'bg-[#0B1728] text-[#7A8999] hover:bg-[#162639] hover:text-[#EFEFEF]'
+            }`}
+          >
+            INTL
+          </Button>
+        </div>
+      </div>
+      
+      <div className="relative">
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-full justify-between font-mono rounded-sm bg-[#0B1728] text-[#EFEFEF] text-xs border-[#1A304A] hover:bg-[#162639]"
+            >
+              {searchValue || "Search for a stock..."}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-full p-0 bg-[#0B1728] border-[#1A304A]">
+            <Command className="bg-transparent">
+              <CommandInput 
+                placeholder="Search by symbol or company name..." 
+                className="h-9 text-[#EFEFEF] bg-[#0B1728]"
+                value={searchValue}
+                onValueChange={setSearchValue}
+              />
+              <CommandList className="max-h-[300px] overflow-auto">
+                <CommandEmpty className="py-6 text-center text-sm text-[#7A8999]">
+                  No stocks found.
+                </CommandEmpty>
+                <CommandGroup heading={`${selectedRegion} Stocks`}>
+                  {stockOptions.map((stock) => (
+                    <CommandItem
+                      key={stock.symbol}
+                      value={`${stock.symbol}-${stock.company}`}
+                      onSelect={() => handleStockSelected(stock)}
+                      className="cursor-pointer text-[#EFEFEF] hover:bg-[#162639]"
+                    >
+                      <div className="flex flex-col w-full">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono font-medium">{stock.symbol}</span>
+                          {stock.stockType && (
+                            <span className={`inline-block font-mono px-2 py-0.5 rounded-sm text-[10px] font-medium ${getStockTypeBackground(stock.stockType)}`}>
+                              {stock.stockType}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-sm text-[#7A8999]">{stock.company}</span>
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </div>
+    </div>
+  );
+}
 
 export default function StockDetailsPage() {
   const queryClient = useQueryClient();
@@ -424,34 +618,39 @@ export default function StockDetailsPage() {
   
   return (
     <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-4 bg-[#061220]">
-      {/* Header section with back button */}
-      <div className="mb-4 sm:mb-6 flex items-center">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setLocation(`/${region.toLowerCase()}-portfolio`)}
-          className="rounded-sm h-8 bg-[#0B1728] text-[#7A8999] text-xs font-mono border-[#1A304A] hover:bg-[#162639] hover:text-[#EFEFEF] mr-3"
-        >
-          <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
-          BACK
-        </Button>
+      {/* Header section with back button and stock selector */}
+      <div className="mb-4 sm:mb-6">
+        <div className="flex items-center mb-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setLocation(`/${region.toLowerCase()}-portfolio`)}
+            className="rounded-sm h-8 bg-[#0B1728] text-[#7A8999] text-xs font-mono border-[#1A304A] hover:bg-[#162639] hover:text-[#EFEFEF] mr-3"
+          >
+            <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
+            BACK
+          </Button>
+          
+          <Button
+            onClick={refreshPriceData}
+            variant="outline"
+            size="sm"
+            disabled={isRefreshing}
+            className={`rounded-sm h-8 bg-[#0B1728] text-[#7A8999] text-xs font-mono border-[#1A304A] ${
+              isRefreshing ? 'opacity-70' : 'hover:bg-[#162639] hover:text-[#EFEFEF]'
+            }`}
+          >
+            {isRefreshing ? (
+              <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+            ) : (
+              <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+            )}
+            {isRefreshing ? 'UPDATING...' : 'REFRESH'}
+          </Button>
+        </div>
         
-        <Button
-          onClick={refreshPriceData}
-          variant="outline"
-          size="sm"
-          disabled={isRefreshing}
-          className={`rounded-sm h-8 bg-[#0B1728] text-[#7A8999] text-xs font-mono border-[#1A304A] ${
-            isRefreshing ? 'opacity-70' : 'hover:bg-[#162639] hover:text-[#EFEFEF]'
-          }`}
-        >
-          {isRefreshing ? (
-            <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-          ) : (
-            <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-          )}
-          {isRefreshing ? 'UPDATING...' : 'REFRESH'}
-        </Button>
+        {/* Stock Directory/Selector Component */}
+        <StockDirectorySelector currentRegion={region} />
       </div>
       
       {/* Stock header */}
