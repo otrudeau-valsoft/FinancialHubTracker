@@ -259,8 +259,23 @@ export const fetchHistoricalPrices = async (req: Request, res: Response) => {
   const { symbol, region } = req.params;
   const period = (req.query.period || req.body.period || '5y') as string;
   
-  const results = await historicalPriceService.fetchAndStoreHistoricalPrices(symbol, region.toUpperCase(), period);
-  return res.json(results);
+  // Get forceRsiRefresh parameter from request body (defaults to true)
+  const forceRsiRefresh = req.body.forceRsiRefresh !== false;
+  console.log(`Single stock update with symbol=${symbol}, region=${region}, forceRsiRefresh=${forceRsiRefresh}`);
+  
+  // Pass forceRsiRefresh parameter to ensure RSI values are calculated and stored
+  const results = await historicalPriceService.fetchAndStoreHistoricalPrices(
+    symbol, 
+    region.toUpperCase(), 
+    period,
+    undefined, // endDate (use default)
+    forceRsiRefresh // Add the force refresh parameter
+  );
+  
+  return res.json({
+    ...results,
+    rsiCalculated: forceRsiRefresh
+  });
 };
 
 /**

@@ -218,7 +218,7 @@ class HistoricalPriceService {
    * Can handle both Date objects and period strings for startDate and endDate
    * Uses upsert to avoid duplicate entries
    */
-  async fetchAndStoreHistoricalPrices(symbol: string, region: string, startDate: Date | string, endDate: Date | string = new Date()) {
+  async fetchAndStoreHistoricalPrices(symbol: string, region: string, startDate: Date | string, endDate: Date | string = new Date(), forceRsiRefresh: boolean = false) {
     try {
       // Convert dates if they're strings
       const startDateObj = this.periodToDate(startDate);
@@ -335,9 +335,19 @@ class HistoricalPriceService {
         const existingPrice = Object.assign({}, existingPrices[i]) as any;
         let needsUpdate = false;
         
-        // Only update existing prices if their RSI values are missing
-        if (!existingPrice.rsi9 || !existingPrice.rsi14 || !existingPrice.rsi21) {
-          // Only assign RSI if it was calculated
+        // Check date to determine if this is a recent entry (last 10 trading days)
+        const existingDate = new Date(existingPrice.date);
+        const daysSinceEntry = Math.floor((new Date().getTime() - existingDate.getTime()) / (1000 * 60 * 60 * 24));
+        const isRecentEntry = daysSinceEntry <= 10; // Consider last 10 days as recent for refreshing
+        
+        // Update existing prices if RSI values are missing OR if we're forcing a refresh for recent entries
+        if (!existingPrice.rsi9 || !existingPrice.rsi14 || !existingPrice.rsi21 || (forceRsiRefresh && isRecentEntry)) {
+          // Log if we're forcing a refresh of a recent entry that already has RSI values
+          if (forceRsiRefresh && isRecentEntry && existingPrice.rsi9 && existingPrice.rsi14 && existingPrice.rsi21) {
+            console.log(`Forcing RSI refresh for recent entry: ${symbol} on ${existingPrice.date} (${daysSinceEntry} days ago)`);
+          }
+          
+          // Assign RSI if it was calculated
           if (i < rsiValues[9].length && rsiValues[9][i] !== null) {
             existingPrice.rsi9 = rsiValues[9][i]?.toString();
             needsUpdate = true;
@@ -389,8 +399,9 @@ class HistoricalPriceService {
 
   /**
    * Process a batch of symbols
+   * @param forceRsiRefresh If true, will force updating RSI values for recent price points
    */
-  private async processBatch(symbols: string[], region: string, batchIndex: number, batchSize: number) {
+  private async processBatch(symbols: string[], region: string, batchIndex: number, batchSize: number, forceRsiRefresh: boolean = false) {
     const batchSymbols = symbols.slice(batchIndex, batchIndex + batchSize);
     const batchResults = [];
     
@@ -417,12 +428,26 @@ class HistoricalPriceService {
         
         // Only fetch if there's potentially new data
         if (startDate < new Date()) {
-          console.log(`Fetching historical prices for ${symbol} from ${startDate.toISOString().split('T')[0]}`);
-          const result = await this.fetchAndStoreHistoricalPrices(symbol, region, startDate);
-          batchResults.push({ symbol, success: true, result });
+          console.log(`Fetching historical prices for ${symbol} from ${startDate.toISOString().split('T')[0]} with forceRsiRefresh=${forceRsiRefresh}`);
+          const result = await this.fetchAndStoreHistoricalPrices(
+            symbol, 
+            region, 
+            startDate, 
+            undefined, // endDate (use default current date)
+            forceRsiRefresh // Pass the RSI refresh parameter
+          );
+          batchResults.push({ symbol, success: true, result, rsiCalculated: forceRsiRefresh });
         } else {
-          console.log(`Historical prices for ${symbol} are already up to date`);
-          batchResults.push({ symbol, success: true, result: [] });
+          console.log(`Historical prices for ${symbol} are already up to date, checking if RSI needs refresh`);
+          
+          // Even if no new data to fetch, we can still refresh RSI values for existing data
+          if (forceRsiRefresh) {
+            console.log(`Forcing RSI refresh for ${symbol} even though prices are up to date`);
+            const result = await this.calculateAndUpdateRSIForSymbol(symbol, region, forceRsiRefresh);
+            batchResults.push({ symbol, success: true, result, rsiCalculated: true });
+          } else {
+            batchResults.push({ symbol, success: true, result: [], rsiCalculated: false });
+          }
         }
         
         // Add a small delay between symbols to avoid overwhelming the API
@@ -441,8 +466,10 @@ class HistoricalPriceService {
   /**
    * Fetch and update all historical prices for a portfolio with batch processing
    * Only adds new data points from the latest data we have
+   * @param region Portfolio region (USD, CAD, INTL)
+   * @param forceRsiRefresh If true, forces updating RSI for recent price points
    */
-  async updatePortfolioHistoricalPrices(region: string) {
+  async updatePortfolioHistoricalPrices(region: string, forceRsiRefresh: boolean = false) {
     try {
       // Get all symbols in the portfolio
       let symbols: string[];
@@ -471,8 +498,9 @@ class HistoricalPriceService {
       const batchSize = 5; // Process 5 symbols at a time
       
       for (let i = 0; i < symbols.length; i += batchSize) {
-        // Process this batch
-        const batchResults = await this.processBatch(symbols, region, i, batchSize);
+        // Process this batch, passing the forceRsiRefresh parameter
+        console.log(`Processing batch with forceRsiRefresh=${forceRsiRefresh}`);
+        const batchResults = await this.processBatch(symbols, region, i, batchSize, forceRsiRefresh);
         results.push(...batchResults);
         
         // Add a pause between batches to avoid overwhelming the API
