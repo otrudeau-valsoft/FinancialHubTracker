@@ -599,6 +599,7 @@ class HistoricalPriceService {
   /**
    * Calculate and update RSI values for all existing historical prices for a symbol
    * Uses the new separate rsi_data table for better data organization and performance
+   * Optimized to only calculate RSI for data points that don't have RSI values yet
    * 
    * @param symbol Stock symbol
    * @param region Portfolio region (USD, CAD, INTL)
@@ -623,18 +624,35 @@ class HistoricalPriceService {
         return dateA.getTime() - dateB.getTime();
       });
       
-      // Extract closing prices for RSI calculation
-      const closingPrices = sortedPrices.map((price: any) => {
-        const priceValue = price.adjustedClose || price.close;
-        return priceValue ? parseFloat(priceValue) : 0;
+      // Get existing RSI data to check for missing values
+      const existingRsiData = await storage.getRsiData(symbol, region);
+      
+      // Create maps for existing RSI data by historical price ID and date
+      const rsiByHistoricalPriceId = new Map();
+      const rsiByDate = new Map();
+      
+      existingRsiData.forEach((rsi: any) => {
+        // Map by historical price ID
+        if (rsi.historicalPriceId) {
+          rsiByHistoricalPriceId.set(rsi.historicalPriceId, rsi);
+        }
+        
+        // Map by date string
+        const dateStr = typeof rsi.date === 'string'
+          ? rsi.date.split('T')[0]
+          : rsi.date instanceof Date
+            ? rsi.date.toISOString().split('T')[0]
+            : String(rsi.date);
+        
+        rsiByDate.set(dateStr, rsi);
       });
       
-      // Calculate RSI values
-      console.log(`Calculating RSI for ${sortedPrices.length} prices for ${symbol} (${region})`);
-      const rsiValues = calculateMultipleRSI(closingPrices, [9, 14, 21]);
+      // Identify which prices need RSI calculation by identifying missing RSI data
+      const missingRsiPrices: any[] = [];
+      const recentPricesNeedingRefresh: any[] = [];
       
-      // Identify prices with missing RSI values and prepare data for the RSI table
-      const rsiDataToUpdate: any[] = [];
+      // Define how many recent days to ALWAYS refresh
+      const RECENT_DAYS_TO_REFRESH = 5; // Fewer days for better performance
       
       // Find the most recent date to check if we have today's data
       let hasRecentData = false;
@@ -654,83 +672,152 @@ class HistoricalPriceService {
         }
       }
       
-      // Define more clearly how many recent days to ALWAYS refresh
-      const RECENT_DAYS_TO_REFRESH = 10; // Ensure we capture more days
-      
+      // First pass: identify which prices need RSI calculation
       for (let i = 0; i < sortedPrices.length; i++) {
         const price = sortedPrices[i];
         
         // Skip if we don't have a valid price point
         if (!price || !price.id) continue;
         
+        // Check if this price already has RSI data
+        let hasRsiData = rsiByHistoricalPriceId.has(price.id);
+        
+        // If not found by ID, try by date
+        if (!hasRsiData) {
+          const dateStr = typeof price.date === 'string'
+            ? price.date.split('T')[0]
+            : price.date instanceof Date
+              ? price.date.toISOString().split('T')[0]
+              : new Date(price.date).toISOString().split('T')[0];
+          
+          hasRsiData = rsiByDate.has(dateStr);
+        }
+        
         // Mark a price point as "recent" if it's in the last RECENT_DAYS_TO_REFRESH days
         const isRecentPrice = i >= sortedPrices.length - RECENT_DAYS_TO_REFRESH;
         
-        // When forced refresh, explicitly mark more recent price points to ensure RSI is refreshed
-        const forceRefreshThisPrice = forceRsiRefresh && (isRecentPrice || (i >= sortedPrices.length - 20));
+        // If it's a recent price and force refresh is enabled, always update it
+        const forceRefreshThisPrice = forceRsiRefresh && isRecentPrice;
         
-        // Prepare RSI values for this price point
-        let rsi9Value = null;
-        let rsi14Value = null;
-        let rsi21Value = null;
-        let needsUpdate = false;
-        
-        // For RSI 9-day period
-        if (i < rsiValues[9].length && rsiValues[9][i] !== null) {
-          rsi9Value = rsiValues[9][i]?.toString();
-          needsUpdate = true;
-        }
-        
-        // For RSI 14-day period  
-        if (i < rsiValues[14].length && rsiValues[14][i] !== null) {
-          rsi14Value = rsiValues[14][i]?.toString();
-          needsUpdate = true;
-        }
-        
-        // For RSI 21-day period
-        if (i < rsiValues[21].length && rsiValues[21][i] !== null) {
-          rsi21Value = rsiValues[21][i]?.toString();
-          needsUpdate = true;
-        }
-        
-        // Log if this is the most recent price point and we're updating it
-        if (i === sortedPrices.length - 1 && needsUpdate) {
-          console.log(`Updating most recent price for ${symbol} from ${price.date} with RSI values: 9=${rsi9Value}, 14=${rsi14Value}, 21=${rsi21Value}`);
-        }
-        
-        // If we have any RSI values to update, add to our update list
-        if (needsUpdate) {
-          rsiDataToUpdate.push({
-            historicalPriceId: price.id,
-            symbol: symbol,
-            date: price.date,
-            region: region,
-            rsi9: rsi9Value,
-            rsi14: rsi14Value,
-            rsi21: rsi21Value
-          });
+        // Add to appropriate list based on conditions
+        if (!hasRsiData) {
+          // No RSI data at all - add to missing list
+          missingRsiPrices.push(price);
+        } else if (forceRefreshThisPrice) {
+          // Has RSI data but needs refresh due to being recent
+          recentPricesNeedingRefresh.push(price);
         }
       }
       
-      // Update the RSI data table with the new values
-      if (rsiDataToUpdate.length > 0) {
-        console.log(`Updating ${rsiDataToUpdate.length} RSI data records for ${symbol} (${region})`);
-        const results = await storage.bulkCreateOrUpdateRsiData(rsiDataToUpdate);
+      // If we have no prices needing RSI calculation, return early
+      if (missingRsiPrices.length === 0 && recentPricesNeedingRefresh.length === 0) {
+        console.log(`No RSI data needs updates for ${symbol} (${region})`);
+        return [];
+      }
+      
+      // Log what we're calculating
+      console.log(`Calculating RSI for ${symbol} (${region}): ${missingRsiPrices.length} missing data points, ${recentPricesNeedingRefresh.length} recent points to refresh`);
+      
+      // Calculate RSI only if we have prices needing calculation
+      if (missingRsiPrices.length > 0 || recentPricesNeedingRefresh.length > 0) {
+        // Extract closing prices for RSI calculation - we need all prices for accurate calculation
+        const closingPrices = sortedPrices.map((price: any) => {
+          const priceValue = price.adjustedClose || price.close;
+          return priceValue ? parseFloat(priceValue) : 0;
+        });
         
-        // Log a sample of the updated RSI data to verify values are set correctly
-        if (results && results.length > 0) {
-          const sample = results[results.length - 1]; // Most recent
-          console.log(`Updated RSI data for ${symbol} (${region}) on ${sample.date}: RSI9=${sample.rsi9}, RSI14=${sample.rsi14}, RSI21=${sample.rsi21}`);
+        // Calculate RSI values
+        const rsiValues = calculateMultipleRSI(closingPrices, [9, 14, 21]);
+        
+        // Prepare data for update
+        const rsiDataToUpdate: any[] = [];
+        
+        // Process all prices that need RSI updates
+        for (let i = 0; i < sortedPrices.length; i++) {
+          const price = sortedPrices[i];
           
-          // Check if RSI values are still null
-          if (!sample.rsi14 || sample.rsi14 === 'null') {
-            console.warn(`WARNING: RSI values are still null for ${symbol} even after update to dedicated RSI table.`);
+          // Skip if invalid price
+          if (!price || !price.id) continue;
+          
+          // Determine if this price needs RSI update
+          const priceDate = typeof price.date === 'string'
+            ? price.date.split('T')[0]
+            : price.date instanceof Date
+              ? price.date.toISOString().split('T')[0]
+              : new Date(price.date).toISOString().split('T')[0];
+          
+          // Check if this price needs update
+          const isRecentPrice = i >= sortedPrices.length - RECENT_DAYS_TO_REFRESH;
+          const needsInitialCalculation = !rsiByHistoricalPriceId.has(price.id) && !rsiByDate.has(priceDate);
+          const needsRefresh = forceRsiRefresh && isRecentPrice;
+          
+          if (needsInitialCalculation || needsRefresh) {
+            // Prepare RSI values for this price point
+            let rsi9Value = null;
+            let rsi14Value = null;
+            let rsi21Value = null;
+            let hasRsiValues = false;
+            
+            // For RSI 9-day period
+            if (i < rsiValues[9].length && rsiValues[9][i] !== null) {
+              rsi9Value = rsiValues[9][i]?.toString();
+              hasRsiValues = true;
+            }
+            
+            // For RSI 14-day period  
+            if (i < rsiValues[14].length && rsiValues[14][i] !== null) {
+              rsi14Value = rsiValues[14][i]?.toString();
+              hasRsiValues = true;
+            }
+            
+            // For RSI 21-day period
+            if (i < rsiValues[21].length && rsiValues[21][i] !== null) {
+              rsi21Value = rsiValues[21][i]?.toString();
+              hasRsiValues = true;
+            }
+            
+            // Log if this is the most recent price point and we're updating it
+            if (i === sortedPrices.length - 1 && hasRsiValues) {
+              console.log(`Updating most recent price for ${symbol} from ${price.date} with RSI values: 9=${rsi9Value}, 14=${rsi14Value}, 21=${rsi21Value}`);
+            }
+            
+            // If we have any RSI values, add to update list
+            if (hasRsiValues) {
+              rsiDataToUpdate.push({
+                historicalPriceId: price.id,
+                symbol: symbol,
+                date: price.date,
+                region: region,
+                rsi9: rsi9Value,
+                rsi14: rsi14Value,
+                rsi21: rsi21Value
+              });
+            }
           }
         }
         
-        return results;
+        // Update the RSI data table with the new values
+        if (rsiDataToUpdate.length > 0) {
+          console.log(`Updating ${rsiDataToUpdate.length} RSI data records for ${symbol} (${region})`);
+          const results = await storage.bulkCreateOrUpdateRsiData(rsiDataToUpdate);
+          
+          // Log a sample of the updated RSI data to verify values are set correctly
+          if (results && results.length > 0) {
+            const sample = results[results.length - 1]; // Most recent
+            console.log(`Updated RSI data for ${symbol} (${region}) on ${sample.date}: RSI9=${sample.rsi9}, RSI14=${sample.rsi14}, RSI21=${sample.rsi21}`);
+            
+            // Check if RSI values are still null
+            if (!sample.rsi14 || sample.rsi14 === 'null') {
+              console.warn(`WARNING: RSI values are still null for ${symbol} even after update to dedicated RSI table.`);
+            }
+          }
+          
+          return results;
+        } else {
+          console.log(`No RSI data needs updates for ${symbol} (${region})`);
+          return [];
+        }
       } else {
-        console.log(`No RSI data needs updates for ${symbol} (${region})`);
         return [];
       }
     } catch (error) {
