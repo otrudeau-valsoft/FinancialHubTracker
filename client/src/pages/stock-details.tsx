@@ -292,8 +292,8 @@ function StockDirectorySelector({ currentRegion }: { currentRegion: string }) {
   
   return (
     <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg p-4 mb-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">STOCK DIRECTORY</h3>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3">
+        <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide mb-2 sm:mb-0">STOCK DIRECTORY</h3>
         <div className="flex items-center space-x-2">
           <Button
             variant="outline" 
