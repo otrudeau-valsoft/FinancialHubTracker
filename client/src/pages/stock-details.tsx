@@ -432,7 +432,6 @@ export default function StockDetailsPage() {
       await refetchPriceData();
       
       // Update historical prices for the current stock
-      // This will trigger RSI calculation on the backend
       try {
         // Make API call to update historical prices with RSI calculation
         const updateResponse = await fetch(`/api/historical-prices/fetch/${symbol}/${region}`, {
@@ -447,12 +446,35 @@ export default function StockDetailsPage() {
         });
         
         if (updateResponse.ok) {
+          const responseData = await updateResponse.json();
           console.log('Historical prices and RSI updated successfully');
           
-          // Refetch the historical price data to get the updated RSI values
-          // Use the correct query key format and invalidate instead of refetch
+          // Check current RSI data status
+          const rsiCheck = await fetch(`/api/historical-prices/${symbol}/${region}`);
+          const historicalData = await rsiCheck.json();
+          
+          if (historicalData && historicalData.length > 0) {
+            // Count how many data points have RSI values
+            const totalPoints = historicalData.length;
+            const rsiDatapoints = historicalData.filter(d => d.rsi14).length;
+            const samplePoint = historicalData[historicalData.length - 1]; // Most recent
+            
+            console.log("RSI Data Check:", { 
+              totalPoints, 
+              rsiDatapoints, 
+              period: "14",
+              samplePoint
+            });
+          }
+          
+          // Forcefully invalidate all queries related to this stock to ensure fresh data
           await queryClient.invalidateQueries({
             queryKey: ['historicalPrices', symbol, region]
+          });
+          
+          // Also invalidate any other queries that might have cached this stock's data
+          await queryClient.invalidateQueries({
+            queryKey: [`/api/historical-prices/${symbol}/${region}`]
           });
           
           toast({
@@ -460,6 +482,13 @@ export default function StockDetailsPage() {
             description: "Historical prices and RSI data have been updated",
             variant: "default"
           });
+          
+          // Give the system a moment to refresh before showing updated data
+          setTimeout(() => {
+            queryClient.invalidateQueries({
+              queryKey: ['historicalPrices', symbol, region]
+            });
+          }, 500);
         } else {
           console.error('Failed to update historical prices');
           

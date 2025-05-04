@@ -284,16 +284,21 @@ export default function DataManagement() {
   
   const updateHistoricalPricesMutation = useMutation({
     mutationFn: (region: string) => 
-      apiRequest('POST', `/api/historical-prices/fetch/portfolio/${region}`),
-    onSuccess: (_, region) => {
+      apiRequest('POST', `/api/historical-prices/fetch/portfolio/${region}`, {
+        forceRsiRefresh: true, // Force RSI refresh to ensure values are saved to database
+        includeRSI: true // Additional explicit parameter to include RSI calculation
+      }),
+    onSuccess: (data, region) => {
       toast({
         title: "Historical prices updated",
         description: `Successfully updated historical prices for ${region} portfolio`,
       });
       refetchLogs();
+      console.log(`Historical price refresh for ${region} complete with RSI data`, data);
       
       // Invalidate historical prices data
       queryClient.invalidateQueries({ queryKey: ['/api/historical-prices/region'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/historical-prices/region/${region}`] });
       
       // Invalidate portfolio performance history to update charts
       queryClient.invalidateQueries({ queryKey: ['/api/portfolio-performance-history'] });
@@ -301,6 +306,18 @@ export default function DataManagement() {
       // Invalidate portfolio data for the specific region
       queryClient.invalidateQueries({ queryKey: [`/api/portfolios/${region}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/portfolios/${region}/stocks`] });
+      
+      // Also invalidate any individual stock historicalPrices queries
+      // This is important for the stock details page to see updated RSI values
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const queryKey = query.queryKey;
+          if (Array.isArray(queryKey) && queryKey[0] === 'historicalPrices' && queryKey[2] === region) {
+            return true;
+          }
+          return false;
+        }
+      });
     },
     onError: (error) => {
       toast({
@@ -313,16 +330,23 @@ export default function DataManagement() {
   
   const updateAllHistoricalPricesMutation = useMutation({
     mutationFn: () => apiRequest('POST', '/api/historical-prices/fetch/all', {
-      forceRsiRefresh: true // Add parameter to force RSI refresh
+      forceRsiRefresh: true, // Force RSI refresh to ensure values are saved to database
+      includeRSI: true, // Additional explicit parameter to include RSI calculation
+      priority: 'high' // Set high priority for this task
     }),
-    onSuccess: () => {
+    onSuccess: async (data) => {
       toast({
         title: "All historical prices updated",
         description: "Successfully updated historical prices for all portfolios",
       });
       refetchLogs();
+      console.log("Historical price refresh complete with RSI data", data);
       
-      // Invalidate historical prices data
+      // Invalidate ALL queries in the cache to ensure fresh data
+      await queryClient.invalidateQueries();
+      
+      // Specifically invalidate historical prices data
+      queryClient.invalidateQueries({ queryKey: ['/api/historical-prices'] });
       queryClient.invalidateQueries({ queryKey: ['/api/historical-prices/region'] });
       
       // Invalidate portfolio performance history to update charts
