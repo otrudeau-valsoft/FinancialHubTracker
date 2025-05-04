@@ -244,6 +244,50 @@ export const insertRsiDataSchema = createInsertSchema(rsiData).omit({
 export type InsertRsiData = z.infer<typeof insertRsiDataSchema>;
 export type RsiData = typeof rsiData.$inferSelect;
 
+// MACD Data Schema - Moving Average Convergence Divergence
+export const macdData = pgTable(
+  "macd_data",
+  {
+    id: serial("id").primaryKey(),
+    historicalPriceId: integer("historical_price_id").notNull().references(() => historicalPrices.id),
+    symbol: text("symbol").notNull(),
+    date: date("date").notNull(),
+    region: text("region").notNull(),
+    macd: numeric("macd"),              // MACD line (difference between fast and slow EMAs)
+    signal: numeric("signal"),          // Signal line (EMA of MACD line)
+    histogram: numeric("histogram"),    // Histogram (MACD line - Signal line)
+    fastPeriod: integer("fast_period").notNull().default(12),  // Default fast period is 12
+    slowPeriod: integer("slow_period").notNull().default(26),  // Default slow period is 26
+    signalPeriod: integer("signal_period").notNull().default(9), // Default signal period is 9
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => {
+    return {
+      // Add a unique constraint on historical_price_id and periods to prevent duplicates
+      macdUniqueIdx: uniqueIndex("macd_data_unique_idx").on(
+        table.historicalPriceId,
+        table.fastPeriod,
+        table.slowPeriod,
+        table.signalPeriod
+      ),
+      // Add an index on symbol, date, and region for faster lookups
+      macdSymbolDateRegionIdx: uniqueIndex("macd_data_symbol_date_region_key").on(
+        table.symbol,
+        table.date,
+        table.region
+      ),
+    };
+  }
+);
+
+export const insertMacdDataSchema = createInsertSchema(macdData).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertMacdData = z.infer<typeof insertMacdDataSchema>;
+export type MacdData = typeof macdData.$inferSelect;
+
 // Matrix Rules Schema
 export const matrixRules = pgTable("matrix_rules", {
   id: serial("id").primaryKey(),

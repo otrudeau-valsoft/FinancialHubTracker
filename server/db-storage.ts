@@ -629,6 +629,225 @@ export class DatabaseStorage {
       throw error;
     }
   }
+
+  /**
+   * Get MACD data for a symbol and region with optional date range
+   * @param symbol Stock symbol
+   * @param region Portfolio region (USD, CAD, INTL)
+   * @param startDate Optional start date
+   * @param endDate Optional end date
+   */
+  async getMacdData(symbol: string, region: string, startDate?: Date, endDate?: Date) {
+    try {
+      let query = db.select().from(macdData)
+        .where(and(
+          eq(macdData.symbol, symbol),
+          eq(macdData.region, region)
+        ));
+      
+      // Add date range filters if provided
+      if (startDate) {
+        query = query.where(gte(macdData.date, startDate));
+      }
+      
+      if (endDate) {
+        query = query.where(lte(macdData.date, endDate));
+      }
+      
+      // Execute the query
+      const results = await query.orderBy(asc(macdData.date));
+      return results;
+    } catch (error) {
+      console.error(`Error fetching MACD data for ${symbol} (${region}):`, error);
+      return [];
+    }
+  }
+  
+  /**
+   * Get MACD data for a specific historical price
+   * @param historicalPriceId Historical price ID
+   * @param fastPeriod MACD fast period
+   * @param slowPeriod MACD slow period
+   * @param signalPeriod MACD signal period
+   */
+  async getMacdDataByHistoricalPriceId(
+    historicalPriceId: number, 
+    fastPeriod: number = 12, 
+    slowPeriod: number = 26, 
+    signalPeriod: number = 9
+  ) {
+    try {
+      const [result] = await db.select().from(macdData)
+        .where(and(
+          eq(macdData.historicalPriceId, historicalPriceId),
+          eq(macdData.fastPeriod, fastPeriod),
+          eq(macdData.slowPeriod, slowPeriod),
+          eq(macdData.signalPeriod, signalPeriod)
+        ));
+      return result;
+    } catch (error) {
+      console.error(`Error fetching MACD data for historical price ID ${historicalPriceId}:`, error);
+      return null;
+    }
+  }
+  
+  /**
+   * Create or update MACD data for a historical price
+   * @param data MACD data to create or update
+   */
+  async createOrUpdateMacdData(data: any) {
+    try {
+      const { 
+        historicalPriceId, 
+        symbol, 
+        date, 
+        region, 
+        macd, 
+        signal, 
+        histogram, 
+        fastPeriod = 12, 
+        slowPeriod = 26, 
+        signalPeriod = 9 
+      } = data;
+      
+      // Check if MACD data already exists for this historical price
+      const existing = await this.getMacdDataByHistoricalPriceId(
+        historicalPriceId, 
+        fastPeriod, 
+        slowPeriod, 
+        signalPeriod
+      );
+      
+      if (existing) {
+        // Update existing MACD data
+        const [result] = await db.update(macdData)
+          .set({
+            macd: macd !== undefined ? macd : existing.macd,
+            signal: signal !== undefined ? signal : existing.signal,
+            histogram: histogram !== undefined ? histogram : existing.histogram,
+            updatedAt: new Date()
+          })
+          .where(eq(macdData.id, existing.id))
+          .returning();
+        
+        return result;
+      } else {
+        // Create new MACD data
+        const [result] = await db.insert(macdData)
+          .values({
+            historicalPriceId,
+            symbol,
+            date, 
+            region,
+            macd,
+            signal,
+            histogram,
+            fastPeriod,
+            slowPeriod,
+            signalPeriod
+          })
+          .onConflictDoUpdate({
+            target: [
+              macdData.historicalPriceId, 
+              macdData.fastPeriod, 
+              macdData.slowPeriod, 
+              macdData.signalPeriod
+            ],
+            set: {
+              macd: macd !== undefined ? macd : sql`EXCLUDED.macd`,
+              signal: signal !== undefined ? signal : sql`EXCLUDED.signal`,
+              histogram: histogram !== undefined ? histogram : sql`EXCLUDED.histogram`,
+              updatedAt: new Date()
+            }
+          })
+          .returning();
+        
+        return result;
+      }
+    } catch (error) {
+      console.error(`Error creating/updating MACD data:`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Bulk create or update MACD data
+   * @param dataArray Array of MACD data objects to create or update
+   */
+  async bulkCreateOrUpdateMacdData(dataArray: any[]) {
+    try {
+      if (!dataArray || dataArray.length === 0) {
+        return [];
+      }
+      
+      // Process in batches to avoid overloading the database
+      const batchSize = 100;
+      const results = [];
+      
+      for (let i = 0; i < dataArray.length; i += batchSize) {
+        const batch = dataArray.slice(i, i + batchSize);
+        console.log(`Processing MACD data batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(dataArray.length/batchSize)}`);
+        
+        // Prepare the values for insertion
+        const valuesToInsert = batch.map(item => ({
+          historicalPriceId: item.historicalPriceId,
+          symbol: item.symbol,
+          date: item.date,
+          region: item.region,
+          macd: item.macd,
+          signal: item.signal,
+          histogram: item.histogram,
+          fastPeriod: item.fastPeriod || 12,
+          slowPeriod: item.slowPeriod || 26,
+          signalPeriod: item.signalPeriod || 9
+        }));
+        
+        // Insert with on conflict do update
+        const batchResults = await db.insert(macdData)
+          .values(valuesToInsert)
+          .onConflictDoUpdate({
+            target: [
+              macdData.historicalPriceId, 
+              macdData.fastPeriod, 
+              macdData.slowPeriod, 
+              macdData.signalPeriod
+            ],
+            set: {
+              macd: sql`EXCLUDED.macd`,
+              signal: sql`EXCLUDED.signal`,
+              histogram: sql`EXCLUDED.histogram`,
+              updatedAt: new Date()
+            }
+          })
+          .returning();
+        
+        results.push(...batchResults);
+      }
+      
+      return results;
+    } catch (error) {
+      console.error(`Error bulk creating/updating MACD data:`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Delete MACD data for a symbol and region
+   * @param symbol Stock symbol
+   * @param region Portfolio region (USD, CAD, INTL)
+   */
+  async deleteMacdData(symbol: string, region: string) {
+    try {
+      return await db.delete(macdData)
+        .where(and(
+          eq(macdData.symbol, symbol),
+          eq(macdData.region, region)
+        ));
+    } catch (error) {
+      console.error(`Error deleting MACD data for ${symbol} (${region}):`, error);
+      throw error;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
