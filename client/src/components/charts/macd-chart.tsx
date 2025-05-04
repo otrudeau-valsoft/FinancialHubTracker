@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   LineChart, Line, Bar, XAxis, YAxis, CartesianGrid, 
   Tooltip as RechartTooltip, ResponsiveContainer, ReferenceLine, Cell 
@@ -15,7 +15,40 @@ const MacdChart: React.FC<MacdChartProps> = ({
   height = 140, 
   syncId = "stockChart" 
 }) => {
-  if (!data || data.length === 0) {
+  const [preparedData, setPreparedData] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (data && data.length > 0) {
+      // Process data to ensure we have the correct properties
+      const processed = data.map(item => {
+        // Check if we're using macd field for fast EMA (legacy data structure) 
+        // or using the new fast/slow fields directly
+        const fastValue = item.fast !== undefined ? item.fast : item.macd;
+        const slowValue = item.slow !== undefined ? item.slow : item.signal;
+        
+        // Always compute histogram if we have both values
+        const histValue = item.histogram !== undefined 
+          ? item.histogram 
+          : (fastValue !== undefined && slowValue !== undefined 
+              ? (fastValue - slowValue) 
+              : undefined);
+
+        return {
+          ...item,
+          // Ensure we have all needed fields with correct names
+          fast: fastValue,
+          slow: slowValue,
+          histogram: histValue
+        };
+      });
+
+      setPreparedData(processed);
+    } else {
+      setPreparedData([]);
+    }
+  }, [data]);
+
+  if (!preparedData || preparedData.length === 0) {
     return (
       <div className="h-36 flex items-center justify-center bg-[#0A1524]">
         <div className="text-center">
@@ -32,7 +65,7 @@ const MacdChart: React.FC<MacdChartProps> = ({
     <div style={{ height: height || 140 }}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
-          data={data}
+          data={preparedData}
           margin={{ top: 10, right: 10, left: 20, bottom: 20 }}
           syncId={syncId} // Synchronize with main chart
         >
@@ -130,7 +163,7 @@ const MacdChart: React.FC<MacdChartProps> = ({
             name="histogram"
             barSize={3}
           >
-            {data.map((entry, index) => (
+            {preparedData.map((entry, index) => (
               <Cell 
                 key={`cell-${index}`} 
                 fill={entry.histogram >= 0 ? '#4CAF50' : '#FF3D00'} 
