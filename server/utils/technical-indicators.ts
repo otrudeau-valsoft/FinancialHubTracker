@@ -170,6 +170,15 @@ export function calculateMACD(
     }
   }
   
+  // Log the first few values to verify correct calculation
+  if (prices.length > 0) {
+    console.log(`MACD calculation for ${prices.length} price points:`);
+    const sampleSize = Math.min(3, prices.length);
+    for (let i = prices.length - sampleSize; i < prices.length; i++) {
+      console.log(`- Point ${i}: Fast=${fastEMA[i]?.toFixed(4)}, Slow=${slowEMA[i]?.toFixed(4)}, Histogram=${histogram[i]?.toFixed(4)}`);
+    }
+  }
+  
   return { 
     fast: fastEMA,         // Fast EMA (12-period)
     slow: slowEMA,         // Slow EMA (26-period)
