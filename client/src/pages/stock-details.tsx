@@ -1223,20 +1223,38 @@ export default function StockDetailsPage() {
                 {(() => {
                   // Debug info about MACD data
                   if (historicalPrices && historicalPrices.length > 0) {
+                    // More detailed debugging to understand what's happening with MACD data
+                    const macdDatapoints = historicalPrices.filter((price: any) => 
+                      price.macd !== null && price.macd !== undefined
+                    ).length;
+                    
+                    const lastPoint = historicalPrices[historicalPrices.length - 1];
                     console.log(`MACD Data Check:`, {
                       totalPoints: historicalPrices.length,
-                      macdDatapoints: historicalPrices.filter((price: any) => 
-                        price.macd !== null && price.macd !== undefined
-                      ).length,
-                      samplePoint: historicalPrices[historicalPrices.length - 1]
+                      macdDatapoints,
+                      lastPointHasMacd: lastPoint.macd !== null && lastPoint.macd !== undefined,
+                      macdValue: lastPoint.macd,
+                      signalValue: lastPoint.signal,
+                      histogramValue: lastPoint.histogram,
+                      samplePoint: lastPoint
                     });
                   }
                   
-                  const hasMacdData = historicalPrices && historicalPrices.some((price: any) => 
-                    price.macd !== null && price.macd !== undefined &&
-                    price.signal !== null && price.signal !== undefined &&
-                    price.histogram !== null && price.histogram !== undefined
-                  );
+                  // More explicit check for the presence of MACD data
+                  let hasMacdData = false;
+                  if (historicalPrices && historicalPrices.length > 0) {
+                    for (let i = 0; i < historicalPrices.length; i++) {
+                      const price = historicalPrices[i];
+                      if (
+                        price.macd !== null && price.macd !== undefined &&
+                        price.signal !== null && price.signal !== undefined &&
+                        price.histogram !== null && price.histogram !== undefined
+                      ) {
+                        hasMacdData = true;
+                        break;
+                      }
+                    }
+                  }
                   
                   return hasMacdData;
                 })() ? (
