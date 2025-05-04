@@ -747,9 +747,34 @@ export class DatabaseStorage {
         query = query.where(lte(historicalPrices.date, endDate));
       }
       
-      // Order by date ascending for time series data
-      const result = await query.orderBy(asc(historicalPrices.date));
-      return result;
+      // Order by date descending for time series data to get newest first
+      const rawResult = await query.orderBy(desc(historicalPrices.date));
+      
+      // Log a sample point to check if RSI values exist in the database
+      if (rawResult.length > 0) {
+        console.log(`RSI Data Check:`, {
+          totalPoints: rawResult.length,
+          rsiDatapoints: rawResult.filter(p => p.rsi14 !== null && p.rsi14 !== undefined).length,
+          period: "14",
+          samplePoint: rawResult[0]
+        });
+      }
+      
+      // Convert the raw result to the expected format with proper property names
+      const result = rawResult.map(price => ({
+        ...price,
+        // Ensure RSI values are represented correctly
+        rsi9: price.rsi9?.toString() || null,
+        rsi14: price.rsi14?.toString() || null,
+        rsi21: price.rsi21?.toString() || null,
+      }));
+      
+      // Sort by date ascending for the client
+      return result.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateA.getTime() - dateB.getTime();
+      });
     } catch (error) {
       console.error(`Error getting historical prices for ${symbol} (${region}):`, error);
       return [];
