@@ -554,7 +554,10 @@ export default function StockDetailsPage() {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ period: '5y' })
+          body: JSON.stringify({ 
+            period: '5y',
+            forceRsiRefresh: true  // Force RSI refresh to ensure values are saved to database
+          })
         });
         
         if (updateResponse.ok) {
