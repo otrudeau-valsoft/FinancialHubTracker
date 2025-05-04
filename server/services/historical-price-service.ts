@@ -558,7 +558,7 @@ class HistoricalPriceService {
               undefined, // endDate - use default current date
               forceRsiRefresh
             );
-            results.push({ symbol: index.symbol, success: true, result, rsiCalculated: forceRsiRefresh });
+            results.push({ symbol: index.symbol, success: true, result });
           } else {
             console.log(`Historical prices for index ${index.symbol} are already up to date, checking if RSI needs refresh`);
             
@@ -566,7 +566,7 @@ class HistoricalPriceService {
             if (forceRsiRefresh) {
               console.log(`Forcing RSI refresh for index ${index.symbol} even though prices are up to date`);
               const result = await this.calculateAndUpdateRSIForSymbol(index.symbol, index.region, forceRsiRefresh);
-              results.push({ symbol: index.symbol, success: true, result, rsiCalculated: true });
+              results.push({ symbol: index.symbol, success: true, result });
             } else {
               results.push({ symbol: index.symbol, success: true, result: [], rsiCalculated: false });
             }
