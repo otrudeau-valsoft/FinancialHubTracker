@@ -331,6 +331,7 @@ export default function DataManagement() {
   const updateAllHistoricalPricesMutation = useMutation({
     mutationFn: () => apiRequest('POST', '/api/historical-prices/fetch/all', {
       forceRsiRefresh: true, // Force RSI refresh to ensure values are saved to database
+      forceMacdRefresh: true, // Force MACD refresh to ensure values are saved to database
       includeRSI: true, // Additional explicit parameter to include RSI calculation
       priority: 'high' // Set high priority for this task
     }),
@@ -642,6 +643,34 @@ export default function DataManagement() {
                 <div className="flex justify-between">
                   <span className="text-[#7A8999]">DAILY RUN:</span>
                   <span className="text-[#EFEFEF]">{schedulerConfig?.historical_prices.timeOfDay}</span>
+                </div>
+              </div>
+              
+              {/* Technical indicators section */}
+              <div className="mt-4 pt-3 border-t border-[#1A304A]">
+                <div className="text-xs text-[#7A8999] mb-2">Technical indicators that will be updated:</div>
+                <div className="flex flex-col space-y-2">
+                  <div className="flex justify-between items-center bg-[#0D1C30] p-2 rounded-sm">
+                    <div className="flex items-center">
+                      <Activity className="h-3 w-3 text-[#805AD5] mr-1.5" />
+                      <span className="text-[#EFEFEF] text-xs">RSI</span>
+                      <span className="text-[#7A8999] text-xs ml-1.5">(9, 14, 21 periods)</span>
+                    </div>
+                    <div className="flex items-center bg-[#1A2536] px-1.5 py-0.5 rounded-sm">
+                      <span className="text-[#4CAF50] text-xs">ENABLED</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center bg-[#0D1C30] p-2 rounded-sm">
+                    <div className="flex items-center">
+                      <TrendingUp className="h-3 w-3 text-[#00BCD4] mr-1.5" />
+                      <span className="text-[#EFEFEF] text-xs">MACD</span>
+                      <span className="text-[#7A8999] text-xs ml-1.5">(12, 26, 9 periods)</span>
+                    </div>
+                    <div className="flex items-center bg-[#1A2536] px-1.5 py-0.5 rounded-sm">
+                      <span className="text-[#4CAF50] text-xs">ENABLED</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>
