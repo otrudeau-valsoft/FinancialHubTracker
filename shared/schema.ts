@@ -245,6 +245,7 @@ export type InsertRsiData = z.infer<typeof insertRsiDataSchema>;
 export type RsiData = typeof rsiData.$inferSelect;
 
 // MACD Data Schema - Moving Average Convergence Divergence
+// Simplified to only include fast EMA, slow EMA, and histogram
 export const macdData = pgTable(
   "macd_data",
   {
@@ -255,12 +256,14 @@ export const macdData = pgTable(
     region: text("region").notNull(),
     fast: numeric("fast"),              // Fast EMA (12-period)
     slow: numeric("slow"),              // Slow EMA (26-period)
-    macd: numeric("macd"),              // MACD line (difference between fast and slow EMAs)
-    signal: numeric("signal"),          // Signal line (EMA of MACD line)
-    histogram: numeric("histogram"),    // Histogram (MACD line - Signal line)
+    histogram: numeric("histogram"),    // Histogram (Fast - Slow)
+    // Keep these columns for backward compatibility, but they'll be populated with the same values
+    macd: numeric("macd"),              // Same as fast (for backward compatibility)
+    signal: numeric("signal"),          // Same as slow (for backward compatibility)
+    // Keep period parameters for flexibility
     fastPeriod: integer("fast_period").notNull().default(12),  // Default fast period is 12
     slowPeriod: integer("slow_period").notNull().default(26),  // Default slow period is 26
-    signalPeriod: integer("signal_period").notNull().default(9), // Default signal period is 9
+    signalPeriod: integer("signal_period").notNull().default(9), // Default signal period is 9 (unused)
     updatedAt: timestamp("updated_at").defaultNow(),
   },
   (table) => {
