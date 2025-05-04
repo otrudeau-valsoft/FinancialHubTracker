@@ -454,11 +454,11 @@ export default function StockDetailsPage() {
         
         if (updateResponse.ok) {
           // Log success message
-          console.log('Historical price refresh complete with RSI data', {});
+          console.log('Historical price refresh complete with RSI and MACD data', {});
           
-          // Check latest data to verify RSI values
-          const rsiCheck = await fetch(`/api/historical-prices/${symbol}/${region}`);
-          const historicalData = await rsiCheck.json();
+          // Check latest data to verify RSI and MACD values
+          const dataCheck = await fetch(`/api/historical-prices/${symbol}/${region}`);
+          const historicalData = await dataCheck.json();
           
           if (historicalData && historicalData.length > 0) {
             // Calculate how many data points have RSI values per period
@@ -491,12 +491,23 @@ export default function StockDetailsPage() {
               samplePoint: historicalData[historicalData.length - 1] // Most recent
             });
             
-            // Log the latest price point with RSI values
+            // Check for MACD values
+            const macdDatapoints = historicalData.filter((d: HistoricalPrice) => d.macd !== undefined).length;
+            console.log("MACD Data Check:", { 
+              totalPoints, 
+              macdDatapoints, 
+              samplePoint: historicalData[historicalData.length - 1] // Most recent
+            });
+            
+            // Log the latest price point with RSI and MACD values
             console.log("Latest historical price entry for " + symbol + " (" + region + "):", {
               date: historicalData[historicalData.length - 1].date,
               rsi9: historicalData[historicalData.length - 1].rsi9,
               rsi14: historicalData[historicalData.length - 1].rsi14,
-              rsi21: historicalData[historicalData.length - 1].rsi21
+              rsi21: historicalData[historicalData.length - 1].rsi21,
+              macd: historicalData[historicalData.length - 1].macd,
+              signal: historicalData[historicalData.length - 1].signal,
+              histogram: historicalData[historicalData.length - 1].histogram
             });
           }
           
