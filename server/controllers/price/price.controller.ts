@@ -261,20 +261,26 @@ export const fetchHistoricalPrices = async (req: Request, res: Response) => {
   
   // Get forceRsiRefresh parameter from request body (defaults to true)
   const forceRsiRefresh = req.body.forceRsiRefresh !== false;
-  console.log(`Single stock update with symbol=${symbol}, region=${region}, forceRsiRefresh=${forceRsiRefresh}`);
   
-  // Pass forceRsiRefresh parameter to ensure RSI values are calculated and stored
+  // Get forceMacdRefresh parameter from request body (defaults to true)
+  const forceMacdRefresh = req.body.forceMacdRefresh !== false;
+  
+  console.log(`Single stock update with symbol=${symbol}, region=${region}, forceRsiRefresh=${forceRsiRefresh}, forceMacdRefresh=${forceMacdRefresh}`);
+  
+  // Pass both refresh parameters to ensure RSI and MACD values are calculated and stored
   const results = await historicalPriceService.fetchAndStoreHistoricalPrices(
     symbol, 
     region.toUpperCase(), 
     period,
     undefined, // endDate (use default)
-    forceRsiRefresh // Add the force refresh parameter
+    forceRsiRefresh, // RSI refresh parameter
+    forceMacdRefresh // MACD refresh parameter
   );
   
   return res.json({
     ...results,
-    rsiCalculated: forceRsiRefresh
+    rsiCalculated: forceRsiRefresh,
+    macdCalculated: forceMacdRefresh
   });
 };
 
@@ -288,8 +294,14 @@ export const fetchRegionHistoricalPrices = async (req: Request, res: Response) =
     const upperRegion = region.toUpperCase();
     const period = (req.query.period || req.body.period || '5y') as string;
     
-    // Step 1: Update historical prices for this region
-    const results = await historicalPriceService.fetchHistoricalPrices(upperRegion, period);
+    // Get refresh parameters from request body (defaults to true)
+    const forceRsiRefresh = req.body.forceRsiRefresh !== false;
+    const forceMacdRefresh = req.body.forceMacdRefresh !== false;
+    
+    console.log(`Region historical prices update with region=${upperRegion}, forceRsiRefresh=${forceRsiRefresh}, forceMacdRefresh=${forceMacdRefresh}`);
+    
+    // Step 1: Update historical prices for this region with refresh parameters
+    const results = await historicalPriceService.fetchHistoricalPrices(upperRegion, period, forceRsiRefresh, forceMacdRefresh);
     
     // Step 2: Automatically update portfolio holdings for this region
     console.log(`Automatically updating ${upperRegion} portfolio holdings after historical price update...`);
