@@ -92,84 +92,112 @@ export function Header() {
       </div>
       
       {/* Desktop Navigation */}
-      <nav className="hidden md:flex items-center space-x-4 lg:space-x-6 text-xs sm:text-sm">
+      <nav className="hidden md:flex items-center space-x-1 lg:space-x-2 text-xs">
+        {/* Portfolios Dropdown */}
         <div className="relative">
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center text-gray-300 hover:text-white px-3 py-1.5 rounded-md transition-colors duration-200 ease-in-out hover:bg-[#1A304A]">
-              Portfolios
-              <ChevronDown className="ml-1.5 h-3 w-3 sm:h-4 sm:w-4 opacity-70" />
+            <DropdownMenuTrigger className="flex items-center text-gray-300 hover:text-white px-2 py-1.5 rounded-sm transition-colors duration-200 ease-in-out hover:bg-[#1A304A] font-mono tracking-wide">
+              PORTFOLIOS
+              <ChevronDown className="ml-1 h-3 w-3 opacity-70" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="bg-[#111E2E] border-gray-700 z-50">
+            <DropdownMenuContent align="start" className="bg-[#111E2E] border-[#1A304A] z-50 rounded-sm shadow-lg">
               <DropdownMenuItem 
-                className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 ${location === '/usd-portfolio' ? 'bg-blue-900/30' : ''}`}
+                className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 font-mono text-xs ${location === '/usd-portfolio' ? 'bg-blue-900/30' : ''}`}
                 onClick={() => navigateTo("/usd-portfolio")}
               >
-                USD Portfolio
+                USD PORTFOLIO
               </DropdownMenuItem>
               <DropdownMenuItem 
-                className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 ${location === '/cad-portfolio' ? 'bg-blue-900/30' : ''}`}
+                className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 font-mono text-xs ${location === '/cad-portfolio' ? 'bg-blue-900/30' : ''}`}
                 onClick={() => navigateTo("/cad-portfolio")}
               >
-                CAD Portfolio
+                CAD PORTFOLIO
               </DropdownMenuItem>
               <DropdownMenuItem 
-                className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 ${location === '/intl-portfolio' ? 'bg-blue-900/30' : ''}`}
+                className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 font-mono text-xs ${location === '/intl-portfolio' ? 'bg-blue-900/30' : ''}`}
                 onClick={() => navigateTo("/intl-portfolio")}
               >
-                INTL Portfolio
+                INTL PORTFOLIO
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
         
-        <button 
-          onClick={() => navigateTo("/earnings")} 
-          className={`text-gray-300 hover:text-white px-3 py-1.5 rounded-md transition-colors duration-200 ease-in-out ${location === '/earnings' ? 'bg-blue-900/40' : 'hover:bg-[#1A304A]'}`}
-        >
-          Earnings
-        </button>
+        {/* Analytics Dropdown */}
+        <div className="relative">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center text-gray-300 hover:text-white px-2 py-1.5 rounded-sm transition-colors duration-200 ease-in-out hover:bg-[#1A304A] font-mono tracking-wide">
+              ANALYTICS
+              <ChevronDown className="ml-1 h-3 w-3 opacity-70" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="bg-[#111E2E] border-[#1A304A] z-50 rounded-sm shadow-lg">
+              <DropdownMenuItem 
+                className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 font-mono text-xs ${location === '/earnings' ? 'bg-blue-900/30' : ''}`}
+                onClick={() => navigateTo("/earnings")}
+              >
+                EARNINGS
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 font-mono text-xs ${location === '/matrix-rules' ? 'bg-blue-900/30' : ''}`}
+                onClick={() => navigateTo("/matrix-rules")}
+              >
+                MATRIX ENGINE
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 font-mono text-xs ${location === '/etf-holdings' ? 'bg-blue-900/30' : ''}`}
+                onClick={() => navigateTo("/etf-holdings")}
+              >
+                ETF HOLDINGS
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
         
+        {/* Stock Directory button */}
         <button 
-          onClick={() => navigateTo("/matrix-rules")} 
-          className={`text-gray-300 hover:text-white px-3 py-1.5 rounded-md transition-colors duration-200 ease-in-out ${location === '/matrix-rules' ? 'bg-blue-900/40' : 'hover:bg-[#1A304A]'}`}
+          onClick={() => navigateTo("/stock-directory")} 
+          className={`text-gray-300 hover:text-white px-2 py-1.5 rounded-sm transition-colors duration-200 ease-in-out ${location === '/stock-directory' ? 'bg-blue-900/40' : 'hover:bg-[#1A304A]'} font-mono tracking-wide`}
         >
-          Matrix Engine
-        </button>
-        
-        <button 
-          onClick={() => navigateTo("/etf-holdings")} 
-          className={`text-gray-300 hover:text-white px-3 py-1.5 rounded-md transition-colors duration-200 ease-in-out ${location === '/etf-holdings' ? 'bg-blue-900/40' : 'hover:bg-[#1A304A]'}`}
-        >
-          ETF Holdings
+          STOCKS
         </button>
         
         <button 
           onClick={() => navigateTo("/economic-calendar")} 
-          className={`text-gray-300 hover:text-white px-3 py-1.5 rounded-md transition-colors duration-200 ease-in-out ${location === '/economic-calendar' ? 'bg-blue-900/40' : 'hover:bg-[#1A304A]'}`}
+          className={`text-gray-300 hover:text-white px-2 py-1.5 rounded-sm transition-colors duration-200 ease-in-out ${location === '/economic-calendar' ? 'bg-blue-900/40' : 'hover:bg-[#1A304A]'} font-mono tracking-wide`}
         >
-          Economic Calendar
+          CALENDAR
         </button>
         
         <button 
           onClick={() => navigateTo("/news")} 
-          className={`text-gray-300 hover:text-white px-3 py-1.5 rounded-md transition-colors duration-200 ease-in-out ${location === '/news' ? 'bg-blue-900/40' : 'hover:bg-[#1A304A]'}`}
+          className={`text-gray-300 hover:text-white px-2 py-1.5 rounded-sm transition-colors duration-200 ease-in-out ${location === '/news' ? 'bg-blue-900/40' : 'hover:bg-[#1A304A]'} font-mono tracking-wide`}
         >
-          News
+          NEWS
         </button>
         
-        <button 
-          onClick={() => navigateTo("/data-management")} 
-          className={`text-gray-300 hover:text-white px-3 py-1.5 rounded-md transition-colors duration-200 ease-in-out ${location === '/data-management' ? 'bg-blue-900/40' : 'hover:bg-[#1A304A]'}`}
-        >
-          Data Management
-        </button>
-        
-        <button 
-          onClick={() => navigateTo("/diagnostics")} 
-          className={`text-gray-300 hover:text-white px-3 py-1.5 rounded-md transition-colors duration-200 ease-in-out ${location === '/diagnostics' ? 'bg-blue-900/40' : 'hover:bg-[#1A304A]'}`}
-        >
-          Diagnostics
-        </button>
+        {/* System Dropdown */}
+        <div className="relative">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center text-gray-300 hover:text-white px-2 py-1.5 rounded-sm transition-colors duration-200 ease-in-out hover:bg-[#1A304A] font-mono tracking-wide">
+              SYSTEM
+              <ChevronDown className="ml-1 h-3 w-3 opacity-70" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="bg-[#111E2E] border-[#1A304A] z-50 rounded-sm shadow-lg">
+              <DropdownMenuItem 
+                className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 font-mono text-xs ${location === '/data-management' ? 'bg-blue-900/30' : ''}`}
+                onClick={() => navigateTo("/data-management")}
+              >
+                DATA MANAGEMENT
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 font-mono text-xs ${location === '/diagnostics' ? 'bg-blue-900/30' : ''}`}
+                onClick={() => navigateTo("/diagnostics")}
+              >
+                DIAGNOSTICS
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </nav>
       
       {/* Mobile View - Market Indicators */}
@@ -245,21 +273,21 @@ export function Header() {
               </div>
               <button 
                 onClick={() => navigateTo("/usd-portfolio")} 
-                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/usd-portfolio' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/usd-portfolio' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
               >
-                USD Portfolio
+                USD PORTFOLIO
               </button>
               <button 
                 onClick={() => navigateTo("/cad-portfolio")} 
-                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/cad-portfolio' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/cad-portfolio' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
               >
-                CAD Portfolio
+                CAD PORTFOLIO
               </button>
               <button 
                 onClick={() => navigateTo("/intl-portfolio")} 
-                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/intl-portfolio' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/intl-portfolio' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
               >
-                INTL Portfolio
+                INTL PORTFOLIO
               </button>
             </div>
             
@@ -271,37 +299,51 @@ export function Header() {
               
               <button 
                 onClick={() => navigateTo("/earnings")} 
-                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/earnings' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/earnings' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
               >
-                Earnings Center
+                EARNINGS
               </button>
               
               <button 
                 onClick={() => navigateTo("/matrix-rules")} 
-                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/matrix-rules' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/matrix-rules' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
               >
-                Matrix Engine
+                MATRIX ENGINE
               </button>
               
               <button 
                 onClick={() => navigateTo("/etf-holdings")} 
-                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/etf-holdings' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/etf-holdings' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
               >
-                ETF Holdings
+                ETF HOLDINGS
+              </button>
+            </div>
+
+            <div className="border-b border-[#0F1A2A] py-2">
+              <div className="flex items-center mb-2">
+                <div className="h-3 w-3 bg-[#FFD700] rounded-sm mr-2"></div>
+                <span className="text-[#EFEFEF] text-xs font-mono font-semibold px-1 pb-1 block tracking-wide">STOCKS & DATA</span>
+              </div>
+              
+              <button 
+                onClick={() => navigateTo("/stock-directory")} 
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/stock-directory' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
+              >
+                STOCK DIRECTORY
               </button>
               
               <button 
                 onClick={() => navigateTo("/economic-calendar")} 
-                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/economic-calendar' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/economic-calendar' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
               >
-                Economic Calendar
+                ECONOMIC CALENDAR
               </button>
               
               <button 
                 onClick={() => navigateTo("/news")} 
-                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/news' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/news' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
               >
-                Market News
+                NEWS
               </button>
             </div>
             
@@ -313,16 +355,16 @@ export function Header() {
               
               <button 
                 onClick={() => navigateTo("/data-management")} 
-                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/data-management' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/data-management' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
               >
-                Data Management
+                DATA MANAGEMENT
               </button>
               
               <button 
                 onClick={() => navigateTo("/diagnostics")} 
-                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-md text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/diagnostics' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/diagnostics' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
               >
-                Diagnostics
+                DIAGNOSTICS
               </button>
             </div>
           </div>
