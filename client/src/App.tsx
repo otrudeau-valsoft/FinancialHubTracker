@@ -40,6 +40,7 @@ function Router() {
             <Route path="/diagnostics" component={DiagnosticsPage} />
             <Route path="/stock-directory" component={StockDirectory} />
             <Route path="/stock-details/:symbol/:region" component={StockDetails} />
+            <Route path="/stock/:symbol" component={StockDetails} />
             <Route component={NotFound} />
           </Switch>
         </main>

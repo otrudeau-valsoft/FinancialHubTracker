@@ -286,7 +286,7 @@ function StockDirectorySelector({ currentRegion }: { currentRegion: string }) {
   // Handle stock selection
   const handleStockSelected = (stock: StockOption) => {
     setOpen(false);
-    // Navigate to the selected stock details page
+    // Navigate to the selected stock details page using the new route format
     setLocation(`/stock-details/${stock.symbol}/${stock.region}`);
   };
   
@@ -396,18 +396,29 @@ export default function StockDetailsPage() {
   const [showRSI, setShowRSI] = useState<boolean>(true); // Default to showing RSI
   const [rsiPeriod, setRsiPeriod] = useState<'9' | '14' | '21'>('21'); // Default to 21-period RSI
   
-  // Get symbol and region from URL - route pattern is /stock-details/:symbol/:region
-  const [, params] = useRoute('/stock-details/:symbol/:region');
+  // Get symbol and region from URL
+  // Support both route patterns: /stock-details/:symbol/:region and /stock/:symbol?region=
+  const [isDetailsRoute, detailsParams] = useRoute('/stock-details/:symbol/:region');
+  const [isStockRoute, stockParams] = useRoute('/stock/:symbol');
   const [, setLocation] = useLocation();
   
-  // Get region from URL params (default to USD)
-  const regionParam = params?.region || 'USD';
+  // Determine which route is active and get params accordingly
+  const params = isDetailsRoute ? detailsParams : stockParams;
+  
+  // Get the URL query params
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  // Get region from URL params or query params (default to USD)
+  const regionQueryParam = urlParams.get('region');
+  const regionParam = isDetailsRoute 
+    ? detailsParams?.region 
+    : (regionQueryParam || 'USD');
+  
   const region = (regionParam && ['USD', 'CAD', 'INTL'].includes(regionParam.toUpperCase())) 
     ? regionParam.toUpperCase() as 'USD' | 'CAD' | 'INTL' 
     : 'USD';
-    
+  
   // Get the tab from query params (default to overview)
-  const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
   const defaultTab = tabParam || 'overview';
   
