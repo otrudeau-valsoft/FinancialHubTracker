@@ -8,7 +8,8 @@ import {
   portfolioCAD,
   portfolioINTL,
   currentPrices,
-  historicalPrices
+  historicalPrices,
+  rsiData
 } from '../shared/schema';
 
 /**
@@ -58,13 +59,13 @@ export class DatabaseStorage {
           region: upperRegion,
           sector: stock.sector || null,
           stockType: stock.stockType || '',
-          rating: stock.stockRating || '',
+          rating: stock.rating || '',
           price: price.toString(),
           quantity: quantity.toString(),
           nav: nav.toString(),
           portfolioWeight: 0, // Will be calculated on the client
           dailyChange: dailyChange.toString(),
-          nextEarningsDate: stock.nextEarningsDate || null,
+          nextEarningsDate: null,
           updatedAt: stock.updatedAt || new Date()
         };
       });
@@ -113,13 +114,13 @@ export class DatabaseStorage {
         region: upperRegion,
         sector: result.sector || null,
         stockType: result.stockType || '',
-        rating: result.stockRating || '',
+        rating: result.rating || '',
         price: price.toString(),
         quantity: quantity.toString(),
         nav: nav.toString(),
         portfolioWeight: 0, // Will be calculated on the client
         dailyChange: priceData ? Number(priceData.regularMarketChangePercent).toString() : '0',
-        nextEarningsDate: result.nextEarningsDate || null,
+        nextEarningsDate: null,
         updatedAt: result.updatedAt || new Date()
       };
     } catch (error) {
@@ -194,90 +195,6 @@ export class DatabaseStorage {
   }
   
   /**
-   * Rebalance portfolio by replacing all stocks
-   */
-  async rebalancePortfolio(stocks: any[], region: string) {
-    try {
-      const upperRegion = region.toUpperCase();
-      
-      // Validate the region
-      if (!['USD', 'CAD', 'INTL'].includes(upperRegion)) {
-        throw new Error(`Unknown region: ${region}`);
-      }
-      
-      // Start a transaction
-      const result = await db.transaction(async (tx) => {
-        // Delete all existing stocks for the region
-        if (upperRegion === 'USD') {
-          await tx.delete(portfolioUSD);
-          
-          // Only insert if there are stocks to add
-          if (stocks.length > 0) {
-            // Map the incoming stocks to the expected schema
-            const processedStocks = stocks.map(stock => ({
-              symbol: stock.symbol,
-              company: stock.company,
-              stockType: stock.stockType,
-              stockRating: stock.rating,
-              sector: stock.sector,
-              quantity: stock.quantity,
-              price: stock.price || 0,
-              pbr: stock.pbr || null,
-              updatedAt: new Date()
-            }));
-            
-            // Insert the new stocks
-            return await tx.insert(portfolioUSD).values(processedStocks).returning();
-          }
-        } else if (upperRegion === 'CAD') {
-          await tx.delete(portfolioCAD);
-          
-          if (stocks.length > 0) {
-            const processedStocks = stocks.map(stock => ({
-              symbol: stock.symbol,
-              company: stock.company,
-              stockType: stock.stockType,
-              stockRating: stock.rating,
-              sector: stock.sector,
-              quantity: stock.quantity,
-              price: stock.price || 0,
-              pbr: stock.pbr || null,
-              updatedAt: new Date()
-            }));
-            
-            return await tx.insert(portfolioCAD).values(processedStocks).returning();
-          }
-        } else if (upperRegion === 'INTL') {
-          await tx.delete(portfolioINTL);
-          
-          if (stocks.length > 0) {
-            const processedStocks = stocks.map(stock => ({
-              symbol: stock.symbol,
-              company: stock.company,
-              stockType: stock.stockType,
-              stockRating: stock.rating,
-              sector: stock.sector,
-              quantity: stock.quantity,
-              price: stock.price || 0,
-              pbr: stock.pbr || null,
-              updatedAt: new Date()
-            }));
-            
-            return await tx.insert(portfolioINTL).values(processedStocks).returning();
-          }
-        }
-        
-        return [];
-      });
-      
-      return result;
-    } catch (error) {
-      console.error(`Error rebalancing portfolio for ${region}:`, error);
-      throw error;
-    }
-  }
-  
-  /**
    * Get ETF holdings for a specific symbol
    */
   async getEtfHoldings(symbol: string, limit?: number) {
@@ -344,401 +261,52 @@ export class DatabaseStorage {
   async getTopEtfHoldings(etfSymbol: string, limit: number) {
     return this.getEtfHoldings(etfSymbol, limit);
   }
-  
-  /**
-   * Create a new ETF holding
-   */
-  async createEtfHolding(data: any) {
-    try {
-      const { etfSymbol, ...holdingData } = data;
-      const upperSymbol = etfSymbol.toUpperCase();
-      
-      // Insert into the appropriate table based on the ETF symbol
-      if (upperSymbol === 'SPY') {
-        const [result] = await db.insert(etfHoldingsSPY).values(sanitizeForDb(holdingData)).returning();
-        return result;
-      } else if (upperSymbol === 'XIC') {
-        const [result] = await db.insert(etfHoldingsXIC).values(sanitizeForDb(holdingData)).returning();
-        return result;
-      } else if (upperSymbol === 'ACWX') {
-        const [result] = await db.insert(etfHoldingsACWX).values(sanitizeForDb(holdingData)).returning();
-        return result;
-      } else {
-        throw new Error(`Unsupported ETF symbol: ${upperSymbol}`);
-      }
-    } catch (error) {
-      console.error(`Error creating ETF holding:`, error);
-      throw error;
-    }
-  }
-  
-  /**
-   * Bulk import ETF holdings
-   */
-  async bulkCreateEtfHoldings(data: any[]) {
-    if (!data || data.length === 0) {
-      return [];
-    }
-    
-    try {
-      // Get the ETF symbol from the first item (assuming all items are for the same ETF)
-      const etfSymbol = data[0].etfSymbol?.toUpperCase();
-      
-      if (!etfSymbol) {
-        throw new Error('ETF symbol is required for bulk import');
-      }
-      
-      // Map the data to the appropriate format, removing etfSymbol property
-      const holdingsData = data.map(({ etfSymbol: _, ...item }) => sanitizeForDb(item));
-      
-      let result = [];
-      
-      // Insert into the appropriate table based on the ETF symbol
-      if (etfSymbol === 'SPY') {
-        result = await db.insert(etfHoldingsSPY).values(holdingsData).returning();
-      } else if (etfSymbol === 'XIC') {
-        result = await db.insert(etfHoldingsXIC).values(holdingsData).returning();
-      } else if (etfSymbol === 'ACWX') {
-        result = await db.insert(etfHoldingsACWX).values(holdingsData).returning();
-      } else {
-        throw new Error(`Unsupported ETF symbol: ${etfSymbol}`);
-      }
-      
-      return result;
-    } catch (error) {
-      console.error(`Error bulk importing ETF holdings:`, error);
-      throw error;
-    }
-  }
-  
-  /**
-   * Get portfolio summary for a specific region
-   */
-  async getPortfolioSummary(region: string) {
-    // Placeholder for actual implementation
-    return { region, id: 1 };
-  }
-  
-  /**
-   * Create a new portfolio summary
-   */
-  async createPortfolioSummary(data: any) {
-    // Placeholder for actual implementation
-    return { ...data, id: 1 };
-  }
-  
-  /**
-   * Update a portfolio summary
-   */
-  async updatePortfolioSummary(id: number, data: any) {
-    // Placeholder for actual implementation
-    return { ...data, id };
-  }
-  
-  /**
-   * Delete upgrade/downgrade history for a specific symbol and region
-   */
-  async deleteUpgradeDowngradeHistory(symbol: string, region: string) {
-    // Placeholder for actual implementation
-    return true;
-  }
-  
-  /**
-   * Bulk create upgrade/downgrade history records
-   */
-  async bulkCreateUpgradeDowngradeHistory(data: any[]) {
-    // Placeholder for actual implementation
-    return data.map((item, index) => ({ ...item, id: index + 1 }));
-  }
-  
-  /**
-   * Get upgrade/downgrade history by region
-   */
-  async getUpgradeDowngradeHistoryByRegion(region: string, limit: number = 50) {
-    // Placeholder for actual implementation
-    return [];
-  }
-  
-  /**
-   * Get upgrade/downgrade history by symbol
-   */
-  async getUpgradeDowngradeHistoryBySymbol(symbol: string, region: string, limit: number = 50) {
-    // Placeholder for actual implementation
-    return [];
-  }
-  
-  /**
-   * Get matrix rules by action type
-   */
-  async getMatrixRules(actionType: string) {
-    // Placeholder for actual implementation
-    return [];
-  }
-  
-  /**
-   * Create a matrix rule
-   */
-  async createMatrixRule(data: any) {
-    // Placeholder for actual implementation
-    return { ...data, id: 1 };
-  }
-  
-  /**
-   * Bulk import matrix rules
-   */
-  async bulkImportMatrixRules(data: any[]) {
-    // Placeholder for actual implementation
-    return data.map((item, index) => ({ ...item, id: index + 1 }));
-  }
 
   /**
-   * Get all alerts
-   */
-  async getAlerts(activeOnly?: boolean) {
-    // Placeholder for actual implementation
-    return [];
-  }
-
-  /**
-   * Get an alert by ID
-   */
-  async getAlert(id: number) {
-    // Placeholder for actual implementation
-    return null;
-  }
-
-  /**
-   * Create a new alert
-   */
-  async createAlert(data: any) {
-    // Placeholder for actual implementation
-    return { ...data, id: 1 };
-  }
-
-  /**
-   * Update an alert
-   */
-  async updateAlert(id: number, data: any) {
-    // Placeholder for actual implementation
-    return { ...data, id };
-  }
-
-  /**
-   * Delete an alert
-   */
-  async deleteAlert(id: number) {
-    // Placeholder for actual implementation
-    return true;
-  }
-
-  /**
-   * Get historical prices
-   */
-  async getHistoricalPrices(symbol: string, region: string, startDate?: Date, endDate?: Date) {
-    // Placeholder for actual implementation
-    return [];
-  }
-
-  /**
-   * Get historical prices by region
-   */
-  async getHistoricalPricesByRegion(region: string, startDate?: Date, endDate?: Date) {
-    // Placeholder for actual implementation
-    return [];
-  }
-
-  /**
-   * Create a historical price
-   */
-  async createHistoricalPrice(data: any) {
-    // Placeholder for actual implementation
-    return { ...data, id: 1 };
-  }
-
-  /**
-   * Bulk create historical prices
-   */
-  // Method moved and improved at line ~840
-
-  /**
-   * Delete historical prices
-   */
-  async deleteHistoricalPrices(symbol: string, region: string) {
-    // Placeholder for actual implementation
-    return true;
-  }
-
-  /**
-   * Get current prices
+   * Get current prices for a region
    */
   async getCurrentPrices(region: string) {
     try {
       const upperRegion = region.toUpperCase();
-      const prices = await db.select().from(currentPrices)
-        .where(eq(currentPrices.region, upperRegion));
+      const prices = await db.select().from(currentPrices).where(eq(currentPrices.region, upperRegion));
       return prices;
     } catch (error) {
       console.error(`Error getting current prices for ${region}:`, error);
       return [];
     }
   }
-
+  
   /**
-   * Get current price
+   * Get current price for a specific symbol and region
    */
   async getCurrentPrice(symbol: string, region: string) {
     try {
-      const upperRegion = region.toUpperCase();
-      const upperSymbol = symbol.toUpperCase();
-      
-      // First filter by region
-      const regionPrices = await db.select().from(currentPrices)
-        .where(eq(currentPrices.region, upperRegion));
-      
-      // Then filter by symbol (in memory)
-      const prices = regionPrices.filter(p => p.symbol === upperSymbol);
-      
-      return prices.length > 0 ? prices[0] : null;
+      const [price] = await db.select().from(currentPrices).where(
+        and(
+          eq(currentPrices.symbol, symbol),
+          eq(currentPrices.region, region.toUpperCase())
+        )
+      );
+      return price;
     } catch (error) {
-      console.error(`Error getting current price for ${symbol} in ${region}:`, error);
+      console.error(`Error getting current price for ${symbol} (${region}):`, error);
       return null;
     }
   }
-
-  /**
-   * Create a current price
-   */
-  async createCurrentPrice(data: any) {
-    try {
-      const [result] = await db.insert(currentPrices)
-        .values(sanitizeForDb(data))
-        .returning();
-      return result;
-    } catch (error) {
-      console.error(`Error creating current price:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Update a current price
-   */
-  async updateCurrentPrice(id: number, data: any) {
-    try {
-      const [result] = await db.update(currentPrices)
-        .set(sanitizeForDb(data))
-        .where(eq(currentPrices.id, id))
-        .returning();
-      return result;
-    } catch (error) {
-      console.error(`Error updating current price with id ${id}:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Delete a current price
-   */
-  async deleteCurrentPrice(id: number) {
-    try {
-      await db.delete(currentPrices)
-        .where(eq(currentPrices.id, id));
-      return true;
-    } catch (error) {
-      console.error(`Error deleting current price with id ${id}:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Bulk create current prices
-   */
-  async bulkCreateCurrentPrices(data: any[]) {
-    if (!data || data.length === 0) {
-      return [];
-    }
-    
-    try {
-      // Sanitize data for database insertion
-      const sanitizedData = data.map(item => sanitizeForDb(item));
-      
-      // Insert all price records
-      const result = await db.insert(currentPrices)
-        .values(sanitizedData)
-        .returning();
-      
-      return result;
-    } catch (error) {
-      console.error(`Error bulk creating current prices:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get ETF holding by ID
-   */
-  async getEtfHolding(id: number) {
-    // Placeholder for actual implementation
-    return null;
-  }
-
-  /**
-   * Update an ETF holding
-   */
-  async updateEtfHolding(id: number, data: any) {
-    // Placeholder for actual implementation
-    return { ...data, id };
-  }
-
-  /**
-   * Delete an ETF holding
-   */
-  async deleteEtfHolding(id: number) {
-    // Placeholder for actual implementation
-    return true;
-  }
-
-  // This method was replaced by the earlier getTopEtfHoldings implementation
-
-  /**
-   * Get a matrix rule by ID
-   */
-  async getMatrixRule(id: number) {
-    // Placeholder for actual implementation
-    return null;
-  }
-
-  /**
-   * Update a matrix rule
-   */
-  async updateMatrixRule(id: number, data: any) {
-    // Placeholder for actual implementation
-    return { ...data, id };
-  }
-
-  /**
-   * Delete a matrix rule
-   */
-  async deleteMatrixRule(id: number) {
-    // Placeholder for actual implementation
-    return true;
-  }
-
+  
   /**
    * Get historical prices for a specific symbol and region with optional date range
    */
   async getHistoricalPrices(symbol: string, region: string, startDate?: Date, endDate?: Date) {
     try {
-      // Build the query based on provided filters
+      // Build the query with the base conditions
       let query = db.select().from(historicalPrices)
-        .where(
-          and(
-            eq(historicalPrices.symbol, symbol),
-            eq(historicalPrices.region, region)
-          )
-        );
+        .where(and(
+          eq(historicalPrices.symbol, symbol),
+          eq(historicalPrices.region, region)
+        ));
       
-      // Add date range filters if provided
+      // Add date range filter if provided
       if (startDate) {
         query = query.where(gte(historicalPrices.date, startDate));
       }
@@ -747,34 +315,9 @@ export class DatabaseStorage {
         query = query.where(lte(historicalPrices.date, endDate));
       }
       
-      // Order by date descending for time series data to get newest first
-      const rawResult = await query.orderBy(desc(historicalPrices.date));
-      
-      // Log a sample point to check if RSI values exist in the database
-      if (rawResult.length > 0) {
-        console.log(`RSI Data Check:`, {
-          totalPoints: rawResult.length,
-          rsiDatapoints: rawResult.filter(p => p.rsi14 !== null && p.rsi14 !== undefined).length,
-          period: "14",
-          samplePoint: rawResult[0]
-        });
-      }
-      
-      // Convert the raw result to the expected format with proper property names
-      const result = rawResult.map(price => ({
-        ...price,
-        // Ensure RSI values are represented correctly
-        rsi9: price.rsi9?.toString() || null,
-        rsi14: price.rsi14?.toString() || null,
-        rsi21: price.rsi21?.toString() || null,
-      }));
-      
-      // Sort by date ascending for the client
-      return result.sort((a, b) => {
-        const dateA = new Date(a.date);
-        const dateB = new Date(b.date);
-        return dateA.getTime() - dateB.getTime();
-      });
+      // Order by date for consistent results
+      const prices = await query.orderBy(asc(historicalPrices.date));
+      return prices;
     } catch (error) {
       console.error(`Error getting historical prices for ${symbol} (${region}):`, error);
       return [];
@@ -782,222 +325,237 @@ export class DatabaseStorage {
   }
   
   /**
-   * Get historical prices for a region with optional date range
+   * Bulk create historical prices
    */
-  async getHistoricalPricesByRegion(region: string, startDate?: Date, endDate?: Date) {
+  async bulkCreateHistoricalPrices(dataArray: any[]) {
     try {
-      // Build the query based on provided filters
-      let query = db.select().from(historicalPrices)
-        .where(eq(historicalPrices.region, region));
-      
-      // Add date range filters if provided
-      if (startDate) {
-        query = query.where(gte(historicalPrices.date, startDate));
-      }
-      
-      if (endDate) {
-        query = query.where(lte(historicalPrices.date, endDate));
-      }
-      
-      // Order by date ascending for time series data
-      const result = await query.orderBy(asc(historicalPrices.date));
-      return result;
-    } catch (error) {
-      console.error(`Error getting historical prices for region ${region}:`, error);
-      return [];
-    }
-  }
-  
-  /**
-   * Get historical prices for multiple symbols in a region with optional date range
-   */
-  async getHistoricalPricesBySymbols(symbols: string[], region: string, startDate?: Date, endDate?: Date) {
-    try {
-      if (!symbols || symbols.length === 0) {
+      if (!dataArray || dataArray.length === 0) {
         return [];
       }
       
-      // Build the query based on provided filters
-      let query = db.select().from(historicalPrices)
-        .where(
-          and(
-            inArray(historicalPrices.symbol, symbols),
-            eq(historicalPrices.region, region)
-          )
-        );
+      // Process in batches to avoid excessive memory usage
+      const batchSize = 100;
+      const results = [];
       
-      // Add date range filters if provided
-      if (startDate) {
-        query = query.where(gte(historicalPrices.date, startDate));
-      }
-      
-      if (endDate) {
-        query = query.where(lte(historicalPrices.date, endDate));
-      }
-      
-      // Order by date ascending for time series data
-      const result = await query.orderBy(asc(historicalPrices.date));
-      return result;
-    } catch (error) {
-      console.error(`Error getting historical prices for symbols in ${region}:`, error);
-      return [];
-    }
-  }
-  
-  /**
-   * Create a historical price record
-   */
-  async createHistoricalPrice(data: any) {
-    try {
-      const [result] = await db.insert(historicalPrices).values(sanitizeForDb(data)).returning();
-      return result;
-    } catch (error) {
-      console.error('Error creating historical price:', error);
-      throw error;
-    }
-  }
-  
-  /**
-   * Bulk create historical price records
-   */
-  async bulkCreateHistoricalPrices(data: any[]) {
-    try {
-      if (data.length === 0) {
-        return [];
-      }
-
-      // Process data for insertion
-      const processedData = data.map(item => sanitizeForDb(item));
-      
-      // Process items individually to avoid parameter indexing issues
-      console.log(`Processing ${processedData.length} historical price records`);
-      const allResults = [];
-      
-      // Process in smaller batches
-      const BATCH_SIZE = 10;
-      for (let i = 0; i < processedData.length; i += BATCH_SIZE) {
-        const batch = processedData.slice(i, i + BATCH_SIZE);
-        console.log(`Processing batch ${Math.floor(i/BATCH_SIZE) + 1} of ${Math.ceil(processedData.length/BATCH_SIZE)}`);
+      for (let i = 0; i < dataArray.length; i += batchSize) {
+        const batch = dataArray.slice(i, i + batchSize);
+        console.log(`Processing ${batch.length} historical price records`);
         
-        for (const item of batch) {
-          try {
-            // Use direct SQL with parameters to avoid parameter indexing issues
-            const result = await db.execute(sql`
-              INSERT INTO historical_prices 
-                (symbol, date, open, high, low, close, volume, adjusted_close, region, rsi_9, rsi_14, rsi_21)
-              VALUES 
-                (${item.symbol}, ${item.date}, ${item.open}, ${item.high}, ${item.low}, 
-                 ${item.close}, ${item.volume}, ${item.adjustedClose}, ${item.region}, 
-                 ${item.rsi9 === 'null' ? null : item.rsi9 || null}, 
-                 ${item.rsi14 === 'null' ? null : item.rsi14 || null}, 
-                 ${item.rsi21 === 'null' ? null : item.rsi21 || null})
-              ON CONFLICT (symbol, date, region) DO UPDATE SET
-                open = EXCLUDED.open,
-                high = EXCLUDED.high,
-                low = EXCLUDED.low,
-                close = EXCLUDED.close,
-                volume = EXCLUDED.volume,
-                adjusted_close = EXCLUDED.adjusted_close,
-                rsi_9 = EXCLUDED.rsi_9,
-                rsi_14 = EXCLUDED.rsi_14,
-                rsi_21 = EXCLUDED.rsi_21,
-                updated_at = NOW()
-              RETURNING *
-            `);
-            
-            // Add results to the array
-            if (result && result.rows && result.rows.length > 0) {
-              allResults.push(...result.rows);
+        // Prepare the values for insertion
+        const valuesToInsert = batch.map(item => {
+          return {
+            symbol: item.symbol,
+            date: item.date,
+            open: item.open,
+            high: item.high,
+            low: item.low,
+            close: item.close,
+            volume: item.volume,
+            adjustedClose: item.adjustedClose,
+            region: item.region
+          };
+        });
+        
+        // Insert with on conflict do update to handle existing records
+        const batchResults = await db.insert(historicalPrices)
+          .values(valuesToInsert)
+          .onConflictDoUpdate({
+            target: [historicalPrices.symbol, historicalPrices.date, historicalPrices.region],
+            set: {
+              open: sql`EXCLUDED.open`,
+              high: sql`EXCLUDED.high`,
+              low: sql`EXCLUDED.low`,
+              close: sql`EXCLUDED.close`,
+              volume: sql`EXCLUDED.volume`,
+              adjustedClose: sql`EXCLUDED.adjusted_close`,
+              updatedAt: new Date()
             }
-          } catch (itemError) {
-            console.error(`Error processing historical price for ${item.symbol} on ${item.date}:`, itemError);
-          }
-        }
+          })
+          .returning();
+        
+        results.push(...batchResults);
       }
       
-      return allResults;
+      return results;
     } catch (error) {
-      if (typeof error === 'object' && error !== null && 'message' in error) {
-        if (String(error.message).includes('constraint "historical_prices_symbol_date_region_key" does not exist')) {
-          console.warn('Unique constraint doesn\'t exist, falling back to standard insert');
-          const results = await db.insert(historicalPrices).values(processedData).returning();
-          return results;
-        }
-      }
-      
       console.error('Error bulk creating historical prices:', error);
       throw error;
     }
   }
-  
-  /**
-   * Delete historical prices for a symbol and region
-   */
-  async deleteHistoricalPrices(symbol: string, region: string) {
-    try {
-      await db.delete(historicalPrices)
-        .where(
-          and(
-            eq(historicalPrices.symbol, symbol),
-            eq(historicalPrices.region, region)
-          )
-        );
-      return true;
-    } catch (error) {
-      console.error(`Error deleting historical prices for ${symbol} (${region}):`, error);
-      return false;
-    }
-  }
 
   /**
-   * Get stocks by region
+   * Get RSI data for a symbol and region
+   * @param symbol Stock symbol
+   * @param region Portfolio region (USD, CAD, INTL)
+   * @param startDate Optional start date filter
+   * @param endDate Optional end date filter
    */
-  async getStocksByRegion(region: string) {
+  async getRsiData(symbol: string, region: string, startDate?: Date, endDate?: Date) {
     try {
-      const upperRegion = region.toUpperCase();
-      let result = [];
+      let query = db.select().from(rsiData)
+        .where(and(
+          eq(rsiData.symbol, symbol),
+          eq(rsiData.region, region)
+        ));
       
-      if (upperRegion === 'USD') {
-        result = await db.select().from(portfolioUSD);
-      } else if (upperRegion === 'CAD') {
-        result = await db.select().from(portfolioCAD);
-      } else if (upperRegion === 'INTL') {
-        result = await db.select().from(portfolioINTL);
-      } else {
-        throw new Error(`Unknown region: ${region}`);
+      // Add date range filters if provided
+      if (startDate) {
+        query = query.where(gte(rsiData.date, startDate));
       }
       
-      return result;
+      if (endDate) {
+        query = query.where(lte(rsiData.date, endDate));
+      }
+      
+      // Execute the query
+      const results = await query.orderBy(asc(rsiData.date));
+      return results;
     } catch (error) {
-      console.error(`Error getting stocks for region ${region}:`, error);
+      console.error(`Error fetching RSI data for ${symbol} (${region}):`, error);
       return [];
     }
   }
-
+  
   /**
-   * Get user by ID
+   * Get RSI data for a specific historical price
+   * @param historicalPriceId Historical price ID
    */
-  async getUser(id: number) {
-    // Placeholder for actual implementation
-    return null;
+  async getRsiDataByHistoricalPriceId(historicalPriceId: number) {
+    try {
+      const [result] = await db.select().from(rsiData)
+        .where(eq(rsiData.historicalPriceId, historicalPriceId));
+      return result;
+    } catch (error) {
+      console.error(`Error fetching RSI data for historical price ID ${historicalPriceId}:`, error);
+      return null;
+    }
   }
-
+  
   /**
-   * Get user by username
+   * Create or update RSI data for a historical price
+   * @param data RSI data to create or update
    */
-  async getUserByUsername(username: string) {
-    // Placeholder for actual implementation
-    return null;
+  async createOrUpdateRsiData(data: any) {
+    try {
+      const { historicalPriceId, symbol, date, region, rsi9, rsi14, rsi21 } = data;
+      
+      // Check if RSI data already exists for this historical price
+      const existing = await this.getRsiDataByHistoricalPriceId(historicalPriceId);
+      
+      if (existing) {
+        // Update existing RSI data
+        const [result] = await db.update(rsiData)
+          .set({
+            rsi9: rsi9 !== undefined ? rsi9 : existing.rsi9,
+            rsi14: rsi14 !== undefined ? rsi14 : existing.rsi14,
+            rsi21: rsi21 !== undefined ? rsi21 : existing.rsi21,
+            updatedAt: new Date()
+          })
+          .where(eq(rsiData.id, existing.id))
+          .returning();
+        
+        return result;
+      } else {
+        // Create new RSI data
+        const [result] = await db.insert(rsiData)
+          .values({
+            historicalPriceId,
+            symbol,
+            date, 
+            region,
+            rsi9,
+            rsi14,
+            rsi21
+          })
+          .onConflictDoUpdate({
+            target: rsiData.historicalPriceId,
+            set: {
+              rsi9: rsi9 !== undefined ? rsi9 : sql`EXCLUDED.rsi_9`,
+              rsi14: rsi14 !== undefined ? rsi14 : sql`EXCLUDED.rsi_14`,
+              rsi21: rsi21 !== undefined ? rsi21 : sql`EXCLUDED.rsi_21`,
+              updatedAt: new Date()
+            }
+          })
+          .returning();
+        
+        return result;
+      }
+    } catch (error) {
+      console.error(`Error creating/updating RSI data:`, error);
+      throw error;
+    }
   }
-
+  
   /**
-   * Create a user
+   * Bulk create or update RSI data
+   * @param dataArray Array of RSI data objects to create or update
    */
-  async createUser(data: any) {
-    // Placeholder for actual implementation
-    return { ...data, id: 1 };
+  async bulkCreateOrUpdateRsiData(dataArray: any[]) {
+    try {
+      if (!dataArray || dataArray.length === 0) {
+        return [];
+      }
+      
+      // Process in batches to avoid overloading the database
+      const batchSize = 100;
+      const results = [];
+      
+      for (let i = 0; i < dataArray.length; i += batchSize) {
+        const batch = dataArray.slice(i, i + batchSize);
+        console.log(`Processing RSI data batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(dataArray.length/batchSize)}`);
+        
+        // Prepare the values for insertion
+        const valuesToInsert = batch.map(item => ({
+          historicalPriceId: item.historicalPriceId,
+          symbol: item.symbol,
+          date: item.date,
+          region: item.region,
+          rsi9: item.rsi9,
+          rsi14: item.rsi14,
+          rsi21: item.rsi21
+        }));
+        
+        // Insert with on conflict do update
+        const batchResults = await db.insert(rsiData)
+          .values(valuesToInsert)
+          .onConflictDoUpdate({
+            target: [rsiData.historicalPriceId],
+            set: {
+              rsi9: sql`EXCLUDED.rsi_9`,
+              rsi14: sql`EXCLUDED.rsi_14`,
+              rsi21: sql`EXCLUDED.rsi_21`,
+              updatedAt: new Date()
+            }
+          })
+          .returning();
+        
+        results.push(...batchResults);
+      }
+      
+      return results;
+    } catch (error) {
+      console.error(`Error bulk creating/updating RSI data:`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Delete RSI data for a symbol and region
+   * @param symbol Stock symbol
+   * @param region Portfolio region (USD, CAD, INTL)
+   */
+  async deleteRsiData(symbol: string, region: string) {
+    try {
+      return await db.delete(rsiData)
+        .where(and(
+          eq(rsiData.symbol, symbol),
+          eq(rsiData.region, region)
+        ));
+    } catch (error) {
+      console.error(`Error deleting RSI data for ${symbol} (${region}):`, error);
+      throw error;
+    }
   }
 }
 
-// Export a singleton instance
 export const storage = new DatabaseStorage();

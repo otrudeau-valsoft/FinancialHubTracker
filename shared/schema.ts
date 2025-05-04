@@ -184,9 +184,6 @@ export const historicalPrices = pgTable(
     volume: numeric("volume"),
     adjustedClose: numeric("adjusted_close"),
     region: text("region").notNull(),  // USD, CAD, INTL
-    rsi14: numeric("rsi_14"),          // RSI with 14-day period
-    rsi9: numeric("rsi_9"),            // RSI with 9-day period
-    rsi21: numeric("rsi_21"),          // RSI with 21-day period
     updatedAt: timestamp("updated_at").defaultNow(),
   },
   (table) => {
@@ -208,6 +205,44 @@ export const insertHistoricalPriceSchema = createInsertSchema(historicalPrices).
 
 export type InsertHistoricalPrice = z.infer<typeof insertHistoricalPriceSchema>;
 export type HistoricalPrice = typeof historicalPrices.$inferSelect;
+
+// RSI Data - Separate table for better organization and performance
+export const rsiData = pgTable(
+  "rsi_data",
+  {
+    id: serial("id").primaryKey(),
+    historicalPriceId: integer("historical_price_id").notNull().references(() => historicalPrices.id),
+    symbol: text("symbol").notNull(),
+    date: date("date").notNull(),
+    region: text("region").notNull(),
+    rsi9: numeric("rsi_9"),          // RSI with 9-day period
+    rsi14: numeric("rsi_14"),        // RSI with 14-day period
+    rsi21: numeric("rsi_21"),        // RSI with 21-day period
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => {
+    return {
+      // Add a unique constraint on historical_price_id to prevent duplicates
+      historicalPriceIdIdx: uniqueIndex("rsi_data_historical_price_id_key").on(
+        table.historicalPriceId
+      ),
+      // Add an index on symbol, date, and region for faster lookups
+      symbolDateRegionIdx: uniqueIndex("rsi_data_symbol_date_region_key").on(
+        table.symbol,
+        table.date,
+        table.region
+      ),
+    };
+  }
+);
+
+export const insertRsiDataSchema = createInsertSchema(rsiData).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertRsiData = z.infer<typeof insertRsiDataSchema>;
+export type RsiData = typeof rsiData.$inferSelect;
 
 // Matrix Rules Schema
 export const matrixRules = pgTable("matrix_rules", {
