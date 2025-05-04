@@ -342,7 +342,13 @@ export class DatabaseStorage {
       // Create a map of RSI data by date as fallback lookup
       const rsiDataByDate = new Map();
       rsiDataArray.forEach(rsiItem => {
-        rsiDataByDate.set(rsiItem.date.toISOString().split('T')[0], rsiItem);
+        // Handle date as either string or Date object
+        const dateStr = typeof rsiItem.date === 'string' 
+          ? rsiItem.date.split('T')[0]  // Handle ISO string
+          : rsiItem.date instanceof Date 
+            ? rsiItem.date.toISOString().split('T')[0]  // Handle Date object
+            : String(rsiItem.date);  // Fallback for any other format
+        rsiDataByDate.set(dateStr, rsiItem);
       });
       
       // Merge RSI data into historical prices
@@ -352,10 +358,22 @@ export class DatabaseStorage {
         
         // If not found by ID, try by date
         if (!rsiItem) {
-          const dateStr = price.date instanceof Date 
-            ? price.date.toISOString().split('T')[0] 
-            : new Date(price.date).toISOString().split('T')[0];
-          rsiItem = rsiDataByDate.get(dateStr);
+          let dateStr;
+          try {
+            // Handle different date formats
+            if (typeof price.date === 'string') {
+              dateStr = price.date.split('T')[0];
+            } else if (price.date instanceof Date) {
+              dateStr = price.date.toISOString().split('T')[0];
+            } else {
+              // Try to convert to date
+              const dateObj = new Date(price.date);
+              dateStr = dateObj.toISOString().split('T')[0];
+            }
+            rsiItem = rsiDataByDate.get(dateStr);
+          } catch (err) {
+            console.warn(`Error handling date format for price ID ${price.id}, date: ${price.date}:`, err);
+          }
         }
         
         // Merge RSI data if found
