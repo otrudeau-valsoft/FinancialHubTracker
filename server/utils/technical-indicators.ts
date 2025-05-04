@@ -13,11 +13,13 @@
  * @returns Array of RSI values corresponding to the input prices
  */
 export function calculateRSI(prices: number[], period: number = 14): (number | null)[] {
+  // We need at least period+1 prices to calculate the first RSI value
   if (!prices || prices.length < period + 1) {
-    return Array(prices.length).fill(null);
+    console.log(`Not enough data for RSI calculation. Need at least ${period + 1} prices, but got ${prices?.length || 0}.`);
+    return Array(prices?.length || 0).fill(null);
   }
 
-  // Calculate price changes
+  // Calculate price changes (price of today - price of yesterday)
   const priceChanges: number[] = [];
   for (let i = 1; i < prices.length; i++) {
     priceChanges.push(prices[i] - prices[i - 1]);
@@ -33,24 +35,27 @@ export function calculateRSI(prices: number[], period: number = 14): (number | n
     losses.push(priceChanges[i] < 0 ? Math.abs(priceChanges[i]) : 0);
   }
 
-  // Calculate RSI values
-  const rsiValues: (number | null)[] = [];
+  // Calculate RSI values - we'll need an array of the same length as prices
+  const rsiValues: (number | null)[] = Array(prices.length).fill(null);
   
-  // First value cannot have RSI
-  rsiValues.push(null);
+  // First price point cannot have RSI (no change)
+  // rsiValues[0] is already null
 
-  // Calculate initial averages based on first 'period' values
+  // We can only start calculating RSI after we have 'period' price changes
   if (gains.length < period) {
-    return Array(prices.length).fill(null);
+    console.warn(`Not enough gain/loss data points for RSI period ${period}. Have ${gains.length}, need ${period}.`);
+    return rsiValues;
   }
 
+  // Calculate initial averages based on first 'period' values
   let avgGain = gains.slice(0, period).reduce((sum, val) => sum + val, 0) / period;
   let avgLoss = losses.slice(0, period).reduce((sum, val) => sum + val, 0) / period;
 
-  // Calculate first RSI
+  // Calculate first RSI value - this happens at index period+1
+  // since we need period days of changes to calculate the first value
   let rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
   let rsi = 100 - (100 / (1 + rs));
-  rsiValues.push(rsi);
+  rsiValues[period] = rsi;
 
   // Calculate the rest of RSI values using smoothed averages
   for (let i = period; i < priceChanges.length; i++) {
@@ -61,7 +66,10 @@ export function calculateRSI(prices: number[], period: number = 14): (number | n
     // Avoid division by zero
     rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
     rsi = 100 - (100 / (1 + rs));
-    rsiValues.push(rsi);
+    
+    // Store this RSI value at the corresponding price index
+    // Price index is i+1 because the first price change is at index 1
+    rsiValues[i + 1] = rsi;
   }
 
   return rsiValues;

@@ -652,7 +652,9 @@ class HistoricalPriceService {
       const recentPricesNeedingRefresh: any[] = [];
       
       // Define how many recent days to ALWAYS refresh
-      const RECENT_DAYS_TO_REFRESH = 10; // Increased to ensure recent data has RSI values
+      // This needs to be at least as large as the longest RSI period (21 days) plus a buffer
+      // to ensure proper recalculation of the lookback period
+      const RECENT_DAYS_TO_REFRESH = 30; // Increased to ensure RSI has enough data for lookback
       
       // Find the most recent date to check if we have today's data
       let hasRecentData = false;
