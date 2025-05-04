@@ -296,6 +296,7 @@ export class DatabaseStorage {
   
   /**
    * Get historical prices for a specific symbol and region with optional date range
+   * Also fetches and merges RSI data from the dedicated RSI table
    */
   async getHistoricalPrices(symbol: string, region: string, startDate?: Date, endDate?: Date) {
     try {
@@ -317,7 +318,61 @@ export class DatabaseStorage {
       
       // Order by date for consistent results
       const prices = await query.orderBy(asc(historicalPrices.date));
-      return prices;
+      
+      if (!prices || prices.length === 0) {
+        return [];
+      }
+      
+      // Fetch RSI data for these historical prices
+      // Get all RSI data for this symbol and region
+      const rsiDataArray = await this.getRsiData(symbol, region, startDate, endDate);
+      
+      if (!rsiDataArray || rsiDataArray.length === 0) {
+        // No RSI data available, just return the historical prices
+        console.log(`No RSI data available for ${symbol} (${region}), returning prices without RSI values`);
+        return prices;
+      }
+      
+      // Create a map of RSI data by historical price ID for efficient lookup
+      const rsiDataByHistoricalPriceId = new Map();
+      rsiDataArray.forEach(rsiItem => {
+        rsiDataByHistoricalPriceId.set(rsiItem.historicalPriceId, rsiItem);
+      });
+      
+      // Create a map of RSI data by date as fallback lookup
+      const rsiDataByDate = new Map();
+      rsiDataArray.forEach(rsiItem => {
+        rsiDataByDate.set(rsiItem.date.toISOString().split('T')[0], rsiItem);
+      });
+      
+      // Merge RSI data into historical prices
+      const pricesWithRsi = prices.map(price => {
+        // Try to get RSI data by historical price ID first
+        let rsiItem = rsiDataByHistoricalPriceId.get(price.id);
+        
+        // If not found by ID, try by date
+        if (!rsiItem) {
+          const dateStr = price.date instanceof Date 
+            ? price.date.toISOString().split('T')[0] 
+            : new Date(price.date).toISOString().split('T')[0];
+          rsiItem = rsiDataByDate.get(dateStr);
+        }
+        
+        // Merge RSI data if found
+        if (rsiItem) {
+          return {
+            ...price,
+            rsi9: rsiItem.rsi9,
+            rsi14: rsiItem.rsi14,
+            rsi21: rsiItem.rsi21
+          };
+        }
+        
+        // Otherwise, return price without RSI data
+        return price;
+      });
+      
+      return pricesWithRsi;
     } catch (error) {
       console.error(`Error getting historical prices for ${symbol} (${region}):`, error);
       return [];
