@@ -1203,8 +1203,8 @@ class HistoricalPriceService {
       for (const region of regions) {
         try {
           // First fetch new historical prices
-          console.log(`Updating historical prices for ${region} portfolio with forceRsiRefresh=${forceRsiRefresh}`);
-          const regionResults = await this.updatePortfolioHistoricalPrices(region, forceRsiRefresh);
+          console.log(`Updating historical prices for ${region} portfolio with forceRsiRefresh=${forceRsiRefresh}, forceMacdRefresh=${forceMacdRefresh}`);
+          const regionResults = await this.updatePortfolioHistoricalPrices(region, forceRsiRefresh, forceMacdRefresh);
           allResults = [...allResults, ...regionResults];
           
           // Then get all symbols in this portfolio
