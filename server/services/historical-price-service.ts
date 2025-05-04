@@ -555,8 +555,11 @@ class HistoricalPriceService {
 
   /**
    * Calculate and update RSI values for all existing historical prices for a symbol
+   * @param symbol Stock symbol
+   * @param region Portfolio region (USD, CAD, INTL)
+   * @param forceRsiRefresh If true, forces updating RSI for the most recent price points
    */
-  async calculateAndUpdateRSIForSymbol(symbol: string, region: string) {
+  async calculateAndUpdateRSIForSymbol(symbol: string, region: string, forceRsiRefresh: boolean = false) {
     try {
       console.log(`Calculating and updating RSI values for ${symbol} (${region})`);
       
@@ -617,7 +620,13 @@ class HistoricalPriceService {
         
         // For RSI 9-day period
         if (i < rsiValues[9].length && rsiValues[9][i] !== null) {
-          if (isVeryRecentPrice || !price.rsi9) {
+          // Force refresh recent data points if forceRsiRefresh is true
+          if (forceRsiRefresh && isVeryRecentPrice) {
+            price.rsi9 = rsiValues[9][i]?.toString();
+            needsUpdate = true;
+          }
+          // Otherwise, only update if missing or very recent
+          else if (isVeryRecentPrice || !price.rsi9) {
             price.rsi9 = rsiValues[9][i]?.toString();
             needsUpdate = true;
           }
@@ -625,7 +634,13 @@ class HistoricalPriceService {
         
         // For RSI 14-day period  
         if (i < rsiValues[14].length && rsiValues[14][i] !== null) {
-          if (isVeryRecentPrice || !price.rsi14) {
+          // Force refresh recent data points if forceRsiRefresh is true
+          if (forceRsiRefresh && isVeryRecentPrice) {
+            price.rsi14 = rsiValues[14][i]?.toString();
+            needsUpdate = true;
+          }
+          // Otherwise, only update if missing or very recent
+          else if (isVeryRecentPrice || !price.rsi14) {
             price.rsi14 = rsiValues[14][i]?.toString();
             needsUpdate = true;
           }
@@ -633,7 +648,13 @@ class HistoricalPriceService {
         
         // For RSI 21-day period
         if (i < rsiValues[21].length && rsiValues[21][i] !== null) {
-          if (isVeryRecentPrice || !price.rsi21) {
+          // Force refresh recent data points if forceRsiRefresh is true
+          if (forceRsiRefresh && isVeryRecentPrice) {
+            price.rsi21 = rsiValues[21][i]?.toString();
+            needsUpdate = true;
+          }
+          // Otherwise, only update if missing or very recent
+          else if (isVeryRecentPrice || !price.rsi21) {
             price.rsi21 = rsiValues[21][i]?.toString();
             needsUpdate = true;
           }
@@ -669,8 +690,9 @@ class HistoricalPriceService {
   /**
    * Update historical prices for all portfolios with batch processing
    * Uses a mutex pattern to prevent duplicate concurrent executions
+   * @param forceRsiRefresh If true, will force updating RSI values for recent price points
    */
-  async updateAllHistoricalPrices() {
+  async updateAllHistoricalPrices(forceRsiRefresh: boolean = false) {
     // Check if already running to prevent duplicate executions
     if (this.isUpdatingAllHistoricalPrices) {
       console.log('Historical price update already in progress, skipping duplicate request');
@@ -685,6 +707,13 @@ class HistoricalPriceService {
     
     // Set the flag to indicate this process is running
     this.isUpdatingAllHistoricalPrices = true;
+    
+    // Log RSI refresh mode
+    if (forceRsiRefresh) {
+      console.log('RSI Refresh Mode: Will refresh RSI values for all recent price points');
+    } else {
+      console.log('RSI Refresh Mode: Will only update missing RSI values');
+    }
     
     try {
       const regions = ['USD', 'CAD', 'INTL'];
@@ -707,7 +736,7 @@ class HistoricalPriceService {
         for (const index of indices) {
           try {
             console.log(`Calculating RSI for index ${index.symbol}`);
-            await this.calculateAndUpdateRSIForSymbol(index.symbol, index.region);
+            await this.calculateAndUpdateRSIForSymbol(index.symbol, index.region, forceRsiRefresh);
           } catch (rsiError) {
             console.error(`Error calculating RSI for index ${index.symbol}:`, rsiError);
           }
@@ -762,7 +791,7 @@ class HistoricalPriceService {
             
             for (const symbol of batch) {
               try {
-                await this.calculateAndUpdateRSIForSymbol(symbol, region);
+                await this.calculateAndUpdateRSIForSymbol(symbol, region, forceRsiRefresh);
               } catch (rsiError) {
                 console.error(`Error calculating RSI for ${symbol} (${region}):`, rsiError);
               }
