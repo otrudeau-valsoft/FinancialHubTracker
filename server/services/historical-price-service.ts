@@ -413,8 +413,9 @@ class HistoricalPriceService {
   /**
    * Process a batch of symbols
    * @param forceRsiRefresh If true, will force updating RSI values for recent price points
+   * @param forceMacdRefresh If true, will force updating MACD values for recent price points
    */
-  private async processBatch(symbols: string[], region: string, batchIndex: number, batchSize: number, forceRsiRefresh: boolean = false) {
+  private async processBatch(symbols: string[], region: string, batchIndex: number, batchSize: number, forceRsiRefresh: boolean = false, forceMacdRefresh: boolean = false) {
     const batchSymbols = symbols.slice(batchIndex, batchIndex + batchSize);
     const batchResults = [];
     
@@ -441,25 +442,39 @@ class HistoricalPriceService {
         
         // Only fetch if there's potentially new data
         if (startDate < new Date()) {
-          console.log(`Fetching historical prices for ${symbol} from ${startDate.toISOString().split('T')[0]} with forceRsiRefresh=${forceRsiRefresh}`);
+          console.log(`Fetching historical prices for ${symbol} from ${startDate.toISOString().split('T')[0]} with forceRsiRefresh=${forceRsiRefresh}, forceMacdRefresh=${forceMacdRefresh}`);
           const result = await this.fetchAndStoreHistoricalPrices(
             symbol, 
             region, 
             startDate, 
             undefined, // endDate (use default current date)
-            forceRsiRefresh // Pass the RSI refresh parameter
+            forceRsiRefresh,
+            forceMacdRefresh
           );
           batchResults.push({ symbol, success: true, result, rsiCalculated: forceRsiRefresh });
         } else {
-          console.log(`Historical prices for ${symbol} are already up to date, checking if RSI needs refresh`);
+          console.log(`Historical prices for ${symbol} are already up to date, checking if RSI/MACD need refresh`);
           
           // Even if no new data to fetch, we can still refresh RSI values for existing data
           if (forceRsiRefresh) {
             console.log(`Forcing RSI refresh for ${symbol} even though prices are up to date`);
-            const result = await this.calculateAndUpdateRSIForSymbol(symbol, region, forceRsiRefresh);
-            batchResults.push({ symbol, success: true, result, rsiCalculated: true });
-          } else {
-            batchResults.push({ symbol, success: true, result: [], rsiCalculated: false });
+            const rsiResult = await this.calculateAndUpdateRSIForSymbol(symbol, region, forceRsiRefresh);
+            batchResults.push({ symbol, success: true, result: rsiResult, rsiCalculated: true });
+          }
+          
+          // Similarly, we can refresh MACD values for existing data
+          if (forceMacdRefresh) {
+            console.log(`Forcing MACD refresh for ${symbol} even though prices are up to date`);
+            const macdResult = await this.calculateAndUpdateMACDForSymbol(symbol, region, forceMacdRefresh);
+            // If we already added this symbol for RSI, don't add another result
+            if (!forceRsiRefresh) {
+              batchResults.push({ symbol, success: true, result: macdResult, macdCalculated: true });
+            }
+          }
+          
+          // If neither RSI nor MACD refresh were requested, add an empty result
+          if (!forceRsiRefresh && !forceMacdRefresh) {
+            batchResults.push({ symbol, success: true, result: [], rsiCalculated: false, macdCalculated: false });
           }
         }
         
@@ -481,8 +496,9 @@ class HistoricalPriceService {
    * Only adds new data points from the latest data we have
    * @param region Portfolio region (USD, CAD, INTL)
    * @param forceRsiRefresh If true, forces updating RSI for recent price points
+   * @param forceMacdRefresh If true, forces updating MACD for recent price points
    */
-  async updatePortfolioHistoricalPrices(region: string, forceRsiRefresh: boolean = false) {
+  async updatePortfolioHistoricalPrices(region: string, forceRsiRefresh: boolean = false, forceMacdRefresh: boolean = false) {
     try {
       // Get all symbols in the portfolio
       let symbols: string[];
@@ -511,9 +527,9 @@ class HistoricalPriceService {
       const batchSize = 5; // Process 5 symbols at a time
       
       for (let i = 0; i < symbols.length; i += batchSize) {
-        // Process this batch, passing the forceRsiRefresh parameter
-        console.log(`Processing batch with forceRsiRefresh=${forceRsiRefresh}`);
-        const batchResults = await this.processBatch(symbols, region, i, batchSize, forceRsiRefresh);
+        // Process this batch, passing the forceRsiRefresh and forceMacdRefresh parameters
+        console.log(`Processing batch with forceRsiRefresh=${forceRsiRefresh}, forceMacdRefresh=${forceMacdRefresh}`);
+        const batchResults = await this.processBatch(symbols, region, i, batchSize, forceRsiRefresh, forceMacdRefresh);
         results.push(...batchResults);
         
         // Add a pause between batches to avoid overwhelming the API
@@ -564,25 +580,39 @@ class HistoricalPriceService {
           
           // Only fetch if there's potentially new data
           if (startDate < new Date()) {
-            console.log(`Fetching historical prices for index ${index.symbol} from ${startDate.toISOString().split('T')[0]} with forceRsiRefresh=${forceRsiRefresh}`);
+            console.log(`Fetching historical prices for index ${index.symbol} from ${startDate.toISOString().split('T')[0]} with forceRsiRefresh=${forceRsiRefresh}, forceMacdRefresh=${forceMacdRefresh}`);
             const result = await this.fetchAndStoreHistoricalPrices(
               index.symbol, 
               index.region, 
               startDate, 
               undefined, // endDate - use default current date
-              forceRsiRefresh
+              forceRsiRefresh,
+              forceMacdRefresh
             );
             results.push({ symbol: index.symbol, success: true, result });
           } else {
-            console.log(`Historical prices for index ${index.symbol} are already up to date, checking if RSI needs refresh`);
+            console.log(`Historical prices for index ${index.symbol} are already up to date, checking if RSI/MACD need refresh`);
             
             // Even if no new data to fetch, we can still refresh RSI values for existing data
             if (forceRsiRefresh) {
               console.log(`Forcing RSI refresh for index ${index.symbol} even though prices are up to date`);
-              const result = await this.calculateAndUpdateRSIForSymbol(index.symbol, index.region, forceRsiRefresh);
-              results.push({ symbol: index.symbol, success: true, result });
-            } else {
-              results.push({ symbol: index.symbol, success: true, result: [] });
+              const rsiResult = await this.calculateAndUpdateRSIForSymbol(index.symbol, index.region, forceRsiRefresh);
+              results.push({ symbol: index.symbol, success: true, result: rsiResult, rsiCalculated: true });
+            }
+            
+            // Similarly, we can refresh MACD values for existing data
+            if (forceMacdRefresh) {
+              console.log(`Forcing MACD refresh for index ${index.symbol} even though prices are up to date`);
+              const macdResult = await this.calculateAndUpdateMACDForSymbol(index.symbol, index.region, forceMacdRefresh);
+              // If we already added this symbol for RSI, don't add another result
+              if (!forceRsiRefresh) {
+                results.push({ symbol: index.symbol, success: true, result: macdResult, macdCalculated: true });
+              }
+            }
+            
+            // If neither RSI nor MACD refresh were requested, add an empty result
+            if (!forceRsiRefresh && !forceMacdRefresh) {
+              results.push({ symbol: index.symbol, success: true, result: [], rsiCalculated: false, macdCalculated: false });
             }
           }
           
