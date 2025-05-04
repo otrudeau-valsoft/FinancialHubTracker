@@ -328,70 +328,121 @@ export class DatabaseStorage {
       // Get all RSI data for this symbol and region
       const rsiDataArray = await this.getRsiData(symbol, region, startDate, endDate);
       
+      // Fetch MACD data for these historical prices
+      const macdDataArray = await this.getMacdData(symbol, region, startDate, endDate);
+      
       if (!rsiDataArray || rsiDataArray.length === 0) {
-        // No RSI data available, just return the historical prices
-        console.log(`No RSI data available for ${symbol} (${region}), returning prices without RSI values`);
+        console.log(`No RSI data available for ${symbol} (${region})`);
+        // We'll still try to include MACD data if available
+      }
+      
+      if (!macdDataArray || macdDataArray.length === 0) {
+        console.log(`No MACD data available for ${symbol} (${region})`);
+        // We'll still try to include RSI data if available
+      }
+      
+      if ((!rsiDataArray || rsiDataArray.length === 0) && (!macdDataArray || macdDataArray.length === 0)) {
+        // No technical indicator data available at all, just return the prices
+        console.log(`No technical indicator data available for ${symbol} (${region}), returning prices without technical values`);
         return prices;
       }
       
-      // Create a map of RSI data by historical price ID for efficient lookup
+      // Create maps for RSI data lookup
       const rsiDataByHistoricalPriceId = new Map();
-      rsiDataArray.forEach(rsiItem => {
-        rsiDataByHistoricalPriceId.set(rsiItem.historicalPriceId, rsiItem);
-      });
-      
-      // Create a map of RSI data by date as fallback lookup
       const rsiDataByDate = new Map();
-      rsiDataArray.forEach(rsiItem => {
-        // Handle date as either string or Date object
-        const dateStr = typeof rsiItem.date === 'string' 
-          ? rsiItem.date.split('T')[0]  // Handle ISO string
-          : rsiItem.date instanceof Date 
-            ? rsiItem.date.toISOString().split('T')[0]  // Handle Date object
-            : String(rsiItem.date);  // Fallback for any other format
-        rsiDataByDate.set(dateStr, rsiItem);
-      });
       
-      // Merge RSI data into historical prices
-      const pricesWithRsi = prices.map(price => {
-        // Try to get RSI data by historical price ID first
-        let rsiItem = rsiDataByHistoricalPriceId.get(price.id);
+      if (rsiDataArray && rsiDataArray.length > 0) {
+        // Map RSI data by historical price ID
+        rsiDataArray.forEach(rsiItem => {
+          rsiDataByHistoricalPriceId.set(rsiItem.historicalPriceId, rsiItem);
+        });
         
-        // If not found by ID, try by date
-        if (!rsiItem) {
-          let dateStr;
-          try {
-            // Handle different date formats
-            if (typeof price.date === 'string') {
-              dateStr = price.date.split('T')[0];
-            } else if (price.date instanceof Date) {
-              dateStr = price.date.toISOString().split('T')[0];
-            } else {
-              // Try to convert to date
-              const dateObj = new Date(price.date);
-              dateStr = dateObj.toISOString().split('T')[0];
-            }
-            rsiItem = rsiDataByDate.get(dateStr);
-          } catch (err) {
-            console.warn(`Error handling date format for price ID ${price.id}, date: ${price.date}:`, err);
+        // Map RSI data by date as fallback lookup
+        rsiDataArray.forEach(rsiItem => {
+          // Handle date as either string or Date object
+          const dateStr = typeof rsiItem.date === 'string' 
+            ? rsiItem.date.split('T')[0]  // Handle ISO string
+            : rsiItem.date instanceof Date 
+              ? rsiItem.date.toISOString().split('T')[0]  // Handle Date object
+              : String(rsiItem.date);  // Fallback for any other format
+          rsiDataByDate.set(dateStr, rsiItem);
+        });
+      }
+      
+      // Create maps for MACD data lookup
+      const macdDataByHistoricalPriceId = new Map();
+      const macdDataByDate = new Map();
+      
+      if (macdDataArray && macdDataArray.length > 0) {
+        // Map MACD data by historical price ID
+        macdDataArray.forEach(macdItem => {
+          macdDataByHistoricalPriceId.set(macdItem.historicalPriceId, macdItem);
+        });
+        
+        // Map MACD data by date as fallback lookup
+        macdDataArray.forEach(macdItem => {
+          // Handle date as either string or Date object
+          const dateStr = typeof macdItem.date === 'string' 
+            ? macdItem.date.split('T')[0]  // Handle ISO string
+            : macdItem.date instanceof Date 
+              ? macdItem.date.toISOString().split('T')[0]  // Handle Date object
+              : String(macdItem.date);  // Fallback for any other format
+          macdDataByDate.set(dateStr, macdItem);
+        });
+      }
+      
+      // Merge technical indicator data into historical prices
+      const pricesWithIndicators = prices.map(price => {
+        // Format the date string for lookups
+        let dateStr;
+        try {
+          // Handle different date formats
+          if (typeof price.date === 'string') {
+            dateStr = price.date.split('T')[0];
+          } else if (price.date instanceof Date) {
+            dateStr = price.date.toISOString().split('T')[0];
+          } else {
+            // Try to convert to date
+            const dateObj = new Date(price.date);
+            dateStr = dateObj.toISOString().split('T')[0];
           }
+        } catch (err) {
+          console.warn(`Error handling date format for price ID ${price.id}, date: ${price.date}:`, err);
         }
         
-        // Merge RSI data if found
+        // Start with the original price object
+        let enrichedPrice = { ...price };
+        
+        // Try to get RSI data by historical price ID first, then by date
+        const rsiItem = rsiDataByHistoricalPriceId.get(price.id) || (dateStr ? rsiDataByDate.get(dateStr) : null);
+        
+        // Add RSI data if found
         if (rsiItem) {
-          return {
-            ...price,
+          enrichedPrice = {
+            ...enrichedPrice,
             rsi9: rsiItem.rsi9,
             rsi14: rsiItem.rsi14,
             rsi21: rsiItem.rsi21
           };
         }
         
-        // Otherwise, return price without RSI data
-        return price;
+        // Try to get MACD data by historical price ID first, then by date
+        const macdItem = macdDataByHistoricalPriceId.get(price.id) || (dateStr ? macdDataByDate.get(dateStr) : null);
+        
+        // Add MACD data if found
+        if (macdItem) {
+          enrichedPrice = {
+            ...enrichedPrice,
+            macd: macdItem.macd,
+            signal: macdItem.signal,
+            histogram: macdItem.histogram
+          };
+        }
+        
+        return enrichedPrice;
       });
       
-      return pricesWithRsi;
+      return pricesWithIndicators;
     } catch (error) {
       console.error(`Error getting historical prices for ${symbol} (${region}):`, error);
       return [];
