@@ -307,9 +307,62 @@ export default function StockDetailsPage() {
     staleTime: 3600000 // 1 hour
   });
   
-  // Refetch current price manually
-  const refreshPriceData = () => {
-    refetchPriceData();
+  // Refetch data manually, including RSI calculation
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  
+  const refreshPriceData = async () => {
+    try {
+      setIsRefreshing(true);
+      
+      // Refresh current price data
+      await refetchPriceData();
+      
+      // Update historical prices for the current stock
+      // This will trigger RSI calculation on the backend
+      try {
+        // Make API call to update historical prices with RSI calculation
+        const updateResponse = await fetch(`/api/historical-prices/update/${symbol}/${region}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (updateResponse.ok) {
+          console.log('Historical prices and RSI updated successfully');
+          
+          // Refetch the historical price data to get the updated RSI values
+          const { data } = await queryClient.refetchQueries({
+            queryKey: ['historicalPrices', symbol, region],
+            exact: true
+          });
+          
+          toast({
+            title: "Updated historical prices",
+            description: "Historical prices and RSI data have been updated",
+            variant: "default"
+          });
+        } else {
+          console.error('Failed to update historical prices');
+          
+          toast({
+            title: "Update failed",
+            description: "Failed to update historical prices",
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        console.error('Error updating historical prices:', error);
+        
+        toast({
+          title: "Update failed",
+          description: "Error updating historical prices",
+          variant: "destructive"
+        });
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   // Handle tab change
@@ -690,26 +743,6 @@ export default function StockDetailsPage() {
                         ))}
                       </div>
                       
-                      {/* RSI period selector */}
-                      <div className="flex items-center space-x-1">
-                        {(['9', '14', '21'] as const).map((period) => (
-                          <button
-                            key={period}
-                            onClick={() => setRsiPeriod(period)}
-                            className={`px-2 py-1 text-xs font-mono rounded-sm ${
-                              rsiPeriod === period 
-                                ? 'bg-[#805AD5] text-white' 
-                                : 'bg-[#0D1F32] text-[#7A8999] hover:bg-[#162639]'
-                            }`}
-                          >
-                            <div className="flex items-center">
-                              <Activity className="h-3 w-3 mr-1 text-[#805AD5]" />
-                              <span>RSI-{period}</span>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                      
                       {/* Toggle for RSI (replaced with Period buttons) */}
                       {/*
                       <div className="flex items-center space-x-2">
@@ -833,9 +866,23 @@ export default function StockDetailsPage() {
               <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
                 <div className="flex items-center">
                   <Activity className="h-4 w-4 mr-2 text-[#805AD5]" />
-                  <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">RSI {rsiPeriod}</h3>
+                  <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">RSI</h3>
                 </div>
-                <div className="h-1 w-28 bg-[#805AD5]"></div>
+                <div className="flex items-center space-x-1">
+                  {(['9', '14', '21'] as const).map((period) => (
+                    <button
+                      key={period}
+                      onClick={() => setRsiPeriod(period)}
+                      className={`px-2 py-1 text-xs font-mono rounded-sm ${
+                        rsiPeriod === period 
+                          ? 'bg-[#805AD5] text-white' 
+                          : 'bg-[#0D1F32] text-[#7A8999] hover:bg-[#162639]'
+                      }`}
+                    >
+                      <span>RSI-{period}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="p-4">
                 {/* Check if we have RSI data */}
@@ -942,19 +989,9 @@ export default function StockDetailsPage() {
                   <div className="h-36 flex items-center justify-center bg-[#0A1524]">
                     <div className="text-center">
                       <div className="text-[#805AD5] font-mono text-sm font-semibold mb-2">RSI Data Not Available</div>
-                      <div className="text-[#7A8999] font-mono text-xs mb-3">The system needs to calculate RSI values for this stock</div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="rounded-sm h-8 bg-[#0D1F32] text-[#805AD5] text-xs font-mono border-[#1A304A] hover:bg-[#162639] hover:text-white"
-                        onClick={() => {
-                          // This would need to connect to the update historical prices API with RSI calculation
-                          alert("This would update historical prices with RSI calculation. The API endpoint needs to be implemented.");
-                        }}
-                      >
-                        <BarChart3 className="h-3.5 w-3.5 mr-1.5" />
-                        CALCULATE RSI DATA
-                      </Button>
+                      <div className="text-[#7A8999] font-mono text-xs mb-3">
+                        Use the REFRESH button at the top of the page to update historical prices and generate RSI data
+                      </div>
                     </div>
                   </div>
                 )}
