@@ -1294,10 +1294,34 @@ export default function StockDetailsPage() {
                         />
                         <RechartTooltip
                           labelFormatter={(label) => `Date: ${label}`}
-                          formatter={(value: number, name: string) => [
-                            `${value.toFixed(2)}`, 
-                            name === 'macd' ? 'MACD' : name === 'signal' ? 'Signal' : 'Histogram'
-                          ]}
+                          formatter={(value: number, name: string) => {
+                            let displayName = name;
+                            let color = '#38AAFD';
+                            
+                            // Create more descriptive names and match colors
+                            if (name === 'fast') {
+                              displayName = 'Fast EMA (12-period)';
+                              color = '#00BCD4';
+                            } else if (name === 'slow') {
+                              displayName = 'Slow EMA (26-period)';
+                              color = '#E91E63';
+                            } else if (name === 'macd') {
+                              displayName = 'MACD Line (Fast-Slow)';
+                              color = '#38AAFD';
+                            } else if (name === 'signal') {
+                              displayName = 'Signal Line (9-period)';
+                              color = '#FFD700';
+                            } else if (name === 'histogram') {
+                              displayName = 'Histogram';
+                              color = value >= 0 ? '#4CAF50' : '#FF3D00';
+                            }
+                            
+                            return [
+                              `${value.toFixed(2)}`, 
+                              displayName,
+                              color
+                            ];
+                          }}
                           contentStyle={{ 
                             backgroundColor: '#0A1524', 
                             borderColor: '#1A304A',
@@ -1323,7 +1347,31 @@ export default function StockDetailsPage() {
                           }}
                         />
                         
-                        {/* MACD Histogram with dynamic coloring */}
+                        {/* Fast EMA (12-period) */}
+                        <Line
+                          type="monotone"
+                          dataKey="fast"
+                          stroke="#00BCD4" 
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{ r: 4, stroke: '#00BCD4', fill: '#FFFFFF' }}
+                          name="Fast EMA (12)"
+                          connectNulls
+                        />
+                        
+                        {/* Slow EMA (26-period) */}
+                        <Line
+                          type="monotone"
+                          dataKey="slow"
+                          stroke="#E91E63"
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{ r: 4, stroke: '#E91E63', fill: '#FFFFFF' }}
+                          name="Slow EMA (26)"
+                          connectNulls
+                        />
+                        
+                        {/* MACD Histogram (Fast EMA - Slow EMA) with dynamic coloring */}
                         <Bar
                           dataKey="histogram"
                           name="Histogram"
@@ -1332,7 +1380,7 @@ export default function StockDetailsPage() {
                           stroke={(data) => data.histogram >= 0 ? "#4CAF50" : "#FF3D00"}
                         />
                         
-                        {/* MACD Line */}
+                        {/* MACD Line (difference between Fast and Slow EMAs) */}
                         <Line
                           type="monotone"
                           dataKey="macd"
@@ -1344,7 +1392,7 @@ export default function StockDetailsPage() {
                           connectNulls
                         />
                         
-                        {/* Signal Line */}
+                        {/* Signal Line (9-period EMA of MACD Line) */}
                         <Line
                           type="monotone"
                           dataKey="signal"

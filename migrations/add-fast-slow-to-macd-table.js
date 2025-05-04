@@ -3,10 +3,10 @@
  * This will provide better MACD calculation display with separate lines for
  * the fast EMA (12-period) and slow EMA (26-period) components
  */
-const { sql } = require('drizzle-orm');
-const { drizzle } = require('drizzle-orm/neon-serverless');
-const { Pool, neonConfig } = require('@neondatabase/serverless');
-const ws = require('ws');
+import { sql } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import ws from 'ws';
 
 neonConfig.webSocketConstructor = ws;
 
@@ -55,18 +55,16 @@ async function runMigration() {
   }
 }
 
-// If this script is run directly (not imported)
-if (require.main === module) {
-  runMigration()
-    .then(() => {
-      console.log('Migration completed');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('Migration error:', error);
-      process.exit(1);
-    });
-} else {
-  // Export for use in other scripts
-  module.exports = { runMigration };
-}
+// Run the migration
+runMigration()
+  .then(() => {
+    console.log('Migration completed');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('Migration error:', error);
+    process.exit(1);
+  });
+
+// Export for use in other scripts
+export { runMigration };
