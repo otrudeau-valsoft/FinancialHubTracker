@@ -9,7 +9,8 @@ import {
   portfolioINTL,
   currentPrices,
   historicalPrices,
-  rsiData
+  rsiData,
+  macdData
 } from '../shared/schema';
 
 /**

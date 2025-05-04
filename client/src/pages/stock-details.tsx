@@ -329,9 +329,10 @@ function StockDirectorySelector({ currentRegion }: { currentRegion: string }) {
 
 export default function StockDetailsPage() {
   const queryClient = useQueryClient();
-  const [timeRange, setTimeRange] = useState<'1m' | '3m' | '6m' | '1y' | '5y'>('3m');
+  const [timeRange, setTimeRange] = useState<'1m' | '3m' | '6m' | '1y' | '5y'>('1y'); // Changed default from 3m to 1y
   const [showRSI, setShowRSI] = useState<boolean>(true); // Default to showing RSI
   const [rsiPeriod, setRsiPeriod] = useState<'9' | '14' | '21'>('21'); // Default to 21-period RSI
+  const [showMACD, setShowMACD] = useState<boolean>(true); // Default to showing MACD
   
   // Get symbol and region from URL
   // Support both route patterns: /stock-details/:symbol/:region and /stock/:symbol?region=
