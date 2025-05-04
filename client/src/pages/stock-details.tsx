@@ -1212,7 +1212,7 @@ export default function StockDetailsPage() {
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent className="bg-[#0D1F32] text-[#EFEFEF] border-[#1A304A] text-xs font-mono">
-                        <p>MACD (12, 26, 9): Moving Average Convergence Divergence</p>
+                        <p>MACD - Fast EMA (12), Slow EMA (26), Histogram (Fast-Slow)</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -1376,33 +1376,13 @@ export default function StockDetailsPage() {
                           dataKey="histogram"
                           name="Histogram"
                           barSize={3}
-                          fill={(data) => data.histogram >= 0 ? "#4CAF50" : "#FF3D00"}
-                          stroke={(data) => data.histogram >= 0 ? "#4CAF50" : "#FF3D00"}
+                          fill="#4CAF50" // Default positive color
+                          stroke="#4CAF50"
+                          // Use a formatter to dynamically color based on value
+                          isAnimationActive={false}
                         />
                         
-                        {/* MACD Line (difference between Fast and Slow EMAs) */}
-                        <Line
-                          type="monotone"
-                          dataKey="macd"
-                          stroke="#38AAFD"
-                          strokeWidth={2}
-                          dot={false}
-                          activeDot={{ r: 4, stroke: '#38AAFD', fill: '#FFFFFF' }}
-                          name="MACD"
-                          connectNulls
-                        />
-                        
-                        {/* Signal Line (9-period EMA of MACD Line) */}
-                        <Line
-                          type="monotone"
-                          dataKey="signal"
-                          stroke="#FFD700"
-                          strokeWidth={2}
-                          dot={false}
-                          activeDot={{ r: 4, stroke: '#FFD700', fill: '#FFFFFF' }}
-                          name="Signal"
-                          connectNulls
-                        />
+                        {/* MACD components removed - only using Fast EMA, Slow EMA, and Histogram */}
                       </LineChart>
                     </ResponsiveContainer>
                   </div>

@@ -1005,8 +1005,8 @@ class HistoricalPriceService {
           return priceValue ? parseFloat(priceValue) : 0;
         });
         
-        // Calculate MACD values using default parameters (12, 26, 9)
-        const { macd: macdLine, signal: signalLine, histogram, fast: fastEMA, slow: slowEMA } = calculateMACD(closingPrices);
+        // Calculate MACD values using simplified calculation (just fast, slow, histogram)
+        const { fast: fastEMA, slow: slowEMA, histogram } = calculateMACD(closingPrices);
         
         // Prepare data for update
         const macdDataToUpdate: any[] = [];
@@ -1033,9 +1033,7 @@ class HistoricalPriceService {
           const needsRefresh = forceMacdRefresh && isLatestPrice; // Only force refresh most recent point
           
           if (needsInitialCalculation || needsRefresh) {
-            // Prepare MACD values for this price point
-            let macdValue = null;
-            let signalValue = null;
+            // Prepare MACD values for this price point - simplified version
             let histogramValue = null;
             let fastValue = null;
             let slowValue = null;
@@ -1053,19 +1051,7 @@ class HistoricalPriceService {
               hasMacdValues = true;
             }
             
-            // For MACD line
-            if (i < macdLine.length && macdLine[i] !== null) {
-              macdValue = macdLine[i]?.toString();
-              hasMacdValues = true;
-            }
-            
-            // For Signal line
-            if (i < signalLine.length && signalLine[i] !== null) {
-              signalValue = signalLine[i]?.toString();
-              hasMacdValues = true;
-            }
-            
-            // For Histogram
+            // For Histogram (Fast EMA - Slow EMA)
             if (i < histogram.length && histogram[i] !== null) {
               histogramValue = histogram[i]?.toString();
               hasMacdValues = true;
@@ -1073,7 +1059,7 @@ class HistoricalPriceService {
             
             // Log if this is the most recent price point and we're updating it
             if (i === sortedPrices.length - 1 && hasMacdValues) {
-              console.log(`Updating most recent price for ${symbol} from ${price.date} with MACD values: MACD=${macdValue}, Signal=${signalValue}, Histogram=${histogramValue}, Fast=${fastValue}, Slow=${slowValue}`);
+              console.log(`Updating most recent price for ${symbol} from ${price.date} with MACD values: Histogram=${histogramValue}, Fast=${fastValue}, Slow=${slowValue}`);
             }
             
             // If we have any MACD values, add to update list
@@ -1083,12 +1069,12 @@ class HistoricalPriceService {
                 symbol: symbol,
                 date: price.date,
                 region: region,
-                macd: macdValue,
-                signal: signalValue,
+                macd: fastValue,      // Use fast EMA as the MACD value for backward compatibility
+                signal: slowValue,    // Use slow EMA as the signal value for backward compatibility
                 histogram: histogramValue,
-                fast: fastValue,     // Add fast EMA (12-period)
-                slow: slowValue,     // Add slow EMA (26-period)
-                fastPeriod: 12,      // Default values
+                fast: fastValue,      // Fast EMA (12-period)
+                slow: slowValue,      // Slow EMA (26-period)
+                fastPeriod: 12,       // Default values
                 slowPeriod: 26, 
                 signalPeriod: 9
               });

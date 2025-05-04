@@ -135,82 +135,44 @@ export function calculateEMA(prices: number[], period: number): (number | null)[
  * MACD is calculated as follows:
  * 1. Calculate the 12-period EMA of the price (fast line)
  * 2. Calculate the 26-period EMA of the price (slow line)
- * 3. MACD Line = Fast EMA - Slow EMA
- * 4. Signal Line = 9-period EMA of the MACD Line
- * 5. Histogram = MACD Line - Signal Line
+ * 3. Histogram = Fast EMA - Slow EMA
+ * 
+ * Simplified version as per requirements:
+ * - Only calculates fast EMA, slow EMA, and histogram
+ * - Does not calculate MACD line or signal line
  * 
  * @param prices Array of closing prices in chronological order (oldest to newest)
  * @param fastPeriod The period for the fast EMA line (default 12)
  * @param slowPeriod The period for the slow EMA line (default 26)
- * @param signalPeriod The period for the signal line EMA (default 9)
  * @returns Object containing fast EMA, slow EMA, and histogram values
  */
 export function calculateMACD(
   prices: number[], 
   fastPeriod: number = 12, 
-  slowPeriod: number = 26, 
-  signalPeriod: number = 9
+  slowPeriod: number = 26
 ): {
   fast: (number | null)[];   // 12-period EMA
   slow: (number | null)[];   // 26-period EMA
-  macd: (number | null)[];   // MACD line (fast - slow)
-  signal: (number | null)[]; // Signal line (9-period EMA of MACD)
-  histogram: (number | null)[]; // Histogram (MACD - Signal)
+  histogram: (number | null)[]; // Histogram (Fast - Slow)
 } {
   // Calculate the fast and slow EMAs
   const fastEMA = calculateEMA(prices, fastPeriod);
   const slowEMA = calculateEMA(prices, slowPeriod);
   
-  // Initialize arrays to hold MACD values with nulls
-  const macdLine: (number | null)[] = Array(prices.length).fill(null);
-  const signalLine: (number | null)[] = Array(prices.length).fill(null);
+  // Initialize array to hold histogram values with nulls
   const histogram: (number | null)[] = Array(prices.length).fill(null);
   
-  // Calculate MACD Line (Fast EMA - Slow EMA)
+  // Calculate Histogram (Fast EMA - Slow EMA)
   for (let i = 0; i < prices.length; i++) {
-    // We can only calculate MACD once we have both EMAs
+    // We can only calculate histogram once we have both EMAs
     if (fastEMA[i] !== null && slowEMA[i] !== null) {
-      macdLine[i] = fastEMA[i]! - slowEMA[i]!;
-    }
-  }
-  
-  // Calculate Signal Line (EMA of MACD Line)
-  // For this, we need to remove null values from macdLine
-  const macdLineForSignal: number[] = [];
-  const signalStartIndex: number[] = []; // To track original indices
-  
-  for (let i = 0; i < macdLine.length; i++) {
-    if (macdLine[i] !== null) {
-      macdLineForSignal.push(macdLine[i]!);
-      signalStartIndex.push(i);
-    }
-  }
-  
-  // Only calculate signal line if we have enough MACD values
-  if (macdLineForSignal.length >= signalPeriod) {
-    const signalEMA = calculateEMA(macdLineForSignal, signalPeriod);
-    
-    // Map the signal values back to their original positions
-    for (let i = 0; i < signalEMA.length; i++) {
-      if (signalEMA[i] !== null) {
-        const originalIndex = signalStartIndex[i];
-        signalLine[originalIndex] = signalEMA[i];
-      }
-    }
-  }
-  
-  // Calculate Histogram (MACD Line - Signal Line)
-  for (let i = 0; i < prices.length; i++) {
-    if (macdLine[i] !== null && signalLine[i] !== null) {
-      histogram[i] = macdLine[i]! - signalLine[i]!;
+      histogram[i] = fastEMA[i]! - slowEMA[i]!;
     }
   }
   
   return { 
     fast: fastEMA,         // Fast EMA (12-period)
     slow: slowEMA,         // Slow EMA (26-period)
-    macd: macdLine,        // MACD Line (Fast EMA - Slow EMA)
-    signal: signalLine,    // Signal Line (9-period EMA of MACD)
-    histogram: histogram   // Histogram (MACD - Signal)
+    histogram: histogram   // Histogram (Fast - Slow)
   };
 }
