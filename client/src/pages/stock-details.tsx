@@ -46,6 +46,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from "@/components/ui/input";
+import { processHistoricalData, useHistoricalPrices } from '@/hooks/use-historical-prices';
 import { 
   Command, 
   CommandEmpty, 
@@ -126,91 +127,7 @@ const guidanceColorMap: Record<string, string> = {
   'Down': 'bg-red-950/30 text-red-500 border border-red-800',
 };
 
-// Process historical price data based on the selected time range
-const processHistoricalData = (data: any[] | null | undefined, timeRange: '1m' | '3m' | '6m' | '1y' | '5y') => {
-  if (!data || !Array.isArray(data) || data.length === 0) return [];
-  
-  // Sort data by date in ascending order
-  try {
-    // Create a safe copy of the data
-    const safeData = data.filter(item => item && typeof item === 'object' && item.date);
-    
-    const sortedData = [...safeData].sort((a, b) => {
-      const dateA = a.date ? new Date(a.date).getTime() : 0;
-      const dateB = b.date ? new Date(b.date).getTime() : 0;
-      return dateA - dateB;
-    });
-
-    // Determine how many days to include based on time range
-    let daysToInclude = 90; // default to 3m
-    switch (timeRange) {
-      case '1m':
-        daysToInclude = 30;
-        break;
-      case '3m':
-        daysToInclude = 90;
-        break;
-      case '6m':
-        daysToInclude = 180;
-        break;
-      case '1y':
-        daysToInclude = 365;
-        break;
-      case '5y':
-        daysToInclude = 1826; // ~5 years
-        break;
-    }
-    
-    // Get the last N days of data
-    const filteredData = sortedData.slice(-Math.min(daysToInclude, sortedData.length));
-    
-    // Format dates for display with null safety
-    return filteredData.map(p => {
-      try {
-        const date = p.date ? new Date(p.date) : new Date();
-        // Format the date more cleanly (e.g., "Mar 2023")
-        const formattedDate = date.toLocaleDateString('en-US', { 
-          month: 'short', 
-          year: '2-digit' 
-        });
-        
-        return {
-          date: date.toLocaleDateString(),
-          formattedDate,
-          close: p.adjClose ? parseFloat(p.adjClose) : (p.close ? parseFloat(p.close) : 0),
-          open: p.open ? parseFloat(p.open) : 0,
-          high: p.high ? parseFloat(p.high) : 0,
-          low: p.low ? parseFloat(p.low) : 0,
-          // Add RSI values if they exist
-          rsi9: p.rsi9 ? parseFloat(p.rsi9) : undefined,
-          rsi14: p.rsi14 ? parseFloat(p.rsi14) : undefined,
-          rsi21: p.rsi21 ? parseFloat(p.rsi21) : undefined,
-          // Keep the original date object for sorting and calculations
-          dateObj: date
-        };
-      } catch (error) {
-        // Return a safe fallback object if anything goes wrong
-        console.error("Error processing historical price data item:", error);
-        const now = new Date();
-        return {
-          date: now.toLocaleDateString(),
-          formattedDate: now.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
-          close: 0,
-          open: 0,
-          high: 0,
-          low: 0,
-          rsi9: undefined,
-          rsi14: undefined,
-          rsi21: undefined,
-          dateObj: now
-        };
-      }
-    });
-  } catch (error) {
-    console.error("Error processing historical price data:", error);
-    return [];
-  }
-};
+// Using the imported processHistoricalData function from hooks/use-historical-prices
 
 // Define a stock interface for the selector
 interface StockOption {
