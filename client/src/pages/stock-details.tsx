@@ -42,6 +42,7 @@ import { getStockTypeBackground, getRatingClass } from "@/lib/utils";
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useToast } from '@/hooks/use-toast';
 
 // Historical price interface
 interface HistoricalPrice {
@@ -310,6 +311,8 @@ export default function StockDetailsPage() {
   // Refetch data manually, including RSI calculation
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   
+  const { toast } = useToast();
+  
   const refreshPriceData = async () => {
     try {
       setIsRefreshing(true);
@@ -332,7 +335,7 @@ export default function StockDetailsPage() {
           console.log('Historical prices and RSI updated successfully');
           
           // Refetch the historical price data to get the updated RSI values
-          const { data } = await queryClient.refetchQueries({
+          await queryClient.refetchQueries({
             queryKey: ['historicalPrices', symbol, region],
             exact: true
           });
@@ -356,7 +359,7 @@ export default function StockDetailsPage() {
         
         toast({
           title: "Update failed",
-          description: "Error updating historical prices",
+          description: "Error updating historical prices and RSI data",
           variant: "destructive"
         });
       }
@@ -436,10 +439,17 @@ export default function StockDetailsPage() {
           onClick={refreshPriceData}
           variant="outline"
           size="sm"
-          className="rounded-sm h-8 bg-[#0B1728] text-[#7A8999] text-xs font-mono border-[#1A304A] hover:bg-[#162639] hover:text-[#EFEFEF]"
+          disabled={isRefreshing}
+          className={`rounded-sm h-8 bg-[#0B1728] text-[#7A8999] text-xs font-mono border-[#1A304A] ${
+            isRefreshing ? 'opacity-70' : 'hover:bg-[#162639] hover:text-[#EFEFEF]'
+          }`}
         >
-          <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-          REFRESH
+          {isRefreshing ? (
+            <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+          ) : (
+            <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+          )}
+          {isRefreshing ? 'UPDATING...' : 'REFRESH'}
         </Button>
       </div>
       
