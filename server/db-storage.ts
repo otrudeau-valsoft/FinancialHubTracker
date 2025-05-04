@@ -912,6 +912,13 @@ export class DatabaseStorage {
       throw error;
     }
   }
+  
+  /**
+   * Alias for deleteMacdData to match the interface
+   */
+  async deleteMacdDataForSymbol(symbol: string, region: string) {
+    return this.deleteMacdData(symbol, region);
+  }
 }
 
 export const storage = new DatabaseStorage();

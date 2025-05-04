@@ -3,8 +3,8 @@
  * This will clear existing MACD data and update the schema to match our simplified approach
  */
 
-const pg = require('pg');
-const dotenv = require('dotenv');
+import pg from 'pg';
+import dotenv from 'dotenv';
 
 // Load environment variables
 dotenv.config();
@@ -102,12 +102,12 @@ async function runMigration() {
   }
 }
 
-module.exports = {
-  runMigration
-};
+// Export for use in other files
+export { runMigration };
 
 // If this script is run directly (not imported)
-if (require.main === module) {
+// Note: This uses conditional check for ES Modules
+if (import.meta.url === import.meta.main) {
   runMigration()
     .then(() => {
       console.log('MACD simplification migration completed.');
