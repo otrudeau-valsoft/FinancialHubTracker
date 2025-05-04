@@ -39,14 +39,17 @@ export const useHistoricalPrices = (symbol: string, region: string) => {
         
         const data = await response.json();
         
-        // Add debugging to see if RSI data is present in the response
+        // Add debugging to see if RSI and MACD data is present in the response
         if (data && data.length > 0) {
           const latestEntry = data[data.length - 1];
           console.log(`Latest historical price entry for ${symbol} (${region}):`, {
             date: latestEntry.date,
             rsi9: latestEntry.rsi9,
             rsi14: latestEntry.rsi14,
-            rsi21: latestEntry.rsi21
+            rsi21: latestEntry.rsi21,
+            macd: latestEntry.macd,
+            signal: latestEntry.signal,
+            histogram: latestEntry.histogram
           });
         }
         
@@ -157,6 +160,9 @@ export const processHistoricalData = (
           rsi9: undefined,
           rsi14: undefined,
           rsi21: undefined,
+          macd: undefined,
+          signal: undefined,
+          histogram: undefined,
           dateObj: now
         };
       }

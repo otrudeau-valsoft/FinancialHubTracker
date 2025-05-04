@@ -446,8 +446,9 @@ export default function StockDetailsPage() {
           },
           body: JSON.stringify({ 
             period: '5y',
-            // Force refresh of most recent price point only
-            forceRsiRefresh: true  
+            // Force refresh of most recent price point only for both RSI and MACD
+            forceRsiRefresh: true,
+            forceMacdRefresh: true
           })
         });
         
