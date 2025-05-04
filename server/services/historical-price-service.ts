@@ -561,7 +561,7 @@ class HistoricalPriceService {
    */
   async calculateAndUpdateRSIForSymbol(symbol: string, region: string, forceRsiRefresh: boolean = false) {
     try {
-      console.log(`Calculating and updating RSI values for ${symbol} (${region})`);
+      console.log(`Calculating and updating RSI values for ${symbol} (${region}) with forceRsiRefresh=${forceRsiRefresh}`);
       
       // Get all historical prices for this symbol
       const historicalPrices = await this.getHistoricalPrices(symbol, region);
