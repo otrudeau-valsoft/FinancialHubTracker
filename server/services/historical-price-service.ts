@@ -568,7 +568,7 @@ class HistoricalPriceService {
               const result = await this.calculateAndUpdateRSIForSymbol(index.symbol, index.region, forceRsiRefresh);
               results.push({ symbol: index.symbol, success: true, result });
             } else {
-              results.push({ symbol: index.symbol, success: true, result: [], rsiCalculated: false });
+              results.push({ symbol: index.symbol, success: true, result: [] });
             }
           }
           
