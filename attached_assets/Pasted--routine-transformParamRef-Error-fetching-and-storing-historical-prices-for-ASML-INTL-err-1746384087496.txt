@@ -1,0 +1,365 @@
+  routine: 'transformParamRef'
+}
+Error fetching and storing historical prices for ASML (INTL): error: there is no parameter $1
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async DatabaseStorage.bulkCreateHistoricalPrices (/home/runner/workspace/server/db-storage.ts:884:23)
+    at async HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:329:23)
+    at async HistoricalPriceService.processBatch (/home/runner/workspace/server/services/historical-price-service.ts:371:26)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:425:30)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:552:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:352:22) {
+  length: 95,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '150',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+Error updating historical prices for ASML (INTL): error: there is no parameter $1
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async DatabaseStorage.bulkCreateHistoricalPrices (/home/runner/workspace/server/db-storage.ts:884:23)
+    at async HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:329:23)
+    at async HistoricalPriceService.processBatch (/home/runner/workspace/server/services/historical-price-service.ts:371:26)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:425:30)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:552:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:352:22) {
+  length: 95,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '150',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+Processing BYDDY (INTL) - 13/15
+Fetching historical prices for BYDDY from 2025-04-26
+Fetching historical prices for BYDDY from 2025-04-26 to 2025-05-04 (8 days)
+Fetching historical prices for BYDDY from 2025-04-26 to 2025-05-04
+Retrieving existing historical prices for BYDDY (INTL) to calculate RSI
+Calculating RSI values for BYDDY (INTL)
+Error bulk creating historical prices: error: there is no parameter $1
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async DatabaseStorage.bulkCreateHistoricalPrices (/home/runner/workspace/server/db-storage.ts:884:23)
+    at async HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:329:23)
+    at async HistoricalPriceService.processBatch (/home/runner/workspace/server/services/historical-price-service.ts:371:26)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:425:30)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:552:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:352:22) {
+  length: 95,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '150',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+Error fetching and storing historical prices for BYDDY (INTL): error: there is no parameter $1
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async DatabaseStorage.bulkCreateHistoricalPrices (/home/runner/workspace/server/db-storage.ts:884:23)
+    at async HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:329:23)
+    at async HistoricalPriceService.processBatch (/home/runner/workspace/server/services/historical-price-service.ts:371:26)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:425:30)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:552:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:352:22) {
+  length: 95,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '150',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+Error updating historical prices for BYDDY (INTL): error: there is no parameter $1
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async DatabaseStorage.bulkCreateHistoricalPrices (/home/runner/workspace/server/db-storage.ts:884:23)
+    at async HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:329:23)
+    at async HistoricalPriceService.processBatch (/home/runner/workspace/server/services/historical-price-service.ts:371:26)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:425:30)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:552:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:352:22) {
+  length: 95,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '150',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+Processing HESAY (INTL) - 14/15
+Fetching historical prices for HESAY from 2025-04-26
+Fetching historical prices for HESAY from 2025-04-26 to 2025-05-04 (8 days)
+Fetching historical prices for HESAY from 2025-04-26 to 2025-05-04
+Retrieving existing historical prices for HESAY (INTL) to calculate RSI
+Calculating RSI values for HESAY (INTL)
+Error bulk creating historical prices: error: there is no parameter $1
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async DatabaseStorage.bulkCreateHistoricalPrices (/home/runner/workspace/server/db-storage.ts:884:23)
+    at async HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:329:23)
+    at async HistoricalPriceService.processBatch (/home/runner/workspace/server/services/historical-price-service.ts:371:26)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:425:30)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:552:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:352:22) {
+  length: 95,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '150',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+Error fetching and storing historical prices for HESAY (INTL): error: there is no parameter $1
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async DatabaseStorage.bulkCreateHistoricalPrices (/home/runner/workspace/server/db-storage.ts:884:23)
+    at async HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:329:23)
+    at async HistoricalPriceService.processBatch (/home/runner/workspace/server/services/historical-price-service.ts:371:26)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:425:30)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:552:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:352:22) {
+  length: 95,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '150',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+Error updating historical prices for HESAY (INTL): error: there is no parameter $1
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async DatabaseStorage.bulkCreateHistoricalPrices (/home/runner/workspace/server/db-storage.ts:884:23)
+    at async HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:329:23)
+    at async HistoricalPriceService.processBatch (/home/runner/workspace/server/services/historical-price-service.ts:371:26)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:425:30)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:552:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:352:22) {
+  length: 95,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '150',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+Processing LVMHF (INTL) - 15/15
+Fetching historical prices for LVMHF from 2025-04-26
+Fetching historical prices for LVMHF from 2025-04-26 to 2025-05-04 (8 days)
+Fetching historical prices for LVMHF from 2025-04-26 to 2025-05-04
+Retrieving existing historical prices for LVMHF (INTL) to calculate RSI
+Calculating RSI values for LVMHF (INTL)
+Error bulk creating historical prices: error: there is no parameter $1
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async DatabaseStorage.bulkCreateHistoricalPrices (/home/runner/workspace/server/db-storage.ts:884:23)
+    at async HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:329:23)
+    at async HistoricalPriceService.processBatch (/home/runner/workspace/server/services/historical-price-service.ts:371:26)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:425:30)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:552:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:352:22) {
+  length: 95,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '150',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+Error fetching and storing historical prices for LVMHF (INTL): error: there is no parameter $1
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async DatabaseStorage.bulkCreateHistoricalPrices (/home/runner/workspace/server/db-storage.ts:884:23)
+    at async HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:329:23)
+    at async HistoricalPriceService.processBatch (/home/runner/workspace/server/services/historical-price-service.ts:371:26)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:425:30)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:552:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:352:22) {
+  length: 95,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '150',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+Error updating historical prices for LVMHF (INTL): error: there is no parameter $1
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async DatabaseStorage.bulkCreateHistoricalPrices (/home/runner/workspace/server/db-storage.ts:884:23)
+    at async HistoricalPriceService.fetchAndStoreHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:329:23)
+    at async HistoricalPriceService.processBatch (/home/runner/workspace/server/services/historical-price-service.ts:371:26)
+    at async HistoricalPriceService.updatePortfolioHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:425:30)
+    at async HistoricalPriceService.updateAllHistoricalPrices (/home/runner/workspace/server/services/historical-price-service.ts:552:33)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:352:22) {
+  length: 95,
+  severity: 'ERROR',
+  code: '42P02',
+  detail: undefined,
+  hint: undefined,
+  position: '150',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_expr.c',
+  line: '864',
+  routine: 'transformParamRef'
+}
+Automatically updating portfolio holdings after historical price update...
+Updating all portfolio holdings...
+Updated 21 holdings for USD portfolio (including CASH)
+Updated 21 holdings for CAD portfolio (including CASH)
+Updated 16 holdings for INTL portfolio (including CASH)
+Updated 58 total holdings across all portfolios (including CASH rows)
+Updating portfolio performance history...
+Processing performance data for USD region...
+Error updating portfolio performance history: error: relation "portfolio_usd" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async updatePortfolioPerformanceHistory (/home/runner/workspace/server/controllers/price/price.controller.ts:32:31)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:365:7) {
+  length: 112,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '83',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Successfully updated all portfolio holdings and performance with new historical data
+6:39:31 PM [express] POST /api/historical-prices/fetch/all 200 in 86718ms :: {"message":"Updated his…
+6:39:31 PM [express] GET /api/data-updates/logs 304 in 91ms :: []
+6:39:31 PM [express] GET /api/market-indices/real-time 304 in 132ms :: {"sp500":{"return":1.48,"posi…
+6:39:50 PM [express] GET /api/current-prices/USD/MSFT 304 in 87ms :: {"id":22,"symbol":"MSFT","regio…
+6:39:50 PM [express] GET /api/portfolios/CAD/stocks 304 in 104ms :: [{"id":11,"symbol":"RY.TO","comp…
+6:39:50 PM [express] GET /api/portfolios/INTL/stocks 304 in 108ms :: [{"id":11,"symbol":"CB","compan…
+6:39:50 PM [express] GET /api/market-indices/real-time 304 in 149ms :: {"sp500":{"return":1.48,"posi…
+6:39:50 PM [express] GET /api/historical-prices/MSFT/USD 304 in 153ms :: [{"id":892835,"symbol":"MSF…
+6:39:50 PM [express] GET /api/portfolios/USD/stocks 304 in 160ms :: [{"id":11,"symbol":"MSFT","compa…
+6:39:50 PM [express] GET /api/earnings 304 in 46ms :: {"status":"success","data":[{"ticker":"TFII.TO…
+6:39:50 PM [express] GET /api/portfolios/USD/stocks 304 in 33ms :: [{"id":11,"symbol":"MSFT","compan…
+6:39:51 PM [express] GET /api/upgrade-downgrade/stock/MSFT/USD 304 in 1ms :: []
+6:40:20 PM [express] GET /api/current-prices/USD/MSFT 304 in 73ms :: {"id":22,"symbol":"MSFT","regio…
+6:40:20 PM [express] GET /api/market-indices/real-time 304 in 150ms :: {"sp500":{"return":1.48,"posi…
+6:40:51 PM [express] GET /api/current-prices/USD/MSFT 304 in 87ms :: {"id":22,"symbol":"MSFT","regio…
+6:40:51 PM [express] GET /api/market-indices/real-time 304 in 142ms :: {"sp500":{"return":1.48,"posi…
