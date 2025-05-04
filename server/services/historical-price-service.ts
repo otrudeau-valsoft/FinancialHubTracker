@@ -585,29 +585,47 @@ class HistoricalPriceService {
       console.log(`Calculating RSI for ${sortedPrices.length} prices for ${symbol} (${region})`);
       const rsiValues = calculateMultipleRSI(closingPrices, [9, 14, 21]);
       
-      // Identify prices that need RSI values updated
+      // Identify prices with missing RSI values and update them
+      // Also make sure to always update the most recent 5 data points to prevent lag
       const pricesToUpdate: any[] = [];
+      
+      // Find the most recent date to check if we have today's data
+      let hasRecentData = false;
+      if (sortedPrices.length > 0) {
+        const latestPrice = sortedPrices[sortedPrices.length - 1];
+        const latestDate = new Date(latestPrice.date);
+        const today = new Date();
+        
+        // Check if the latest price is from today or yesterday (for weekends/holidays)
+        const diffDays = Math.floor((today.getTime() - latestDate.getTime()) / (1000 * 60 * 60 * 24));
+        hasRecentData = diffDays <= 3; // Consider data as recent if it's within the last 3 days
+        
+        if (hasRecentData) {
+          console.log(`Latest price for ${symbol} is from ${latestDate.toISOString().split('T')[0]}, which is ${diffDays} days ago`);
+        } else {
+          console.log(`Latest price for ${symbol} is from ${latestDate.toISOString().split('T')[0]}, which is ${diffDays} days ago - data may be stale`);
+        }
+      }
       
       for (let i = 0; i < sortedPrices.length; i++) {
         // Use type assertion to avoid spread type error
         const price = Object.assign({}, sortedPrices[i]) as any;
         let needsUpdate = false;
         
-        // Check for RSI values - always update the most recent 30 days,
-        // and update any missing values for older dates
-        const isRecentPrice = i >= sortedPrices.length - 30; // Most recent 30 days
+        // Always update the 5 most recent data points to ensure we're not lagging
+        const isVeryRecentPrice = i >= sortedPrices.length - 5;
         
         // For RSI 9-day period
         if (i < rsiValues[9].length && rsiValues[9][i] !== null) {
-          if (isRecentPrice || !price.rsi9) {
+          if (isVeryRecentPrice || !price.rsi9) {
             price.rsi9 = rsiValues[9][i]?.toString();
             needsUpdate = true;
           }
         }
         
-        // For RSI 14-day period
+        // For RSI 14-day period  
         if (i < rsiValues[14].length && rsiValues[14][i] !== null) {
-          if (isRecentPrice || !price.rsi14) {
+          if (isVeryRecentPrice || !price.rsi14) {
             price.rsi14 = rsiValues[14][i]?.toString();
             needsUpdate = true;
           }
@@ -615,7 +633,7 @@ class HistoricalPriceService {
         
         // For RSI 21-day period
         if (i < rsiValues[21].length && rsiValues[21][i] !== null) {
-          if (isRecentPrice || !price.rsi21) {
+          if (isVeryRecentPrice || !price.rsi21) {
             price.rsi21 = rsiValues[21][i]?.toString();
             needsUpdate = true;
           }
