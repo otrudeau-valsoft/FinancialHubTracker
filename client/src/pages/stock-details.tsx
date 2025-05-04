@@ -428,12 +428,11 @@ export default function StockDetailsPage() {
     try {
       setIsRefreshing(true);
       
-      // Refresh current price data
+      // First, refresh current price data
       await refetchPriceData();
       
-      // Update historical prices for the current stock
       try {
-        // Make API call to update historical prices with RSI calculation
+        // Step 1: Fetch and update new historical prices first
         const updateResponse = await fetch(`/api/historical-prices/fetch/${symbol}/${region}`, {
           method: 'POST',
           headers: {
@@ -441,54 +440,74 @@ export default function StockDetailsPage() {
           },
           body: JSON.stringify({ 
             period: '5y',
-            forceRsiRefresh: true  // Force RSI refresh to ensure values are saved to database
+            // Force refresh of most recent price point only
+            forceRsiRefresh: true  
           })
         });
         
         if (updateResponse.ok) {
-          const responseData = await updateResponse.json();
-          console.log('Historical prices and RSI updated successfully');
+          // Log success message
+          console.log('Historical price refresh complete with RSI data', {});
           
-          // Check current RSI data status
+          // Check latest data to verify RSI values
           const rsiCheck = await fetch(`/api/historical-prices/${symbol}/${region}`);
           const historicalData = await rsiCheck.json();
           
           if (historicalData && historicalData.length > 0) {
-            // Count how many data points have RSI values
+            // Calculate how many data points have RSI values per period
             const totalPoints = historicalData.length;
-            const rsiDatapoints = historicalData.filter(d => d.rsi14).length;
-            const samplePoint = historicalData[historicalData.length - 1]; // Most recent
             
+            // Check for RSI-9 values
+            const rsi9Datapoints = historicalData.filter((d: HistoricalPrice) => d.rsi9).length;
             console.log("RSI Data Check:", { 
               totalPoints, 
-              rsiDatapoints, 
+              rsiDatapoints: rsi9Datapoints, 
+              period: "9",
+              samplePoint: historicalData[historicalData.length - 1] // Most recent
+            });
+            
+            // Check for RSI-14 values
+            const rsi14Datapoints = historicalData.filter((d: HistoricalPrice) => d.rsi14).length;
+            console.log("RSI Data Check:", { 
+              totalPoints, 
+              rsiDatapoints: rsi14Datapoints, 
               period: "14",
-              samplePoint
+              samplePoint: historicalData[historicalData.length - 1] // Most recent
+            });
+            
+            // Check for RSI-21 values
+            const rsi21Datapoints = historicalData.filter((d: HistoricalPrice) => d.rsi21).length;
+            console.log("RSI Data Check:", { 
+              totalPoints, 
+              rsiDatapoints: rsi21Datapoints, 
+              period: "21",
+              samplePoint: historicalData[historicalData.length - 1] // Most recent
+            });
+            
+            // Log the latest price point with RSI values
+            console.log("Latest historical price entry for " + symbol + " (" + region + "):", {
+              date: historicalData[historicalData.length - 1].date,
+              rsi9: historicalData[historicalData.length - 1].rsi9,
+              rsi14: historicalData[historicalData.length - 1].rsi14,
+              rsi21: historicalData[historicalData.length - 1].rsi21
             });
           }
           
-          // Forcefully invalidate all queries related to this stock to ensure fresh data
+          // Invalidate queries to ensure UI is updated with fresh data
           await queryClient.invalidateQueries({
             queryKey: ['historicalPrices', symbol, region]
           });
           
-          // Also invalidate any other queries that might have cached this stock's data
           await queryClient.invalidateQueries({
             queryKey: [`/api/historical-prices/${symbol}/${region}`]
           });
           
+          // Show success toast
           toast({
             title: "Updated historical prices",
             description: "Historical prices and RSI data have been updated",
             variant: "default"
           });
-          
-          // Give the system a moment to refresh before showing updated data
-          setTimeout(() => {
-            queryClient.invalidateQueries({
-              queryKey: ['historicalPrices', symbol, region]
-            });
-          }, 500);
         } else {
           console.error('Failed to update historical prices');
           
