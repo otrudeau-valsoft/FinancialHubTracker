@@ -4,7 +4,7 @@ import yahooFinance from 'yahoo-finance2';
 import { dateToSQLDateString } from '../util';
 import { historicalPrices, type InsertHistoricalPrice } from '@shared/schema';
 import { and, eq, desc, asc, sql } from 'drizzle-orm';
-import { calculateMultipleRSI } from '../utils/technical-indicators';
+import { calculateMultipleRSI, calculateMACD } from '../utils/technical-indicators';
 
 // Rate limiting configuration for Yahoo Finance API - match the same settings as current-price-service
 const RATE_LIMIT = {
@@ -833,11 +833,246 @@ class HistoricalPriceService {
   }
 
   /**
+   * Calculate and update MACD for a symbol
+   * 
+   * @param symbol Stock symbol
+   * @param region Portfolio region (USD, CAD, INTL)
+   * @param forceMacdRefresh If true, will force updating MACD values for recent price points
+   */
+  async calculateAndUpdateMACDForSymbol(symbol: string, region: string, forceMacdRefresh: boolean = false) {
+    try {
+      console.log(`Calculating and updating MACD values for ${symbol} (${region}) with forceMacdRefresh=${forceMacdRefresh}`);
+      
+      // Get all historical prices for this symbol
+      const historicalPrices = await this.getHistoricalPrices(symbol, region);
+      
+      if (!historicalPrices || historicalPrices.length === 0) {
+        console.log(`No historical prices found for ${symbol} (${region})`);
+        return [];
+      }
+      
+      // Sort by date (oldest to newest)
+      const sortedPrices = [...historicalPrices].sort((a: any, b: any) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateA.getTime() - dateB.getTime();
+      });
+      
+      // Get existing MACD data to check for missing values
+      const existingMacdData = await storage.getMacdData(symbol, region);
+      
+      // Create maps for existing MACD data by historical price ID and date
+      const macdByHistoricalPriceId = new Map();
+      const macdByDate = new Map();
+      
+      existingMacdData.forEach((macd: any) => {
+        // Map by historical price ID
+        if (macd.historicalPriceId) {
+          macdByHistoricalPriceId.set(macd.historicalPriceId, macd);
+        }
+        
+        // Map by date string
+        const dateStr = typeof macd.date === 'string'
+          ? macd.date.split('T')[0]
+          : macd.date instanceof Date
+            ? macd.date.toISOString().split('T')[0]
+            : String(macd.date);
+        
+        macdByDate.set(dateStr, macd);
+      });
+      
+      // Identify which prices need MACD calculation by identifying missing MACD data
+      const missingMacdPrices: any[] = [];
+      const recentPricesNeedingRefresh: any[] = [];
+      
+      // Find the most recent date to check if we have today's data
+      let hasRecentData = false;
+      if (sortedPrices.length > 0) {
+        const latestPrice = sortedPrices[sortedPrices.length - 1];
+        const latestDate = new Date(latestPrice.date);
+        const today = new Date();
+        
+        // Check if the latest price is from today or yesterday (for weekends/holidays)
+        const diffDays = Math.floor((today.getTime() - latestDate.getTime()) / (1000 * 60 * 60 * 24));
+        hasRecentData = diffDays <= 3; // Consider data as recent if it's within the last 3 days
+        
+        console.log(`Latest price for ${symbol} is from ${latestDate.toISOString().split('T')[0]}, which is ${diffDays} days ago ${hasRecentData ? '' : '- data may be stale'}`);
+        
+        // Force refresh for the most recent data to ensure we have MACD values
+        if (hasRecentData) {
+          forceMacdRefresh = true;
+          console.log(`Forcing MACD refresh for recent data of ${symbol}`);
+        }
+      }
+      
+      // First pass: identify which prices need MACD calculation
+      for (let i = 0; i < sortedPrices.length; i++) {
+        const price = sortedPrices[i];
+        
+        // Skip if we don't have a valid price point
+        if (!price || !price.id) continue;
+        
+        // Check if this price already has MACD data
+        let hasMacdData = macdByHistoricalPriceId.has(price.id);
+        
+        // If not found by ID, try by date
+        if (!hasMacdData) {
+          const dateStr = typeof price.date === 'string'
+            ? price.date.split('T')[0]
+            : price.date instanceof Date
+              ? price.date.toISOString().split('T')[0]
+              : new Date(price.date).toISOString().split('T')[0];
+          
+          hasMacdData = macdByDate.has(dateStr);
+        }
+        
+        // Simple logic: If we don't have MACD data, add it to the missing list
+        if (!hasMacdData) {
+          // No MACD data at all - add to missing list
+          missingMacdPrices.push(price);
+        } 
+        
+        // If force refresh is enabled and this is the most recent price,
+        // also add it to make sure it's up to date
+        if (forceMacdRefresh && i === sortedPrices.length - 1) {
+          // Always refresh the most recent price point when forced
+          console.log(`Forcing refresh of most recent price point for ${symbol}`);
+          // Only add if not already in the missing list
+          if (hasMacdData) {
+            recentPricesNeedingRefresh.push(price);
+          }
+        }
+      }
+      
+      // If we have no prices needing MACD calculation, return early
+      if (missingMacdPrices.length === 0 && recentPricesNeedingRefresh.length === 0) {
+        console.log(`No MACD data needs updates for ${symbol} (${region})`);
+        return [];
+      }
+      
+      // Log what we're calculating
+      console.log(`Calculating MACD for ${symbol} (${region}): ${missingMacdPrices.length} missing data points, ${recentPricesNeedingRefresh.length} recent points to refresh`);
+      
+      // Calculate MACD only if we have prices needing calculation
+      if (missingMacdPrices.length > 0 || recentPricesNeedingRefresh.length > 0) {
+        // Extract closing prices for MACD calculation - we need all prices for accurate calculation
+        const closingPrices = sortedPrices.map((price: any) => {
+          const priceValue = price.adjustedClose || price.close;
+          return priceValue ? parseFloat(priceValue) : 0;
+        });
+        
+        // Calculate MACD values using default parameters (12, 26, 9)
+        const { macd: macdLine, signal: signalLine, histogram } = calculateMACD(closingPrices);
+        
+        // Prepare data for update
+        const macdDataToUpdate: any[] = [];
+        
+        // Process all prices that need MACD updates
+        for (let i = 0; i < sortedPrices.length; i++) {
+          const price = sortedPrices[i];
+          
+          // Skip if invalid price
+          if (!price || !price.id) continue;
+          
+          // Determine if this price needs MACD update
+          const priceDate = typeof price.date === 'string'
+            ? price.date.split('T')[0]
+            : price.date instanceof Date
+              ? price.date.toISOString().split('T')[0]
+              : new Date(price.date).toISOString().split('T')[0];
+          
+          // Check if this price needs update - simple approach:
+          // 1. If we don't have MACD data at all for this price, calculate it
+          // 2. If forceMacdRefresh is true and this is the most recent price, recalculate it
+          const needsInitialCalculation = !macdByHistoricalPriceId.has(price.id) && !macdByDate.has(priceDate);
+          const isLatestPrice = i === sortedPrices.length - 1; 
+          const needsRefresh = forceMacdRefresh && isLatestPrice; // Only force refresh most recent point
+          
+          if (needsInitialCalculation || needsRefresh) {
+            // Prepare MACD values for this price point
+            let macdValue = null;
+            let signalValue = null;
+            let histogramValue = null;
+            let hasMacdValues = false;
+            
+            // For MACD line
+            if (i < macdLine.length && macdLine[i] !== null) {
+              macdValue = macdLine[i]?.toString();
+              hasMacdValues = true;
+            }
+            
+            // For Signal line
+            if (i < signalLine.length && signalLine[i] !== null) {
+              signalValue = signalLine[i]?.toString();
+              hasMacdValues = true;
+            }
+            
+            // For Histogram
+            if (i < histogram.length && histogram[i] !== null) {
+              histogramValue = histogram[i]?.toString();
+              hasMacdValues = true;
+            }
+            
+            // Log if this is the most recent price point and we're updating it
+            if (i === sortedPrices.length - 1 && hasMacdValues) {
+              console.log(`Updating most recent price for ${symbol} from ${price.date} with MACD values: MACD=${macdValue}, Signal=${signalValue}, Histogram=${histogramValue}`);
+            }
+            
+            // If we have any MACD values, add to update list
+            if (hasMacdValues) {
+              macdDataToUpdate.push({
+                historicalPriceId: price.id,
+                symbol: symbol,
+                date: price.date,
+                region: region,
+                macd: macdValue,
+                signal: signalValue,
+                histogram: histogramValue,
+                fastPeriod: 12,  // Default values
+                slowPeriod: 26, 
+                signalPeriod: 9
+              });
+            }
+          }
+        }
+        
+        // Update the MACD data table with the new values
+        if (macdDataToUpdate.length > 0) {
+          console.log(`Updating ${macdDataToUpdate.length} MACD data records for ${symbol} (${region})`);
+          const results = await storage.bulkCreateOrUpdateMacdData(macdDataToUpdate);
+          
+          // Log a sample of the updated MACD data to verify values are set correctly
+          if (results && results.length > 0) {
+            const sample = results[results.length - 1]; // Most recent
+            console.log(`Updated MACD data for ${symbol} (${region}) on ${sample.date}: MACD=${sample.macd}, Signal=${sample.signal}, Histogram=${sample.histogram}`);
+            
+            // Check if MACD values are still null
+            if (!sample.macd || sample.macd === 'null') {
+              console.warn(`WARNING: MACD values are still null for ${symbol} even after update to dedicated MACD table.`);
+            }
+          }
+          
+          return results;
+        } else {
+          console.log(`No MACD data needs updates for ${symbol} (${region})`);
+          return [];
+        }
+      } else {
+        return [];
+      }
+    } catch (error) {
+      console.error(`Error calculating and updating MACD for ${symbol} (${region}):`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Update historical prices for all portfolios with batch processing
    * Uses a mutex pattern to prevent duplicate concurrent executions
    * @param forceRsiRefresh If true, will force updating RSI values for recent price points
+   * @param forceMacdRefresh If true, will force updating MACD values for recent price points
    */
-  async updateAllHistoricalPrices(forceRsiRefresh: boolean = false) {
+  async updateAllHistoricalPrices(forceRsiRefresh: boolean = false, forceMacdRefresh: boolean = false) {
     // Check if already running to prevent duplicate executions
     if (this.isUpdatingAllHistoricalPrices) {
       console.log('Historical price update already in progress, skipping duplicate request');
