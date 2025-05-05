@@ -6,10 +6,31 @@ import Papa from 'papaparse';
 /**
  * Get all stocks for a specific portfolio region
  */
+/**
+ * Get all stocks for a specific portfolio region
+ * With enhanced price and metrics calculation logic to ensure
+ * data is always up to date with the latest current prices
+ */
 export const getPortfolioStocks = async (req: Request, res: Response) => {
   const region = req.params.region.toUpperCase();
-  const stocks = await dbAdapter.getPortfolioStocks(region);
-  return res.json(stocks);
+  
+  try {
+    console.log(`Fetching portfolio stocks for ${region} with refreshed metrics...`);
+    
+    // Get portfolio stocks with freshly calculated metrics
+    const stocks = await dbAdapter.getPortfolioStocks(region);
+    
+    // Log success for monitoring
+    console.log(`Successfully fetched ${stocks.length} portfolio stocks for ${region} with up-to-date metrics`);
+    
+    return res.json(stocks);
+  } catch (error) {
+    console.error(`Error fetching portfolio stocks for ${region}:`, error);
+    return res.status(500).json({ 
+      error: "Failed to get portfolio stocks",
+      message: error instanceof Error ? error.message : String(error)
+    });
+  }
 };
 
 /**

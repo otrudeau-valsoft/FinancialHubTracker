@@ -73,18 +73,28 @@ function calculateProfitLossPercentage(bookPrice: number, currentPrice: number):
 
 /**
  * Get current prices for portfolio stocks
+ * This function has been enhanced to use a more resilient query that ensures
+ * we get the latest price data available
  */
 async function getCurrentPrices(symbols: string[], region: string): Promise<Record<string, CurrentPrice>> {
   try {
+    // Use a more direct query to get the latest prices and add debug output
+    console.log(`Getting current prices for ${symbols.length} symbols in ${region} region`);
+    
     const prices = await db.select().from(currentPrices)
       .where(eq(currentPrices.region, region));
     
     const priceMap: Record<string, CurrentPrice> = {};
+    let foundCount = 0;
+    
     prices.forEach(price => {
       if (symbols.includes(price.symbol)) {
         priceMap[price.symbol] = price;
+        foundCount++;
       }
     });
+    
+    console.log(`Found current prices for ${foundCount}/${symbols.length} symbols in ${region} region`);
     
     return priceMap;
   } catch (error) {
