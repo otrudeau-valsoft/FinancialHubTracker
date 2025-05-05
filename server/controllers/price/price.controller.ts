@@ -365,10 +365,14 @@ export const fetchAllHistoricalPrices = async (req: Request, res: Response) => {
     
     // Get forceRsiRefresh parameter from request body (defaults to true regardless)
     const forceRsiRefresh = req.body.forceRsiRefresh !== false; // default to true unless explicitly set to false
-    console.log(`Bulk update with forceRsiRefresh=${forceRsiRefresh}`);
     
-    // Step 1: Update historical prices with RSI refresh
-    const response = await historicalPriceService.updateAllHistoricalPrices(forceRsiRefresh);
+    // Get forceMacdRefresh parameter from request body (defaults to true)
+    const forceMacdRefresh = req.body.forceMacdRefresh !== false; // default to true unless explicitly set to false
+    
+    console.log(`Bulk update with forceRsiRefresh=${forceRsiRefresh}, forceMacdRefresh=${forceMacdRefresh}`);
+    
+    // Step 1: Update historical prices with RSI and MACD refresh
+    const response = await historicalPriceService.updateAllHistoricalPrices(forceRsiRefresh, forceMacdRefresh);
     
     // Step 2: Automatically update portfolio holdings to reflect new historical data
     console.log('Automatically updating portfolio holdings after historical price update...');
@@ -387,9 +391,10 @@ export const fetchAllHistoricalPrices = async (req: Request, res: Response) => {
       
       return res.json({
         ...response,
-        message: `${response.message}, calculated RSI values, and recalculated all portfolio metrics`,
+        message: `${response.message}, calculated RSI and MACD values, and recalculated all portfolio metrics`,
         holdingsUpdated: true,
-        rsiCalculated: true
+        rsiCalculated: true,
+        macdCalculated: true
       });
     } catch (holdingsError) {
       console.error('Error updating holdings after historical price update:', holdingsError);
@@ -397,9 +402,10 @@ export const fetchAllHistoricalPrices = async (req: Request, res: Response) => {
       // Still return success for historical price update, but indicate holdings update failed
       return res.json({
         ...response,
-        message: `${response.message}, calculated RSI values, but failed to recalculate portfolio metrics`,
+        message: `${response.message}, calculated RSI and MACD values, but failed to recalculate portfolio metrics`,
         holdingsUpdated: false,
         rsiCalculated: true,
+        macdCalculated: true,
         holdingsError: holdingsError.message
       });
     }
