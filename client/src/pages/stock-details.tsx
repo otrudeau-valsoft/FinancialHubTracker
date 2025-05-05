@@ -1302,13 +1302,21 @@ export default function StockDetailsPage() {
                           dataKey="histogram"
                           name="histogram"
                           barSize={3}
-                          shape={(props) => {
+                          shape={(props: any) => {
                             const { x, y, width, height, fill } = props;
                             // Determine if the histogram value is positive or negative
                             const histValue = parseFloat(props.payload.histogram);
                             const barFill = histValue >= 0 ? '#4CAF50' : '#F44336';
                             
-                            return <rect x={x} y={y} width={width} height={height} fill={barFill} />;
+                            // For negative values, we need to adjust the y position
+                            // to ensure bars go below the zero line
+                            if (histValue < 0) {
+                              // Draw the bar going down from the zero line
+                              return <rect x={x} y={y} width={width} height={Math.abs(height)} fill={barFill} />;
+                            } else {
+                              // Draw the bar going up from the zero line
+                              return <rect x={x} y={y} width={width} height={height} fill={barFill} />;
+                            }
                           }}
                         />
                       </ComposedChart>
