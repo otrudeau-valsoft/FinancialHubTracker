@@ -46,7 +46,8 @@ export async function updatePortfolioPerformanceHistory() {
       
       // Get the dates we need to process (e.g., past year)
       const endDate = DateTime.now().setZone('America/New_York');
-      const startDate = endDate.minus({ years: 1 });
+      // Extend to 1.5 years to ensure we have enough data for all time ranges
+      const startDate = endDate.minus({ years: 1.5 });
       
       const formattedStartDate = startDate.toFormat('yyyy-MM-dd');
       const formattedEndDate = endDate.toFormat('yyyy-MM-dd');

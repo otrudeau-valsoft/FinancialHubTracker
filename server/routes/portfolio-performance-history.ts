@@ -39,10 +39,12 @@ router.get('/', async (req: Request, res: Response) => {
       // Otherwise calculate based on timeRange
       switch (timeRange) {
         case '1W':
-          startDate = endDate.minus({ weeks: 1 });
+          // For 1-week view, allow data from a longer period to ensure we have enough points
+          startDate = endDate.minus({ weeks: 3 });
           break;
-        case '1M':
-          startDate = endDate.minus({ months: 1 });
+        case '1M': 
+          // For 1-month view, extend a bit to ensure we have enough data points
+          startDate = endDate.minus({ months: 2 });
           break;
         case '3M':
           startDate = endDate.minus({ months: 3 });
@@ -60,8 +62,8 @@ router.get('/', async (req: Request, res: Response) => {
           startDate = endDate.minus({ years: 5 });
           break;
         case 'ALL':
-          // For all time, go back 10 years or just use a very old date
-          startDate = endDate.minus({ years: 10 });
+          // For all time, go back as far as our data allows
+          startDate = endDate.minus({ years: 5 });
           break;
         default:
           startDate = DateTime.fromObject({ year: endDate.year, month: 1, day: 1 }); // Default to YTD
