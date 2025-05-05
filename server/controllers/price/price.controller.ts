@@ -52,7 +52,7 @@ export async function updatePortfolioPerformanceHistory() {
       
       // Get all historical prices for portfolio stocks and benchmark in this date range
       const pricesQuery = `
-        SELECT symbol, date, adjusted_close
+        SELECT symbol, date::text, adjusted_close
         FROM historical_prices
         WHERE region = $1
         AND date BETWEEN $2 AND $3
@@ -76,10 +76,14 @@ export async function updatePortfolioPerformanceHistory() {
       const pricesByDate = {};
       
       priceData.forEach(row => {
-        if (!pricesByDate[row.date]) {
-          pricesByDate[row.date] = {};
+        // Make sure we have a valid PostgreSQL date format (YYYY-MM-DD)
+        const dateStr = row.date.split('T')[0];
+        
+        if (!pricesByDate[dateStr]) {
+          pricesByDate[dateStr] = {};
         }
-        pricesByDate[row.date][row.symbol] = parseFloat(row.adjusted_close);
+        
+        pricesByDate[dateStr][row.symbol] = parseFloat(row.adjusted_close);
       });
       
       // Sort dates
@@ -91,8 +95,8 @@ export async function updatePortfolioPerformanceHistory() {
       let baseBenchmarkValue = null;
       
       for (let i = 0; i < dates.length; i++) {
-        const date = dates[i];
-        const prices = pricesByDate[date];
+        const dateStr = dates[i];
+        const prices = pricesByDate[dateStr];
         
         // Calculate portfolio value based on quantities and prices
         let portfolioValue = 0;
@@ -152,9 +156,9 @@ export async function updatePortfolioPerformanceHistory() {
         // Calculate relative performance (alpha)
         const relativePerformance = portfolioCumulativeReturn - benchmarkCumulativeReturn;
         
-        // Add to performance data
+        // Add to performance data - using dateStr directly which is already in YYYY-MM-DD format
         performanceData.push({
-          date,
+          date: dateStr,  // This is already in YYYY-MM-DD format from the SQL query
           region,
           portfolioValue,
           benchmarkValue,
@@ -175,13 +179,7 @@ export async function updatePortfolioPerformanceHistory() {
       console.log(`Inserting ${performanceData.length} performance data points for ${region} region...`);
       
       for (const data of performanceData) {
-        // Format the date as ISO string (YYYY-MM-DD) to be compatible with PostgreSQL
-        // The date from the query results is already a string, but we need to make sure
-        // it's formatted correctly for PostgreSQL
-        const formattedDate = typeof data.date === 'string' 
-          ? data.date.split('T')[0] // If it's already a string, just take the date part
-          : new Date(data.date).toISOString().split('T')[0]; // Otherwise convert to ISO date
-        
+        // The date is already in YYYY-MM-DD format from our earlier processing
         await pool.query(`
           INSERT INTO portfolio_performance (
             date, region, portfolio_value, benchmark_value, 
@@ -190,7 +188,7 @@ export async function updatePortfolioPerformanceHistory() {
             relative_performance
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         `, [
-          formattedDate,
+          data.date,  // Already properly formatted as YYYY-MM-DD
           data.region,
           data.portfolioValue,
           data.benchmarkValue,
