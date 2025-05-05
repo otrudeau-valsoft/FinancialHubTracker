@@ -108,14 +108,46 @@ export const PerformanceChart = ({
   const percentageData = useMemo(() => {
     if (!performanceData || !performanceData.length) return [];
     
-    return performanceData.map(point => ({
+    // Filter data based on selected time range to display only relevant points
+    const now = new Date();
+    let filterDate = new Date();
+    
+    switch (selectedRange) {
+      case "1W":
+        filterDate.setDate(now.getDate() - 7);
+        break;
+      case "1M":
+        filterDate.setMonth(now.getMonth() - 1);
+        break;
+      case "YTD":
+        filterDate = new Date(now.getFullYear(), 0, 1); // Jan 1st of current year
+        break;
+      case "1Y":
+        filterDate.setFullYear(now.getFullYear() - 1);
+        break;
+      default:
+        filterDate.setMonth(now.getMonth() - 1);
+    }
+    
+    // Filter data to only include points after the filter date
+    const filteredData = performanceData.filter(point => {
+      const pointDate = new Date(point.date);
+      return pointDate >= filterDate;
+    });
+    
+    // If we don't have enough data points, use all the data we have
+    const dataToUse = filteredData.length >= 2 ? filteredData : performanceData;
+    
+    console.log(`${selectedRange} data points after filtering: ${filteredData.length}`);
+    
+    return dataToUse.map(point => ({
       date: point.date,
       portfolio: point.portfolioCumulativeReturn ? point.portfolioCumulativeReturn * 100 : 0,
       benchmark: point.benchmarkCumulativeReturn ? point.benchmarkCumulativeReturn * 100 : 0,
       portfolioValue: point.portfolioValue,
       benchmarkValue: point.benchmarkValue
     }));
-  }, [performanceData]);
+  }, [performanceData, selectedRange]);
   
   return (
     <Card className="mb-6 border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden">
