@@ -9,7 +9,7 @@ import { DateTime } from 'luxon';
  * Update portfolio performance history data in the database
  * This function recalculates portfolio performance based on the latest prices
  */
-async function updatePortfolioPerformanceHistory() {
+export async function updatePortfolioPerformanceHistory() {
   console.log('Updating portfolio performance history...');
   
   try {
@@ -227,6 +227,35 @@ export const getHistoricalPrices = async (req: Request, res: Response) => {
   
   const prices = await storage.getHistoricalPrices(symbol, region.toUpperCase(), startDate, endDate);
   return res.json(prices);
+};
+
+/**
+ * Manually trigger an update of the portfolio performance history
+ */
+export const updatePerformanceHistoryEndpoint = async (req: Request, res: Response) => {
+  try {
+    console.log('Manually triggering portfolio performance history update...');
+    const result = await updatePortfolioPerformanceHistory();
+    
+    if (result) {
+      return res.json({
+        status: 'success',
+        message: 'Successfully updated portfolio performance history'
+      });
+    } else {
+      return res.status(500).json({
+        status: 'error',
+        message: 'Failed to update portfolio performance history'
+      });
+    }
+  } catch (error) {
+    console.error('Error in updatePerformanceHistoryEndpoint:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to update portfolio performance history',
+      details: error.message || String(error)
+    });
+  }
 };
 
 /**

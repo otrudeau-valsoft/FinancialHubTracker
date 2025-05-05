@@ -1,0 +1,96 @@
+Processing MACD data batch 12 of 13
+Processing MACD data batch 13 of 13
+Updated MACD data for BYDDY (INTL) on 2025-05-02: MACD=0.8251395289635894, Signal=0.6624634145838559, Histogram=0.1626761143797335
+Calculating and updating RSI values for HESAY (INTL) with forceRsiRefresh=true
+Latest price for HESAY is from 2025-05-02, which is 3 days ago 
+Forcing RSI refresh for recent data of HESAY
+Forcing refresh of most recent price point for HESAY
+Calculating RSI for HESAY (INTL): 1 missing data points, 1 recent points to refresh
+Calculating MACD values for HESAY (INTL)
+Updating most recent price for HESAY from 2025-05-02 with RSI values: 9=64.0915449154586, 14=59.20884865894808, 21=56.175147215618026
+Updating 1 RSI data records for HESAY (INTL)
+Processing RSI data batch 1 of 1
+Updated RSI data for HESAY (INTL) on 2025-05-02: RSI9=64.0915449154586, RSI14=59.20884865894808, RSI21=56.175147215618026
+Updating 1233 MACD data records for HESAY (INTL)
+Processing MACD data batch 1 of 13
+Processing MACD data batch 2 of 13
+Processing MACD data batch 3 of 13
+Processing MACD data batch 4 of 13
+Processing MACD data batch 5 of 13
+Processing MACD data batch 6 of 13
+Processing MACD data batch 7 of 13
+Processing MACD data batch 8 of 13
+Processing MACD data batch 9 of 13
+Processing MACD data batch 10 of 13
+Processing MACD data batch 11 of 13
+Processing MACD data batch 12 of 13
+Processing MACD data batch 13 of 13
+Updated MACD data for HESAY (INTL) on 2025-05-02: MACD=2.3612646673172435, Signal=0.5425275677748489, Histogram=1.8187370995423946
+Calculating and updating RSI values for LVMHF (INTL) with forceRsiRefresh=true
+Latest price for LVMHF is from 2025-05-02, which is 3 days ago 
+Forcing RSI refresh for recent data of LVMHF
+Forcing refresh of most recent price point for LVMHF
+Calculating RSI for LVMHF (INTL): 1 missing data points, 1 recent points to refresh
+Calculating MACD values for LVMHF (INTL)
+Updating most recent price for LVMHF from 2025-05-02 with RSI values: 9=43.477748043876794, 14=40.81542617795504, 21=39.85138739086613
+Updating 1 RSI data records for LVMHF (INTL)
+Processing RSI data batch 1 of 1
+Updated RSI data for LVMHF (INTL) on 2025-05-02: RSI9=43.477748043876794, RSI14=40.81542617795504, RSI21=39.85138739086613
+Updating 1233 MACD data records for LVMHF (INTL)
+Processing MACD data batch 1 of 13
+Processing MACD data batch 2 of 13
+Processing MACD data batch 3 of 13
+Processing MACD data batch 4 of 13
+Processing MACD data batch 5 of 13
+Processing MACD data batch 6 of 13
+Processing MACD data batch 7 of 13
+Processing MACD data batch 8 of 13
+Processing MACD data batch 9 of 13
+Processing MACD data batch 10 of 13
+Processing MACD data batch 11 of 13
+Processing MACD data batch 12 of 13
+Processing MACD data batch 13 of 13
+Updated MACD data for LVMHF (INTL) on 2025-05-02: MACD=-18.81680962928033, Signal=-22.59967273674021, Histogram=3.7828631074598817
+Automatically updating portfolio holdings after historical price update...
+Updating all portfolio holdings...
+1:16:04 AM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Updated 21 holdings for USD portfolio (including CASH)
+Updated 21 holdings for CAD portfolio (including CASH)
+1:16:07 AM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Updated 16 holdings for INTL portfolio (including CASH)
+Updated 58 total holdings across all portfolios (including CASH rows)
+Updating portfolio performance history...
+Processing performance data for USD region...
+Error updating portfolio performance history: error: relation "portfolio_usd" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async updatePortfolioPerformanceHistory (/home/runner/workspace/server/controllers/price/price.controller.ts:32:31)
+    at async fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:388:7) {
+  length: 112,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '83',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Successfully updated all portfolio holdings and performance with new historical data
+1:16:07 AM [express] POST /api/historical-prices/fetch/all 200 in 116783ms :: {"message":"Updated hi…
+1:16:08 AM [express] GET /api/scheduler/config 404 in 1ms :: {"status":"error","message":"Task with …
+1:16:08 AM [express] GET /api/data-updates/logs 304 in 20ms :: []
+1:16:08 AM [express] GET /api/cash 304 in 81ms :: [{"id":1,"region":"USD","amount":"10000.00","updat…
+1:16:08 AM [express] GET /api/data-updates/logs 304 in 19ms :: []
+1:16:08 AM [express] GET /api/market-indices/real-time 304 in 156ms :: {"sp500":{"return":1.48,"posi…
+1:16:11 AM [express] GET /api/data-updates/logs 304 in 19ms :: []
+1:16:14 AM [express] GET /api/data-updates/logs 304 in 18ms :: []
+1:16:17 AM [express] GET /api/data-updates/logs 304 in 21ms :: []
