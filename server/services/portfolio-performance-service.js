@@ -6,7 +6,7 @@
  * performance metrics from the historical price data for more accurate results.
  */
 
-import { db } from '../db.js';
+import { db, pool } from '../db.js';
 import { holdingsService } from './holdings-service.js';
 import { DateTime } from 'luxon';
 
@@ -59,10 +59,19 @@ class PortfolioPerformanceService {
       console.log(`Getting performance history for ${region} from ${startDate || 'beginning'} to ${endDate || 'now'}`);
       console.log('SQL:', query, params);
       
-      // Execute the query using db.execute for raw SQL
-      const rows = await db.execute(query, params);
+      // Execute the query using pool.query which returns a well-defined format with rows
+      const result = await pool.query(query, params);
+      console.log('Pool Query Result:', result);
+      console.log('Rows:', result.rows);
       
-      // Transform the data for presentation
+      // Return empty array if no rows
+      if (!result.rows || !Array.isArray(result.rows)) {
+        console.warn('No rows returned or rows is not an array');
+        return [];
+      }
+      
+      const { rows } = result;
+      
       return rows.map(row => ({
         date: row.date.toISOString().split('T')[0], // Format as YYYY-MM-DD
         portfolioValue: parseFloat(row.portfolio_value),
