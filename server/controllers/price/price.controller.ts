@@ -25,7 +25,7 @@ async function updatePortfolioPerformanceHistory() {
       // Get portfolio stocks for this region
       const portfolioQuery = `
         SELECT symbol, company, stock_type, rating, quantity, price
-        FROM portfolio_${region.toLowerCase()}
+        FROM portfolio_${region}
         WHERE symbol != 'CASH'
       `;
       
