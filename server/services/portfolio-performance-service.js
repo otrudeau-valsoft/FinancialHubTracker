@@ -59,28 +59,24 @@ class PortfolioPerformanceService {
       console.log(`Getting performance history for ${region} from ${startDate || 'beginning'} to ${endDate || 'now'}`);
       console.log('SQL:', query, params);
       
-      // Execute the query using pool.query which returns a well-defined format with rows
+      // Use pool.query directly which returns a well-defined result with rows
       const result = await pool.query(query, params);
-      console.log('Pool Query Result:', result);
-      console.log('Rows:', result.rows);
       
-      // Return empty array if no rows
-      if (!result.rows || !Array.isArray(result.rows)) {
-        console.warn('No rows returned or rows is not an array');
+      if (!result || !result.rows || !Array.isArray(result.rows) || result.rows.length === 0) {
+        console.warn(`No performance data found for ${region}`);
         return [];
       }
       
-      const { rows } = result;
-      
-      return rows.map(row => ({
-        date: row.date.toISOString().split('T')[0], // Format as YYYY-MM-DD
-        portfolioValue: parseFloat(row.portfolio_value),
-        benchmarkValue: parseFloat(row.benchmark_value),
-        portfolioCumulativeReturn: parseFloat(row.portfolio_cumulative_return),
-        benchmarkCumulativeReturn: parseFloat(row.benchmark_cumulative_return),
-        portfolioReturnDaily: parseFloat(row.portfolio_return_daily),
-        benchmarkReturnDaily: parseFloat(row.benchmark_return_daily),
-        relativePerformance: parseFloat(row.relative_performance)
+      // Transform the data for presentation with proper type handling
+      return result.rows.map(row => ({
+        date: row.date ? row.date.toISOString().split('T')[0] : null, // Format as YYYY-MM-DD
+        portfolioValue: row.portfolio_value ? parseFloat(row.portfolio_value) : 0,
+        benchmarkValue: row.benchmark_value ? parseFloat(row.benchmark_value) : 0,
+        portfolioCumulativeReturn: row.portfolio_cumulative_return ? parseFloat(row.portfolio_cumulative_return) : 0,
+        benchmarkCumulativeReturn: row.benchmark_cumulative_return ? parseFloat(row.benchmark_cumulative_return) : 0,
+        portfolioReturnDaily: row.portfolio_return_daily ? parseFloat(row.portfolio_return_daily) : 0,
+        benchmarkReturnDaily: row.benchmark_return_daily ? parseFloat(row.benchmark_return_daily) : 0,
+        relativePerformance: row.relative_performance ? parseFloat(row.relative_performance) : 0
       }));
     } catch (error) {
       console.error(`Error getting performance history for ${region}:`, error);
@@ -114,7 +110,7 @@ class PortfolioPerformanceService {
       
       if (!effectiveStartDate) {
         // If no start date is provided, get the earliest date from historical prices
-        const earliestDateRows = await db.execute(
+        const { rows: earliestDateRows } = await pool.query(
           'SELECT MIN(date) as min_date FROM historical_prices WHERE region = $1',
           [regionUpper]
         );
@@ -154,7 +150,7 @@ class PortfolioPerformanceService {
       const benchmarkSymbol = benchmarkMap[regionUpper];
       
       // 4. Get historical prices for the portfolio symbols and benchmark
-      const historicalPrices = await db.execute(
+      const { rows: historicalPrices } = await pool.query(
         `SELECT symbol, date, close, adj_close
          FROM historical_prices
          WHERE region = $1
@@ -323,14 +319,14 @@ class PortfolioPerformanceService {
       // 8. Store the performance data in the database
       
       // First, clear existing data in the performance table for these dates
-      await db.execute(
+      await pool.query(
         `DELETE FROM ${tableName} WHERE date BETWEEN $1 AND $2`,
         [effectiveStartDate, effectiveEndDate]
       );
       
       // Insert new performance data
       for (const dataPoint of performanceData) {
-        await db.execute(
+        await pool.query(
           `INSERT INTO ${tableName} (
             date, 
             portfolio_value, 
