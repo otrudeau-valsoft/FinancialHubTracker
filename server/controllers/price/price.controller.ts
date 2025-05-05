@@ -21,7 +21,7 @@ export async function updatePortfolioPerformanceHistory() {
       console.log(`Processing performance data for ${region} region...`);
       
       // Delete existing performance data for this region to rebuild from scratch
-      await pool.query(`DELETE FROM "portfolio_performance_${region}"`);
+      await pool.query(`DELETE FROM portfolio_performance_${region.toLowerCase()}`);
       
       // Get portfolio stocks for this region
       const portfolioQuery = `
@@ -176,12 +176,12 @@ export async function updatePortfolioPerformanceHistory() {
       }
       
       // Insert performance data into the region-specific table
-      console.log(`Inserting ${performanceData.length} performance data points into portfolio_performance_${region} table...`);
+      console.log(`Inserting ${performanceData.length} performance data points into portfolio_performance_${region.toLowerCase()} table...`);
       
       for (const data of performanceData) {
         // The date is already in YYYY-MM-DD format from our earlier processing
         await pool.query(`
-          INSERT INTO "portfolio_performance_${region}" (
+          INSERT INTO portfolio_performance_${region.toLowerCase()} (
             date, portfolio_value, benchmark_value, 
             portfolio_return_daily, benchmark_return_daily,
             portfolio_cumulative_return, benchmark_cumulative_return, 

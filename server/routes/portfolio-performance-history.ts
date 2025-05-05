@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { pool } from '../db';
 import { DateTime } from 'luxon';
+import { updatePortfolioPerformanceHistory } from '../controllers/price/price.controller';
 
 const router = Router();
 
@@ -78,16 +79,16 @@ router.get('/', async (req: Request, res: Response) => {
     let tableName;
     switch (upperRegion) {
       case 'USD':
-        tableName = 'portfolio_performance_USD';
+        tableName = 'portfolio_performance_usd';
         break;
       case 'CAD':
-        tableName = 'portfolio_performance_CAD';
+        tableName = 'portfolio_performance_cad';
         break;
       case 'INTL':
-        tableName = 'portfolio_performance_INTL';
+        tableName = 'portfolio_performance_intl';
         break;
       default:
-        tableName = 'portfolio_performance_USD'; // Default to USD as fallback
+        tableName = 'portfolio_performance_usd'; // Default to USD as fallback
     }
     
     const query = `
@@ -100,7 +101,7 @@ router.get('/', async (req: Request, res: Response) => {
         portfolio_cumulative_return,
         benchmark_cumulative_return,
         relative_performance
-      FROM "${tableName}"
+      FROM ${tableName}
       WHERE date BETWEEN $1 AND $2
       ORDER BY date
     `;
@@ -137,6 +138,36 @@ router.get('/', async (req: Request, res: Response) => {
     return res.status(500).json({
       status: 'error',
       message: 'Failed to fetch portfolio performance history',
+      details: errorMessage
+    });
+  }
+});
+
+/**
+ * Update the portfolio performance history for all regions
+ */
+router.post('/update', async (req: Request, res: Response) => {
+  try {
+    console.log('Manually triggering portfolio performance history update...');
+    const result = await updatePortfolioPerformanceHistory();
+    
+    if (result) {
+      return res.json({
+        status: 'success',
+        message: 'Successfully updated portfolio performance history'
+      });
+    } else {
+      return res.status(500).json({
+        status: 'error',
+        message: 'Failed to update portfolio performance history'
+      });
+    }
+  } catch (error: unknown) {
+    console.error('Error in portfolio performance history update:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to update portfolio performance history',
       details: errorMessage
     });
   }
