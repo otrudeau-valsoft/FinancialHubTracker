@@ -176,12 +176,19 @@ export async function updatePortfolioPerformanceHistory() {
         continue;
       }
       
+      // First clear existing data to avoid duplicates
+      console.log(`Clearing existing performance data for ${region} region in the date range...`);
+      await pool.query(`
+        DELETE FROM portfolio_performance_${region.toLowerCase()}
+        WHERE date BETWEEN $1 AND $2
+      `, [formattedStartDate, formattedEndDate]);
+      
       // Insert performance data into the region-specific table
       console.log(`Inserting ${performanceData.length} performance data points into portfolio_performance_${region.toLowerCase()} table...`);
       
-      for (const data of performanceData) {
-        // The date is already in YYYY-MM-DD format from our earlier processing
-        await pool.query(`
+      // Use Promise.all for faster batch insertion
+      const insertPromises = performanceData.map(data => 
+        pool.query(`
           INSERT INTO portfolio_performance_${region.toLowerCase()} (
             date, portfolio_value, benchmark_value, 
             portfolio_return_daily, benchmark_return_daily,
@@ -197,8 +204,10 @@ export async function updatePortfolioPerformanceHistory() {
           data.portfolioCumulativeReturn,
           data.benchmarkCumulativeReturn,
           data.relativePerformance
-        ]);
-      }
+        ])
+      );
+      
+      await Promise.all(insertPromises);
       
       console.log(`Successfully updated performance history for ${region} region`);
     }
