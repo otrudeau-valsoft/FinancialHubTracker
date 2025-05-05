@@ -310,11 +310,11 @@ export class DatabaseStorage {
       
       // Add date range filter if provided
       if (startDate) {
-        query = query.where(gte(historicalPrices.date, startDate));
+        query = query.where(sql`${historicalPrices.date} >= ${startDate}`);
       }
       
       if (endDate) {
-        query = query.where(lte(historicalPrices.date, endDate));
+        query = query.where(sql`${historicalPrices.date} <= ${endDate}`);
       }
       
       // Order by date for consistent results
@@ -325,41 +325,65 @@ export class DatabaseStorage {
       }
       
       // Fetch RSI data for these historical prices
-      // Get all RSI data for this symbol and region
       const rsiDataArray = await this.getRsiData(symbol, region, startDate, endDate);
-      
-      if (!rsiDataArray || rsiDataArray.length === 0) {
-        // No RSI data available, just return the historical prices
-        console.log(`No RSI data available for ${symbol} (${region}), returning prices without RSI values`);
-        return prices;
-      }
       
       // Create a map of RSI data by historical price ID for efficient lookup
       const rsiDataByHistoricalPriceId = new Map();
-      rsiDataArray.forEach(rsiItem => {
-        rsiDataByHistoricalPriceId.set(rsiItem.historicalPriceId, rsiItem);
-      });
+      if (rsiDataArray && rsiDataArray.length > 0) {
+        rsiDataArray.forEach(rsiItem => {
+          rsiDataByHistoricalPriceId.set(rsiItem.historicalPriceId, rsiItem);
+        });
+      }
       
       // Create a map of RSI data by date as fallback lookup
       const rsiDataByDate = new Map();
-      rsiDataArray.forEach(rsiItem => {
-        // Handle date as either string or Date object
-        const dateStr = typeof rsiItem.date === 'string' 
-          ? rsiItem.date.split('T')[0]  // Handle ISO string
-          : rsiItem.date instanceof Date 
-            ? rsiItem.date.toISOString().split('T')[0]  // Handle Date object
-            : String(rsiItem.date);  // Fallback for any other format
-        rsiDataByDate.set(dateStr, rsiItem);
-      });
+      if (rsiDataArray && rsiDataArray.length > 0) {
+        rsiDataArray.forEach(rsiItem => {
+          // Handle date as either string or Date object
+          const dateStr = typeof rsiItem.date === 'string' 
+            ? rsiItem.date.split('T')[0]  // Handle ISO string
+            : rsiItem.date instanceof Date 
+              ? rsiItem.date.toISOString().split('T')[0]  // Handle Date object
+              : String(rsiItem.date);  // Fallback for any other format
+          rsiDataByDate.set(dateStr, rsiItem);
+        });
+      }
       
-      // Merge RSI data into historical prices
-      const pricesWithRsi = prices.map(price => {
+      // Fetch MACD data for these historical prices
+      const macdDataArray = await this.getMacdData(symbol, region, startDate, endDate);
+      
+      // Create a map of MACD data by historical price ID for efficient lookup
+      const macdDataByHistoricalPriceId = new Map();
+      if (macdDataArray && macdDataArray.length > 0) {
+        macdDataArray.forEach(macdItem => {
+          macdDataByHistoricalPriceId.set(macdItem.historicalPriceId, macdItem);
+        });
+      }
+      
+      // Create a map of MACD data by date as fallback lookup
+      const macdDataByDate = new Map();
+      if (macdDataArray && macdDataArray.length > 0) {
+        macdDataArray.forEach(macdItem => {
+          // Handle date as either string or Date object
+          const dateStr = typeof macdItem.date === 'string' 
+            ? macdItem.date.split('T')[0]  // Handle ISO string
+            : macdItem.date instanceof Date 
+              ? macdItem.date.toISOString().split('T')[0]  // Handle Date object
+              : String(macdItem.date);  // Fallback for any other format
+          macdDataByDate.set(dateStr, macdItem);
+        });
+      }
+      
+      // Merge RSI and MACD data into historical prices
+      const pricesWithIndicators = prices.map(price => {
+        const enrichedPrice = {...price};
+        let dateStr = '';
+        
         // Try to get RSI data by historical price ID first
         let rsiItem = rsiDataByHistoricalPriceId.get(price.id);
         
         // If not found by ID, try by date
         if (!rsiItem) {
-          let dateStr;
           try {
             // Handle different date formats
             if (typeof price.date === 'string') {
@@ -379,19 +403,30 @@ export class DatabaseStorage {
         
         // Merge RSI data if found
         if (rsiItem) {
-          return {
-            ...price,
-            rsi9: rsiItem.rsi9,
-            rsi14: rsiItem.rsi14,
-            rsi21: rsiItem.rsi21
-          };
+          enrichedPrice.rsi9 = rsiItem.rsi9;
+          enrichedPrice.rsi14 = rsiItem.rsi14;
+          enrichedPrice.rsi21 = rsiItem.rsi21;
         }
         
-        // Otherwise, return price without RSI data
-        return price;
+        // Try to get MACD data by historical price ID first
+        let macdItem = macdDataByHistoricalPriceId.get(price.id);
+        
+        // If not found by ID, try by date
+        if (!macdItem && dateStr) {
+          macdItem = macdDataByDate.get(dateStr);
+        }
+        
+        // Merge MACD data if found
+        if (macdItem) {
+          enrichedPrice.macd = macdItem.macd;
+          enrichedPrice.signal = macdItem.signal;
+          enrichedPrice.histogram = macdItem.histogram;
+        }
+        
+        return enrichedPrice;
       });
       
-      return pricesWithRsi;
+      return pricesWithIndicators;
     } catch (error) {
       console.error(`Error getting historical prices for ${symbol} (${region}):`, error);
       return [];
@@ -474,11 +509,11 @@ export class DatabaseStorage {
       
       // Add date range filters if provided
       if (startDate) {
-        query = query.where(gte(rsiData.date, startDate));
+        query = query.where(sql`${rsiData.date} >= ${startDate}`);
       }
       
       if (endDate) {
-        query = query.where(lte(rsiData.date, endDate));
+        query = query.where(sql`${rsiData.date} <= ${endDate}`);
       }
       
       // Execute the query
@@ -627,6 +662,181 @@ export class DatabaseStorage {
         ));
     } catch (error) {
       console.error(`Error deleting RSI data for ${symbol} (${region}):`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Get MACD data for a symbol and region
+   * @param symbol Stock symbol
+   * @param region Portfolio region (USD, CAD, INTL)
+   * @param startDate Optional start date filter
+   * @param endDate Optional end date filter
+   */
+  async getMacdData(symbol: string, region: string, startDate?: Date, endDate?: Date) {
+    try {
+      // Build the base query with symbol and region filters
+      let query = db.select().from(macdData)
+        .where(and(
+          eq(macdData.symbol, symbol),
+          eq(macdData.region, region)
+        ));
+      
+      // Add date filters if provided
+      if (startDate) {
+        query = query.where(sql`${macdData.date} >= ${startDate}`);
+      }
+      
+      if (endDate) {
+        query = query.where(sql`${macdData.date} <= ${endDate}`);
+      }
+      
+      // Execute the query
+      const results = await query.orderBy(asc(macdData.date));
+      return results;
+    } catch (error) {
+      console.error(`Error getting MACD data for ${symbol} (${region}):`, error);
+      return [];
+    }
+  }
+  
+  /**
+   * Get MACD data by historical price ID
+   * @param historicalPriceId Historical price ID to look up
+   */
+  async getMacdDataByHistoricalPriceId(historicalPriceId: number) {
+    try {
+      const [result] = await db.select().from(macdData)
+        .where(eq(macdData.historicalPriceId, historicalPriceId));
+      return result;
+    } catch (error) {
+      console.error(`Error getting MACD data by historical price ID ${historicalPriceId}:`, error);
+      return null;
+    }
+  }
+  
+  /**
+   * Create or update MACD data
+   * @param data MACD data to create or update
+   */
+  async createOrUpdateMacdData(data: any) {
+    try {
+      const { historicalPriceId, symbol, date, region, macd, signal, histogram } = data;
+      
+      // Check if MACD data already exists for this historical price
+      const existing = await this.getMacdDataByHistoricalPriceId(historicalPriceId);
+      
+      if (existing) {
+        // Update existing MACD data
+        const [result] = await db.update(macdData)
+          .set({
+            macd: macd !== undefined ? macd : existing.macd,
+            signal: signal !== undefined ? signal : existing.signal,
+            histogram: histogram !== undefined ? histogram : existing.histogram,
+            updatedAt: new Date()
+          })
+          .where(eq(macdData.id, existing.id))
+          .returning();
+        
+        return result;
+      } else {
+        // Create new MACD data
+        const [result] = await db.insert(macdData)
+          .values({
+            historicalPriceId,
+            symbol,
+            date, 
+            region,
+            macd,
+            signal,
+            histogram
+          })
+          .onConflictDoUpdate({
+            target: macdData.historicalPriceId,
+            set: {
+              macd: macd !== undefined ? macd : sql`EXCLUDED.macd`,
+              signal: signal !== undefined ? signal : sql`EXCLUDED.signal`,
+              histogram: histogram !== undefined ? histogram : sql`EXCLUDED.histogram`,
+              updatedAt: new Date()
+            }
+          })
+          .returning();
+        
+        return result;
+      }
+    } catch (error) {
+      console.error(`Error creating/updating MACD data:`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Bulk create or update MACD data
+   * @param dataArray Array of MACD data objects to create or update
+   */
+  async bulkCreateOrUpdateMacdData(dataArray: any[]) {
+    try {
+      if (!dataArray || dataArray.length === 0) {
+        return [];
+      }
+      
+      // Process in batches to avoid overloading the database
+      const batchSize = 100;
+      const results = [];
+      
+      for (let i = 0; i < dataArray.length; i += batchSize) {
+        const batch = dataArray.slice(i, i + batchSize);
+        console.log(`Processing MACD data batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(dataArray.length/batchSize)}`);
+        
+        // Prepare the values for insertion
+        const valuesToInsert = batch.map(item => ({
+          historicalPriceId: item.historicalPriceId,
+          symbol: item.symbol,
+          date: item.date,
+          region: item.region,
+          macd: item.macd,
+          signal: item.signal,
+          histogram: item.histogram
+        }));
+        
+        // Insert with on conflict do update
+        const batchResults = await db.insert(macdData)
+          .values(valuesToInsert)
+          .onConflictDoUpdate({
+            target: [macdData.historicalPriceId],
+            set: {
+              macd: sql`EXCLUDED.macd`,
+              signal: sql`EXCLUDED.signal`,
+              histogram: sql`EXCLUDED.histogram`,
+              updatedAt: new Date()
+            }
+          })
+          .returning();
+        
+        results.push(...batchResults);
+      }
+      
+      return results;
+    } catch (error) {
+      console.error(`Error bulk creating/updating MACD data:`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Delete MACD data for a symbol and region
+   * @param symbol Stock symbol
+   * @param region Portfolio region (USD, CAD, INTL)
+   */
+  async deleteMacdData(symbol: string, region: string) {
+    try {
+      return await db.delete(macdData)
+        .where(and(
+          eq(macdData.symbol, symbol),
+          eq(macdData.region, region)
+        ));
+    } catch (error) {
+      console.error(`Error deleting MACD data for ${symbol} (${region}):`, error);
       throw error;
     }
   }

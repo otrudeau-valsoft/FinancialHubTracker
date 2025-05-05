@@ -898,8 +898,9 @@ class HistoricalPriceService {
    * Update historical prices for all portfolios with batch processing
    * Uses a mutex pattern to prevent duplicate concurrent executions
    * @param forceRsiRefresh If true, will force updating RSI values for recent price points
+   * @param forceMacdRefresh If true, will force updating MACD values for recent price points
    */
-  async updateAllHistoricalPrices(forceRsiRefresh: boolean = false) {
+  async updateAllHistoricalPrices(forceRsiRefresh: boolean = false, forceMacdRefresh: boolean = false) {
     // Check if already running to prevent duplicate executions
     if (this.isUpdatingAllHistoricalPrices) {
       console.log('Historical price update already in progress, skipping duplicate request');
@@ -915,11 +916,17 @@ class HistoricalPriceService {
     // Set the flag to indicate this process is running
     this.isUpdatingAllHistoricalPrices = true;
     
-    // Log RSI refresh mode
+    // Log indicator refresh modes
     if (forceRsiRefresh) {
       console.log('RSI Refresh Mode: Will refresh RSI values for all recent price points');
     } else {
       console.log('RSI Refresh Mode: Will only update missing RSI values');
+    }
+    
+    if (forceMacdRefresh) {
+      console.log('MACD Refresh Mode: Will refresh MACD values for all recent price points');
+    } else {
+      console.log('MACD Refresh Mode: Will only update missing MACD values');
     }
     
     try {
@@ -942,10 +949,10 @@ class HistoricalPriceService {
         
         for (const index of indices) {
           try {
-            console.log(`Calculating RSI for index ${index.symbol}`);
-            await this.calculateAndUpdateRSIForSymbol(index.symbol, index.region, forceRsiRefresh);
-          } catch (rsiError) {
-            console.error(`Error calculating RSI for index ${index.symbol}:`, rsiError);
+            console.log(`Calculating RSI and MACD for index ${index.symbol}`);
+            await this.calculateAndUpdateRSIForSymbol(index.symbol, index.region, forceRsiRefresh, forceMacdRefresh);
+          } catch (error) {
+            console.error(`Error calculating indicators for index ${index.symbol}:`, error);
           }
         }
         
@@ -987,20 +994,20 @@ class HistoricalPriceService {
               break;
           }
           
-          // Calculate and update RSI for all symbols in the portfolio
-          console.log(`Calculating and updating RSI for ${symbols.length} symbols in ${region} portfolio`);
+          // Calculate and update RSI and MACD for all symbols in the portfolio
+          console.log(`Calculating and updating indicators for ${symbols.length} symbols in ${region} portfolio`);
           
-          // Process RSI calculations in batches
+          // Process calculations in batches
           const batchSize = 5;
           for (let i = 0; i < symbols.length; i += batchSize) {
             const batch = symbols.slice(i, i + batchSize);
-            console.log(`Processing RSI batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(symbols.length/batchSize)} for ${region}`);
+            console.log(`Processing indicators batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(symbols.length/batchSize)} for ${region}`);
             
             for (const symbol of batch) {
               try {
-                await this.calculateAndUpdateRSIForSymbol(symbol, region, forceRsiRefresh);
-              } catch (rsiError) {
-                console.error(`Error calculating RSI for ${symbol} (${region}):`, rsiError);
+                await this.calculateAndUpdateRSIForSymbol(symbol, region, forceRsiRefresh, forceMacdRefresh);
+              } catch (error) {
+                console.error(`Error calculating indicators for ${symbol} (${region}):`, error);
               }
             }
             
