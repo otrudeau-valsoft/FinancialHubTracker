@@ -261,26 +261,20 @@ export const fetchHistoricalPrices = async (req: Request, res: Response) => {
   
   // Get forceRsiRefresh parameter from request body (defaults to true)
   const forceRsiRefresh = req.body.forceRsiRefresh !== false;
+  console.log(`Single stock update with symbol=${symbol}, region=${region}, forceRsiRefresh=${forceRsiRefresh}`);
   
-  // Get forceMacdRefresh parameter from request body (defaults to true)
-  const forceMacdRefresh = req.body.forceMacdRefresh !== false;
-  
-  console.log(`Single stock update with symbol=${symbol}, region=${region}, forceRsiRefresh=${forceRsiRefresh}, forceMacdRefresh=${forceMacdRefresh}`);
-  
-  // Pass both refresh parameters to ensure RSI and MACD values are calculated and stored
+  // Pass forceRsiRefresh parameter to ensure RSI values are calculated and stored
   const results = await historicalPriceService.fetchAndStoreHistoricalPrices(
     symbol, 
     region.toUpperCase(), 
     period,
     undefined, // endDate (use default)
-    forceRsiRefresh, // RSI refresh parameter
-    forceMacdRefresh // MACD refresh parameter
+    forceRsiRefresh // Add the force refresh parameter
   );
   
   return res.json({
     ...results,
-    rsiCalculated: forceRsiRefresh,
-    macdCalculated: forceMacdRefresh
+    rsiCalculated: forceRsiRefresh
   });
 };
 
@@ -294,14 +288,8 @@ export const fetchRegionHistoricalPrices = async (req: Request, res: Response) =
     const upperRegion = region.toUpperCase();
     const period = (req.query.period || req.body.period || '5y') as string;
     
-    // Get refresh parameters from request body (defaults to true)
-    const forceRsiRefresh = req.body.forceRsiRefresh !== false;
-    const forceMacdRefresh = req.body.forceMacdRefresh !== false;
-    
-    console.log(`Region historical prices update with region=${upperRegion}, forceRsiRefresh=${forceRsiRefresh}, forceMacdRefresh=${forceMacdRefresh}`);
-    
-    // Step 1: Update historical prices for this region with refresh parameters
-    const results = await historicalPriceService.fetchHistoricalPrices(upperRegion, period, forceRsiRefresh, forceMacdRefresh);
+    // Step 1: Update historical prices for this region
+    const results = await historicalPriceService.fetchHistoricalPrices(upperRegion, period);
     
     // Step 2: Automatically update portfolio holdings for this region
     console.log(`Automatically updating ${upperRegion} portfolio holdings after historical price update...`);
@@ -377,14 +365,10 @@ export const fetchAllHistoricalPrices = async (req: Request, res: Response) => {
     
     // Get forceRsiRefresh parameter from request body (defaults to true regardless)
     const forceRsiRefresh = req.body.forceRsiRefresh !== false; // default to true unless explicitly set to false
+    console.log(`Bulk update with forceRsiRefresh=${forceRsiRefresh}`);
     
-    // Get forceMacdRefresh parameter from request body (defaults to true as well)
-    const forceMacdRefresh = req.body.forceMacdRefresh !== false; // default to true unless explicitly set to false
-    
-    console.log(`Bulk update with forceRsiRefresh=${forceRsiRefresh}, forceMacdRefresh=${forceMacdRefresh}`);
-    
-    // Step 1: Update historical prices with RSI and MACD refresh
-    const response = await historicalPriceService.updateAllHistoricalPrices(forceRsiRefresh, forceMacdRefresh);
+    // Step 1: Update historical prices with RSI refresh
+    const response = await historicalPriceService.updateAllHistoricalPrices(forceRsiRefresh);
     
     // Step 2: Automatically update portfolio holdings to reflect new historical data
     console.log('Automatically updating portfolio holdings after historical price update...');
@@ -403,10 +387,9 @@ export const fetchAllHistoricalPrices = async (req: Request, res: Response) => {
       
       return res.json({
         ...response,
-        message: `${response.message}, calculated RSI and MACD values, and recalculated all portfolio metrics`,
+        message: `${response.message}, calculated RSI values, and recalculated all portfolio metrics`,
         holdingsUpdated: true,
-        rsiCalculated: true,
-        macdCalculated: forceMacdRefresh
+        rsiCalculated: true
       });
     } catch (holdingsError) {
       console.error('Error updating holdings after historical price update:', holdingsError);
@@ -414,10 +397,9 @@ export const fetchAllHistoricalPrices = async (req: Request, res: Response) => {
       // Still return success for historical price update, but indicate holdings update failed
       return res.json({
         ...response,
-        message: `${response.message}, calculated RSI and MACD values, but failed to recalculate portfolio metrics`,
+        message: `${response.message}, calculated RSI values, but failed to recalculate portfolio metrics`,
         holdingsUpdated: false,
         rsiCalculated: true,
-        macdCalculated: forceMacdRefresh,
         holdingsError: holdingsError.message
       });
     }

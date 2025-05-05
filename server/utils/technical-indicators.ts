@@ -2,8 +2,7 @@
  * Technical Indicators Utilities
  * 
  * This module provides functions for calculating various technical indicators
- * used in financial analysis, such as RSI (Relative Strength Index) and
- * MACD (Moving Average Convergence Divergence).
+ * used in financial analysis, such as RSI (Relative Strength Index).
  */
 
 /**
@@ -95,93 +94,4 @@ export function calculateMultipleRSI(
   }
   
   return result;
-}
-
-/**
- * Calculate Exponential Moving Average (EMA) for a series of price data
- * 
- * @param prices Array of closing prices in chronological order (oldest to newest)
- * @param period The period for EMA calculation (e.g., 12, 26)
- * @returns Array of EMA values corresponding to the input prices
- */
-export function calculateEMA(prices: number[], period: number): (number | null)[] {
-  // We need at least period prices to calculate the first EMA value
-  if (!prices || prices.length < period) {
-    console.log(`Not enough data for EMA calculation. Need at least ${period} prices, but got ${prices?.length || 0}.`);
-    return Array(prices?.length || 0).fill(null);
-  }
-
-  const emaValues: (number | null)[] = Array(prices.length).fill(null);
-  
-  // Start with a simple moving average (SMA) for the first data point
-  const sma = prices.slice(0, period).reduce((sum, price) => sum + price, 0) / period;
-  emaValues[period - 1] = sma;
-  
-  // Multiplier used in EMA calculation: 2 / (period + 1)
-  const multiplier = 2 / (period + 1);
-  
-  // Calculate EMA for the rest of the data points
-  for (let i = period; i < prices.length; i++) {
-    // EMA = (Current Price * Multiplier) + (Previous EMA * (1 - Multiplier))
-    emaValues[i] = (prices[i] * multiplier) + (emaValues[i - 1]! * (1 - multiplier));
-  }
-  
-  return emaValues;
-}
-
-/**
- * Calculate MACD (Moving Average Convergence Divergence) for a series of price data
- * 
- * MACD is calculated as follows:
- * 1. Calculate the 12-period EMA of the price (fast line)
- * 2. Calculate the 26-period EMA of the price (slow line)
- * 3. Histogram = Fast EMA - Slow EMA
- * 
- * Simplified version as per requirements:
- * - Only calculates fast EMA, slow EMA, and histogram
- * - Does not calculate MACD line or signal line
- * 
- * @param prices Array of closing prices in chronological order (oldest to newest)
- * @param fastPeriod The period for the fast EMA line (default 12)
- * @param slowPeriod The period for the slow EMA line (default 26)
- * @returns Object containing fast EMA, slow EMA, and histogram values
- */
-export function calculateMACD(
-  prices: number[], 
-  fastPeriod: number = 12, 
-  slowPeriod: number = 26
-): {
-  fast: (number | null)[];   // 12-period EMA
-  slow: (number | null)[];   // 26-period EMA
-  histogram: (number | null)[]; // Histogram (Fast - Slow)
-} {
-  // Calculate the fast and slow EMAs
-  const fastEMA = calculateEMA(prices, fastPeriod);
-  const slowEMA = calculateEMA(prices, slowPeriod);
-  
-  // Initialize array to hold histogram values with nulls
-  const histogram: (number | null)[] = Array(prices.length).fill(null);
-  
-  // Calculate Histogram (Fast EMA - Slow EMA)
-  for (let i = 0; i < prices.length; i++) {
-    // We can only calculate histogram once we have both EMAs
-    if (fastEMA[i] !== null && slowEMA[i] !== null) {
-      histogram[i] = fastEMA[i]! - slowEMA[i]!;
-    }
-  }
-  
-  // Log the first few values to verify correct calculation
-  if (prices.length > 0) {
-    console.log(`MACD calculation for ${prices.length} price points:`);
-    const sampleSize = Math.min(3, prices.length);
-    for (let i = prices.length - sampleSize; i < prices.length; i++) {
-      console.log(`- Point ${i}: Fast=${fastEMA[i]?.toFixed(4)}, Slow=${slowEMA[i]?.toFixed(4)}, Histogram=${histogram[i]?.toFixed(4)}`);
-    }
-  }
-  
-  return { 
-    fast: fastEMA,         // Fast EMA (12-period)
-    slow: slowEMA,         // Slow EMA (26-period)
-    histogram: histogram   // Histogram (Fast - Slow)
-  };
 }

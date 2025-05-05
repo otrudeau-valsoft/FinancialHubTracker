@@ -27,9 +27,7 @@ import {
   Legend,
   ReferenceLine,
   Area,
-  AreaChart,
-  Bar,
-  BarChart
+  AreaChart
 } from 'recharts';
 
 import {
@@ -48,7 +46,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from "@/components/ui/input";
-import MacdChart from '@/components/charts/macd-chart';
 import { processHistoricalData, useHistoricalPrices } from '@/hooks/use-historical-prices';
 import { 
   Command, 
@@ -76,9 +73,6 @@ interface HistoricalPrice {
   rsi9?: number;
   rsi14?: number;
   rsi21?: number;
-  macd?: number;
-  signal?: number;
-  histogram?: number;
 }
 
 // Stock earnings interface
@@ -335,10 +329,9 @@ function StockDirectorySelector({ currentRegion }: { currentRegion: string }) {
 
 export default function StockDetailsPage() {
   const queryClient = useQueryClient();
-  const [timeRange, setTimeRange] = useState<'1m' | '3m' | '6m' | '1y' | '5y'>('1y'); // Changed default from 3m to 1y
+  const [timeRange, setTimeRange] = useState<'1m' | '3m' | '6m' | '1y' | '5y'>('3m');
   const [showRSI, setShowRSI] = useState<boolean>(true); // Default to showing RSI
   const [rsiPeriod, setRsiPeriod] = useState<'9' | '14' | '21'>('21'); // Default to 21-period RSI
-  const [showMACD, setShowMACD] = useState<boolean>(true); // Default to showing MACD
   
   // Get symbol and region from URL
   // Support both route patterns: /stock-details/:symbol/:region and /stock/:symbol?region=
@@ -447,19 +440,18 @@ export default function StockDetailsPage() {
           },
           body: JSON.stringify({ 
             period: '5y',
-            // Force refresh of most recent price point only for both RSI and MACD
-            forceRsiRefresh: true,
-            forceMacdRefresh: true
+            // Force refresh of most recent price point only
+            forceRsiRefresh: true  
           })
         });
         
         if (updateResponse.ok) {
           // Log success message
-          console.log('Historical price refresh complete with RSI and MACD data', {});
+          console.log('Historical price refresh complete with RSI data', {});
           
-          // Check latest data to verify RSI and MACD values
-          const dataCheck = await fetch(`/api/historical-prices/${symbol}/${region}`);
-          const historicalData = await dataCheck.json();
+          // Check latest data to verify RSI values
+          const rsiCheck = await fetch(`/api/historical-prices/${symbol}/${region}`);
+          const historicalData = await rsiCheck.json();
           
           if (historicalData && historicalData.length > 0) {
             // Calculate how many data points have RSI values per period
@@ -492,23 +484,12 @@ export default function StockDetailsPage() {
               samplePoint: historicalData[historicalData.length - 1] // Most recent
             });
             
-            // Check for MACD values
-            const macdDatapoints = historicalData.filter((d: HistoricalPrice) => d.macd !== undefined).length;
-            console.log("MACD Data Check:", { 
-              totalPoints, 
-              macdDatapoints, 
-              samplePoint: historicalData[historicalData.length - 1] // Most recent
-            });
-            
-            // Log the latest price point with RSI and MACD values
+            // Log the latest price point with RSI values
             console.log("Latest historical price entry for " + symbol + " (" + region + "):", {
               date: historicalData[historicalData.length - 1].date,
               rsi9: historicalData[historicalData.length - 1].rsi9,
               rsi14: historicalData[historicalData.length - 1].rsi14,
-              rsi21: historicalData[historicalData.length - 1].rsi21,
-              macd: historicalData[historicalData.length - 1].macd,
-              signal: historicalData[historicalData.length - 1].signal,
-              histogram: historicalData[historicalData.length - 1].histogram
+              rsi21: historicalData[historicalData.length - 1].rsi21
             });
           }
           
@@ -524,7 +505,7 @@ export default function StockDetailsPage() {
           // Show success toast
           toast({
             title: "Updated historical prices",
-            description: "Historical prices, RSI, and MACD data have been updated",
+            description: "Historical prices and RSI data have been updated",
             variant: "default"
           });
         } else {
@@ -541,7 +522,7 @@ export default function StockDetailsPage() {
         
         toast({
           title: "Update failed",
-          description: "Error updating historical prices, RSI, and MACD data",
+          description: "Error updating historical prices and RSI data",
           variant: "destructive"
         });
       }
@@ -1188,100 +1169,6 @@ export default function StockDetailsPage() {
                       <div className="text-[#805AD5] font-mono text-sm font-semibold mb-2">RSI Data Not Available</div>
                       <div className="text-[#7A8999] font-mono text-xs mb-3">
                         Use the REFRESH button at the top of the page to update historical prices and generate RSI data
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-          
-          {/* MACD Chart Section - Full Width */}
-          {!isLoadingHistorical && historicalPrices && historicalPrices.length > 0 && showMACD && (
-            <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden mb-6">
-              <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
-                <div className="flex items-center">
-                  <ChevronsUpDown className="h-4 w-4 mr-2 text-[#38AAFD]" />
-                  <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">MACD</h3>
-                </div>
-                <div className="flex items-center">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-[#7A8999]">
-                          <Info className="h-3.5 w-3.5" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-[#0D1F32] text-[#EFEFEF] border-[#1A304A] text-xs font-mono">
-                        <p>MACD - Fast EMA (12), Slow EMA (26), Histogram (Fast-Slow)</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </div>
-              <div className="p-4">
-                {/* Check if we have MACD data */}
-                {(() => {
-                  // Debug info about MACD data
-                  if (historicalPrices && historicalPrices.length > 0) {
-                    // More detailed debugging to understand what's happening with MACD data
-                    const macdDatapoints = historicalPrices.filter((price: any) => 
-                      price.macd !== null && price.macd !== undefined
-                    ).length;
-                    
-                    const lastPoint = historicalPrices[historicalPrices.length - 1];
-                    console.log(`MACD Data Check:`, {
-                      totalPoints: historicalPrices.length,
-                      macdDatapoints,
-                      lastPointHasMacd: lastPoint.macd !== null && lastPoint.macd !== undefined,
-                      macdValue: lastPoint.macd,
-                      signalValue: lastPoint.signal,
-                      histogramValue: lastPoint.histogram,
-                      samplePoint: lastPoint
-                    });
-                  }
-                  
-                  // More explicit check for the presence of MACD data
-                  let hasMacdData = false;
-                  if (historicalPrices && historicalPrices.length > 0) {
-                    // Get processed data which is what the chart actually uses
-                    const processedData = processHistoricalData(historicalPrices, timeRange);
-                    
-                    // Check if any processed data point has MACD values
-                    for (let i = 0; i < processedData.length; i++) {
-                      const price = processedData[i];
-                      if (
-                        price.macd !== undefined &&
-                        price.signal !== undefined &&
-                        price.histogram !== undefined
-                      ) {
-                        hasMacdData = true;
-                        break;
-                      }
-                    }
-                    
-                    // Add additional debugging
-                    console.log("MACD Chart Data Check:", {
-                      rawDataLength: historicalPrices.length,
-                      processedDataLength: processedData.length,
-                      hasMacdData,
-                      sampleProcessedPoint: processedData[processedData.length - 1]
-                    });
-                  }
-                  
-                  return hasMacdData;
-                })() ? (
-                  <MacdChart 
-                    data={processHistoricalData(historicalPrices, timeRange)} 
-                    height={140} 
-                    syncId="stockChart"
-                  />
-                ) : (
-                  <div className="h-36 flex items-center justify-center bg-[#0A1524]">
-                    <div className="text-center">
-                      <div className="text-[#38AAFD] font-mono text-sm font-semibold mb-2">MACD Data Not Available</div>
-                      <div className="text-[#7A8999] font-mono text-xs mb-3">
-                        Use the REFRESH button at the top of the page to update historical prices and generate MACD data
                       </div>
                     </div>
                   </div>

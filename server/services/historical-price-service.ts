@@ -4,7 +4,7 @@ import yahooFinance from 'yahoo-finance2';
 import { dateToSQLDateString } from '../util';
 import { historicalPrices, type InsertHistoricalPrice } from '@shared/schema';
 import { and, eq, desc, asc, sql } from 'drizzle-orm';
-import { calculateMultipleRSI, calculateMACD } from '../utils/technical-indicators';
+import { calculateMultipleRSI } from '../utils/technical-indicators';
 
 // Rate limiting configuration for Yahoo Finance API - match the same settings as current-price-service
 const RATE_LIMIT = {
@@ -218,14 +218,7 @@ class HistoricalPriceService {
    * Can handle both Date objects and period strings for startDate and endDate
    * Uses upsert to avoid duplicate entries
    */
-  async fetchAndStoreHistoricalPrices(
-    symbol: string, 
-    region: string, 
-    startDate: Date | string, 
-    endDate: Date | string = new Date(), 
-    forceRsiRefresh: boolean = false,
-    forceMacdRefresh: boolean = false
-  ) {
+  async fetchAndStoreHistoricalPrices(symbol: string, region: string, startDate: Date | string, endDate: Date | string = new Date(), forceRsiRefresh: boolean = false) {
     try {
       // Convert dates if they're strings
       const startDateObj = this.periodToDate(startDate);
@@ -397,12 +390,6 @@ class HistoricalPriceService {
       
       console.log(`Stored ${results.length} historical prices with RSI data for ${symbol} (${region})`);
       
-      // If MACD refresh is requested, calculate and update MACD values
-      if (forceMacdRefresh) {
-        console.log(`Calculating and updating MACD values for ${symbol} (${region})`);
-        await this.calculateAndUpdateMACDForSymbol(symbol, region, forceMacdRefresh);
-      }
-      
       return results;
     } catch (error) {
       console.error(`Error fetching and storing historical prices for ${symbol} (${region}):`, error);
@@ -413,9 +400,8 @@ class HistoricalPriceService {
   /**
    * Process a batch of symbols
    * @param forceRsiRefresh If true, will force updating RSI values for recent price points
-   * @param forceMacdRefresh If true, will force updating MACD values for recent price points
    */
-  private async processBatch(symbols: string[], region: string, batchIndex: number, batchSize: number, forceRsiRefresh: boolean = false, forceMacdRefresh: boolean = false) {
+  private async processBatch(symbols: string[], region: string, batchIndex: number, batchSize: number, forceRsiRefresh: boolean = false) {
     const batchSymbols = symbols.slice(batchIndex, batchIndex + batchSize);
     const batchResults = [];
     
@@ -442,39 +428,25 @@ class HistoricalPriceService {
         
         // Only fetch if there's potentially new data
         if (startDate < new Date()) {
-          console.log(`Fetching historical prices for ${symbol} from ${startDate.toISOString().split('T')[0]} with forceRsiRefresh=${forceRsiRefresh}, forceMacdRefresh=${forceMacdRefresh}`);
+          console.log(`Fetching historical prices for ${symbol} from ${startDate.toISOString().split('T')[0]} with forceRsiRefresh=${forceRsiRefresh}`);
           const result = await this.fetchAndStoreHistoricalPrices(
             symbol, 
             region, 
             startDate, 
             undefined, // endDate (use default current date)
-            forceRsiRefresh,
-            forceMacdRefresh
+            forceRsiRefresh // Pass the RSI refresh parameter
           );
           batchResults.push({ symbol, success: true, result, rsiCalculated: forceRsiRefresh });
         } else {
-          console.log(`Historical prices for ${symbol} are already up to date, checking if RSI/MACD need refresh`);
+          console.log(`Historical prices for ${symbol} are already up to date, checking if RSI needs refresh`);
           
           // Even if no new data to fetch, we can still refresh RSI values for existing data
           if (forceRsiRefresh) {
             console.log(`Forcing RSI refresh for ${symbol} even though prices are up to date`);
-            const rsiResult = await this.calculateAndUpdateRSIForSymbol(symbol, region, forceRsiRefresh);
-            batchResults.push({ symbol, success: true, result: rsiResult, rsiCalculated: true });
-          }
-          
-          // Similarly, we can refresh MACD values for existing data
-          if (forceMacdRefresh) {
-            console.log(`Forcing MACD refresh for ${symbol} even though prices are up to date`);
-            const macdResult = await this.calculateAndUpdateMACDForSymbol(symbol, region, forceMacdRefresh);
-            // If we already added this symbol for RSI, don't add another result
-            if (!forceRsiRefresh) {
-              batchResults.push({ symbol, success: true, result: macdResult, macdCalculated: true });
-            }
-          }
-          
-          // If neither RSI nor MACD refresh were requested, add an empty result
-          if (!forceRsiRefresh && !forceMacdRefresh) {
-            batchResults.push({ symbol, success: true, result: [], rsiCalculated: false, macdCalculated: false });
+            const result = await this.calculateAndUpdateRSIForSymbol(symbol, region, forceRsiRefresh);
+            batchResults.push({ symbol, success: true, result, rsiCalculated: true });
+          } else {
+            batchResults.push({ symbol, success: true, result: [], rsiCalculated: false });
           }
         }
         
@@ -496,9 +468,8 @@ class HistoricalPriceService {
    * Only adds new data points from the latest data we have
    * @param region Portfolio region (USD, CAD, INTL)
    * @param forceRsiRefresh If true, forces updating RSI for recent price points
-   * @param forceMacdRefresh If true, forces updating MACD for recent price points
    */
-  async updatePortfolioHistoricalPrices(region: string, forceRsiRefresh: boolean = false, forceMacdRefresh: boolean = false) {
+  async updatePortfolioHistoricalPrices(region: string, forceRsiRefresh: boolean = false) {
     try {
       // Get all symbols in the portfolio
       let symbols: string[];
@@ -527,9 +498,9 @@ class HistoricalPriceService {
       const batchSize = 5; // Process 5 symbols at a time
       
       for (let i = 0; i < symbols.length; i += batchSize) {
-        // Process this batch, passing the forceRsiRefresh and forceMacdRefresh parameters
-        console.log(`Processing batch with forceRsiRefresh=${forceRsiRefresh}, forceMacdRefresh=${forceMacdRefresh}`);
-        const batchResults = await this.processBatch(symbols, region, i, batchSize, forceRsiRefresh, forceMacdRefresh);
+        // Process this batch, passing the forceRsiRefresh parameter
+        console.log(`Processing batch with forceRsiRefresh=${forceRsiRefresh}`);
+        const batchResults = await this.processBatch(symbols, region, i, batchSize, forceRsiRefresh);
         results.push(...batchResults);
         
         // Add a pause between batches to avoid overwhelming the API
@@ -549,9 +520,8 @@ class HistoricalPriceService {
   /**
    * Update historical prices for market indices
    * @param forceRsiRefresh If true, forces updating RSI for recent price points
-   * @param forceMacdRefresh If true, forces updating MACD for recent price points
    */
-  async updateIndicesHistoricalPrices(forceRsiRefresh: boolean = false, forceMacdRefresh: boolean = false) {
+  async updateIndicesHistoricalPrices(forceRsiRefresh: boolean = false) {
     try {
       // Get historical data for market indices
       const indices = [
@@ -580,39 +550,25 @@ class HistoricalPriceService {
           
           // Only fetch if there's potentially new data
           if (startDate < new Date()) {
-            console.log(`Fetching historical prices for index ${index.symbol} from ${startDate.toISOString().split('T')[0]} with forceRsiRefresh=${forceRsiRefresh}, forceMacdRefresh=${forceMacdRefresh}`);
+            console.log(`Fetching historical prices for index ${index.symbol} from ${startDate.toISOString().split('T')[0]} with forceRsiRefresh=${forceRsiRefresh}`);
             const result = await this.fetchAndStoreHistoricalPrices(
               index.symbol, 
               index.region, 
               startDate, 
               undefined, // endDate - use default current date
-              forceRsiRefresh,
-              forceMacdRefresh
+              forceRsiRefresh
             );
             results.push({ symbol: index.symbol, success: true, result });
           } else {
-            console.log(`Historical prices for index ${index.symbol} are already up to date, checking if RSI/MACD need refresh`);
+            console.log(`Historical prices for index ${index.symbol} are already up to date, checking if RSI needs refresh`);
             
             // Even if no new data to fetch, we can still refresh RSI values for existing data
             if (forceRsiRefresh) {
               console.log(`Forcing RSI refresh for index ${index.symbol} even though prices are up to date`);
-              const rsiResult = await this.calculateAndUpdateRSIForSymbol(index.symbol, index.region, forceRsiRefresh);
-              results.push({ symbol: index.symbol, success: true, result: rsiResult, rsiCalculated: true });
-            }
-            
-            // Similarly, we can refresh MACD values for existing data
-            if (forceMacdRefresh) {
-              console.log(`Forcing MACD refresh for index ${index.symbol} even though prices are up to date`);
-              const macdResult = await this.calculateAndUpdateMACDForSymbol(index.symbol, index.region, forceMacdRefresh);
-              // If we already added this symbol for RSI, don't add another result
-              if (!forceRsiRefresh) {
-                results.push({ symbol: index.symbol, success: true, result: macdResult, macdCalculated: true });
-              }
-            }
-            
-            // If neither RSI nor MACD refresh were requested, add an empty result
-            if (!forceRsiRefresh && !forceMacdRefresh) {
-              results.push({ symbol: index.symbol, success: true, result: [], rsiCalculated: false, macdCalculated: false });
+              const result = await this.calculateAndUpdateRSIForSymbol(index.symbol, index.region, forceRsiRefresh);
+              results.push({ symbol: index.symbol, success: true, result });
+            } else {
+              results.push({ symbol: index.symbol, success: true, result: [] });
             }
           }
           
@@ -877,258 +833,11 @@ class HistoricalPriceService {
   }
 
   /**
-   * Calculate and update MACD for a symbol
-   * 
-   * @param symbol Stock symbol
-   * @param region Portfolio region (USD, CAD, INTL)
-   * @param forceMacdRefresh If true, will force updating MACD values for recent price points
-   */
-  async calculateAndUpdateMACDForSymbol(symbol: string, region: string, forceMacdRefresh: boolean = false) {
-    try {
-      console.log(`Calculating and updating simplified MACD values for ${symbol} (${region}) with forceMacdRefresh=${forceMacdRefresh}`);
-      
-      // Get all historical prices for this symbol
-      const historicalPrices = await this.getHistoricalPrices(symbol, region);
-      
-      if (!historicalPrices || historicalPrices.length === 0) {
-        console.log(`No historical prices found for ${symbol} (${region})`);
-        return [];
-      }
-      
-      // Sort by date (oldest to newest)
-      const sortedPrices = [...historicalPrices].sort((a: any, b: any) => {
-        const dateA = new Date(a.date);
-        const dateB = new Date(b.date);
-        return dateA.getTime() - dateB.getTime();
-      });
-      
-      // With simplified approach, if we're forcing a refresh, we'll calculate for all data points
-      // This ensures consistent calculation across the entire price series
-      if (forceMacdRefresh) {
-        console.log(`Force refresh enabled: calculating MACD for all ${sortedPrices.length} price points for ${symbol}`);
-        
-        // Extract closing prices for simplified MACD calculation
-        const closingPrices = sortedPrices.map((price: any) => {
-          // Use adjusted close if available, otherwise use regular close
-          const priceValue = price.adjustedClose || price.close;
-          return priceValue ? parseFloat(priceValue) : 0;
-        });
-        
-        console.log(`Calculating simplified MACD (fast EMA, slow EMA, histogram) for ${closingPrices.length} data points`);
-        
-        // Calculate MACD with simplified approach - just fast, slow, and histogram
-        const { fast: fastEMA, slow: slowEMA, histogram } = calculateMACD(closingPrices);
-        
-        // Prepare data for bulk update
-        const macdDataToUpdate: any[] = [];
-        
-        // Process all price points
-        for (let i = 0; i < sortedPrices.length; i++) {
-          const price = sortedPrices[i];
-          
-          // Skip if invalid price
-          if (!price || !price.id) continue;
-          
-          // Check if we have valid MACD values for this point
-          let hasMacdValues = false;
-          let fastValue = null;
-          let slowValue = null;
-          let histogramValue = null;
-          
-          // Extract MACD component values if available
-          if (i < fastEMA.length && fastEMA[i] !== null) {
-            fastValue = fastEMA[i]?.toString();
-            hasMacdValues = true;
-          }
-          
-          if (i < slowEMA.length && slowEMA[i] !== null) {
-            slowValue = slowEMA[i]?.toString();
-            hasMacdValues = true;
-          }
-          
-          if (i < histogram.length && histogram[i] !== null) {
-            histogramValue = histogram[i]?.toString();
-            hasMacdValues = true;
-          }
-          
-          // Only add points with valid MACD values
-          if (hasMacdValues) {
-            macdDataToUpdate.push({
-              historicalPriceId: price.id,
-              symbol: symbol,
-              date: price.date,
-              region: region,
-              // Primary fields for simplified MACD calculation
-              fast: fastValue,      // Fast EMA (12-period)
-              slow: slowValue,      // Slow EMA (26-period)
-              histogram: histogramValue, // Histogram (Fast - Slow)
-              
-              // For backward compatibility
-              macd: fastValue,      // Same as fast EMA
-              signal: slowValue,    // Same as slow EMA
-              
-              // Standard periods
-              fastPeriod: 12,
-              slowPeriod: 26,
-              signalPeriod: 9
-            });
-          }
-        }
-        
-        // Log sample of calculated values
-        if (macdDataToUpdate.length > 0) {
-          const sample = macdDataToUpdate[macdDataToUpdate.length - 1]; // Most recent
-          console.log(`Sample MACD values for ${symbol}: Date=${sample.date}, Fast=${sample.fast}, Slow=${sample.slow}, Histogram=${sample.histogram}`);
-        }
-        
-        // Bulk update all MACD data
-        if (macdDataToUpdate.length > 0) {
-          console.log(`Updating ${macdDataToUpdate.length} MACD records for ${symbol} (${region})`);
-          
-          try {
-            // First truncate existing MACD data for this symbol to avoid duplicates
-            // This is a clean approach that avoids complex upsert logic
-            await storage.deleteMacdDataForSymbol(symbol, region);
-            console.log(`Deleted existing MACD data for ${symbol} (${region})`);
-            
-            // Then insert all new MACD data
-            const results = await storage.bulkCreateOrUpdateMacdData(macdDataToUpdate);
-            console.log(`Successfully updated ${results.length} MACD records for ${symbol} (${region})`);
-            
-            return results;
-          } catch (error) {
-            console.error(`Error updating MACD data for ${symbol} (${region}):`, error);
-            throw error;
-          }
-        } else {
-          console.log(`No valid MACD data to update for ${symbol} (${region})`);
-          return [];
-        }
-      } else {
-        // If not forcing refresh, we'll only calculate for missing data points
-        // Get existing MACD data
-        const existingMacdData = await storage.getMacdData(symbol, region);
-        
-        // Create a map of existing MACD data by historical price ID for easy lookup
-        const macdByHistoricalPriceId = new Map();
-        existingMacdData.forEach((macd: any) => {
-          if (macd.historicalPriceId) {
-            macdByHistoricalPriceId.set(macd.historicalPriceId, macd);
-          }
-        });
-        
-        // Identify missing data points
-        const missingPricePoints = sortedPrices.filter(price => 
-          price && price.id && !macdByHistoricalPriceId.has(price.id)
-        );
-        
-        if (missingPricePoints.length === 0) {
-          console.log(`No missing MACD data points for ${symbol} (${region})`);
-          return [];
-        }
-        
-        console.log(`Found ${missingPricePoints.length} price points missing MACD data for ${symbol} (${region})`);
-        
-        // We still need to calculate MACD using all price points for accuracy
-        const closingPrices = sortedPrices.map((price: any) => {
-          const priceValue = price.adjustedClose || price.close;
-          return priceValue ? parseFloat(priceValue) : 0;
-        });
-        
-        // Calculate MACD with simplified approach
-        const { fast: fastEMA, slow: slowEMA, histogram } = calculateMACD(closingPrices);
-        
-        // Prepare data for missing points
-        const macdDataToUpdate: any[] = [];
-        
-        // Only insert data for missing points
-        for (let i = 0; i < sortedPrices.length; i++) {
-          const price = sortedPrices[i];
-          
-          // Skip if invalid price or already has MACD data
-          if (!price || !price.id || macdByHistoricalPriceId.has(price.id)) continue;
-          
-          // Check if we have valid MACD values for this point
-          let hasMacdValues = false;
-          let fastValue = null;
-          let slowValue = null;
-          let histogramValue = null;
-          
-          // Extract MACD component values if available
-          if (i < fastEMA.length && fastEMA[i] !== null) {
-            fastValue = fastEMA[i]?.toString();
-            hasMacdValues = true;
-          }
-          
-          if (i < slowEMA.length && slowEMA[i] !== null) {
-            slowValue = slowEMA[i]?.toString();
-            hasMacdValues = true;
-          }
-          
-          if (i < histogram.length && histogram[i] !== null) {
-            histogramValue = histogram[i]?.toString();
-            hasMacdValues = true;
-          }
-          
-          // Only add points with valid MACD values
-          if (hasMacdValues) {
-            macdDataToUpdate.push({
-              historicalPriceId: price.id,
-              symbol: symbol,
-              date: price.date,
-              region: region,
-              // Primary fields for simplified MACD calculation
-              fast: fastValue,      // Fast EMA (12-period)
-              slow: slowValue,      // Slow EMA (26-period)
-              histogram: histogramValue, // Histogram (Fast - Slow)
-              
-              // For backward compatibility
-              macd: fastValue,      // Same as fast EMA
-              signal: slowValue,    // Same as slow EMA
-              
-              // Standard periods
-              fastPeriod: 12,
-              slowPeriod: 26,
-              signalPeriod: 9
-            });
-          }
-        }
-        
-        // Update the MACD data table with the new values
-        if (macdDataToUpdate.length > 0) {
-          console.log(`Updating ${macdDataToUpdate.length} MACD data records for ${symbol} (${region})`);
-          const results = await storage.bulkCreateOrUpdateMacdData(macdDataToUpdate);
-          
-          // Log a sample of the updated MACD data to verify values are set correctly
-          if (results && results.length > 0) {
-            const sample = results[results.length - 1]; // Most recent
-            console.log(`Updated MACD data for ${symbol} (${region}) on ${sample.date}: MACD=${sample.macd}, Signal=${sample.signal}, Histogram=${sample.histogram}, Fast=${sample.fast}, Slow=${sample.slow}`);
-            
-            // Check if MACD values are still null
-            if (!sample.macd || sample.macd === 'null') {
-              console.warn(`WARNING: MACD values are still null for ${symbol} even after update to dedicated MACD table.`);
-            }
-          }
-          
-          return results;
-        } else {
-          console.log(`No MACD data needs updates for ${symbol} (${region})`);
-          return [];
-        }
-      }
-    } catch (error) {
-      console.error(`Error calculating and updating MACD for ${symbol} (${region}):`, error);
-      throw error;
-    }
-  }
-
-  /**
    * Update historical prices for all portfolios with batch processing
    * Uses a mutex pattern to prevent duplicate concurrent executions
    * @param forceRsiRefresh If true, will force updating RSI values for recent price points
-   * @param forceMacdRefresh If true, will force updating MACD values for recent price points
    */
-  async updateAllHistoricalPrices(forceRsiRefresh: boolean = false, forceMacdRefresh: boolean = false) {
+  async updateAllHistoricalPrices(forceRsiRefresh: boolean = false) {
     // Check if already running to prevent duplicate executions
     if (this.isUpdatingAllHistoricalPrices) {
       console.log('Historical price update already in progress, skipping duplicate request');
@@ -1151,21 +860,14 @@ class HistoricalPriceService {
       console.log('RSI Refresh Mode: Will only update missing RSI values');
     }
     
-    // Log MACD refresh mode
-    if (forceMacdRefresh) {
-      console.log('MACD Refresh Mode: Will refresh MACD values for all recent price points');
-    } else {
-      console.log('MACD Refresh Mode: Will only update missing MACD values');
-    }
-    
     try {
       const regions = ['USD', 'CAD', 'INTL'];
       let allResults: {symbol: string, success: boolean, result?: any, error?: string}[] = [];
       
       // First update market indices
       try {
-        console.log(`Updating historical prices for market indices with forceRsiRefresh=${forceRsiRefresh}, forceMacdRefresh=${forceMacdRefresh}`);
-        const indicesResults = await this.updateIndicesHistoricalPrices(forceRsiRefresh, forceMacdRefresh);
+        console.log(`Updating historical prices for market indices with forceRsiRefresh=${forceRsiRefresh}`);
+        const indicesResults = await this.updateIndicesHistoricalPrices(forceRsiRefresh);
         allResults = [...allResults, ...indicesResults];
         
         // Calculate and update RSI for market indices
@@ -1185,20 +887,6 @@ class HistoricalPriceService {
           }
         }
         
-        // Calculate and update MACD for market indices
-        if (forceMacdRefresh) {
-          console.log('Calculating and updating MACD for market indices');
-          
-          for (const index of indices) {
-            try {
-              console.log(`Calculating MACD for index ${index.symbol}`);
-              await this.calculateAndUpdateMACDForSymbol(index.symbol, index.region, forceMacdRefresh);
-            } catch (macdError) {
-              console.error(`Error calculating MACD for index ${index.symbol}:`, macdError);
-            }
-          }
-        }
-        
         // Add a pause after updating indices
         console.log(`Pausing for 2 seconds after updating indices...`);
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -1215,8 +903,8 @@ class HistoricalPriceService {
       for (const region of regions) {
         try {
           // First fetch new historical prices
-          console.log(`Updating historical prices for ${region} portfolio with forceRsiRefresh=${forceRsiRefresh}, forceMacdRefresh=${forceMacdRefresh}`);
-          const regionResults = await this.updatePortfolioHistoricalPrices(region, forceRsiRefresh, forceMacdRefresh);
+          console.log(`Updating historical prices for ${region} portfolio with forceRsiRefresh=${forceRsiRefresh}`);
+          const regionResults = await this.updatePortfolioHistoricalPrices(region, forceRsiRefresh);
           allResults = [...allResults, ...regionResults];
           
           // Then get all symbols in this portfolio
@@ -1257,30 +945,6 @@ class HistoricalPriceService {
             // Add a small pause between RSI batches
             if (i + batchSize < symbols.length) {
               await new Promise(resolve => setTimeout(resolve, 500));
-            }
-          }
-          
-          // If MACD refresh is requested, calculate and update MACD values
-          if (forceMacdRefresh) {
-            console.log(`Calculating and updating MACD for ${symbols.length} symbols in ${region} portfolio`);
-            
-            // Process MACD calculations in batches
-            for (let i = 0; i < symbols.length; i += batchSize) {
-              const batch = symbols.slice(i, i + batchSize);
-              console.log(`Processing MACD batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(symbols.length/batchSize)} for ${region}`);
-              
-              for (const symbol of batch) {
-                try {
-                  await this.calculateAndUpdateMACDForSymbol(symbol, region, forceMacdRefresh);
-                } catch (macdError) {
-                  console.error(`Error calculating MACD for ${symbol} (${region}):`, macdError);
-                }
-              }
-              
-              // Add a small pause between MACD batches
-              if (i + batchSize < symbols.length) {
-                await new Promise(resolve => setTimeout(resolve, 500));
-              }
             }
           }
           

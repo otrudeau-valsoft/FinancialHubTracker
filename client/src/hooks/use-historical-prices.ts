@@ -14,9 +14,6 @@ export interface HistoricalPrice {
   rsi9?: string;
   rsi14?: string;
   rsi21?: string;
-  macd?: string;
-  signal?: string;
-  histogram?: string;
 }
 
 /**
@@ -39,17 +36,14 @@ export const useHistoricalPrices = (symbol: string, region: string) => {
         
         const data = await response.json();
         
-        // Add debugging to see if RSI and MACD data is present in the response
+        // Add debugging to see if RSI data is present in the response
         if (data && data.length > 0) {
           const latestEntry = data[data.length - 1];
           console.log(`Latest historical price entry for ${symbol} (${region}):`, {
             date: latestEntry.date,
             rsi9: latestEntry.rsi9,
             rsi14: latestEntry.rsi14,
-            rsi21: latestEntry.rsi21,
-            macd: latestEntry.macd,
-            signal: latestEntry.signal,
-            histogram: latestEntry.histogram
+            rsi21: latestEntry.rsi21
           });
         }
         
@@ -141,9 +135,6 @@ export const processHistoricalData = (
           rsi9: p.rsi9 ? parseFloat(p.rsi9) : undefined,
           rsi14: p.rsi14 ? parseFloat(p.rsi14) : undefined,
           rsi21: p.rsi21 ? parseFloat(p.rsi21) : undefined,
-          macd: p.macd ? parseFloat(p.macd) : undefined,
-          signal: p.signal ? parseFloat(p.signal) : undefined,
-          histogram: p.histogram ? parseFloat(p.histogram) : undefined,
           dateObj: date
         };
       } catch (error) {
@@ -160,9 +151,6 @@ export const processHistoricalData = (
           rsi9: undefined,
           rsi14: undefined,
           rsi21: undefined,
-          macd: undefined,
-          signal: undefined,
-          histogram: undefined,
           dateObj: now
         };
       }
