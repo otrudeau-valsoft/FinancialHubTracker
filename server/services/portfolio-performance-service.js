@@ -59,8 +59,8 @@ class PortfolioPerformanceService {
       console.log(`Getting performance history for ${region} from ${startDate || 'beginning'} to ${endDate || 'now'}`);
       console.log('SQL:', query, params);
       
-      // Execute the query
-      const { rows } = await db.query(query, params);
+      // Execute the query using db.execute for raw SQL
+      const rows = await db.execute(query, params);
       
       // Transform the data for presentation
       return rows.map(row => ({
@@ -105,7 +105,7 @@ class PortfolioPerformanceService {
       
       if (!effectiveStartDate) {
         // If no start date is provided, get the earliest date from historical prices
-        const { rows: earliestDateRows } = await db.query(
+        const earliestDateRows = await db.execute(
           'SELECT MIN(date) as min_date FROM historical_prices WHERE region = $1',
           [regionUpper]
         );
@@ -145,7 +145,7 @@ class PortfolioPerformanceService {
       const benchmarkSymbol = benchmarkMap[regionUpper];
       
       // 4. Get historical prices for the portfolio symbols and benchmark
-      const { rows: historicalPrices } = await db.query(
+      const historicalPrices = await db.execute(
         `SELECT symbol, date, close, adj_close
          FROM historical_prices
          WHERE region = $1
@@ -314,14 +314,14 @@ class PortfolioPerformanceService {
       // 8. Store the performance data in the database
       
       // First, clear existing data in the performance table for these dates
-      await db.query(
+      await db.execute(
         `DELETE FROM ${tableName} WHERE date BETWEEN $1 AND $2`,
         [effectiveStartDate, effectiveEndDate]
       );
       
       // Insert new performance data
       for (const dataPoint of performanceData) {
-        await db.query(
+        await db.execute(
           `INSERT INTO ${tableName} (
             date, 
             portfolio_value, 
