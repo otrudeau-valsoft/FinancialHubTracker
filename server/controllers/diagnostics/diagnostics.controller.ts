@@ -227,7 +227,7 @@ export const testPortfolioConsistency = async (req: Request, res: Response) => {
     
     // Get portfolio data
     const portfolioResult = await db.execute(sql`
-      SELECT * FROM portfolios_${region.toLowerCase()} ORDER BY symbol
+      SELECT * FROM "portfolio_${region}" ORDER BY symbol
     `);
     
     // Get current prices
@@ -237,7 +237,7 @@ export const testPortfolioConsistency = async (req: Request, res: Response) => {
     
     // Get holdings data
     const holdingsResult = await db.execute(sql`
-      SELECT * FROM holdings_${region.toLowerCase()} ORDER BY symbol
+      SELECT * FROM "holdings_${region}" ORDER BY symbol
     `);
     
     // Analyze consistency
@@ -336,9 +336,9 @@ async function getDatabaseInfo() {
     const tableCount = tableCountResult.rows[0].count;
     
     // Get some key table row counts
-    const portfolioUsdCount = await db.execute(sql`SELECT count(*) FROM portfolios_usd`);
-    const portfolioCadCount = await db.execute(sql`SELECT count(*) FROM portfolios_cad`);
-    const portfolioIntlCount = await db.execute(sql`SELECT count(*) FROM portfolios_intl`);
+    const portfolioUsdCount = await db.execute(sql`SELECT count(*) FROM "portfolio_USD"`);
+    const portfolioCadCount = await db.execute(sql`SELECT count(*) FROM "portfolio_CAD"`);
+    const portfolioIntlCount = await db.execute(sql`SELECT count(*) FROM "portfolio_INTL"`);
     
     const currentPricesCount = await db.execute(sql`SELECT count(*) FROM current_prices`);
     const updateLogsCount = await db.execute(sql`SELECT count(*) FROM data_update_logs`);
@@ -347,9 +347,9 @@ async function getDatabaseInfo() {
       name: dbName,
       tableCount,
       rowCounts: {
-        portfolios_usd: Number(portfolioUsdCount.rows[0].count || 0),
-        portfolios_cad: Number(portfolioCadCount.rows[0].count || 0),
-        portfolios_intl: Number(portfolioIntlCount.rows[0].count || 0),
+        portfolio_USD: Number(portfolioUsdCount.rows[0].count || 0),
+        portfolio_CAD: Number(portfolioCadCount.rows[0].count || 0),
+        portfolio_INTL: Number(portfolioIntlCount.rows[0].count || 0),
         current_prices: Number(currentPricesCount.rows[0].count || 0),
         data_update_logs: Number(updateLogsCount.rows[0].count || 0)
       },
