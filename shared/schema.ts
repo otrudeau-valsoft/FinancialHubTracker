@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, numeric, timestamp, json, date, varchar, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, numeric, timestamp, json, date, varchar, uniqueIndex, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -364,6 +364,11 @@ export const currentPrices = pgTable("current_prices", {
   fiftyTwoWeekHigh: numeric("fifty_two_week_high"),
   fiftyTwoWeekLow: numeric("fifty_two_week_low"),
   updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => {
+  return {
+    // Add unique constraint to prevent duplicate entries
+    uniqueSymbolRegion: unique().on(table.symbol, table.region)
+  };
 });
 
 export const insertCurrentPriceSchema = createInsertSchema(currentPrices).omit({
