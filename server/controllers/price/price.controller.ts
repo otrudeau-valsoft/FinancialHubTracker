@@ -8,19 +8,20 @@ import { DateTime } from 'luxon';
 /**
  * Update portfolio performance history data in the database
  * This function recalculates portfolio performance based on the latest prices
+ * Uses separate performance history tables for each region
  */
 export async function updatePortfolioPerformanceHistory() {
   console.log('Updating portfolio performance history...');
   
   try {
-    // Delete existing performance data to rebuild from scratch
-    await pool.query('DELETE FROM portfolio_performance');
-    
     // Get all regions
     const regions = ['USD', 'CAD', 'INTL'];
     
     for (const region of regions) {
       console.log(`Processing performance data for ${region} region...`);
+      
+      // Delete existing performance data for this region to rebuild from scratch
+      await pool.query(`DELETE FROM portfolio_performance_${region}`);
       
       // Get portfolio stocks for this region
       const portfolioQuery = `
@@ -159,7 +160,6 @@ export async function updatePortfolioPerformanceHistory() {
         // Add to performance data - using dateStr directly which is already in YYYY-MM-DD format
         performanceData.push({
           date: dateStr,  // This is already in YYYY-MM-DD format from the SQL query
-          region,
           portfolioValue,
           benchmarkValue,
           portfolioReturnDaily,
@@ -175,21 +175,20 @@ export async function updatePortfolioPerformanceHistory() {
         continue;
       }
       
-      // Insert performance data into the database
-      console.log(`Inserting ${performanceData.length} performance data points for ${region} region...`);
+      // Insert performance data into the region-specific table
+      console.log(`Inserting ${performanceData.length} performance data points into portfolio_performance_${region} table...`);
       
       for (const data of performanceData) {
         // The date is already in YYYY-MM-DD format from our earlier processing
         await pool.query(`
-          INSERT INTO portfolio_performance (
-            date, region, portfolio_value, benchmark_value, 
+          INSERT INTO portfolio_performance_${region} (
+            date, portfolio_value, benchmark_value, 
             portfolio_return_daily, benchmark_return_daily,
             portfolio_cumulative_return, benchmark_cumulative_return, 
             relative_performance
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         `, [
           data.date,  // Already properly formatted as YYYY-MM-DD
-          data.region,
           data.portfolioValue,
           data.benchmarkValue,
           data.portfolioReturnDaily,

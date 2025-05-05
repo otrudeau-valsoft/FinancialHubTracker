@@ -1,100 +1,127 @@
-import express from 'express';
+import { Router, Request, Response } from 'express';
 import { pool } from '../db';
 import { DateTime } from 'luxon';
 
-const portfolioPerformanceHistoryRouter = express.Router();
+const router = Router();
 
-// Get historical portfolio performance data from the dedicated table
-portfolioPerformanceHistoryRouter.get('/', async (req, res) => {
+/**
+ * Get portfolio performance history data for a specific region
+ * 
+ * This endpoint provides portfolio performance data for visualization
+ * in charts, including portfolio value, benchmark value, and cumulative returns
+ */
+router.get('/', async (req: Request, res: Response) => {
   try {
     // Get query parameters
-    const regionStr = typeof req.query.region === 'string' ? req.query.region : 'USD';
-    const timeRangeStr = typeof req.query.timeRange === 'string' ? req.query.timeRange : '1Y';
+    const region = (req.query.region as string) || 'USD';
+    const timeRange = (req.query.timeRange as string) || 'YTD';
     
-    if (!regionStr) {
-      return res.status(400).json({ 
-        status: 'error', 
-        message: 'Region is required' 
-      });
-    }
+    console.log('Portfolio performance history request:', { region, timeRange, startDate: req.query.startDate });
     
-    // Validate region is one of the allowed values
-    if (!['USD', 'CAD', 'INTL'].includes(regionStr)) {
+    // Validate region parameter
+    const validRegions = ['USD', 'CAD', 'INTL'];
+    if (!validRegions.includes(region.toUpperCase())) {
       return res.status(400).json({
         status: 'error',
-        message: 'Invalid region. Must be one of: USD, CAD, INTL'
+        message: `Invalid region: ${region}. Must be one of: ${validRegions.join(', ')}`
       });
     }
     
-    // Define date range based on timeRange
-    const now = DateTime.now().setZone('America/New_York');
-    let startDate = now.minus({ months: 1 }); // Default to 1 month
+    // Calculate date range based on timeRange parameter
+    let startDate: DateTime;
+    const endDate = DateTime.now().setZone('America/New_York');
     
-    if (timeRangeStr === '1W') {
-      startDate = now.minus({ weeks: 1 });
-    } else if (timeRangeStr === '1M') {
-      startDate = now.minus({ months: 1 });
-    } else if (timeRangeStr === 'YTD') {
-      startDate = DateTime.fromObject({ year: now.year, month: 1, day: 1 }, { zone: 'America/New_York' });
-    } else if (timeRangeStr === '1Y') {
-      startDate = now.minus({ years: 1 });
+    if (req.query.startDate) {
+      // If specific start date is provided, use it
+      startDate = DateTime.fromISO(req.query.startDate as string);
+    } else {
+      // Otherwise calculate based on timeRange
+      switch (timeRange) {
+        case '1W':
+          startDate = endDate.minus({ weeks: 1 });
+          break;
+        case '1M':
+          startDate = endDate.minus({ months: 1 });
+          break;
+        case '3M':
+          startDate = endDate.minus({ months: 3 });
+          break;
+        case '6M':
+          startDate = endDate.minus({ months: 6 });
+          break;
+        case 'YTD':
+          startDate = DateTime.fromObject({ year: endDate.year, month: 1, day: 1 });
+          break;
+        case '1Y':
+          startDate = endDate.minus({ years: 1 });
+          break;
+        case '5Y':
+          startDate = endDate.minus({ years: 5 });
+          break;
+        case 'ALL':
+          // For all time, go back 10 years or just use a very old date
+          startDate = endDate.minus({ years: 10 });
+          break;
+        default:
+          startDate = DateTime.fromObject({ year: endDate.year, month: 1, day: 1 }); // Default to YTD
+      }
     }
     
-    // Format dates for SQL query
+    // Format dates for PostgreSQL
     const formattedStartDate = startDate.toFormat('yyyy-MM-dd');
+    const formattedEndDate = endDate.toFormat('yyyy-MM-dd');
     
-    console.log('Portfolio performance history request:', { 
-      region: regionStr, 
-      timeRange: timeRangeStr,
-      startDate: formattedStartDate
-    });
-    
-    // Query the portfolio_performance table with our parameters
-    const queryText = `
+    // Query the region-specific performance table
+    const upperRegion = region.toUpperCase();
+    const query = `
       SELECT 
-        date,
-        portfolio_value,
+        date, 
+        portfolio_value, 
         benchmark_value,
         portfolio_return_daily,
         benchmark_return_daily,
-        portfolio_cumulative_return as "portfolioCumulativeReturn",
-        benchmark_cumulative_return as "benchmarkCumulativeReturn",
-        relative_performance as "relativePerformance"
-      FROM 
-        portfolio_performance
-      WHERE 
-        region = $1
-        AND date >= $2
-      ORDER BY 
-        date
+        portfolio_cumulative_return,
+        benchmark_cumulative_return,
+        relative_performance
+      FROM portfolio_performance_${upperRegion}
+      WHERE date BETWEEN $1 AND $2
+      ORDER BY date
     `;
     
-    const result = await pool.query(queryText, [regionStr, formattedStartDate]);
+    const result = await pool.query(query, [formattedStartDate, formattedEndDate]);
     
-    // Format the response
-    const performances = result.rows.map(row => ({
-      date: row.date,
+    // If no data is found, return an empty array with success status
+    if (!result.rows || result.rows.length === 0) {
+      return res.json({
+        status: 'success',
+        data: []
+      });
+    }
+    
+    // Format the data for the frontend
+    const formattedData = result.rows.map(row => ({
+      date: row.date, // This is a Date object
       portfolioValue: parseFloat(row.portfolio_value),
       benchmarkValue: parseFloat(row.benchmark_value),
       portfolioReturnDaily: row.portfolio_return_daily ? parseFloat(row.portfolio_return_daily) : null,
       benchmarkReturnDaily: row.benchmark_return_daily ? parseFloat(row.benchmark_return_daily) : null,
-      portfolioCumulativeReturn: row.portfolioCumulativeReturn ? parseFloat(row.portfolioCumulativeReturn) : null,
-      benchmarkCumulativeReturn: row.benchmarkCumulativeReturn ? parseFloat(row.benchmarkCumulativeReturn) : null,
-      relativePerformance: row.relativePerformance ? parseFloat(row.relativePerformance) : null
+      portfolioCumulativeReturn: parseFloat(row.portfolio_cumulative_return),
+      benchmarkCumulativeReturn: parseFloat(row.benchmark_cumulative_return),
+      relativePerformance: parseFloat(row.relative_performance)
     }));
     
-    return res.json({ 
-      status: 'success', 
-      data: performances 
+    return res.json({
+      status: 'success',
+      data: formattedData
     });
   } catch (error) {
     console.error('Error fetching portfolio performance history:', error);
-    return res.status(500).json({ 
-      status: 'error', 
-      message: 'Failed to fetch portfolio performance history', 
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch portfolio performance history',
       details: error.message || String(error)
     });
   }
 });
 
-export default portfolioPerformanceHistoryRouter;
+export default router;
