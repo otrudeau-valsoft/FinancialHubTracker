@@ -567,9 +567,17 @@ class HoldingsService {
   /**
    * Update all holdings tables
    */
+  /**
+   * Update all holdings across all regions
+   * This method is enhanced with additional debugging to ensure
+   * holdings tables are properly updated when current prices change
+   */
   async updateAllHoldings() {
     try {
       console.log('Updating all portfolio holdings...');
+      
+      // Enhanced debugging
+      console.log('Current timestamp:', new Date().toISOString());
       
       const results = {
         USD: { success: false, message: '', count: 0 },
@@ -577,24 +585,36 @@ class HoldingsService {
         INTL: { success: false, message: '', count: 0 }
       };
       
+      // USD holdings update
       try {
+        console.log('Starting USD holdings update...');
         const usdHoldings = await this.updateUSDHoldings();
+        console.log(`USD holdings update completed with ${usdHoldings.length} entries`);
         results.USD = { success: true, message: 'Updated successfully', count: usdHoldings.length };
       } catch (error) {
+        console.error('Error updating USD holdings:', error);
         results.USD = { success: false, message: error.message || 'Unknown error', count: 0 };
       }
       
+      // CAD holdings update
       try {
+        console.log('Starting CAD holdings update...');
         const cadHoldings = await this.updateCADHoldings();
+        console.log(`CAD holdings update completed with ${cadHoldings.length} entries`);
         results.CAD = { success: true, message: 'Updated successfully', count: cadHoldings.length };
       } catch (error) {
+        console.error('Error updating CAD holdings:', error);
         results.CAD = { success: false, message: error.message || 'Unknown error', count: 0 };
       }
       
+      // INTL holdings update
       try {
+        console.log('Starting INTL holdings update...');
         const intlHoldings = await this.updateINTLHoldings();
+        console.log(`INTL holdings update completed with ${intlHoldings.length} entries`);
         results.INTL = { success: true, message: 'Updated successfully', count: intlHoldings.length };
       } catch (error) {
+        console.error('Error updating INTL holdings:', error);
         results.INTL = { success: false, message: error.message || 'Unknown error', count: 0 };
       }
       

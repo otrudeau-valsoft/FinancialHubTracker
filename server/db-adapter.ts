@@ -37,60 +37,31 @@ export class DatabaseAdapter {
    * Get portfolio stocks for a specific region
    */
   /**
-   * Get all stocks for a portfolio region using the holdings tables
-   * This method uses the holdings tables which are updated when current prices change
-   * instead of recalculating metrics on the fly, ensuring consistent and up-to-date metrics
+   * Get portfolio stocks for a specific region
    */
   async getPortfolioStocks(region: string): Promise<LegacyPortfolioItem[]> {
     try {
-      let holdingsData: any[] = [];
+      console.log(`Getting portfolio stocks for ${region} (using portfolio tables)`);
+      let portfolioData: any[] = [];
       
       switch (region.toUpperCase()) {
         case 'USD':
-          // Get from holdings_USD table instead of portfolio_USD
-          holdingsData = await db.select().from(holdingsUSD);
+          portfolioData = await db.select().from(portfolioUSD);
           break;
         case 'CAD':
-          // Get from holdings_CAD table instead of portfolio_CAD
-          holdingsData = await db.select().from(holdingsCAD);
+          portfolioData = await db.select().from(portfolioCAD);
           break;
         case 'INTL':
-          // Get from holdings_INTL table instead of portfolio_INTL
-          holdingsData = await db.select().from(holdingsINTL);
+          portfolioData = await db.select().from(portfolioINTL);
           break;
         default:
           throw new Error(`Invalid region: ${region}`);
       }
       
-      console.log(`Retrieved ${holdingsData.length} holdings items for ${region} from holdings tables`);
-      
-      // Skip Cash entry for the portfolio view
-      const stocksOnly = holdingsData.filter(item => item.symbol !== 'CASH');
-      
-      // Convert to LegacyPortfolioItem format
-      return stocksOnly.map(item => ({
-        id: item.id,
-        symbol: item.symbol,
-        company: item.company,
-        stockType: item.stockType,
-        rating: item.rating,
-        sector: item.sector,
-        quantity: parseFloat(item.quantity),
-        price: parseFloat(item.currentPrice), // Use current price from holdings
-        pbr: undefined, // Not available in holdings
-        netAssetValue: parseFloat(item.netAssetValue),
-        portfolioPercentage: parseFloat(item.portfolioWeight),
-        dailyChangePercent: parseFloat(item.dailyChangePercent),
-        mtdChangePercent: parseFloat(item.mtdChangePercent),
-        ytdChangePercent: parseFloat(item.ytdChangePercent),
-        sixMonthChangePercent: parseFloat(item.sixMonthChangePercent),
-        fiftyTwoWeekChangePercent: parseFloat(item.fiftyTwoWeekChangePercent),
-        dividendYield: parseFloat(item.dividendYield || '0'),
-        profitLoss: parseFloat(item.profitLossPercent),
-        nextEarningsDate: undefined // Not available in holdings
-      }));
+      // Transform to legacy format expected by API consumers with calculated values
+      return await adaptPortfolioData(portfolioData, region);
     } catch (error) {
-      console.error(`Error getting portfolio stocks for ${region} from holdings:`, error);
+      console.error(`Error getting portfolio stocks for ${region}:`, error);
       throw error;
     }
   }

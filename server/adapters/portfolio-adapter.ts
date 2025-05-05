@@ -89,12 +89,21 @@ async function getCurrentPrices(symbols: string[], region: string): Promise<Reco
     
     prices.forEach(price => {
       if (symbols.includes(price.symbol)) {
+        // Debug output to verify current price values
+        console.log(`${price.symbol} current price: ${price.regularMarketPrice}, daily change: ${price.regularMarketChangePercent}%`);
+        
         priceMap[price.symbol] = price;
         foundCount++;
       }
     });
     
     console.log(`Found current prices for ${foundCount}/${symbols.length} symbols in ${region} region`);
+    
+    // Log symbols that don't have current prices
+    if (foundCount < symbols.length) {
+      const missingSymbols = symbols.filter(symbol => !priceMap[symbol]);
+      console.log(`Missing current prices for: ${missingSymbols.join(', ')}`);
+    }
     
     return priceMap;
   } catch (error) {
