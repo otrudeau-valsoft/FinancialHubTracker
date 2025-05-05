@@ -332,6 +332,7 @@ export default function StockDetailsPage() {
   const [timeRange, setTimeRange] = useState<'1m' | '3m' | '6m' | '1y' | '5y'>('3m');
   const [showRSI, setShowRSI] = useState<boolean>(true); // Default to showing RSI
   const [rsiPeriod, setRsiPeriod] = useState<'9' | '14' | '21'>('21'); // Default to 21-period RSI
+  const [showMACD, setShowMACD] = useState<boolean>(true); // Default to showing MACD
   
   // Get symbol and region from URL
   // Support both route patterns: /stock-details/:symbol/:region and /stock/:symbol?region=
@@ -441,7 +442,8 @@ export default function StockDetailsPage() {
           body: JSON.stringify({ 
             period: '5y',
             // Force refresh of most recent price point only
-            forceRsiRefresh: true  
+            forceRsiRefresh: true,
+            forceMacdRefresh: true  
           })
         });
         
@@ -489,7 +491,18 @@ export default function StockDetailsPage() {
               date: historicalData[historicalData.length - 1].date,
               rsi9: historicalData[historicalData.length - 1].rsi9,
               rsi14: historicalData[historicalData.length - 1].rsi14,
-              rsi21: historicalData[historicalData.length - 1].rsi21
+              rsi21: historicalData[historicalData.length - 1].rsi21,
+              macd: historicalData[historicalData.length - 1].macd,
+              signal: historicalData[historicalData.length - 1].signal,
+              histogram: historicalData[historicalData.length - 1].histogram
+            });
+            
+            // Check for MACD values
+            const macdDatapoints = historicalData.filter((d: HistoricalPrice) => d.macd).length;
+            console.log("MACD Data Check:", { 
+              totalPoints, 
+              macdDatapoints, 
+              samplePoint: historicalData[historicalData.length - 1] // Most recent
             });
           }
           
@@ -505,7 +518,7 @@ export default function StockDetailsPage() {
           // Show success toast
           toast({
             title: "Updated historical prices",
-            description: "Historical prices and RSI data have been updated",
+            description: "Historical prices, RSI and MACD data have been updated",
             variant: "default"
           });
         } else {

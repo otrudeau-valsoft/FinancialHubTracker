@@ -69,14 +69,15 @@ async function runMigration() {
 }
 
 // Run the migration if this script is executed directly
-if (require.main === module) {
+// In ES modules, there's no require.main, so check if environment is not imported
+if (import.meta.url === new URL(import.meta.url).href) {
   runMigration()
     .then(() => process.exit(0))
     .catch(err => {
       console.error('Migration failed:', err);
       process.exit(1);
     });
-} else {
-  // Export the migration function for programmatic use
-  module.exports = { runMigration };
 }
+
+// Export the migration function for programmatic use
+export { runMigration };
