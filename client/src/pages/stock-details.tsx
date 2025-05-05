@@ -338,7 +338,7 @@ export default function StockDetailsPage() {
   const [timeRange, setTimeRange] = useState<'1m' | '3m' | '6m' | '1y' | '5y'>('3m');
   const [showRSI, setShowRSI] = useState<boolean>(true); // Default to showing RSI
   const [rsiPeriod, setRsiPeriod] = useState<'9' | '14' | '21'>('21'); // Default to 21-period RSI
-  const [showMACD, setShowMACD] = useState<boolean>(true); // Default to showing MACD
+  // MACD is now always visible (no toggle)
   
   // Get symbol and region from URL
   // Support both route patterns: /stock-details/:symbol/:region and /stock/:symbol?region=
@@ -1197,7 +1197,7 @@ export default function StockDetailsPage() {
           )}
           
           {/* MACD Chart Section - Full Width */}
-          {!isLoadingHistorical && historicalPrices && historicalPrices.length > 0 && showMACD && (
+          {!isLoadingHistorical && historicalPrices && historicalPrices.length > 0 && (
             <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden mb-6">
               <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
                 <div className="flex items-center">
@@ -1205,18 +1205,9 @@ export default function StockDetailsPage() {
                   <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">MACD</h3>
                 </div>
                 <div className="flex items-center">
-                  <span className="text-[#7A8999] font-mono text-xs mr-2">
+                  <span className="text-[#7A8999] font-mono text-xs">
                     Fast EMA(12), Slow EMA(26), Signal EMA(9)
                   </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowMACD(!showMACD)}
-                    className="rounded-sm h-6 bg-[#0B1728] text-[#7A8999] text-xs font-mono border-[#1A304A] hover:bg-[#162639] hover:text-[#EFEFEF]"
-                  >
-                    <Eye className="h-3.5 w-3.5 mr-1" />
-                    TOGGLE
-                  </Button>
                 </div>
               </div>
               <div className="p-4">
