@@ -9,7 +9,8 @@ import {
   getCurrentPrice,
   fetchCurrentPrice,
   fetchRegionCurrentPrices,
-  fetchAllCurrentPrices
+  fetchAllCurrentPrices,
+  updatePerformanceHistoryEndpoint
 } from '../../controllers/price/price.controller';
 import { asyncHandler } from '../../middleware/error-handler';
 import portfolioPerformanceHistoryRouter from '../portfolio-performance-history';
@@ -30,6 +31,7 @@ historicalRouter.get('/region/:region', asyncHandler(getHistoricalPricesByRegion
 historicalRouter.post('/fetch/:symbol/:region', asyncHandler(fetchHistoricalPrices));
 historicalRouter.post('/fetch/portfolio/:region', asyncHandler(fetchRegionHistoricalPrices));
 historicalRouter.post('/fetch/all', asyncHandler(fetchAllHistoricalPrices));
+historicalRouter.post('/update-performance-history', asyncHandler(updatePerformanceHistoryEndpoint));
 
 // Current prices router - explicitly set service type
 currentRouter.use((req, res, next) => {
