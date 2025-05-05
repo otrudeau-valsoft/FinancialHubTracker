@@ -331,7 +331,9 @@ export default function DataManagement() {
   const updateAllHistoricalPricesMutation = useMutation({
     mutationFn: () => apiRequest('POST', '/api/historical-prices/fetch/all', {
       forceRsiRefresh: true, // Force RSI refresh to ensure values are saved to database
+      forceMacdRefresh: true, // Force MACD refresh to ensure values are saved to database
       includeRSI: true, // Additional explicit parameter to include RSI calculation
+      includeMACD: true, // Additional explicit parameter to include MACD calculation
       priority: 'high' // Set high priority for this task
     }),
     onSuccess: async (data) => {
@@ -340,7 +342,7 @@ export default function DataManagement() {
         description: "Successfully updated historical prices for all portfolios",
       });
       refetchLogs();
-      console.log("Historical price refresh complete with RSI data", data);
+      console.log("Historical price refresh complete with RSI and MACD data", data);
       
       // Invalidate ALL queries in the cache to ensure fresh data
       await queryClient.invalidateQueries();
