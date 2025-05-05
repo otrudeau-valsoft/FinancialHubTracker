@@ -244,6 +244,44 @@ export const insertRsiDataSchema = createInsertSchema(rsiData).omit({
 export type InsertRsiData = z.infer<typeof insertRsiDataSchema>;
 export type RsiData = typeof rsiData.$inferSelect;
 
+// MACD Data - Separate table for MACD indicator values
+export const macdData = pgTable(
+  "macd_data",
+  {
+    id: serial("id").primaryKey(),
+    historicalPriceId: integer("historical_price_id").notNull().references(() => historicalPrices.id),
+    symbol: text("symbol").notNull(),
+    date: date("date").notNull(),
+    region: text("region").notNull(),
+    macd: numeric("macd"),           // MACD line (12-day EMA - 26-day EMA)
+    signal: numeric("signal"),       // Signal line (9-day EMA of MACD line)
+    histogram: numeric("histogram"), // MACD line - signal line
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => {
+    return {
+      // Add a unique constraint on historical_price_id to prevent duplicates
+      historicalPriceIdIdx: uniqueIndex("macd_data_historical_price_id_key").on(
+        table.historicalPriceId
+      ),
+      // Add an index on symbol, date, and region for faster lookups
+      symbolDateRegionIdx: uniqueIndex("macd_data_symbol_date_region_key").on(
+        table.symbol,
+        table.date,
+        table.region
+      ),
+    };
+  }
+);
+
+export const insertMacdDataSchema = createInsertSchema(macdData).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertMacdData = z.infer<typeof insertMacdDataSchema>;
+export type MacdData = typeof macdData.$inferSelect;
+
 // Matrix Rules Schema
 export const matrixRules = pgTable("matrix_rules", {
   id: serial("id").primaryKey(),

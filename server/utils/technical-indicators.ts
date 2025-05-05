@@ -2,7 +2,7 @@
  * Technical Indicators Utilities
  * 
  * This module provides functions for calculating various technical indicators
- * used in financial analysis, such as RSI (Relative Strength Index).
+ * used in financial analysis, such as RSI (Relative Strength Index) and MACD.
  */
 
 /**
@@ -94,4 +94,112 @@ export function calculateMultipleRSI(
   }
   
   return result;
+}
+
+/**
+ * Calculate the Exponential Moving Average (EMA) for a series of price data
+ * 
+ * @param prices Array of closing prices in chronological order (oldest to newest)
+ * @param period The period for EMA calculation
+ * @returns Array of EMA values corresponding to the input prices
+ */
+export function calculateEMA(prices: number[], period: number): (number | null)[] {
+  // We need at least 'period' prices to calculate EMA
+  if (!prices || prices.length < period) {
+    console.log(`Not enough data for EMA calculation. Need at least ${period} prices, but got ${prices?.length || 0}.`);
+    return Array(prices?.length || 0).fill(null);
+  }
+
+  // Initialize the EMA array with nulls (same length as prices)
+  const emaValues: (number | null)[] = Array(prices.length).fill(null);
+  
+  // Calculate the multiplier used in EMA formula: 2 / (period + 1)
+  const multiplier = 2 / (period + 1);
+  
+  // First EMA value is the SMA (Simple Moving Average) of the first 'period' prices
+  const firstSMA = prices.slice(0, period).reduce((sum, price) => sum + price, 0) / period;
+  emaValues[period - 1] = firstSMA;
+  
+  // Calculate EMA for each subsequent price
+  for (let i = period; i < prices.length; i++) {
+    // EMA = (Current Price - Previous EMA) * multiplier + Previous EMA
+    emaValues[i] = (prices[i] - emaValues[i - 1]!) * multiplier + emaValues[i - 1]!;
+  }
+  
+  return emaValues;
+}
+
+/**
+ * Calculate MACD (Moving Average Convergence Divergence) indicator
+ * 
+ * @param prices Array of closing prices in chronological order (oldest to newest)
+ * @param fastPeriod The period for the fast EMA (default 12)
+ * @param slowPeriod The period for the slow EMA (default 26)
+ * @param signalPeriod The period for the signal line EMA (default 9)
+ * @returns Object with MACD line, signal line, and histogram arrays
+ */
+export function calculateMACD(
+  prices: number[], 
+  fastPeriod: number = 12, 
+  slowPeriod: number = 26, 
+  signalPeriod: number = 9
+): { macd: (number | null)[], signal: (number | null)[], histogram: (number | null)[] } {
+  // We need at least slowPeriod + signalPeriod prices to calculate MACD
+  const minPricesNeeded = Math.max(fastPeriod, slowPeriod) + signalPeriod;
+  if (!prices || prices.length < minPricesNeeded) {
+    console.log(`Not enough data for MACD calculation. Need at least ${minPricesNeeded} prices, but got ${prices?.length || 0}.`);
+    return {
+      macd: Array(prices?.length || 0).fill(null),
+      signal: Array(prices?.length || 0).fill(null),
+      histogram: Array(prices?.length || 0).fill(null)
+    };
+  }
+
+  // Calculate fast and slow EMAs
+  const fastEMA = calculateEMA(prices, fastPeriod);
+  const slowEMA = calculateEMA(prices, slowPeriod);
+  
+  // Calculate MACD line: Fast EMA - Slow EMA
+  const macdLine: (number | null)[] = Array(prices.length).fill(null);
+  for (let i = 0; i < prices.length; i++) {
+    if (fastEMA[i] !== null && slowEMA[i] !== null) {
+      macdLine[i] = fastEMA[i]! - slowEMA[i]!;
+    }
+  }
+  
+  // Filter out null values for signal calculation
+  const validMacdValues: number[] = [];
+  const macdIndices: number[] = [];
+  for (let i = 0; i < macdLine.length; i++) {
+    if (macdLine[i] !== null) {
+      validMacdValues.push(macdLine[i]!);
+      macdIndices.push(i);
+    }
+  }
+  
+  // Calculate signal line (EMA of MACD line)
+  let signalValues: (number | null)[] = [];
+  if (validMacdValues.length >= signalPeriod) {
+    signalValues = calculateEMA(validMacdValues, signalPeriod);
+  } else {
+    signalValues = Array(validMacdValues.length).fill(null);
+  }
+  
+  // Map signal values back to the original array indices
+  const signalLine: (number | null)[] = Array(prices.length).fill(null);
+  for (let i = 0; i < signalValues.length; i++) {
+    if (signalValues[i] !== null) {
+      signalLine[macdIndices[i]] = signalValues[i];
+    }
+  }
+  
+  // Calculate histogram: MACD line - Signal line
+  const histogram: (number | null)[] = Array(prices.length).fill(null);
+  for (let i = 0; i < prices.length; i++) {
+    if (macdLine[i] !== null && signalLine[i] !== null) {
+      histogram[i] = macdLine[i]! - signalLine[i]!;
+    }
+  }
+  
+  return { macd: macdLine, signal: signalLine, histogram };
 }
