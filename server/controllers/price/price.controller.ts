@@ -360,8 +360,10 @@ export const fetchRegionHistoricalPrices = async (req: Request, res: Response) =
       
       console.log(`Successfully updated ${upperRegion} portfolio holdings with new historical data`);
       
-      // Update portfolio performance history with new data
-      await updatePortfolioPerformanceHistory();
+      // Update portfolio performance history with new data using the new performance service
+      console.log(`Updating ${upperRegion} portfolio performance history with new historical price data...`);
+      const { portfolioPerformanceService } = require('../../services/portfolio-performance-service');
+      await portfolioPerformanceService.updatePerformanceHistory(upperRegion);
       
       // Get success metrics from original results
       const successCount = results.filter(r => r.success).length;
@@ -428,8 +430,10 @@ export const fetchAllHistoricalPrices = async (req: Request, res: Response) => {
       // Update all regional portfolios
       await holdingsService.updateAllHoldings();
       
-      // Update portfolio performance history with new data
-      await updatePortfolioPerformanceHistory();
+      // Update portfolio performance history with new data using the new performance service
+      console.log('Updating portfolio performance history with new historical price data...');
+      const { portfolioPerformanceService } = require('../../services/portfolio-performance-service');
+      await portfolioPerformanceService.updateAllPerformanceHistory();
       
       console.log('Successfully updated all portfolio holdings and performance with new historical data');
       
@@ -531,8 +535,10 @@ export const fetchRegionCurrentPrices = async (req: Request, res: Response) => {
       
       console.log(`Successfully updated ${upperRegion} portfolio holdings with new prices`);
       
-      // Update portfolio performance history with new data
-      await updatePortfolioPerformanceHistory();
+      // Update portfolio performance history with new data using the new performance service
+      console.log(`Updating ${upperRegion} portfolio performance history with new price data...`);
+      const { portfolioPerformanceService } = require('../../services/portfolio-performance-service');
+      await portfolioPerformanceService.updatePerformanceHistory(upperRegion);
       
       return res.json({
         results,
@@ -590,8 +596,10 @@ export const fetchAllCurrentPrices = async (req: Request, res: Response) => {
       // Update all regional portfolios
       await holdingsService.updateAllHoldings();
       
-      // Update portfolio performance history with new data
-      await updatePortfolioPerformanceHistory();
+      // Update portfolio performance history with new data using the new performance service
+      console.log('Updating portfolio performance history with new price data...');
+      const { portfolioPerformanceService } = require('../../services/portfolio-performance-service');
+      await portfolioPerformanceService.updateAllPerformanceHistory();
       
       console.log('Successfully updated all portfolio holdings and performance with new prices');
       
