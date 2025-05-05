@@ -108,8 +108,10 @@ export const PerformanceChart = ({
     
     return performanceData.map(point => ({
       date: point.date,
-      portfolio: point.portfolioCumulativeReturn || 0,
-      benchmark: point.benchmarkCumulativeReturn || 0
+      portfolio: point.portfolioCumulativeReturn ? point.portfolioCumulativeReturn * 100 : 0,
+      benchmark: point.benchmarkCumulativeReturn ? point.benchmarkCumulativeReturn * 100 : 0,
+      portfolioValue: point.portfolioValue,
+      benchmarkValue: point.benchmarkValue
     }));
   }, [performanceData]);
   
@@ -188,7 +190,24 @@ export const PerformanceChart = ({
                   tickFormatter={(value) => `${value.toFixed(1)}%`}
                 />
                 <Tooltip 
-                  formatter={(value: number) => [`${value.toFixed(2)}%`, '']}
+                  formatter={(value: number, name: string, props: any) => {
+                    const dataIndex = props.payload.dataKey;
+                    
+                    // For percentage values (portfolio and benchmark)
+                    if (dataIndex === 'portfolio' || dataIndex === 'benchmark') {
+                      const itemLabel = dataIndex === 'portfolio' ? 'Portfolio' : benchmark;
+                      
+                      // Get the actual value (not percentage)
+                      const actualValue = dataIndex === 'portfolio' 
+                        ? props.payload.portfolioValue 
+                        : props.payload.benchmarkValue;
+                      
+                      // Display both percentage and value
+                      return [`${value.toFixed(2)}% (${actualValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})})`, itemLabel];
+                    }
+                    
+                    return [value, name];
+                  }}
                   labelFormatter={(label) => {
                     const date = new Date(label);
                     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
