@@ -175,6 +175,13 @@ export async function updatePortfolioPerformanceHistory() {
       console.log(`Inserting ${performanceData.length} performance data points for ${region} region...`);
       
       for (const data of performanceData) {
+        // Format the date as ISO string (YYYY-MM-DD) to be compatible with PostgreSQL
+        // The date from the query results is already a string, but we need to make sure
+        // it's formatted correctly for PostgreSQL
+        const formattedDate = typeof data.date === 'string' 
+          ? data.date.split('T')[0] // If it's already a string, just take the date part
+          : new Date(data.date).toISOString().split('T')[0]; // Otherwise convert to ISO date
+        
         await pool.query(`
           INSERT INTO portfolio_performance (
             date, region, portfolio_value, benchmark_value, 
@@ -183,7 +190,7 @@ export async function updatePortfolioPerformanceHistory() {
             relative_performance
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         `, [
-          data.date,
+          formattedDate,
           data.region,
           data.portfolioValue,
           data.benchmarkValue,
