@@ -58,11 +58,18 @@ export const PerformanceChart = ({
     setEndDate(now.toISOString().split('T')[0]);
   }, [selectedRange]);
   
-  // Fetch portfolio performance data from our new history endpoint
+  // Calculate a fixed one-year-ago date for all requests to ensure we always have enough data
+  const oneYearAgo = useMemo(() => {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() - 1);
+    return date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+  }, []);
+
+  // Fetch portfolio performance data from our history endpoint with explicitly set date range
   const { data: apiResponse, isLoading, refetch } = useQuery({
-    queryKey: ['/api/portfolio-performance-history', region, selectedRange],
+    queryKey: ['/api/portfolio-performance-history', region, oneYearAgo],
     queryFn: () => 
-      fetch(`/api/portfolio-performance-history?region=${region}&timeRange=${selectedRange}`)
+      fetch(`/api/portfolio-performance-history?region=${region}&startDate=${oneYearAgo}`)
         .then(res => {
           console.log('Performance history response:', res.status);
           if (!res.ok) throw new Error('Network response was not ok');
@@ -72,7 +79,7 @@ export const PerformanceChart = ({
           console.error('Error fetching performance data:', error);
           throw error;
         }),
-    enabled: !!selectedRange && !!region,
+    enabled: !!region,
     staleTime: 30000, // 30 seconds - reduced for more frequent updates
     refetchOnWindowFocus: true,
     refetchInterval: 60000, // 1 minute - periodically refetch even without user interaction
@@ -98,8 +105,15 @@ export const PerformanceChart = ({
   // Prepare the performance data from the API response
   const performanceData = useMemo(() => {
     if ((apiResponse as ApiResponse)?.status === 'success') {
-      console.log('Performance data from API:', (apiResponse as ApiResponse).data.slice(0, 5));
-      return (apiResponse as ApiResponse).data;
+      // Log information about the available data for debugging
+      const data = (apiResponse as ApiResponse).data;
+      if (data.length > 0) {
+        console.log(`Performance data received: ${data.length} points from ${data[0].date} to ${data[data.length-1].date}`);
+        console.log('First few data points:', data.slice(0, 5));
+      } else {
+        console.log('Performance data is empty. Check server or database configuration.');
+      }
+      return data;
     }
     return [];
   }, [apiResponse]);
@@ -129,24 +143,41 @@ export const PerformanceChart = ({
         filterDate.setMonth(now.getMonth() - 1);
     }
     
+    // Sort data by date to ensure proper chronological order
+    const sortedData = [...performanceData].sort((a, b) => {
+      return new Date(a.date).getTime() - new Date(b.date).getTime();
+    });
+    
     // Filter data to only include points after the filter date
-    const filteredData = performanceData.filter(point => {
+    const filteredData = sortedData.filter(point => {
       const pointDate = new Date(point.date);
       return pointDate >= filterDate;
     });
     
-    // If we don't have enough data points, use all the data we have
-    const dataToUse = filteredData.length >= 2 ? filteredData : performanceData;
+    // If we don't have enough data points after filtering, expand the date range
+    let dataToUse = filteredData;
+    if (filteredData.length < 2) {
+      console.warn(`Not enough data points for ${selectedRange} (only ${filteredData.length}), using all available data`);
+      dataToUse = sortedData;
+    }
     
-    console.log(`${selectedRange} data points after filtering: ${filteredData.length}`);
+    console.log(`${selectedRange} data points after filtering: ${filteredData.length}, using ${dataToUse.length} points`);
     
-    return dataToUse.map(point => ({
+    // Ensure that we have data with valid cumulative returns
+    const formattedData = dataToUse.map(point => ({
       date: point.date,
-      portfolio: point.portfolioCumulativeReturn ? point.portfolioCumulativeReturn * 100 : 0,
-      benchmark: point.benchmarkCumulativeReturn ? point.benchmarkCumulativeReturn * 100 : 0,
+      portfolio: point.portfolioCumulativeReturn !== null ? point.portfolioCumulativeReturn * 100 : null,
+      benchmark: point.benchmarkCumulativeReturn !== null ? point.benchmarkCumulativeReturn * 100 : null,
       portfolioValue: point.portfolioValue,
       benchmarkValue: point.benchmarkValue
     }));
+    
+    // Additional log if data looks suspicious
+    if (formattedData.length > 0 && formattedData.some(d => d.portfolio === null || d.benchmark === null)) {
+      console.warn('Some data points have null values for portfolio or benchmark returns');
+    }
+    
+    return formattedData;
   }, [performanceData, selectedRange]);
   
   return (
@@ -267,6 +298,7 @@ export const PerformanceChart = ({
                   strokeWidth={2}
                   dot={false}
                   activeDot={{ r: 4 }}
+                  connectNulls
                 />
                 <Line
                   type="monotone"
@@ -276,6 +308,7 @@ export const PerformanceChart = ({
                   strokeDasharray="3 3"
                   dot={false}
                   activeDot={{ r: 4 }}
+                  connectNulls
                 />
               </LineChart>
             </ResponsiveContainer>

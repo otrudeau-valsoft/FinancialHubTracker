@@ -35,39 +35,17 @@ router.get('/', async (req: Request, res: Response) => {
     if (req.query.startDate) {
       // If specific start date is provided, use it
       startDate = DateTime.fromISO(req.query.startDate as string);
-    } else {
-      // Otherwise calculate based on timeRange
-      switch (timeRange) {
-        case '1W':
-          // For 1-week view, allow data from a longer period to ensure we have enough points
-          startDate = endDate.minus({ weeks: 3 });
-          break;
-        case '1M': 
-          // For 1-month view, extend a bit to ensure we have enough data points
-          startDate = endDate.minus({ months: 2 });
-          break;
-        case '3M':
-          startDate = endDate.minus({ months: 3 });
-          break;
-        case '6M':
-          startDate = endDate.minus({ months: 6 });
-          break;
-        case 'YTD':
-          startDate = DateTime.fromObject({ year: endDate.year, month: 1, day: 1 });
-          break;
-        case '1Y':
-          startDate = endDate.minus({ years: 1 });
-          break;
-        case '5Y':
-          startDate = endDate.minus({ years: 5 });
-          break;
-        case 'ALL':
-          // For all time, go back as far as our data allows
-          startDate = endDate.minus({ years: 5 });
-          break;
-        default:
-          startDate = DateTime.fromObject({ year: endDate.year, month: 1, day: 1 }); // Default to YTD
+      
+      // Make sure the date is valid, otherwise use default
+      if (!startDate.isValid) {
+        console.warn(`Invalid startDate provided: ${req.query.startDate}, using default instead`);
+        startDate = endDate.minus({ years: 1.5 }); // Default to 1.5 years for maximum data
       }
+    } else {
+      // Always get 1.5 years of data if no start date specified, as we filter on client
+      // This ensures we have enough data for any requested time range
+      startDate = endDate.minus({ years: 1.5 });
+      console.log(`Using long-range data fetch for ${timeRange}: ${startDate.toFormat('yyyy-MM-dd')} to ${endDate.toFormat('yyyy-MM-dd')}`);
     }
     
     // Format dates for PostgreSQL
