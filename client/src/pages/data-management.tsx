@@ -248,6 +248,27 @@ export default function DataManagement() {
   }, [updateLogs]);
   
   // Mutations for triggering manual updates
+  const updatePerformanceHistoryMutation = useMutation({
+    mutationFn: () => apiRequest('POST', '/api/historical-prices/update-performance-history'),
+    onSuccess: () => {
+      toast({
+        title: "Performance history updated",
+        description: "Successfully updated portfolio performance history data",
+      });
+      refetchLogs();
+      
+      // Invalidate portfolio performance history to update charts
+      queryClient.invalidateQueries({ queryKey: ['/api/portfolio-performance-history'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to update performance history",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
   const updateCurrentPricesMutation = useMutation({
     mutationFn: () => apiRequest('POST', '/api/current-prices/fetch/all'),
     onSuccess: () => {
@@ -603,11 +624,12 @@ export default function DataManagement() {
                   <LineChart className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-[#4CAF50]" />
                   HISTORICAL DATA
                 </CardTitle>
+                <div className="flex space-x-2">
                 <Button 
                   variant="default" 
                   onClick={() => updateAllHistoricalPricesMutation.mutate()}
                   disabled={updateHistoricalPricesMutation.isPending || updateAllHistoricalPricesMutation.isPending}
-                  className="bg-[#4CAF50] hover:bg-[#388E3C] text-white rounded-sm h-8 px-2 sm:px-3 py-1 text-xs sm:text-sm w-full sm:w-auto"
+                  className="bg-[#4CAF50] hover:bg-[#388E3C] text-white rounded-sm h-8 px-2 sm:px-3 py-1 text-xs sm:text-sm"
                   size="sm"
                 >
                   {updateAllHistoricalPricesMutation.isPending ? (
@@ -623,6 +645,27 @@ export default function DataManagement() {
                     </>
                   )}
                 </Button>
+                <Button 
+                  variant="default" 
+                  onClick={() => updatePerformanceHistoryMutation.mutate()}
+                  disabled={updatePerformanceHistoryMutation.isPending}
+                  className="bg-[#9C27B0] hover:bg-[#7B1FA2] text-white rounded-sm h-8 px-2 sm:px-3 py-1 text-xs sm:text-sm"
+                  size="sm"
+                >
+                  {updatePerformanceHistoryMutation.isPending ? (
+                    <>
+                      <div className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      RUNNING
+                    </>
+                  ) : (
+                    <>
+                      <History className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">UPDATE PERFORMANCE HISTORY</span>
+                      <span className="inline sm:hidden">UPDATE PERF</span>
+                    </>
+                  )}
+                </Button>
+              </div>
               </div>
             </CardHeader>
             <CardContent className="p-3 pt-4">
