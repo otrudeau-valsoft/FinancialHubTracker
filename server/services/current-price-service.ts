@@ -306,6 +306,7 @@ class CurrentPriceService {
 
   /**
    * Fetch and store current price for a symbol
+   * Uses upsert to avoid duplicate entries
    */
   async fetchAndStoreCurrentPrice(symbol: string, region: string) {
     try {
@@ -317,20 +318,13 @@ class CurrentPriceService {
         return null;
       }
       
-      // Check if we already have a price for this symbol
-      const existingPrice = await this.getCurrentPrice(symbol, region);
+      // Always use the create method with upsert to ensure we don't have duplicates
+      const updatedPrice = await storage.createCurrentPrice(priceData as InsertCurrentPrice);
       
-      if (existingPrice) {
-        // Update existing price
-        const updatedPrice = await storage.updateCurrentPrice(existingPrice.id, priceData);
-        console.log(`Updated current price for ${symbol} (${region})`);
-        return updatedPrice;
-      } else {
-        // Create new price
-        const newPrice = await storage.createCurrentPrice(priceData as InsertCurrentPrice);
-        console.log(`Created new current price for ${symbol} (${region})`);
-        return newPrice;
-      }
+      // Log key metrics for debugging
+      console.log(`Stored current price for ${symbol} (${region}): $${priceData.regularMarketPrice} (${priceData.regularMarketChangePercent}%)`);
+      
+      return updatedPrice;
     } catch (error) {
       console.error(`Error fetching and storing current price for ${symbol} (${region}):`, error);
       throw error;

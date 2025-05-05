@@ -296,14 +296,28 @@ export class DatabaseStorage {
   }
   
   /**
-   * Create a new current price entry
+   * Create a new current price entry - uses upsert to avoid duplicates
    */
   async createCurrentPrice(data: any) {
     try {
-      const [result] = await db.insert(currentPrices).values(data).returning();
+      console.log(`Creating/updating current price for ${data.symbol} (${data.region})`);
+      
+      // Use onConflictDoUpdate to ensure we only have one price entry per symbol/region
+      const [result] = await db.insert(currentPrices)
+        .values(data)
+        .onConflictDoUpdate({
+          target: [currentPrices.symbol, currentPrices.region],
+          set: {
+            ...data,
+            updatedAt: new Date()
+          }
+        })
+        .returning();
+      
+      console.log(`Price for ${data.symbol} set to: ${data.regularMarketPrice}, change: ${data.regularMarketChangePercent}%`);
       return result;
     } catch (error) {
-      console.error(`Error creating current price for ${data.symbol} (${data.region}):`, error);
+      console.error(`Error creating/updating current price for ${data.symbol} (${data.region}):`, error);
       throw error;
     }
   }
