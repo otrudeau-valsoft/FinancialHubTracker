@@ -5,9 +5,9 @@
  * indicator values for historical prices.
  */
 
-const { drizzle } = require('drizzle-orm/postgres-js');
-const postgres = require('postgres');
-const { sql } = require('drizzle-orm');
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import { sql } from 'drizzle-orm';
 
 async function runMigration() {
   console.log('Starting migration: Create MACD Data Table');
