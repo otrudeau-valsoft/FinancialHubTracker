@@ -7,7 +7,7 @@
  * 3. Drops the old consolidated table
  */
 
-const { pool } = require('../server/db');
+import { pool } from '../server/db.ts';
 
 async function runMigration() {
   console.log('Starting migration: Separating portfolio performance tables by region...');
@@ -135,21 +135,19 @@ async function runMigration() {
 }
 
 // Run the migration
-if (require.main === module) {
-  runMigration()
-    .then(result => {
-      if (result.success) {
-        console.log('Migration completed successfully.');
-        process.exit(0);
-      } else {
-        console.error('Migration failed:', result.error);
-        process.exit(1);
-      }
-    })
-    .catch(err => {
-      console.error('Unhandled error during migration:', err);
+runMigration()
+  .then(result => {
+    if (result.success) {
+      console.log('Migration completed successfully.');
+      process.exit(0);
+    } else {
+      console.error('Migration failed:', result.error);
       process.exit(1);
-    });
-}
+    }
+  })
+  .catch(err => {
+    console.error('Unhandled error during migration:', err);
+    process.exit(1);
+  });
 
-module.exports = { runMigration };
+export { runMigration };
