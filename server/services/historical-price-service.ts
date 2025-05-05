@@ -2,9 +2,9 @@ import { storage } from '../storage';
 import { db } from '../db';
 import yahooFinance from 'yahoo-finance2';
 import { dateToSQLDateString } from '../util';
-import { historicalPrices, type InsertHistoricalPrice } from '@shared/schema';
+import { historicalPrices, type InsertHistoricalPrice, macdData, type InsertMacdData } from '@shared/schema';
 import { and, eq, desc, asc, sql } from 'drizzle-orm';
-import { calculateMultipleRSI } from '../utils/technical-indicators';
+import { calculateMultipleRSI, calculateMACD } from '../utils/technical-indicators';
 
 // Rate limiting configuration for Yahoo Finance API - match the same settings as current-price-service
 const RATE_LIMIT = {
@@ -306,6 +306,10 @@ class HistoricalPriceService {
       console.log(`Calculating RSI values for ${symbol} (${region})`);
       const rsiValues = calculateMultipleRSI(closingPrices, [9, 14, 21]);
       
+      // Calculate MACD values
+      console.log(`Calculating MACD values for ${symbol} (${region})`);
+      const macdResults = calculateMACD(closingPrices);
+      
       // Prepare arrays to store both new and updated prices
       const newPrices: any[] = sanitizedData.map(item => ({...item} as any));
       const updatedExistingPrices: any[] = [];
@@ -605,7 +609,7 @@ class HistoricalPriceService {
    * @param region Portfolio region (USD, CAD, INTL)
    * @param forceRsiRefresh If true, forces updating RSI for the most recent price points
    */
-  async calculateAndUpdateRSIForSymbol(symbol: string, region: string, forceRsiRefresh: boolean = false) {
+  async calculateAndUpdateRSIForSymbol(symbol: string, region: string, forceRsiRefresh: boolean = false, forceMacdRefresh: boolean = false) {
     try {
       console.log(`Calculating and updating RSI values for ${symbol} (${region}) with forceRsiRefresh=${forceRsiRefresh}`);
       
@@ -733,8 +737,13 @@ class HistoricalPriceService {
         // Calculate RSI values
         const rsiValues = calculateMultipleRSI(closingPrices, [9, 14, 21]);
         
+        // Calculate MACD values
+        console.log(`Calculating MACD values for ${symbol} (${region})`);
+        const macdResults = calculateMACD(closingPrices);
+        
         // Prepare data for update
         const rsiDataToUpdate: any[] = [];
+        const macdDataToUpdate: any[] = [];
         
         // Process all prices that need RSI updates
         for (let i = 0; i < sortedPrices.length; i++) {
@@ -802,14 +811,48 @@ class HistoricalPriceService {
           }
         }
         
+        // Process all prices that need MACD updates
+        for (let i = 0; i < sortedPrices.length; i++) {
+          const price = sortedPrices[i];
+          
+          // Skip if invalid price
+          if (!price || !price.id) continue;
+          
+          // Check if we have valid MACD value for this price point
+          const hasMacdValue = i >= 26 && // MACD requires at least 26 data points
+                             macdResults.macd[i] !== null && 
+                             macdResults.signal[i] !== null && 
+                             macdResults.histogram[i] !== null;
+          
+          if (hasMacdValue) {
+            // Check if this is a recent price that needs refreshing
+            const isLatestPrice = i === sortedPrices.length - 1;
+            const needsMacdRefresh = forceMacdRefresh && isLatestPrice;
+            
+            // Always add MACD data for points that have MACD values
+            // or if we're forcing a refresh of the latest price point
+            if (needsMacdRefresh || true) { // Always update for now since we're starting fresh
+              macdDataToUpdate.push({
+                historicalPriceId: price.id,
+                symbol,
+                region,
+                date: typeof price.date === 'string' ? price.date : new Date(price.date).toISOString().split('T')[0],
+                macd: macdResults.macd[i]?.toString(),
+                signal: macdResults.signal[i]?.toString(), 
+                histogram: macdResults.histogram[i]?.toString()
+              });
+            }
+          }
+        }
+        
         // Update the RSI data table with the new values
         if (rsiDataToUpdate.length > 0) {
           console.log(`Updating ${rsiDataToUpdate.length} RSI data records for ${symbol} (${region})`);
-          const results = await storage.bulkCreateOrUpdateRsiData(rsiDataToUpdate);
+          const rsiResults = await storage.bulkCreateOrUpdateRsiData(rsiDataToUpdate);
           
           // Log a sample of the updated RSI data to verify values are set correctly
-          if (results && results.length > 0) {
-            const sample = results[results.length - 1]; // Most recent
+          if (rsiResults && rsiResults.length > 0) {
+            const sample = rsiResults[rsiResults.length - 1]; // Most recent
             console.log(`Updated RSI data for ${symbol} (${region}) on ${sample.date}: RSI9=${sample.rsi9}, RSI14=${sample.rsi14}, RSI21=${sample.rsi21}`);
             
             // Check if RSI values are still null
@@ -817,12 +860,31 @@ class HistoricalPriceService {
               console.warn(`WARNING: RSI values are still null for ${symbol} even after update to dedicated RSI table.`);
             }
           }
-          
-          return results;
         } else {
           console.log(`No RSI data needs updates for ${symbol} (${region})`);
-          return [];
         }
+        
+        // Update the MACD data table with the new values
+        if (macdDataToUpdate.length > 0) {
+          console.log(`Updating ${macdDataToUpdate.length} MACD data records for ${symbol} (${region})`);
+          const macdResults = await storage.bulkCreateOrUpdateMacdData(macdDataToUpdate);
+          
+          // Log a sample of the updated MACD data to verify values are set correctly
+          if (macdResults && macdResults.length > 0) {
+            const sample = macdResults[macdResults.length - 1]; // Most recent
+            console.log(`Updated MACD data for ${symbol} (${region}) on ${sample.date}: MACD=${sample.macd}, Signal=${sample.signal}, Histogram=${sample.histogram}`);
+          }
+        } else {
+          console.log(`No MACD data needs updates for ${symbol} (${region})`);
+        }
+        
+        // Return combined results
+        return {
+          rsiUpdated: rsiDataToUpdate.length,
+          macdUpdated: macdDataToUpdate.length,
+          symbol,
+          region
+        };
       } else {
         return [];
       }
