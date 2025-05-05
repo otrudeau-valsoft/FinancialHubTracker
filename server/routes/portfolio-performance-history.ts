@@ -73,6 +73,23 @@ router.get('/', async (req: Request, res: Response) => {
     
     // Query the region-specific performance table
     const upperRegion = region.toUpperCase();
+    
+    // Create the query based on the region
+    let tableName;
+    switch (upperRegion) {
+      case 'USD':
+        tableName = 'portfolio_performance_USD';
+        break;
+      case 'CAD':
+        tableName = 'portfolio_performance_CAD';
+        break;
+      case 'INTL':
+        tableName = 'portfolio_performance_INTL';
+        break;
+      default:
+        tableName = 'portfolio_performance_USD'; // Default to USD as fallback
+    }
+    
     const query = `
       SELECT 
         date, 
@@ -83,7 +100,7 @@ router.get('/', async (req: Request, res: Response) => {
         portfolio_cumulative_return,
         benchmark_cumulative_return,
         relative_performance
-      FROM portfolio_performance_${upperRegion}
+      FROM "${tableName}"
       WHERE date BETWEEN $1 AND $2
       ORDER BY date
     `;
@@ -114,12 +131,13 @@ router.get('/', async (req: Request, res: Response) => {
       status: 'success',
       data: formattedData
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching portfolio performance history:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return res.status(500).json({
       status: 'error',
       message: 'Failed to fetch portfolio performance history',
-      details: error.message || String(error)
+      details: errorMessage
     });
   }
 });

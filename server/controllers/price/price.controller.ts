@@ -21,7 +21,7 @@ export async function updatePortfolioPerformanceHistory() {
       console.log(`Processing performance data for ${region} region...`);
       
       // Delete existing performance data for this region to rebuild from scratch
-      await pool.query(`DELETE FROM portfolio_performance_${region}`);
+      await pool.query(`DELETE FROM "portfolio_performance_${region}"`);
       
       // Get portfolio stocks for this region
       const portfolioQuery = `
@@ -181,7 +181,7 @@ export async function updatePortfolioPerformanceHistory() {
       for (const data of performanceData) {
         // The date is already in YYYY-MM-DD format from our earlier processing
         await pool.query(`
-          INSERT INTO portfolio_performance_${region} (
+          INSERT INTO "portfolio_performance_${region}" (
             date, portfolio_value, benchmark_value, 
             portfolio_return_daily, benchmark_return_daily,
             portfolio_cumulative_return, benchmark_cumulative_return, 
@@ -252,12 +252,13 @@ export const updatePerformanceHistoryEndpoint = async (req: Request, res: Respon
         message: 'Failed to update portfolio performance history'
       });
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error in updatePerformanceHistoryEndpoint:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return res.status(500).json({
       status: 'error',
       message: 'Failed to update portfolio performance history',
-      details: error.message || String(error)
+      details: errorMessage
     });
   }
 };
