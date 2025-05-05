@@ -14,7 +14,8 @@ import {
   Clock,
   Activity,
   Search,
-  ChevronsUpDown
+  ChevronsUpDown,
+  Eye
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -27,7 +28,9 @@ import {
   Legend,
   ReferenceLine,
   Area,
-  AreaChart
+  AreaChart,
+  ComposedChart,
+  Bar
 } from 'recharts';
 
 import {
@@ -73,6 +76,9 @@ interface HistoricalPrice {
   rsi9?: number;
   rsi14?: number;
   rsi21?: number;
+  macd?: number;
+  signal?: number;
+  histogram?: number;
 }
 
 // Stock earnings interface
@@ -1182,6 +1188,147 @@ export default function StockDetailsPage() {
                       <div className="text-[#805AD5] font-mono text-sm font-semibold mb-2">RSI Data Not Available</div>
                       <div className="text-[#7A8999] font-mono text-xs mb-3">
                         Use the REFRESH button at the top of the page to update historical prices and generate RSI data
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {/* MACD Chart Section - Full Width */}
+          {!isLoadingHistorical && historicalPrices && historicalPrices.length > 0 && showMACD && (
+            <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden mb-6">
+              <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
+                <div className="flex items-center">
+                  <TrendingUp className="h-4 w-4 mr-2 text-[#FF9800]" />
+                  <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">MACD</h3>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-[#7A8999] font-mono text-xs mr-2">
+                    Fast EMA(12), Slow EMA(26), Signal EMA(9)
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowMACD(!showMACD)}
+                    className="rounded-sm h-6 bg-[#0B1728] text-[#7A8999] text-xs font-mono border-[#1A304A] hover:bg-[#162639] hover:text-[#EFEFEF]"
+                  >
+                    <Eye className="h-3.5 w-3.5 mr-1" />
+                    TOGGLE
+                  </Button>
+                </div>
+              </div>
+              <div className="p-4">
+                {(() => {
+                  // Check if we have MACD data
+                  const hasMacdData = historicalPrices && historicalPrices.some((price: any) => 
+                    price.macd !== null && price.macd !== undefined &&
+                    price.signal !== null && price.signal !== undefined &&
+                    price.histogram !== null && price.histogram !== undefined
+                  );
+                  
+                  if (historicalPrices && historicalPrices.length > 0) {
+                    console.log(`MACD Data Check:`, {
+                      totalPoints: historicalPrices.length,
+                      macdDatapoints: historicalPrices.filter((price: any) => price.macd !== null && price.macd !== undefined).length,
+                      samplePoint: historicalPrices[historicalPrices.length - 1]
+                    });
+                  }
+                  
+                  return hasMacdData;
+                })() ? (
+                  <div className="h-36">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart
+                        data={processHistoricalData(historicalPrices, timeRange)}
+                        margin={{ top: 10, right: 10, left: 20, bottom: 20 }}
+                        syncId="stockChart" // Synchronize with main chart
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#1A304A" vertical={false} />
+                        <XAxis 
+                          dataKey="formattedDate"
+                          tick={{ fontSize: 10, fill: '#7A8999' }}
+                          interval="preserveStartEnd"
+                          tickMargin={5}
+                          stroke="#1A304A"
+                          minTickGap={30}
+                        />
+                        <YAxis 
+                          tick={{ fontSize: 10, fill: '#FF9800' }}
+                          tickFormatter={(val) => `${val.toFixed(1)}`}
+                          width={35}
+                          stroke="#1A304A"
+                        />
+                        <RechartTooltip
+                          labelFormatter={(label) => `Date: ${label}`}
+                          formatter={(value: number, name: string) => {
+                            return [`${value.toFixed(2)}`, name === 'histogram' ? 'Histogram' : name === 'macd' ? 'MACD Line' : 'Signal Line'];
+                          }}
+                          contentStyle={{ 
+                            backgroundColor: '#0A1524', 
+                            borderColor: '#1A304A',
+                            color: '#EFEFEF',
+                            fontSize: 12,
+                            fontFamily: 'monospace'
+                          }}
+                          itemStyle={{ color: '#FF9800' }}
+                          labelStyle={{ color: '#7A8999', fontFamily: 'monospace' }}
+                        />
+                        
+                        {/* Zero line reference */}
+                        <ReferenceLine 
+                          y={0} 
+                          stroke="#7A8999" 
+                          strokeDasharray="3 3" 
+                          strokeWidth={1}
+                        />
+                        
+                        {/* MACD and Signal Lines */}
+                        <Line
+                          type="monotone"
+                          dataKey="macd"
+                          stroke="#FF9800"
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{ r: 4, stroke: '#FF9800', fill: '#FFFFFF' }}
+                          name="macd"
+                          connectNulls
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="signal"
+                          stroke="#00B0FF"
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{ r: 4, stroke: '#00B0FF', fill: '#FFFFFF' }}
+                          name="signal"
+                          connectNulls
+                        />
+                        
+                        {/* MACD Histogram */}
+                        <Bar
+                          dataKey="histogram"
+                          name="histogram"
+                          barSize={3}
+                          shape={(props) => {
+                            const { x, y, width, height, fill } = props;
+                            // Determine if the histogram value is positive or negative
+                            const histValue = parseFloat(props.payload.histogram);
+                            const barFill = histValue >= 0 ? '#4CAF50' : '#F44336';
+                            
+                            return <rect x={x} y={y} width={width} height={height} fill={barFill} />;
+                          }}
+                        />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="h-36 flex items-center justify-center bg-[#0A1524]">
+                    <div className="text-center">
+                      <div className="text-[#FF9800] font-mono text-sm font-semibold mb-2">MACD Data Not Available</div>
+                      <div className="text-[#7A8999] font-mono text-xs mb-3">
+                        Use the REFRESH button at the top of the page to update historical prices and generate MACD data
                       </div>
                     </div>
                   </div>
