@@ -97,9 +97,11 @@ export const PerformanceChart = ({
   
   // Prepare the performance data from the API response
   const performanceData = useMemo(() => {
-    return (apiResponse as ApiResponse)?.status === 'success' 
-      ? (apiResponse as ApiResponse).data 
-      : [];
+    if ((apiResponse as ApiResponse)?.status === 'success') {
+      console.log('Performance data from API:', (apiResponse as ApiResponse).data.slice(0, 5));
+      return (apiResponse as ApiResponse).data;
+    }
+    return [];
   }, [apiResponse]);
   
   // Format data for chart display - using precalculated cumulative returns from database
