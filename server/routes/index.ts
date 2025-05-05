@@ -14,6 +14,7 @@ import cashRoutes from './cash';
 import portfolioHistoryRoutes from './portfolio-history';
 import portfolioPerformanceRoutes from './portfolio-performance';
 import portfolioPerformanceHistoryRoutes from './portfolio-performance-history';
+import performanceHistoryRouter from './performance-history.js';
 import earningsRoutes from './earnings';
 import marketIndicesRoutes from './market-indices';
 import diagnosticsRoutes from './diagnostics/diagnostics.routes';
@@ -59,6 +60,9 @@ router.use('/portfolio-performance', portfolioPerformanceRoutes);
 
 // Portfolio performance history routes (from dedicated history table)
 router.use('/portfolio-performance-history', performanceHistoryRoutes);
+
+// New redesigned performance history routes
+router.use('/performance-history', performanceHistoryRouter);
 
 // Earnings routes
 router.use('/', earningsRoutes);

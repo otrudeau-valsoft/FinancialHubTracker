@@ -6,73 +6,148 @@
  * 2. Creates new, simplified performance tables with better schema
  */
 
-const { pool } = require('../server/db');
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import ws from 'ws';
+
+// Initialize dotenv
+dotenv.config();
+
+// Configure WebSocket for Neon
+neonConfig.webSocketConstructor = ws;
+
+// Get dirname equivalent in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 async function runMigration() {
+  console.log('Starting migration: Redesigning portfolio performance tables');
+  
+  // Connect to the database
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+  });
+  
   try {
-    console.log('Starting portfolio performance history redesign migration...');
+    // Start a transaction to ensure all changes are applied atomically
+    await pool.query('BEGIN');
     
-    // First, drop the existing tables if they exist
-    const regions = ['usd', 'cad', 'intl'];
+    // Drop old tables if they exist
+    console.log('Dropping existing portfolio performance tables...');
+    await pool.query(`
+      DROP TABLE IF EXISTS portfolio_performance_history;
+      DROP TABLE IF EXISTS portfolio_performance_usd;
+      DROP TABLE IF EXISTS portfolio_performance_cad;
+      DROP TABLE IF EXISTS portfolio_performance_intl;
+    `);
     
-    for (const region of regions) {
-      try {
-        // Check if table exists before dropping
-        const tableExists = await pool.query(`
-          SELECT EXISTS (
-            SELECT FROM pg_tables
-            WHERE schemaname = 'public'
-            AND tablename = 'portfolio_performance_${region}'
-          )
-        `);
-        
-        if (tableExists.rows[0].exists) {
-          await pool.query(`DROP TABLE IF EXISTS portfolio_performance_${region}`);
-          console.log(`Dropped portfolio_performance_${region} table`);
-        }
-      } catch (err) {
-        console.error(`Error dropping portfolio_performance_${region} table:`, err);
-      }
-    }
-    
-    // Create the new portfolio performance tables
-    for (const region of regions) {
-      await pool.query(`
-        CREATE TABLE portfolio_performance_${region} (
-          id SERIAL PRIMARY KEY,
-          date DATE NOT NULL,
-          portfolio_value DECIMAL(15,2) NOT NULL,
-          benchmark_value DECIMAL(15,2) NOT NULL,
-          portfolio_daily_return DECIMAL(10,6),
-          benchmark_daily_return DECIMAL(10,6),
-          UNIQUE(date)
-        )
-      `);
+    // Create new regional performance tables with identical schema
+    console.log('Creating new USD performance table...');
+    await pool.query(`
+      CREATE TABLE portfolio_performance_usd (
+        date DATE PRIMARY KEY,
+        portfolio_value NUMERIC(18, 2) NOT NULL,
+        benchmark_value NUMERIC(18, 2) NOT NULL,
+        portfolio_cumulative_return NUMERIC(10, 6) NOT NULL,
+        benchmark_cumulative_return NUMERIC(10, 6) NOT NULL,
+        portfolio_return_daily NUMERIC(10, 6),
+        benchmark_return_daily NUMERIC(10, 6),
+        relative_performance NUMERIC(10, 6) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
       
-      console.log(`Created new portfolio_performance_${region} table`);
-    }
+      CREATE INDEX idx_portfolio_performance_usd_date ON portfolio_performance_usd (date);
+    `);
     
-    // Create indexes for faster queries
-    for (const region of regions) {
-      await pool.query(`CREATE INDEX idx_portfolio_performance_${region}_date ON portfolio_performance_${region} (date)`);
-      console.log(`Created date index for portfolio_performance_${region} table`);
-    }
+    console.log('Creating new CAD performance table...');
+    await pool.query(`
+      CREATE TABLE portfolio_performance_cad (
+        date DATE PRIMARY KEY,
+        portfolio_value NUMERIC(18, 2) NOT NULL,
+        benchmark_value NUMERIC(18, 2) NOT NULL,
+        portfolio_cumulative_return NUMERIC(10, 6) NOT NULL,
+        benchmark_cumulative_return NUMERIC(10, 6) NOT NULL,
+        portfolio_return_daily NUMERIC(10, 6),
+        benchmark_return_daily NUMERIC(10, 6),
+        relative_performance NUMERIC(10, 6) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+      
+      CREATE INDEX idx_portfolio_performance_cad_date ON portfolio_performance_cad (date);
+    `);
     
-    console.log('Portfolio performance history redesign migration completed successfully');
+    console.log('Creating new INTL performance table...');
+    await pool.query(`
+      CREATE TABLE portfolio_performance_intl (
+        date DATE PRIMARY KEY,
+        portfolio_value NUMERIC(18, 2) NOT NULL,
+        benchmark_value NUMERIC(18, 2) NOT NULL,
+        portfolio_cumulative_return NUMERIC(10, 6) NOT NULL,
+        benchmark_cumulative_return NUMERIC(10, 6) NOT NULL,
+        portfolio_return_daily NUMERIC(10, 6),
+        benchmark_return_daily NUMERIC(10, 6),
+        relative_performance NUMERIC(10, 6) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+      
+      CREATE INDEX idx_portfolio_performance_intl_date ON portfolio_performance_intl (date);
+    `);
     
+    // Create triggers to automatically update the updated_at timestamp
+    console.log('Creating triggers for timestamp updates...');
+    await pool.query(`
+      -- Function to update the updated_at timestamp
+      CREATE OR REPLACE FUNCTION update_modified_column()
+      RETURNS TRIGGER AS $$
+      BEGIN
+        NEW.updated_at = CURRENT_TIMESTAMP;
+        RETURN NEW;
+      END;
+      $$ LANGUAGE plpgsql;
+      
+      -- Triggers for each table
+      CREATE TRIGGER set_portfolio_performance_usd_updated_at
+      BEFORE UPDATE ON portfolio_performance_usd
+      FOR EACH ROW
+      EXECUTE FUNCTION update_modified_column();
+      
+      CREATE TRIGGER set_portfolio_performance_cad_updated_at
+      BEFORE UPDATE ON portfolio_performance_cad
+      FOR EACH ROW
+      EXECUTE FUNCTION update_modified_column();
+      
+      CREATE TRIGGER set_portfolio_performance_intl_updated_at
+      BEFORE UPDATE ON portfolio_performance_intl
+      FOR EACH ROW
+      EXECUTE FUNCTION update_modified_column();
+    `);
+    
+    // Commit the transaction if all operations succeeded
+    await pool.query('COMMIT');
+    console.log('Migration completed successfully: Portfolio performance tables redesigned');
   } catch (error) {
-    console.error('Error during portfolio performance history redesign migration:', error);
+    // Roll back the transaction if any operation failed
+    await pool.query('ROLLBACK');
+    console.error('Migration failed:', error);
     throw error;
-  } 
+  } finally {
+    // Close the pool
+    await pool.end();
+  }
 }
 
-// Run the migration
-runMigration()
-  .then(() => {
-    console.log('Migration completed successfully');
-    process.exit(0);
-  })
-  .catch(err => {
-    console.error('Migration failed:', err);
+// Run the migration when executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  runMigration().catch(err => {
+    console.error('Error running migration:', err);
     process.exit(1);
   });
+}
+
+// Export for programmatic usage
+export { runMigration };

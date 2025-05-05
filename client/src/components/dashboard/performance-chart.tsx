@@ -65,11 +65,11 @@ export const PerformanceChart = ({
     return date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
   }, []);
 
-  // Fetch portfolio performance data from our history endpoint with explicitly set date range
+  // Fetch portfolio performance data from our new redesigned history endpoint
   const { data: apiResponse, isLoading, refetch } = useQuery({
-    queryKey: ['/api/portfolio-performance-history', region, oneYearAgo],
+    queryKey: ['/api/performance-history', region, oneYearAgo],
     queryFn: () => 
-      fetch(`/api/portfolio-performance-history?region=${region}&startDate=${oneYearAgo}`)
+      fetch(`/api/performance-history?region=${region}&startDate=${oneYearAgo}`)
         .then(res => {
           console.log('Performance history response:', res.status);
           if (!res.ok) throw new Error('Network response was not ok');

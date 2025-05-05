@@ -249,7 +249,7 @@ export default function DataManagement() {
   
   // Mutations for triggering manual updates
   const updatePerformanceHistoryMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/historical-prices/update-performance-history'),
+    mutationFn: () => apiRequest('POST', '/api/performance-history/update'),
     onSuccess: () => {
       toast({
         title: "Performance history updated",
@@ -257,8 +257,9 @@ export default function DataManagement() {
       });
       refetchLogs();
       
-      // Invalidate portfolio performance history to update charts
+      // Invalidate both old and new performance history endpoints to update charts
       queryClient.invalidateQueries({ queryKey: ['/api/portfolio-performance-history'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/performance-history'] });
     },
     onError: (error) => {
       toast({

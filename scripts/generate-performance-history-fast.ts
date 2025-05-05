@@ -5,181 +5,128 @@
  * using fewer data points for faster execution.
  */
 
-import { pool } from "../server/db";
-import { DateTime } from "luxon";
+import { db } from '../server/db.js';
+import { DateTime } from 'luxon';
 
+/**
+ * Generate USD region performance data with a moderate growth profile
+ * that has realistic ups and downs but trends upward overall
+ */
 async function generatePerformanceData() {
   try {
-    console.log('Starting generation of one year performance history data (fast version)...');
+    console.log('Generating performance history data for all regions...');
     
-    // Get the current date and calculate dates one year ago
-    const endDate = DateTime.now().setZone('America/New_York');
+    // Clear existing data from all tables first
+    await clearExistingData('portfolio_performance_usd');
+    await clearExistingData('portfolio_performance_cad');
+    await clearExistingData('portfolio_performance_intl');
+    
+    // Generate one year of data in 2-week intervals for better performance
+    const endDate = DateTime.now();
     const startDate = endDate.minus({ years: 1 });
     
-    // Create weekly data points instead of daily (52 weeks instead of 365 days)
+    // Create the dates array (bi-weekly)
+    const dates = [];
     let currentDate = startDate;
-    const performanceData = [];
     
-    // Generate random seed portfolio and benchmark values
-    let portfolioValue = 80000 + Math.random() * 10000; // Start between $80-90k
-    let benchmarkValue = 380 + Math.random() * 40; // Start between $380-420
-    
-    // Track cumulative values
-    let basePortfolioValue = portfolioValue;
-    let baseBenchmarkValue = benchmarkValue;
-    
-    // Calculate volatility parameters (standard deviations)
-    const portfolioVolatility = 0.02; // 2% weekly volatility
-    const benchmarkVolatility = 0.01; // 1% weekly volatility
-    
-    // Generate approximately 52 weeks of data (weekly points)
-    while (currentDate < endDate) {
-      // Only include business days (e.g., Fridays)
-      if (currentDate.weekday === 5) { // Friday
-        // Generate weekly returns with some randomness but trending upward
-        const portfolioRandomComponent = (Math.random() - 0.4) * portfolioVolatility;
-        const benchmarkRandomComponent = (Math.random() - 0.4) * benchmarkVolatility;
-        
-        // Add a trend component for weekly increase
-        const portfolioWeeklyReturn = portfolioRandomComponent + 0.005; // ~0.5% average weekly increase
-        const benchmarkWeeklyReturn = benchmarkRandomComponent + 0.003; // ~0.3% average weekly increase
-        
-        // Update values
-        const prevPortfolioValue = portfolioValue;
-        const prevBenchmarkValue = benchmarkValue;
-        
-        portfolioValue = portfolioValue * (1 + portfolioWeeklyReturn);
-        benchmarkValue = benchmarkValue * (1 + benchmarkWeeklyReturn);
-        
-        // Calculate metrics
-        const portfolioReturnDaily = (portfolioValue - prevPortfolioValue) / prevPortfolioValue;
-        const benchmarkReturnDaily = (benchmarkValue - prevBenchmarkValue) / prevBenchmarkValue;
-        const portfolioCumulativeReturn = (portfolioValue / basePortfolioValue) - 1;
-        const benchmarkCumulativeReturn = (benchmarkValue / baseBenchmarkValue) - 1;
-        const relativePerformance = portfolioCumulativeReturn - benchmarkCumulativeReturn;
-        
-        // Format the date as YYYY-MM-DD for PostgreSQL
-        const dateStr = currentDate.toFormat('yyyy-MM-dd');
-        
-        // Add data point
-        performanceData.push({
-          date: dateStr,
-          portfolioValue,
-          benchmarkValue,
-          portfolioReturnDaily,
-          benchmarkReturnDaily,
-          portfolioCumulativeReturn,
-          benchmarkCumulativeReturn,
-          relativePerformance
-        });
+    while (currentDate <= endDate) {
+      // Only include weekdays (Mon-Fri)
+      if (currentDate.weekday <= 5) {
+        dates.push(currentDate);
       }
-      
-      // Move to next week
-      currentDate = currentDate.plus({ days: 7 });
-    }
-    
-    // Add more recent data points (daily for the last month)
-    currentDate = endDate.minus({ months: 1 });
-    
-    // Start with the latest values from the weekly data
-    if (performanceData.length > 0) {
-      portfolioValue = performanceData[performanceData.length - 1].portfolioValue;
-      benchmarkValue = performanceData[performanceData.length - 1].benchmarkValue;
-    }
-    
-    while (currentDate < endDate) {
-      // Skip weekends
-      if (currentDate.weekday < 6) { // 1-5 are Monday-Friday
-        // Generate daily returns with some randomness but trending upward
-        const portfolioRandomComponent = (Math.random() - 0.4) * portfolioVolatility / 5; // Convert weekly to daily
-        const benchmarkRandomComponent = (Math.random() - 0.4) * benchmarkVolatility / 5;
-        
-        // Add a trend component (0.03% average daily increase for portfolio, 0.02% for benchmark)
-        const portfolioDailyReturn = portfolioRandomComponent + 0.0003;
-        const benchmarkDailyReturn = benchmarkRandomComponent + 0.0002;
-        
-        // Update values
-        const prevPortfolioValue = portfolioValue;
-        const prevBenchmarkValue = benchmarkValue;
-        
-        portfolioValue = portfolioValue * (1 + portfolioDailyReturn);
-        benchmarkValue = benchmarkValue * (1 + benchmarkDailyReturn);
-        
-        // Calculate metrics
-        const portfolioReturnDaily = (portfolioValue - prevPortfolioValue) / prevPortfolioValue;
-        const benchmarkReturnDaily = (benchmarkValue - prevBenchmarkValue) / prevBenchmarkValue;
-        const portfolioCumulativeReturn = (portfolioValue / basePortfolioValue) - 1;
-        const benchmarkCumulativeReturn = (benchmarkValue / baseBenchmarkValue) - 1;
-        const relativePerformance = portfolioCumulativeReturn - benchmarkCumulativeReturn;
-        
-        // Format the date as YYYY-MM-DD for PostgreSQL
-        const dateStr = currentDate.toFormat('yyyy-MM-dd');
-        
-        // Add data point
-        performanceData.push({
-          date: dateStr,
-          portfolioValue,
-          benchmarkValue,
-          portfolioReturnDaily,
-          benchmarkReturnDaily,
-          portfolioCumulativeReturn,
-          benchmarkCumulativeReturn,
-          relativePerformance
-        });
-      }
-      
-      // Move to next day
+      // Go to next day (for daily data)
+      // Or next week (for weekly data)
       currentDate = currentDate.plus({ days: 1 });
     }
     
-    console.log(`Generated ${performanceData.length} data points, now inserting into database...`);
+    console.log(`Generating data for ${dates.length} dates`);
     
-    // Sort data points by date
-    performanceData.sort((a, b) => {
-      return DateTime.fromFormat(a.date, 'yyyy-MM-dd').toMillis() - 
-             DateTime.fromFormat(b.date, 'yyyy-MM-dd').toMillis();
-    });
+    // Generate baseline data for USD region
+    const baseData = [];
     
-    // For USD region - this is our primary focus
-    await clearExistingData('portfolio_performance_usd');
+    // Initial values
+    let portfolioValue = 1000000; // $1M starting portfolio
+    let benchmarkValue = 100; // Starting benchmark at 100
     
-    // Insert all the data points
-    const insertPromises = [];
-    for (const data of performanceData) {
-      insertPromises.push(pool.query(`
-        INSERT INTO portfolio_performance_usd (
-          date, portfolio_value, benchmark_value, 
-          portfolio_return_daily, benchmark_return_daily,
-          portfolio_cumulative_return, benchmark_cumulative_return, 
-          relative_performance
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      `, [
-        data.date,
-        data.portfolioValue,
-        data.benchmarkValue,
-        data.portfolioReturnDaily,
-        data.benchmarkReturnDaily,
-        data.portfolioCumulativeReturn,
-        data.benchmarkCumulativeReturn,
-        data.relativePerformance
-      ]));
+    // Daily volatility parameters
+    const avgDailyReturn = 0.0003; // Average 7.5% annual return
+    const stdDev = 0.008; // Daily standard deviation around 8%
+    
+    // Function to generate a random daily return with volatility
+    const randomDailyReturn = () => {
+      const randomFactor = (Math.random() * 2 - 1) * stdDev;
+      return avgDailyReturn + randomFactor;
+    };
+
+    // Create some patterns in the data to make it more realistic
+    const eventDays = [
+      { date: '2024-11-01', impact: -0.04 }, // Market correction
+      { date: '2024-12-15', impact: 0.03 }, // End of year rally
+      { date: '2025-01-20', impact: -0.025 }, // Earnings disappointment
+      { date: '2025-02-10', impact: 0.035 }, // Strong economic data
+      { date: '2025-03-15', impact: -0.02 }, // Interest rate fears
+      { date: '2025-04-01', impact: 0.025 } // Positive earnings surprises
+    ];
+
+    // Generate the baseline data
+    for (let i = 0; i < dates.length; i++) {
+      const date = dates[i];
+      const dateStr = date.toFormat('yyyy-MM-dd');
+      
+      // Check if this is a special event day
+      const eventDay = eventDays.find(ed => ed.date === dateStr);
+      let portfolioReturn = randomDailyReturn();
+      let benchmarkReturn = randomDailyReturn() * 0.9; // Benchmark slightly underperforms
+      
+      // Apply the event impact if it's an event day
+      if (eventDay) {
+        portfolioReturn += eventDay.impact * (Math.random() * 0.4 + 0.8); // Portfolio impact
+        benchmarkReturn += eventDay.impact * (Math.random() * 0.2 + 0.9); // Benchmark impact
+      }
+      
+      // Apply returns
+      portfolioValue *= (1 + portfolioReturn);
+      benchmarkValue *= (1 + benchmarkReturn);
+      
+      // Store this day's data
+      const previousDay = i > 0 ? baseData[i-1] : null;
+      
+      const portfolioCumulativeReturn = (portfolioValue / 1000000) - 1;
+      const benchmarkCumulativeReturn = (benchmarkValue / 100) - 1;
+      
+      const portfolioReturnDaily = previousDay ? 
+        (portfolioValue / previousDay.portfolioValue) - 1 : 0;
+      const benchmarkReturnDaily = previousDay ? 
+        (benchmarkValue / previousDay.benchmarkValue) - 1 : 0;
+      
+      // Add to base data array
+      baseData.push({
+        date: dateStr,
+        portfolioValue,
+        benchmarkValue,
+        portfolioCumulativeReturn,
+        benchmarkCumulativeReturn,
+        portfolioReturnDaily,
+        benchmarkReturnDaily,
+        relativePerformance: portfolioCumulativeReturn - benchmarkCumulativeReturn
+      });
     }
     
-    await Promise.all(insertPromises);
+    console.log(`Generated ${baseData.length} base data points`);
     
-    console.log(`Successfully inserted ${performanceData.length} performance data points for USD region.`);
+    // Save the USD data
+    await savePerformanceData('portfolio_performance_usd', baseData);
     
-    // Scale down for other regions (CAD and INTL) with slight variations
-    await generateRegionalData('CAD', performanceData, 0.92, 0.95);
-    await generateRegionalData('INTL', performanceData, 0.87, 0.92);
+    // Generate CAD and INTL region data with variations
+    await generateRegionalData('CAD', baseData, 0.92, 0.88);  // CAD portfolio slightly lags 
+    await generateRegionalData('INTL', baseData, 1.15, 1.05); // INTL portfolio outperforms
     
-    console.log('Successfully generated and inserted performance history data for all regions');
-    
+    console.log('Performance history generation completed');
   } catch (error) {
-    console.error('Error generating performance history data:', error);
+    console.error('Error generating performance history:', error);
+    throw error;
   } finally {
-    // Close the connection pool (optional, as the process should exit naturally)
-    // await pool.end();
+    await db.end();
   }
 }
 
@@ -187,58 +134,83 @@ async function generatePerformanceData() {
  * Clear existing data from a performance table
  */
 async function clearExistingData(tableName: string) {
-  console.log(`Clearing existing data from ${tableName}...`);
-  await pool.query(`DELETE FROM ${tableName}`);
+  console.log(`Clearing existing data from ${tableName}`);
+  await db.query(`DELETE FROM ${tableName}`);
+}
+
+/**
+ * Save performance data to the specified table
+ */
+async function savePerformanceData(tableName: string, data: any[]) {
+  console.log(`Saving ${data.length} records to ${tableName}`);
+  
+  for (const item of data) {
+    await db.query(
+      `INSERT INTO ${tableName} (
+        date, 
+        portfolio_value, 
+        benchmark_value, 
+        portfolio_cumulative_return, 
+        benchmark_cumulative_return, 
+        portfolio_return_daily, 
+        benchmark_return_daily, 
+        relative_performance
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      ON CONFLICT (date) DO UPDATE SET
+        portfolio_value = EXCLUDED.portfolio_value,
+        benchmark_value = EXCLUDED.benchmark_value,
+        portfolio_cumulative_return = EXCLUDED.portfolio_cumulative_return,
+        benchmark_cumulative_return = EXCLUDED.benchmark_cumulative_return,
+        portfolio_return_daily = EXCLUDED.portfolio_return_daily,
+        benchmark_return_daily = EXCLUDED.benchmark_return_daily,
+        relative_performance = EXCLUDED.relative_performance`,
+      [
+        item.date,
+        item.portfolioValue,
+        item.benchmarkValue,
+        item.portfolioCumulativeReturn,
+        item.benchmarkCumulativeReturn,
+        item.portfolioReturnDaily,
+        item.benchmarkReturnDaily,
+        item.relativePerformance
+      ]
+    );
+  }
 }
 
 /**
  * Generate data for CAD and INTL regions with scaling factors for variation
  */
 async function generateRegionalData(region: string, baseData: any[], portfolioScale: number, benchmarkScale: number) {
+  console.log(`Generating ${region} performance data with scaling factors: portfolio=${portfolioScale}, benchmark=${benchmarkScale}`);
+  
   const tableName = `portfolio_performance_${region.toLowerCase()}`;
-  
-  await clearExistingData(tableName);
-  
-  console.log(`Generating data for ${region} region...`);
-  
-  const insertPromises = [];
-  
-  for (const data of baseData) {
-    // Apply scaling factors and add some randomness
-    const portfolioFactor = portfolioScale + (Math.random() - 0.5) * 0.05; // +/- 2.5%
-    const benchmarkFactor = benchmarkScale + (Math.random() - 0.5) * 0.03; // +/- 1.5%
+  const scaledData = baseData.map(item => {
+    // Apply random variations to make the data unique yet correlated
+    const portfolioVariation = 1 + (Math.random() * 0.05 - 0.025); // ±2.5% variation
+    const benchmarkVariation = 1 + (Math.random() * 0.03 - 0.015); // ±1.5% variation
     
-    const portfolioValue = data.portfolioValue * portfolioFactor;
-    const benchmarkValue = data.benchmarkValue * benchmarkFactor;
+    const portfolioValue = item.portfolioValue * portfolioScale * portfolioVariation;
+    const benchmarkValue = item.benchmarkValue * benchmarkScale * benchmarkVariation;
     
-    // Recalculate the returns for consistency
-    const portfolioCumulativeReturn = (portfolioValue / (baseData[0].portfolioValue * portfolioFactor)) - 1;
-    const benchmarkCumulativeReturn = (benchmarkValue / (baseData[0].benchmarkValue * benchmarkFactor)) - 1;
-    const relativePerformance = portfolioCumulativeReturn - benchmarkCumulativeReturn;
+    const portfolioCumulativeReturn = (portfolioValue / (1000000 * portfolioScale)) - 1;
+    const benchmarkCumulativeReturn = (benchmarkValue / (100 * benchmarkScale)) - 1;
     
-    insertPromises.push(pool.query(`
-      INSERT INTO ${tableName} (
-        date, portfolio_value, benchmark_value, 
-        portfolio_return_daily, benchmark_return_daily,
-        portfolio_cumulative_return, benchmark_cumulative_return, 
-        relative_performance
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-    `, [
-      data.date,
+    return {
+      ...item,
       portfolioValue,
       benchmarkValue,
-      data.portfolioReturnDaily * portfolioFactor / benchmarkFactor, // Adjust daily returns
-      data.benchmarkReturnDaily * benchmarkFactor / portfolioFactor,
       portfolioCumulativeReturn,
       benchmarkCumulativeReturn,
-      relativePerformance
-    ]));
-  }
+      relativePerformance: portfolioCumulativeReturn - benchmarkCumulativeReturn
+    };
+  });
   
-  await Promise.all(insertPromises);
-  
-  console.log(`Successfully inserted data for ${region} region.`);
+  await savePerformanceData(tableName, scaledData);
 }
 
 // Run the script
-generatePerformanceData().catch(console.error);
+generatePerformanceData().catch(err => {
+  console.error('Error running performance history generation:', err);
+  process.exit(1);
+});

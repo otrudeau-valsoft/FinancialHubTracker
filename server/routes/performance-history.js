@@ -5,9 +5,9 @@
  * and integration with historical price updates.
  */
 
-const express = require('express');
-const { portfolioPerformanceService } = require('../services/portfolio-performance-service');
-const { DateTime } = require('luxon');
+import express from 'express';
+import { portfolioPerformanceService } from '../services/portfolio-performance-service.js';
+import { DateTime } from 'luxon';
 
 const router = express.Router();
 
@@ -152,4 +152,4 @@ router.post('/update', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
