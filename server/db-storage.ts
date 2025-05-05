@@ -296,6 +296,39 @@ export class DatabaseStorage {
   }
   
   /**
+   * Create a new current price entry
+   */
+  async createCurrentPrice(data: any) {
+    try {
+      const [result] = await db.insert(currentPrices).values(data).returning();
+      return result;
+    } catch (error) {
+      console.error(`Error creating current price for ${data.symbol} (${data.region}):`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Update a current price entry
+   */
+  async updateCurrentPrice(id: number, data: any) {
+    try {
+      const [result] = await db
+        .update(currentPrices)
+        .set({
+          ...data,
+          updatedAt: new Date()
+        })
+        .where(eq(currentPrices.id, id))
+        .returning();
+      return result;
+    } catch (error) {
+      console.error(`Error updating current price ID ${id}:`, error);
+      throw error;
+    }
+  }
+  
+  /**
    * Get historical prices for a specific symbol and region with optional date range
    * Also fetches and merges RSI data from the dedicated RSI table
    */
