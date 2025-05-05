@@ -4,9 +4,27 @@
  * This migration adds a unique constraint to the current_prices table to ensure
  * there are no duplicate entries for the same symbol+region combination.
  */
-import { pool, db } from '../server/db.js';
-import { currentPrices } from '../shared/schema.js';
 import { sql } from 'drizzle-orm';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import ws from 'ws';
+import dotenv from 'dotenv';
+
+// Configure dotenv
+dotenv.config();
+
+// Make sure we have a database connection string
+if (!process.env.DATABASE_URL) {
+  console.error('DATABASE_URL environment variable not found');
+  process.exit(1);
+}
+
+// Set up connection pool - similar to server/db.ts but standalone for migration
+// Configure Neon to use ws as the WebSocket constructor
+neonConfig.webSocketConstructor = ws;
+
+const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL
+});
 
 async function runMigration() {
   console.log('Starting current_prices uniqueness migration...');
@@ -70,6 +88,9 @@ async function runMigration() {
   } catch (error) {
     console.error('Error during migration:', error);
     throw error;
+  } finally {
+    // Close the connection pool
+    await pool.end();
   }
 }
 
