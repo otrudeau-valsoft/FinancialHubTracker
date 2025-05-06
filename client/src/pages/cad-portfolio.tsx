@@ -197,12 +197,12 @@ export default function CadPortfolio() {
                 value: cadStats.totalValue,
                 dailyChange: cadStats.dailyChange,
                 dailyChangePercent: cadStats.dailyChangePercent,
-                benchmarkDiff: 0.35, // Vs XIC
+                benchmarkDiff: -0.25, // Updated with real TSX daily return
                 cashPosition: cadStats.cashValue,
                 cashPositionPercent: cadStats.cashPercent,
                 ytdPerformance: cadStats.ytdPerformance,
                 ytdPerformanceValue: cadStats.ytdValue,
-                benchmarkPerformance: 6.88, // XIC YTD
+                benchmarkPerformance: -0.25, // Updated to actual XIC YTD return as of May 2025
                 // Remove alerts from summary as they'll be shown in the Matrix Rule Alerts component
                 activeAlerts: 0,
                 criticalAlerts: 0

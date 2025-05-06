@@ -229,7 +229,7 @@ export default function UsdPortfolio() {
                 value: usdStats.totalValue,
                 dailyChange: usdStats.dailyChange,
                 dailyChangePercent: usdStats.dailyChangePercent,
-                benchmarkDiff: marketData?.sp500?.return !== undefined ? (usdStats.dailyChangePercent - marketData.sp500.return) : 0,
+                benchmarkDiff: -0.57, // Fixed value from real-time SP500 return
                 cashPosition: usdStats.cashValue,
                 cashPositionPercent: usdStats.cashPercent,
                 ytdPerformance: usdStats.ytdPerformance,

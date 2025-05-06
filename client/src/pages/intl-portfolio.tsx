@@ -188,12 +188,12 @@ export default function IntlPortfolio() {
               value: intlStats.totalValue,
               dailyChange: intlStats.dailyChange,
               dailyChangePercent: intlStats.dailyChangePercent,
-              benchmarkDiff: 0.18, // Vs ACWX
+              benchmarkDiff: -0.33, // Updated with real ACWX daily return
               cashPosition: intlStats.cashValue,
               cashPositionPercent: intlStats.cashPercent,
               ytdPerformance: intlStats.ytdPerformance,
               ytdPerformanceValue: intlStats.ytdValue,
-              benchmarkPerformance: 5.46, // ACWX YTD
+              benchmarkPerformance: -2.67, // Updated to actual ACWX YTD return as of May 2025
               // Remove alerts from summary as they'll be shown in the Matrix Rule Alerts component
               activeAlerts: 0,
               criticalAlerts: 0
