@@ -661,8 +661,8 @@ export default function DataManagement() {
                   ) : (
                     <>
                       <History className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="hidden sm:inline">UPDATE PERFORMANCE HISTORY</span>
-                      <span className="inline sm:hidden">UPDATE PERF</span>
+                      <span className="hidden sm:inline">CALCULATE REAL PERFORMANCE</span>
+                      <span className="inline sm:hidden">REAL PERF</span>
                     </>
                   )}
                 </Button>

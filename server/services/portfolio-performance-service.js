@@ -85,7 +85,7 @@ class PortfolioPerformanceService {
   }
   
   /**
-   * Update performance history for a specific region
+   * Update performance history for a specific region using actual historical price data
    * 
    * @param {string} region - The portfolio region code (USD, CAD, INTL)
    * @param {string} [startDate] - Optional start date in YYYY-MM-DD format 
@@ -100,9 +100,10 @@ class PortfolioPerformanceService {
     
     const regionUpper = region.toUpperCase();
     const tableName = `portfolio_performance_${region.toLowerCase()}`;
+    const portfolioTableName = `portfolio_${regionUpper}`;
     
     try {
-      console.log(`Updating performance history for ${regionUpper}...`);
+      console.log(`Updating performance history for ${regionUpper} using real-time data...`);
       
       // 1. Determine the appropriate date range
       let effectiveStartDate = startDate;
@@ -130,8 +131,12 @@ class PortfolioPerformanceService {
       
       console.log(`Using date range: ${effectiveStartDate} to ${effectiveEndDate}`);
       
-      // 2. Get all symbols in the portfolio
-      const portfolioStocks = await holdingsService.getPortfolioStocks(regionUpper);
+      // 2. Get portfolio stocks with positions
+      const { rows: portfolioStocks } = await pool.query(
+        `SELECT symbol, quantity, price, portfolio_percentage 
+         FROM ${portfolioTableName}`,
+        []
+      );
       
       if (!portfolioStocks || portfolioStocks.length === 0) {
         console.warn(`No stocks found in ${regionUpper} portfolio. Aborting performance calculation.`);
@@ -149,174 +154,141 @@ class PortfolioPerformanceService {
       
       const benchmarkSymbol = benchmarkMap[regionUpper];
       
-      // 4. Get historical prices for the portfolio symbols and benchmark
-      const { rows: historicalPrices } = await pool.query(
-        `SELECT symbol, date, close, adj_close
-         FROM historical_prices
-         WHERE region = $1
-         AND date BETWEEN $2 AND $3
+      // 4. Get all trading days in date range (from historical prices)
+      const { rows: tradingDays } = await pool.query(
+        `SELECT DISTINCT date 
+         FROM historical_prices 
+         WHERE region = $1 
+         AND date BETWEEN $2 AND $3 
          ORDER BY date ASC`,
         [regionUpper, effectiveStartDate, effectiveEndDate]
       );
       
-      if (historicalPrices.length === 0) {
-        console.warn(`No historical prices found for ${regionUpper} in the specified date range.`);
+      if (tradingDays.length === 0) {
+        console.warn(`No trading days found for ${regionUpper} in the specified date range.`);
         return false;
       }
       
-      console.log(`Retrieved ${historicalPrices.length} historical price records for calculation`);
+      console.log(`Found ${tradingDays.length} trading days in date range`);
       
-      // 5. Transform the historical prices into a more usable format
-      // Group by date and symbol for easier access
-      const pricesByDate = {};
+      // Create an array of dates for processing
+      const allDates = tradingDays.map(day => day.date.toISOString().split('T')[0]);
       
-      historicalPrices.forEach(price => {
-        const dateStr = price.date.toISOString().split('T')[0];
-        
-        if (!pricesByDate[dateStr]) {
-          pricesByDate[dateStr] = {};
-        }
-        
-        pricesByDate[dateStr][price.symbol] = {
-          close: parseFloat(price.close || 0),
-          adjClose: parseFloat(price.adj_close || price.close || 0)
-        };
-      });
-      
-      // Get all unique dates in sorted order
-      const allDates = Object.keys(pricesByDate).sort();
-      
-      if (allDates.length === 0) {
-        console.warn('No valid dates found after processing historical prices.');
-        return false;
-      }
-      
-      console.log(`Processing performance for ${allDates.length} trading days`);
-      
-      // 6. Get portfolio positions and weights
-      const portfolioPositions = portfolioStocks.reduce((positions, stock) => {
-        positions[stock.symbol] = {
-          shares: parseFloat(stock.shares || 0),
-          weight: parseFloat(stock.target_weight || 0) / 100 // Convert percentage to decimal
-        };
-        return positions;
-      }, {});
-      
-      // 7. Calculate daily portfolio values and returns
+      // 5. For each date, calculate the portfolio value and benchmark value
       const performanceData = [];
       
-      // Find baseline portfolio value (first day with sufficient data)
-      let baselineDate = null;
-      let baselinePortfolioValue = 0;
-      let baselineBenchmarkValue = 100; // Start benchmark at 100
+      // Track the starting portfolio value and benchmark value for calculating returns
+      let startPortfolioValue = null;
+      let startBenchmarkValue = null;
+      let previousPortfolioValue = null;
+      let previousBenchmarkValue = null;
       
-      // Ensure we have the benchmark data
-      for (const date of allDates) {
-        const dayPrices = pricesByDate[date];
+      for (let i = 0; i < allDates.length; i++) {
+        const currentDate = allDates[i];
         
-        // Skip days without benchmark data
-        if (!dayPrices[benchmarkSymbol]) {
-          continue;
-        }
+        // Get all prices for current date
+        const { rows: prices } = await pool.query(
+          `SELECT symbol, close, adjusted_close 
+           FROM historical_prices 
+           WHERE region = $1 
+           AND date = $2`,
+          [regionUpper, currentDate]
+        );
         
-        // Calculate portfolio value based on shares and prices
-        let portfolioValue = 0;
-        let sufficientData = true;
+        // Skip days with no price data
+        if (prices.length === 0) continue;
         
-        for (const symbol in portfolioPositions) {
-          if (!dayPrices[symbol]) {
-            sufficientData = false;
-            break;
-          }
+        // Create a map of symbol to price
+        const priceMap = {};
+        let hasBenchmarkPrice = false;
+        
+        prices.forEach(price => {
+          priceMap[price.symbol] = {
+            close: parseFloat(price.close || 0),
+            adjClose: parseFloat(price.adjusted_close || price.close || 0)
+          };
           
-          portfolioValue += portfolioPositions[symbol].shares * dayPrices[symbol].adjClose;
-        }
+          if (price.symbol === benchmarkSymbol) {
+            hasBenchmarkPrice = true;
+          }
+        });
         
-        if (sufficientData && portfolioValue > 0) {
-          baselineDate = date;
-          baselinePortfolioValue = portfolioValue;
-          break;
-        }
-      }
-      
-      if (!baselineDate) {
-        console.error('Could not establish a baseline date with sufficient price data.');
-        return false;
-      }
-      
-      // Calculate performance for each day relative to the baseline
-      for (const date of allDates) {
-        // Skip dates earlier than our baseline
-        if (date < baselineDate) {
-          continue;
-        }
-        
-        const dayPrices = pricesByDate[date];
-        
-        // Skip days without benchmark data
-        if (!dayPrices[benchmarkSymbol]) {
+        // Skip days without benchmark prices
+        if (!hasBenchmarkPrice) {
+          console.log(`Skipping ${currentDate} - no benchmark price available`);
           continue;
         }
         
         // Calculate portfolio value for this day
         let portfolioValue = 0;
-        let validSymbolCount = 0;
-        let totalWeight = 0;
+        let validSymbolsCount = 0;
+        let totalPortfolioPercentage = 0;
         
-        for (const symbol in portfolioPositions) {
-          if (dayPrices[symbol]) {
-            portfolioValue += portfolioPositions[symbol].shares * dayPrices[symbol].adjClose;
-            validSymbolCount++;
-            totalWeight += portfolioPositions[symbol].weight;
+        portfolioStocks.forEach(stock => {
+          const symbol = stock.symbol;
+          const quantity = parseFloat(stock.quantity || 0);
+          
+          if (priceMap[symbol]) {
+            const price = priceMap[symbol].adjClose;
+            portfolioValue += quantity * price;
+            validSymbolsCount++;
+            totalPortfolioPercentage += parseFloat(stock.portfolio_percentage || 0);
           }
-        }
+        });
         
-        // Skip days with insufficient price data (less than 80% of portfolio by weight)
-        if (validSymbolCount === 0 || totalWeight < 0.8) {
-          console.log(`Skipping ${date} due to insufficient price data (${validSymbolCount} symbols, ${totalWeight.toFixed(2)} weight coverage)`);
+        // Skip dates with insufficient price coverage (less than 80% of portfolio)
+        if (validSymbolsCount === 0 || totalPortfolioPercentage < 80) {
+          console.log(`Skipping ${currentDate} - insufficient price coverage (${validSymbolsCount}/${portfolioStocks.length} symbols, ${totalPortfolioPercentage.toFixed(2)}% of portfolio)`);
           continue;
         }
         
-        // Calculate benchmark value (starting at 100 and adjusting by daily returns)
-        const benchmarkValue = baselineBenchmarkValue * (dayPrices[benchmarkSymbol].adjClose / 
-          pricesByDate[baselineDate][benchmarkSymbol].adjClose);
+        // Get benchmark price
+        const benchmarkPrice = priceMap[benchmarkSymbol].adjClose;
         
-        // Find the previous day's data for daily returns
-        const previousDay = performanceData.length > 0 ? 
-          performanceData[performanceData.length - 1] : 
-          { date: baselineDate, portfolioValue: baselinePortfolioValue, benchmarkValue: baselineBenchmarkValue };
+        // The first day with valid data becomes our baseline
+        if (startPortfolioValue === null) {
+          startPortfolioValue = portfolioValue;
+          startBenchmarkValue = benchmarkPrice;
+          previousPortfolioValue = portfolioValue;
+          previousBenchmarkValue = benchmarkPrice;
+        }
         
         // Calculate returns
-        const portfolioCumulativeReturn = (portfolioValue / baselinePortfolioValue) - 1;
-        const benchmarkCumulativeReturn = (benchmarkValue / baselineBenchmarkValue) - 1;
+        const portfolioCumulativeReturn = (portfolioValue / startPortfolioValue) - 1;
+        const benchmarkCumulativeReturn = (benchmarkPrice / startBenchmarkValue) - 1;
         
-        const portfolioReturnDaily = (portfolioValue / previousDay.portfolioValue) - 1;
-        const benchmarkReturnDaily = (benchmarkValue / previousDay.benchmarkValue) - 1;
+        const portfolioReturnDaily = previousPortfolioValue ? (portfolioValue / previousPortfolioValue) - 1 : 0;
+        const benchmarkReturnDaily = previousBenchmarkValue ? (benchmarkPrice / previousBenchmarkValue) - 1 : 0;
         
         // Calculate relative performance (portfolio outperformance vs benchmark)
         const relativePerformance = portfolioCumulativeReturn - benchmarkCumulativeReturn;
         
-        // Add this day's data
+        // Save data point
         performanceData.push({
-          date,
+          date: currentDate,
           portfolioValue,
-          benchmarkValue,
+          benchmarkValue: benchmarkPrice,
           portfolioCumulativeReturn,
           benchmarkCumulativeReturn,
           portfolioReturnDaily,
           benchmarkReturnDaily,
           relativePerformance
         });
+        
+        // Update previous values for next iteration
+        previousPortfolioValue = portfolioValue;
+        previousBenchmarkValue = benchmarkPrice;
       }
       
+      // Exit if no performance data was calculated
       if (performanceData.length === 0) {
         console.warn('No valid performance data could be calculated.');
         return false;
       }
       
-      console.log(`Calculated performance for ${performanceData.length} days`);
+      console.log(`Successfully calculated performance for ${performanceData.length} days using real market data`);
       
-      // 8. Store the performance data in the database
+      // 6. Store the performance data in the database
       
       // First, clear existing data in the performance table for these dates
       await pool.query(
@@ -358,7 +330,7 @@ class PortfolioPerformanceService {
         );
       }
       
-      console.log(`Successfully updated ${performanceData.length} performance records for ${regionUpper}`);
+      console.log(`Successfully updated ${performanceData.length} performance records for ${regionUpper} using real market data`);
       return true;
     } catch (error) {
       console.error(`Error updating performance history for ${regionUpper}:`, error);
