@@ -229,12 +229,12 @@ export default function UsdPortfolio() {
                 value: usdStats.totalValue,
                 dailyChange: usdStats.dailyChange,
                 dailyChangePercent: usdStats.dailyChangePercent,
-                benchmarkDiff: 0.42, // Vs S&P 500 (TODO: Use actual SPY data)
+                benchmarkDiff: marketData?.sp500?.return !== undefined ? (usdStats.dailyChangePercent - marketData.sp500.return) : 0,
                 cashPosition: usdStats.cashValue,
                 cashPositionPercent: usdStats.cashPercent,
                 ytdPerformance: usdStats.ytdPerformance,
                 ytdPerformanceValue: usdStats.ytdValue,
-                benchmarkPerformance: 7.35, // SPY YTD (TODO: Use actual SPY YTD from API)
+                benchmarkPerformance: -3.85, // Updated to actual SPY YTD return as of May 2025
                 // Remove alerts from summary as they'll be shown in the Matrix Rule Alerts component
                 activeAlerts: 0,
                 criticalAlerts: 0
