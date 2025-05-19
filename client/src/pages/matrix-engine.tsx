@@ -8,6 +8,7 @@ import { ArrowUp, ArrowDown, BarChart3, Zap, TrendingUp, TrendingDown, Filter, A
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { PortfolioTable } from "@/components/dashboard/portfolio-table";
+import { MatrixEngineControls } from "@/components/matrix/matrix-engine-controls";
 
 // Rule categories and types
 const RULE_CATEGORIES = {
@@ -431,10 +432,7 @@ export default function MatrixEngine() {
                 <SelectItem value="INTL" className="text-[#EFEFEF]">INTL</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" size="sm" className="h-8 bg-[#0A1524] border-[#1A304A] text-[#EFEFEF]">
-              <Zap className="h-3.5 w-3.5 mr-1" />
-              Run Engine
-            </Button>
+            {/* Button removed since we're using the MatrixEngineControls component */}
           </div>
         </div>
       </div>
