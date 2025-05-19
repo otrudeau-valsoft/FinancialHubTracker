@@ -116,7 +116,4 @@ router.get('/news/portfolio', getNewsForPortfolio);
 // Economic calendar routes
 router.use('/economic-calendar', economicCalendarRoutes);
 
-// Moving Average routes
-router.use('/moving-average', movingAverageRoutes);
-
 export default router;

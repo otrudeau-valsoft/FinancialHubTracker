@@ -90,11 +90,17 @@ export async function calculateAndStoreMovingAverages(symbol: string, region: st
         // For MA200, use a default if not available
         const ma200Value = isNaN(ma200Values[i]) ? null : ma200Values[i];
         
-        const priceDate = typeof price.date === 'string'
-          ? price.date.split('T')[0]
-          : price.date instanceof Date
-            ? price.date.toISOString().split('T')[0]
-            : new Date(price.date).toISOString().split('T')[0];
+        // Format date properly handling all possible types
+        let priceDate: string;
+        
+        if (typeof price.date === 'string') {
+          // Handle string date
+          priceDate = price.date.split('T')[0];
+        } else {
+          // For any other type, convert to string through a Date object
+          const dateObj = new Date(price.date as any);
+          priceDate = dateObj.toISOString().split('T')[0];
+        }
             
         maDataToUpsert.push({
           symbol,
