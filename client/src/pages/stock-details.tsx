@@ -457,6 +457,13 @@ export default function StockDetailsPage() {
       if (historicalByDate[dateKey]) {
         const histPrice = historicalByDate[dateKey];
         
+        // Debug the MA data being added
+        console.log('Adding MA data point:', {
+          date: dateKey,
+          ma50: parseFloat(ma.ma50 || '0'),
+          ma200: parseFloat(ma.ma200 || '0')
+        });
+        
         combinedData.push({
           ...histPrice,
           ma50: parseFloat(ma.ma50 || '0'),
