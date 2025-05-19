@@ -203,3 +203,53 @@ export function calculateMACD(
   
   return { macd: macdLine, signal: signalLine, histogram };
 }
+
+/**
+ * Calculate Simple Moving Average (SMA) for a series of price data
+ * 
+ * @param prices Array of closing prices in chronological order (oldest to newest)
+ * @param period The period for SMA calculation
+ * @returns Array of SMA values corresponding to the input prices
+ */
+export function calculateSMA(prices: number[], period: number): (number | null)[] {
+  // We need at least 'period' prices to calculate SMA
+  if (!prices || prices.length < period) {
+    console.log(`Not enough data for SMA calculation. Need at least ${period} prices, but got ${prices?.length || 0}.`);
+    return Array(prices?.length || 0).fill(null);
+  }
+
+  // Initialize the SMA array with nulls (same length as prices)
+  const smaValues: (number | null)[] = Array(prices.length).fill(null);
+  
+  // Calculate SMA for each price point
+  for (let i = period - 1; i < prices.length; i++) {
+    // Get the subset of prices for this window
+    const window = prices.slice(i - (period - 1), i + 1);
+    // Calculate the average of this window
+    const average = window.reduce((sum, price) => sum + price, 0) / period;
+    // Store the SMA value
+    smaValues[i] = average;
+  }
+  
+  return smaValues;
+}
+
+/**
+ * Calculate multiple Simple Moving Averages at once
+ * 
+ * @param prices Array of closing prices in chronological order (oldest to newest)
+ * @param periods Array of periods to calculate SMA for (e.g. [50, 200])
+ * @returns Object with each period as key and array of SMA values as value
+ */
+export function calculateMultipleSMA(
+  prices: number[], 
+  periods: number[] = [50, 200]
+): Record<number, (number | null)[]> {
+  const result: Record<number, (number | null)[]> = {};
+  
+  for (const period of periods) {
+    result[period] = calculateSMA(prices, period);
+  }
+  
+  return result;
+}

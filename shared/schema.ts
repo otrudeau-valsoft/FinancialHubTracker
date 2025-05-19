@@ -282,6 +282,43 @@ export const insertMacdDataSchema = createInsertSchema(macdData).omit({
 export type InsertMacdData = z.infer<typeof insertMacdDataSchema>;
 export type MacdData = typeof macdData.$inferSelect;
 
+// Moving Average Data - Separate table for MA indicator values
+export const movingAverageData = pgTable(
+  "moving_average_data",
+  {
+    id: serial("id").primaryKey(),
+    historicalPriceId: integer("historical_price_id").notNull().references(() => historicalPrices.id),
+    symbol: text("symbol").notNull(),
+    date: date("date").notNull(),
+    region: text("region").notNull(),
+    ma50: numeric("ma50"),           // 50-day Simple Moving Average
+    ma200: numeric("ma200"),         // 200-day Simple Moving Average
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => {
+    return {
+      // Add a unique constraint on historical_price_id to prevent duplicates
+      historicalPriceIdIdx: uniqueIndex("moving_average_data_historical_price_id_key").on(
+        table.historicalPriceId
+      ),
+      // Add an index on symbol, date, and region for faster lookups
+      symbolDateRegionIdx: uniqueIndex("moving_average_data_symbol_date_region_key").on(
+        table.symbol,
+        table.date,
+        table.region
+      ),
+    };
+  }
+);
+
+export const insertMovingAverageDataSchema = createInsertSchema(movingAverageData).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertMovingAverageData = z.infer<typeof insertMovingAverageDataSchema>;
+export type MovingAverageData = typeof movingAverageData.$inferSelect;
+
 // Matrix Rules Schema
 export const matrixRules = pgTable("matrix_rules", {
   id: serial("id").primaryKey(),
