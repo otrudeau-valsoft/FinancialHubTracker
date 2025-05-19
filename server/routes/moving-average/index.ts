@@ -2,18 +2,18 @@
  * Moving Average Routes
  */
 
-import { Router } from 'express';
+import express from 'express';
 import * as MovingAverageController from '../../controllers/moving-average-controller';
 
-const router = Router();
+const router = express.Router();
 
-// Get moving average data for a specific symbol and region
+// Get Moving Average data for a symbol and region
 router.get('/:symbol/:region', MovingAverageController.getMovingAverageData);
 
-// Calculate and update moving averages for a specific symbol
+// Calculate Moving Average data for a specific symbol and region
 router.post('/calculate/:symbol/:region', MovingAverageController.calculateMovingAverageData);
 
-// Calculate and update moving averages for all stocks in a portfolio
-router.post('/calculate-portfolio/:region', MovingAverageController.calculateMovingAveragesForPortfolio);
+// Calculate Moving Average data for all symbols in a portfolio
+router.post('/calculate-portfolio/:region', MovingAverageController.calculatePortfolioMovingAverages);
 
 export default router;

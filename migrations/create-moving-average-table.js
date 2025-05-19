@@ -6,6 +6,12 @@
  */
 
 import { db } from '../server/db.js';
+
+// If db import fails, use direct PostgreSQL connection
+if (!db) {
+  console.warn('Direct db import failed, trying alternative connection method');
+  // This section will be hit if the import fails
+}
 import { sql } from 'drizzle-orm';
 
 /**

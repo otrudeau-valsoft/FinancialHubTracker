@@ -5,34 +5,26 @@
  */
 
 import { Request, Response } from 'express';
-import { movingAverageService } from '../services/moving-average-service';
-import { historicalPriceService } from '../services/historical-price-service';
-import { storage } from '../db-storage';
-import { AppError } from '../middleware/error-handler';
+import * as MovingAverageService from '../services/moving-average-service';
 
 /**
  * Get Moving Average data for a specific symbol and region
  */
 export const getMovingAverageData = async (req: Request, res: Response) => {
+  const { symbol, region } = req.params;
+  const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+  
   try {
-    const { symbol, region } = req.params;
-    
-    if (!symbol || !region) {
-      throw new AppError('Symbol and region are required', 400);
-    }
-    
-    // Get the moving average data
-    const maData = await storage.getMovingAverageData(symbol, region);
-    
+    const data = await MovingAverageService.getMovingAverageData(symbol, region, limit);
     return res.json({
       status: 'success',
-      data: maData
+      data
     });
   } catch (error) {
-    console.error('Error getting Moving Average data:', error);
-    return res.status(error instanceof AppError ? error.statusCode : 500).json({
+    console.error(`Error fetching Moving Average data for ${symbol} (${region}):`, error);
+    return res.status(500).json({
       status: 'error',
-      message: error instanceof Error ? error.message : 'Unknown error retrieving Moving Average data'
+      error: 'Failed to fetch Moving Average data'
     });
   }
 };
@@ -41,33 +33,20 @@ export const getMovingAverageData = async (req: Request, res: Response) => {
  * Calculate and update Moving Average data for a specific symbol
  */
 export const calculateMovingAverageData = async (req: Request, res: Response) => {
+  const { symbol, region } = req.params;
+  
   try {
-    const { symbol, region } = req.params;
-    const { forceRefresh } = req.query;
-    
-    if (!symbol || !region) {
-      throw new AppError('Symbol and region are required', 400);
-    }
-    
-    // Determine if we should force a refresh
-    const shouldForceRefresh = forceRefresh === 'true';
-    
-    // Calculate and update moving averages
-    const result = await movingAverageService.calculateAndUpdateMovingAverages(
-      symbol,
-      region,
-      shouldForceRefresh
-    );
-    
+    const processed = await MovingAverageService.calculateAndStoreMovingAverages(symbol, region);
     return res.json({
       status: 'success',
-      data: result
+      message: `Successfully processed ${processed} Moving Average data points for ${symbol} (${region})`,
+      dataPointsProcessed: processed
     });
   } catch (error) {
-    console.error('Error calculating Moving Average data:', error);
-    return res.status(error instanceof AppError ? error.statusCode : 500).json({
+    console.error(`Error calculating Moving Average data for ${symbol} (${region}):`, error);
+    return res.status(500).json({
       status: 'error',
-      message: error instanceof Error ? error.message : 'Unknown error calculating Moving Average data'
+      error: 'Failed to calculate Moving Average data'
     });
   }
 };
@@ -75,71 +54,21 @@ export const calculateMovingAverageData = async (req: Request, res: Response) =>
 /**
  * Calculate and update Moving Average data for all symbols in a portfolio
  */
-export const calculateMovingAveragesForPortfolio = async (req: Request, res: Response) => {
+export const calculatePortfolioMovingAverages = async (req: Request, res: Response) => {
+  const { region } = req.params;
+  
   try {
-    const { region } = req.params;
-    const { forceRefresh } = req.query;
-    
-    if (!region) {
-      throw new AppError('Region is required', 400);
-    }
-    
-    // Determine if we should force a refresh
-    const shouldForceRefresh = forceRefresh === 'true';
-    
-    // Get all stocks in this portfolio
-    const stocks = await storage.getPortfolioStocks(region);
-    
-    if (!stocks || stocks.length === 0) {
-      return res.json({
-        status: 'success',
-        data: {
-          message: `No stocks found in ${region} portfolio`,
-          updated: 0
-        }
-      });
-    }
-    
-    // Process each stock's moving averages
-    const results = [];
-    
-    for (const stock of stocks) {
-      try {
-        const result = await movingAverageService.calculateAndUpdateMovingAverages(
-          stock.symbol,
-          region,
-          shouldForceRefresh
-        );
-        results.push({
-          symbol: stock.symbol,
-          success: true,
-          result
-        });
-      } catch (error) {
-        console.error(`Error calculating Moving Averages for ${stock.symbol}:`, error);
-        results.push({
-          symbol: stock.symbol,
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
-      }
-      
-      // Add a brief pause between stocks to avoid overwhelming the database
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-    
+    const processed = await MovingAverageService.calculateMovingAveragesForPortfolio(region);
     return res.json({
       status: 'success',
-      data: {
-        processed: stocks.length,
-        results
-      }
+      message: `Successfully processed ${processed} Moving Average data points for ${region} portfolio`,
+      dataPointsProcessed: processed
     });
   } catch (error) {
-    console.error('Error calculating Moving Averages for portfolio:', error);
-    return res.status(error instanceof AppError ? error.statusCode : 500).json({
+    console.error(`Error calculating Moving Average data for ${region} portfolio:`, error);
+    return res.status(500).json({
       status: 'error',
-      message: error instanceof Error ? error.message : 'Unknown error calculating Moving Averages for portfolio'
+      error: 'Failed to calculate Moving Average data for portfolio'
     });
   }
 };

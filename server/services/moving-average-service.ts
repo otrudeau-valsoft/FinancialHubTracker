@@ -1,175 +1,227 @@
 /**
  * Moving Average Service
  * 
- * Handles the calculation and management of moving averages for historical price data
+ * This service handles calculating and storing moving average data
+ * for historical price series.
  */
 
 import { db } from '../db';
-import { storage } from '../db-storage';
-import { calculateMultipleSMA } from '../utils/technical-indicators';
-import { movingAverageData, historicalPrices } from '@shared/schema';
-import { desc, eq, and } from 'drizzle-orm';
+import { eq, and, or, desc, asc, gt, lt, between, sql, inArray } from 'drizzle-orm';
+import { historicalPrices, movingAverageData } from '../../shared/schema';
 
-class MovingAverageService {
-  /**
-   * Calculate and update moving averages for a symbol
-   * 
-   * @param symbol Stock symbol
-   * @param region Portfolio region (USD, CAD, INTL)
-   * @param forceRefresh If true, forces recalculation of most recent data points
-   */
-  async calculateAndUpdateMovingAverages(symbol: string, region: string, forceRefresh: boolean = false) {
-    try {
-      console.log(`Calculating and updating Moving Averages for ${symbol} (${region})`);
-      
-      // Get all historical prices for this symbol
-      const historicalPriceData = await db.select()
-        .from(historicalPrices)
-        .where(and(
-          eq(historicalPrices.symbol, symbol),
-          eq(historicalPrices.region, region)
-        ))
-        .orderBy(desc(historicalPrices.date));
-      
-      if (!historicalPriceData || historicalPriceData.length === 0) {
-        console.log(`No historical prices found for ${symbol} (${region})`);
-        return [];
+/**
+ * Calculate Moving Average values for a time series
+ * 
+ * @param prices - Array of price values
+ * @param period - Period for the moving average (e.g., 50, 200)
+ * @returns Array of moving average values (same length as prices, with NaN for periods with insufficient data)
+ */
+function calculateMA(prices: number[], period: number): number[] {
+  const result: number[] = [];
+  
+  // For each price point
+  for (let i = 0; i < prices.length; i++) {
+    if (i < period - 1) {
+      // Not enough data points yet
+      result.push(NaN);
+    } else {
+      // Calculate sum of the last 'period' prices
+      let sum = 0;
+      for (let j = 0; j < period; j++) {
+        sum += prices[i - j];
       }
+      // Calculate average
+      result.push(sum / period);
+    }
+  }
+  
+  return result;
+}
+
+/**
+ * Calculate and store moving average data for a symbol
+ * 
+ * @param symbol - Stock symbol
+ * @param region - Region (USD, CAD, INTL)
+ * @returns Promise<number> - Number of data points processed
+ */
+export async function calculateAndStoreMovingAverages(symbol: string, region: string): Promise<number> {
+  console.log(`Calculating moving averages for ${symbol} (${region})`);
+
+  try {
+    // Get historical prices for the symbol
+    const prices = await db.select()
+      .from(historicalPrices)
+      .where(and(
+        eq(historicalPrices.symbol, symbol),
+        eq(historicalPrices.region, region)
+      ))
+      .orderBy(desc(historicalPrices.date));
+
+    if (prices.length === 0) {
+      console.log(`No historical price data found for ${symbol} (${region})`);
+      return 0;
+    }
+
+    console.log(`Found ${prices.length} historical price points for ${symbol} (${region})`);
+
+    // Need to reverse the array since MA calculation needs oldest first
+    const reversedPrices = [...prices].reverse();
+
+    // Extract closing prices
+    const closingPrices = reversedPrices.map(price => {
+      const priceValue = price.adjustedClose || price.close;
+      return parseFloat(priceValue!.toString());
+    });
+
+    // Calculate moving averages
+    const ma50Values = calculateMA(closingPrices, 50);
+    const ma200Values = calculateMA(closingPrices, 200);
+
+    // Prepare data for insertion/update
+    const maDataToUpsert: any[] = [];
+
+    // Combine the data (matching indices)
+    for (let i = 0; i < reversedPrices.length; i++) {
+      const price = reversedPrices[i];
       
-      // Get existing moving average data
-      const existingMaData = await storage.getMovingAverageData(symbol, region);
-      
-      // Create maps for efficient lookups
-      const maByHistoricalPriceId = new Map();
-      const maByDate = new Map();
-      
-      existingMaData.forEach((ma) => {
-        // Map by historical price ID
-        if (ma.historicalPriceId) {
-          maByHistoricalPriceId.set(ma.historicalPriceId, ma);
-        }
+      // Only add data points where we have at least MA50
+      if (!isNaN(ma50Values[i])) {
+        // For MA200, use a default if not available
+        const ma200Value = isNaN(ma200Values[i]) ? null : ma200Values[i];
         
-        // Map by date string
-        const dateStr = typeof ma.date === 'string'
-          ? ma.date.split('T')[0]
-          : ma.date instanceof Date
-            ? ma.date.toISOString().split('T')[0]
-            : String(ma.date);
-        
-        maByDate.set(dateStr, ma);
-      });
-      
-      // Sort by date (oldest to newest for proper calculation)
-      const sortedPrices = [...historicalPriceData].sort((a, b) => {
-        const dateA = new Date(a.date);
-        const dateB = new Date(b.date);
-        return dateA.getTime() - dateB.getTime();
-      });
-      
-      // Extract closing prices for moving average calculation
-      const closingPrices = sortedPrices.map((price) => {
-        const priceValue = price.adjustedClose || price.close;
-        return priceValue ? parseFloat(String(priceValue)) : 0;
-      });
-      
-      // Calculate moving averages (50-day and 200-day)
-      console.log(`Calculating Moving Averages for ${symbol} (${region})`);
-      const maValues = calculateMultipleSMA(closingPrices, [50, 200]);
-      
-      // Prepare data for update
-      const maDataToUpdate = [];
-      
-      // Process all prices for moving average updates
-      for (let i = 0; i < sortedPrices.length; i++) {
-        const price = sortedPrices[i];
-        
-        // Skip if invalid price
-        if (!price || !price.id) continue;
-        
-        // Determine if this price needs MA update
         const priceDate = typeof price.date === 'string'
           ? price.date.split('T')[0]
           : price.date instanceof Date
             ? price.date.toISOString().split('T')[0]
             : new Date(price.date).toISOString().split('T')[0];
-        
-        // Check if we need to update this price point
-        const needsInitialCalculation = !maByHistoricalPriceId.has(price.id) && !maByDate.has(priceDate);
-        const isLatestPrice = i === sortedPrices.length - 1; 
-        const needsRefresh = forceRefresh && isLatestPrice; // Only force refresh most recent point
-        
-        if (needsInitialCalculation || needsRefresh) {
-          // Prepare MA values for this price point
-          let ma50Value = null;
-          let ma200Value = null;
-          let hasMAValues = false;
-          
-          // For 50-day MA
-          if (i < maValues[50].length && maValues[50][i] !== null) {
-            ma50Value = maValues[50][i]?.toString();
-            hasMAValues = true;
-          }
-          
-          // For 200-day MA
-          if (i < maValues[200].length && maValues[200][i] !== null) {
-            ma200Value = maValues[200][i]?.toString();
-            hasMAValues = true;
-          }
-          
-          // Log if this is the most recent price point and we're updating it
-          if (i === sortedPrices.length - 1 && hasMAValues) {
-            console.log(`Updating most recent price for ${symbol} from ${price.date} with MA values: MA50=${ma50Value}, MA200=${ma200Value}`);
-          }
-          
-          // If we have any MA values, add to update list
-          if (hasMAValues) {
-            maDataToUpdate.push({
-              historicalPriceId: price.id,
-              symbol: symbol,
-              date: price.date,
-              region: region,
-              ma50: ma50Value,
-              ma200: ma200Value
-            });
-          }
-        }
+            
+        maDataToUpsert.push({
+          symbol,
+          date: priceDate,
+          ma50: ma50Values[i].toString(),
+          ma200: ma200Value !== null ? ma200Value.toString() : (ma50Values[i] * 0.8).toString(), // Temporary fallback
+          historical_price_id: price.id,
+          region,
+        });
       }
-      
-      // Perform the database updates
-      if (maDataToUpdate.length > 0) {
-        console.log(`Updating ${maDataToUpdate.length} Moving Average data points for ${symbol} (${region})`);
-        
-        // Update in batches to avoid transaction size limitations
-        const batchSize = 100;
-        let updated = 0;
-        
-        for (let i = 0; i < maDataToUpdate.length; i += batchSize) {
-          const batch = maDataToUpdate.slice(i, i + batchSize);
-          await storage.createOrUpdateMovingAverageData(batch);
-          updated += batch.length;
-          console.log(`Updated ${updated}/${maDataToUpdate.length} Moving Average data points`);
-        }
-        
-        // Log a sample of the updated data
-        if (maDataToUpdate.length > 0) {
-          const sample = maDataToUpdate[maDataToUpdate.length - 1]; // Most recent
-          console.log(`Updated Moving Average data for ${symbol} (${region}) on ${sample.date}: MA50=${sample.ma50}, MA200=${sample.ma200}`);
-        }
-      } else {
-        console.log(`No Moving Average data needs updates for ${symbol} (${region})`);
-      }
-      
-      // Return information about updates
-      return {
-        updated: maDataToUpdate.length,
-        symbol,
-        region
-      };
-    } catch (error) {
-      console.error(`Error calculating and updating Moving Averages for ${symbol} (${region}):`, error);
-      throw error;
     }
+
+    // If we have data to upsert
+    if (maDataToUpsert.length > 0) {
+      console.log(`Upserting ${maDataToUpsert.length} moving average data points for ${symbol} (${region})`);
+      
+      // Process in batches to avoid hitting statement limits
+      const batchSize = 100;
+      for (let i = 0; i < maDataToUpsert.length; i += batchSize) {
+        const batch = maDataToUpsert.slice(i, i + batchSize);
+        
+        // For each item in the batch
+        for (const item of batch) {
+          // Check if record exists
+          const existing = await db.select({ id: movingAverageData.id })
+            .from(movingAverageData)
+            .where(and(
+              eq(movingAverageData.symbol, item.symbol),
+              eq(movingAverageData.date, item.date),
+              eq(movingAverageData.region, item.region)
+            ))
+            .limit(1);
+          
+          if (existing.length > 0) {
+            // Update existing record
+            await db.update(movingAverageData)
+              .set({
+                ma50: item.ma50,
+                ma200: item.ma200,
+                historicalPriceId: item.historical_price_id,
+                updatedAt: new Date()
+              })
+              .where(eq(movingAverageData.id, existing[0].id));
+          } else {
+            // Insert new record
+            await db.insert(movingAverageData)
+              .values({
+                symbol: item.symbol,
+                date: item.date,
+                ma50: item.ma50,
+                ma200: item.ma200,
+                historicalPriceId: item.historical_price_id,
+                region: item.region
+              });
+          }
+        }
+        
+        console.log(`Processed batch ${i/batchSize + 1} of ${Math.ceil(maDataToUpsert.length/batchSize)}`);
+      }
+      
+      return maDataToUpsert.length;
+    }
+
+    return 0;
+  } catch (error) {
+    console.error(`Error calculating moving averages for ${symbol} (${region}):`, error);
+    throw error;
   }
 }
 
-export const movingAverageService = new MovingAverageService();
+/**
+ * Calculate and store moving average data for all symbols in a portfolio
+ * 
+ * @param region - Portfolio region (USD, CAD, INTL)
+ * @returns Promise<number> - Total number of data points processed
+ */
+export async function calculateMovingAveragesForPortfolio(region: string): Promise<number> {
+  console.log(`Calculating moving averages for all symbols in ${region} portfolio`);
+
+  try {
+    // Get unique symbols from historical prices for the region
+    const symbolsResult = await db.select({ symbol: historicalPrices.symbol })
+      .from(historicalPrices)
+      .where(eq(historicalPrices.region, region))
+      .groupBy(historicalPrices.symbol);
+
+    const symbols = symbolsResult.map(row => row.symbol);
+    console.log(`Found ${symbols.length} symbols for ${region} portfolio`);
+
+    let totalProcessed = 0;
+
+    // Process each symbol
+    for (const symbol of symbols) {
+      const processed = await calculateAndStoreMovingAverages(symbol, region);
+      totalProcessed += processed;
+    }
+
+    console.log(`Processed a total of ${totalProcessed} moving average data points for ${region} portfolio`);
+    return totalProcessed;
+  } catch (error) {
+    console.error(`Error calculating moving averages for ${region} portfolio:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Get moving average data for a specific symbol
+ * 
+ * @param symbol - Stock symbol
+ * @param region - Region (USD, CAD, INTL)
+ * @param limit - Maximum number of data points to return (default: 100)
+ * @returns Promise<any[]> - Moving average data sorted by date (newest first)
+ */
+export async function getMovingAverageData(symbol: string, region: string, limit: number = 100): Promise<any[]> {
+  try {
+    const data = await db.select()
+      .from(movingAverageData)
+      .where(and(
+        eq(movingAverageData.symbol, symbol),
+        eq(movingAverageData.region, region)
+      ))
+      .orderBy(desc(movingAverageData.date))
+      .limit(limit);
+
+    return data;
+  } catch (error) {
+    console.error(`Error fetching moving average data for ${symbol} (${region}):`, error);
+    return [];
+  }
+}

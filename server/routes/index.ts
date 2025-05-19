@@ -77,6 +77,9 @@ router.use('/', earningsRoutes);
 // Market indices routes
 router.use('/market-indices', marketIndicesRoutes);
 
+// Moving Average routes
+router.use('/moving-average', movingAverageRoutes);
+
 // Diagnostics routes
 router.use('/diagnostics', diagnosticsRoutes);
 

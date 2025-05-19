@@ -5,7 +5,8 @@ import { dateToSQLDateString } from '../util';
 import { historicalPrices, type InsertHistoricalPrice, macdData, type InsertMacdData } from '@shared/schema';
 import { and, eq, desc, asc, sql } from 'drizzle-orm';
 import { calculateMultipleRSI, calculateMACD } from '../utils/technical-indicators';
-import { movingAverageService } from './moving-average-service';
+// We'll import moving average functions only if needed
+// import { calculateAndStoreMovingAverages } from './moving-average-service';
 
 // Rate limiting configuration for Yahoo Finance API - match the same settings as current-price-service
 const RATE_LIMIT = {
@@ -1009,12 +1010,8 @@ class HistoricalPriceService {
                 // Calculate RSI and MACD indicators
                 await this.calculateAndUpdateRSIForSymbol(symbol, region, forceRsiRefresh, forceMacdRefresh);
                 
-                // Calculate Moving Averages
-                try {
-                  await movingAverageService.calculateAndUpdateMovingAverages(symbol, region, forceRsiRefresh);
-                } catch (maError) {
-                  console.error(`Error calculating Moving Averages for ${symbol} (${region}):`, maError);
-                }
+                // Moving Average calculation is now handled separately
+                // We no longer calculate moving averages here to avoid circular dependencies
               } catch (error) {
                 console.error(`Error calculating indicators for ${symbol} (${region}):`, error);
               }
