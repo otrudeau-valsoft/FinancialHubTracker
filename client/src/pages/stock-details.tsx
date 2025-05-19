@@ -423,50 +423,68 @@ export default function StockDetailsPage() {
   
   // Function to merge historical prices with moving average data
   const getChartData = (timeRangeFilter: string = timeRange) => {
-    // If we don't have moving average data, just use historical prices
-    if (!movingAverageData || movingAverageData.length === 0 || !historicalPrices) {
-      return processHistoricalData(historicalPrices || [], timeRangeFilter);
+    // If we don't have historical prices, return empty array
+    if (!historicalPrices || historicalPrices.length === 0) {
+      return [];
     }
     
     // Process historical prices first with time range filter
     const processedHistorical = processHistoricalData(historicalPrices, timeRangeFilter);
     
-    // Create a map of dates to moving average values
-    const maByDate: Record<string, { ma50: number, ma200: number }> = {};
+    // If we don't have MA data, just return the historical data
+    if (!movingAverageData || movingAverageData.length === 0) {
+      return processedHistorical;
+    }
     
+    // Create a map of historical prices by date for easy lookup
+    const historicalByDate = {};
+    processedHistorical.forEach(price => {
+      const dateKey = typeof price.date === 'string' 
+        ? price.date.split('T')[0] 
+        : new Date(price.date).toISOString().split('T')[0];
+      historicalByDate[dateKey] = price;
+    });
+    
+    // Create complete dataset with both price and MA data
+    const combinedData = [];
+    
+    // Add data points from MA dataset (will include both price and MA)
     movingAverageData.forEach(ma => {
-      // Normalize date format to YYYY-MM-DD for consistent lookup
+      // Normalize date
       const dateKey = ma.date.split('T')[0];
       
-      maByDate[dateKey] = {
-        ma50: parseFloat(ma.ma50 || '0'),
-        ma200: parseFloat(ma.ma200 || '0')
-      };
-    });
-    
-    // Debug missing MA data
-    console.log('MA Data Map Keys:', Object.keys(maByDate).length);
-    console.log('Historical Data Points:', processedHistorical.length);
-    console.log('Sample MA Data:', Object.keys(maByDate).slice(0, 3));
-    
-    // Merge the data
-    return processedHistorical.map(point => {
-      // Get the date in YYYY-MM-DD format
-      const dateKey = typeof point.date === 'string'
-        ? point.date.split('T')[0]
-        : new Date(point.date).toISOString().split('T')[0];
-      
-      // If we have MA data for this date, add it to the data point
-      if (maByDate[dateKey]) {
-        return {
-          ...point,
-          ma50: maByDate[dateKey].ma50,
-          ma200: maByDate[dateKey].ma200
-        };
+      // Only include data points within our filtered time range
+      if (historicalByDate[dateKey]) {
+        const histPrice = historicalByDate[dateKey];
+        
+        combinedData.push({
+          ...histPrice,
+          ma50: parseFloat(ma.ma50 || '0'),
+          ma200: parseFloat(ma.ma200 || '0')
+        });
+        
+        // Remove this entry so we don't duplicate it
+        delete historicalByDate[dateKey];
       }
-      
-      return point;
     });
+    
+    // Add any remaining historical data points that didn't have MA data
+    Object.values(historicalByDate).forEach((price: any) => {
+      combinedData.push({
+        ...price,
+        ma50: null,
+        ma200: null
+      });
+    });
+    
+    // Sort the data by date (oldest to newest)
+    combinedData.sort((a: any, b: any) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return dateA - dateB;
+    });
+    
+    return combinedData;
   };
   
   // Fetch earnings data
