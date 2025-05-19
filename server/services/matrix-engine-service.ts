@@ -211,6 +211,26 @@ async function getStockData(region: Region): Promise<StockData[]> {
       macdMap.set(macd.symbol, macd);
     });
     
+    // Get latest Moving Average values
+    const movingAverageValues = await db.select({
+      symbol: movingAverageData.symbol,
+      ma50: movingAverageData.ma50,
+      ma200: movingAverageData.ma200
+    })
+    .from(movingAverageData)
+    .where(and(
+      eq(movingAverageData.region, region),
+      inArray(movingAverageData.symbol, symbols)
+    ))
+    .orderBy(desc(movingAverageData.date))
+    .limit(symbols.length);
+    
+    // Create a map of Moving Average values
+    const movingAverageMap = new Map<string, any>();
+    movingAverageValues.forEach(ma => {
+      movingAverageMap.set(ma.symbol, ma);
+    });
+    
     // Get historical prices for calculating moving averages and price changes
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
@@ -233,7 +253,7 @@ async function getStockData(region: Region): Promise<StockData[]> {
       historicalPricesBySymbol.get(price.symbol)!.push(price);
     });
     
-    // Calculate 90-day price changes and moving averages
+    // Calculate 90-day price changes and initialize moving averages maps
     const priceChangeMap = new Map<string, number>();
     const ma50Map = new Map<string, number>();
     const ma200Map = new Map<string, number>();
@@ -251,19 +271,33 @@ async function getStockData(region: Region): Promise<StockData[]> {
           priceChangeMap.set(symbol, priceChange90d);
         }
         
-        // Calculate 50-day moving average (if we have enough data)
-        if (prices.length >= 50) {
-          const last50Prices = prices.slice(0, 50);
-          const sum50 = last50Prices.reduce((acc, price) => acc + parseFloat(price.close.toString()), 0);
-          ma50Map.set(symbol, sum50 / 50);
-        }
-        
-        // Calculate 200-day moving average (if we have enough data)
-        // Note: We may not have 200 days in our query, this is just for illustration
-        if (prices.length >= 200) {
-          const last200Prices = prices.slice(0, 200);
-          const sum200 = last200Prices.reduce((acc, price) => acc + parseFloat(price.close.toString()), 0);
-          ma200Map.set(symbol, sum200 / 200);
+        // Use the dedicated Moving Average data if available
+        const movingAverageData = movingAverageMap.get(symbol);
+        if (movingAverageData) {
+          // Use MA50 from dedicated moving average data
+          if (movingAverageData.ma50) {
+            ma50Map.set(symbol, parseFloat(movingAverageData.ma50.toString()));
+          }
+          
+          // Use MA200 from dedicated moving average data
+          if (movingAverageData.ma200) {
+            ma200Map.set(symbol, parseFloat(movingAverageData.ma200.toString()));
+          }
+        } else {
+          // Fallback to calculating from historical prices if no dedicated MA data
+          // Calculate 50-day moving average (if we have enough data)
+          if (prices.length >= 50) {
+            const last50Prices = prices.slice(0, 50);
+            const sum50 = last50Prices.reduce((acc, price) => acc + parseFloat(price.close.toString()), 0);
+            ma50Map.set(symbol, sum50 / 50);
+          }
+          
+          // Calculate 200-day moving average (if we have enough data)
+          if (prices.length >= 200) {
+            const last200Prices = prices.slice(0, 200);
+            const sum200 = last200Prices.reduce((acc, price) => acc + parseFloat(price.close.toString()), 0);
+            ma200Map.set(symbol, sum200 / 200);
+          }
         }
       }
     });
@@ -422,6 +456,52 @@ function evaluateRule(rule: MatrixRule, stock: StockData): boolean {
           
           // For "above" logic, trigger if RSI is above threshold
           return rule.evaluationLogic === 'above' && stock.rsi14 >= threshold;
+        }
+        
+        default:
+          return false;
+      }
+    }
+    
+    case 'moving_average_data': {
+      // Rules using moving average data
+      switch (rule.ruleId) {
+        case 'ma50-above-ma200': {
+          // 50-day MA is above 200-day MA (golden cross)
+          if (!stock.ma50 || !stock.ma200) return false;
+          
+          // For "above" logic, trigger if 50-day MA is above 200-day MA
+          return rule.evaluationLogic === 'above' && stock.ma50 > stock.ma200;
+        }
+        
+        case 'ma50-below-ma200': {
+          // 50-day MA is below 200-day MA (death cross)
+          if (!stock.ma50 || !stock.ma200) return false;
+          
+          // For "below" logic, trigger if 50-day MA is below 200-day MA
+          return rule.evaluationLogic === 'below' && stock.ma50 < stock.ma200;
+        }
+        
+        case 'price-above-ma50': {
+          // Price is above 50-day moving average
+          if (!stock.currentPrice || !stock.ma50) return false;
+          
+          // Calculate how far above 50-day MA
+          const priceDiff = (stock.currentPrice - stock.ma50) / stock.ma50;
+          
+          // For "above" logic, trigger if price is above MA by at least threshold
+          return rule.evaluationLogic === 'above' && priceDiff >= threshold;
+        }
+        
+        case 'price-below-ma50': {
+          // Price is below 50-day moving average
+          if (!stock.currentPrice || !stock.ma50) return false;
+          
+          // Calculate how far below 50-day MA
+          const priceDiff = (stock.ma50 - stock.currentPrice) / stock.ma50;
+          
+          // For "below" logic, trigger if price is below MA by at least threshold
+          return rule.evaluationLogic === 'below' && priceDiff >= threshold;
         }
         
         default:
