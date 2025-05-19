@@ -244,9 +244,53 @@ export const MatrixEngineControls = () => {
                 {alertsUSD.length === 0 ? (
                   <p className="text-center text-[#7A8999] py-2 text-xs">No alerts generated</p>
                 ) : (
-                  alertsUSD.map((alert, index) => (
-                    <AlertCard key={`usd-alert-${index}`} alert={alert} />
-                  ))
+                  <div>
+                    {/* Group alerts by their type for better organization */}
+                    {alertsUSD.some(alert => alert.ruleType.includes('increase') || alert.ruleType.includes('max-weight') || alert.ruleType.includes('rsi-low')) && (
+                      <div className="mb-3">
+                        <div className="flex items-center mb-2">
+                          <div className="h-0.5 w-3 bg-[#4CAF50] mr-2"></div>
+                          <h4 className="text-[#4CAF50] font-mono text-xs">INCREASE POSITION</h4>
+                        </div>
+                        {alertsUSD
+                          .filter(alert => alert.ruleType.includes('increase') || alert.ruleType.includes('max-weight') || alert.ruleType.includes('rsi-low'))
+                          .map((alert, index) => (
+                            <AlertCard key={`usd-increase-${index}`} alert={alert} />
+                          ))
+                        }
+                      </div>
+                    )}
+                    
+                    {alertsUSD.some(alert => alert.ruleType.includes('decrease') || alert.ruleType.includes('rsi-high')) && (
+                      <div className="mb-3">
+                        <div className="flex items-center mb-2">
+                          <div className="h-0.5 w-3 bg-[#FF3D00] mr-2"></div>
+                          <h4 className="text-[#FF3D00] font-mono text-xs">DECREASE POSITION</h4>
+                        </div>
+                        {alertsUSD
+                          .filter(alert => alert.ruleType.includes('decrease') || alert.ruleType.includes('rsi-high'))
+                          .map((alert, index) => (
+                            <AlertCard key={`usd-decrease-${index}`} alert={alert} />
+                          ))
+                        }
+                      </div>
+                    )}
+                    
+                    {alertsUSD.some(alert => alert.ruleType.includes('rating')) && (
+                      <div className="mb-3">
+                        <div className="flex items-center mb-2">
+                          <div className="h-0.5 w-3 bg-[#805AD5] mr-2"></div>
+                          <h4 className="text-[#805AD5] font-mono text-xs">RATING CHANGE</h4>
+                        </div>
+                        {alertsUSD
+                          .filter(alert => alert.ruleType.includes('rating'))
+                          .map((alert, index) => (
+                            <AlertCard key={`usd-rating-${index}`} alert={alert} />
+                          ))
+                        }
+                      </div>
+                    )}
+                  </div>
                 )}
               </TabsContent>
               
@@ -254,9 +298,53 @@ export const MatrixEngineControls = () => {
                 {alertsCAD.length === 0 ? (
                   <p className="text-center text-[#7A8999] py-2 text-xs">No alerts generated</p>
                 ) : (
-                  alertsCAD.map((alert, index) => (
-                    <AlertCard key={`cad-alert-${index}`} alert={alert} />
-                  ))
+                  <div>
+                    {/* Group alerts by their type for better organization */}
+                    {alertsCAD.some(alert => alert.ruleType.includes('increase') || alert.ruleType.includes('max-weight') || alert.ruleType.includes('rsi-low')) && (
+                      <div className="mb-3">
+                        <div className="flex items-center mb-2">
+                          <div className="h-0.5 w-3 bg-[#4CAF50] mr-2"></div>
+                          <h4 className="text-[#4CAF50] font-mono text-xs">INCREASE POSITION</h4>
+                        </div>
+                        {alertsCAD
+                          .filter(alert => alert.ruleType.includes('increase') || alert.ruleType.includes('max-weight') || alert.ruleType.includes('rsi-low'))
+                          .map((alert, index) => (
+                            <AlertCard key={`cad-increase-${index}`} alert={alert} />
+                          ))
+                        }
+                      </div>
+                    )}
+                    
+                    {alertsCAD.some(alert => alert.ruleType.includes('decrease') || alert.ruleType.includes('rsi-high')) && (
+                      <div className="mb-3">
+                        <div className="flex items-center mb-2">
+                          <div className="h-0.5 w-3 bg-[#FF3D00] mr-2"></div>
+                          <h4 className="text-[#FF3D00] font-mono text-xs">DECREASE POSITION</h4>
+                        </div>
+                        {alertsCAD
+                          .filter(alert => alert.ruleType.includes('decrease') || alert.ruleType.includes('rsi-high'))
+                          .map((alert, index) => (
+                            <AlertCard key={`cad-decrease-${index}`} alert={alert} />
+                          ))
+                        }
+                      </div>
+                    )}
+                    
+                    {alertsCAD.some(alert => alert.ruleType.includes('rating')) && (
+                      <div className="mb-3">
+                        <div className="flex items-center mb-2">
+                          <div className="h-0.5 w-3 bg-[#805AD5] mr-2"></div>
+                          <h4 className="text-[#805AD5] font-mono text-xs">RATING CHANGE</h4>
+                        </div>
+                        {alertsCAD
+                          .filter(alert => alert.ruleType.includes('rating'))
+                          .map((alert, index) => (
+                            <AlertCard key={`cad-rating-${index}`} alert={alert} />
+                          ))
+                        }
+                      </div>
+                    )}
+                  </div>
                 )}
               </TabsContent>
               
@@ -264,9 +352,53 @@ export const MatrixEngineControls = () => {
                 {alertsINTL.length === 0 ? (
                   <p className="text-center text-[#7A8999] py-2 text-xs">No alerts generated</p>
                 ) : (
-                  alertsINTL.map((alert, index) => (
-                    <AlertCard key={`intl-alert-${index}`} alert={alert} />
-                  ))
+                  <div>
+                    {/* Group alerts by their type for better organization */}
+                    {alertsINTL.some(alert => alert.ruleType.includes('increase') || alert.ruleType.includes('max-weight') || alert.ruleType.includes('rsi-low')) && (
+                      <div className="mb-3">
+                        <div className="flex items-center mb-2">
+                          <div className="h-0.5 w-3 bg-[#4CAF50] mr-2"></div>
+                          <h4 className="text-[#4CAF50] font-mono text-xs">INCREASE POSITION</h4>
+                        </div>
+                        {alertsINTL
+                          .filter(alert => alert.ruleType.includes('increase') || alert.ruleType.includes('max-weight') || alert.ruleType.includes('rsi-low'))
+                          .map((alert, index) => (
+                            <AlertCard key={`intl-increase-${index}`} alert={alert} />
+                          ))
+                        }
+                      </div>
+                    )}
+                    
+                    {alertsINTL.some(alert => alert.ruleType.includes('decrease') || alert.ruleType.includes('rsi-high')) && (
+                      <div className="mb-3">
+                        <div className="flex items-center mb-2">
+                          <div className="h-0.5 w-3 bg-[#FF3D00] mr-2"></div>
+                          <h4 className="text-[#FF3D00] font-mono text-xs">DECREASE POSITION</h4>
+                        </div>
+                        {alertsINTL
+                          .filter(alert => alert.ruleType.includes('decrease') || alert.ruleType.includes('rsi-high'))
+                          .map((alert, index) => (
+                            <AlertCard key={`intl-decrease-${index}`} alert={alert} />
+                          ))
+                        }
+                      </div>
+                    )}
+                    
+                    {alertsINTL.some(alert => alert.ruleType.includes('rating')) && (
+                      <div className="mb-3">
+                        <div className="flex items-center mb-2">
+                          <div className="h-0.5 w-3 bg-[#805AD5] mr-2"></div>
+                          <h4 className="text-[#805AD5] font-mono text-xs">RATING CHANGE</h4>
+                        </div>
+                        {alertsINTL
+                          .filter(alert => alert.ruleType.includes('rating'))
+                          .map((alert, index) => (
+                            <AlertCard key={`intl-rating-${index}`} alert={alert} />
+                          ))
+                        }
+                      </div>
+                    )}
+                  </div>
                 )}
               </TabsContent>
             </Tabs>
