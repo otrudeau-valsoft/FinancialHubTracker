@@ -1456,7 +1456,7 @@ export default function StockDetailsPage() {
                   <div className="h-48">
                     <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart
-                        data={processHistoricalData(historicalPrices, timeRange)}
+                        data={getChartData()}
                         margin={{ top: 10, right: 10, left: 20, bottom: 20 }}
                         syncId="stockChart" // Synchronize with main chart
                       >
@@ -1482,7 +1482,14 @@ export default function StockDetailsPage() {
                             if (name === 'ma200') return [`${formatCurrency(value, 2)}`, '200-Day MA'];
                             return [value, name];
                           }}
-                          labelFormatter={(label) => `Date: ${label}`}
+                          labelFormatter={(label, payload) => {
+                            // If we have payload data with a date, use that for a more detailed label
+                            if (payload && payload.length > 0 && payload[0].payload.date) {
+                              const date = new Date(payload[0].payload.date);
+                              return `Date: ${format(date, 'MMM d, yyyy')}`;
+                            }
+                            return `Date: ${label}`;
+                          }}
                           contentStyle={{ 
                             backgroundColor: '#0B1728', 
                             borderColor: '#1A304A',
