@@ -5,51 +5,66 @@
  * indicator values for historical prices.
  */
 
-import { pool } from '../server/db.js';
+import { db } from '../server/db.js';
+import { sql } from 'drizzle-orm';
 
 /**
  * Run the migration to create the moving_average_data table
  */
 async function runMigration() {
-  console.log('Starting migration: Creating moving_average_data table...');
-  
+  console.log('Creating moving_average_data table...');
+
   try {
-    // Create the table for storing moving average data
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS moving_average_data (
-        id SERIAL PRIMARY KEY,
-        historical_price_id INTEGER NOT NULL REFERENCES historical_prices(id) ON DELETE CASCADE,
-        symbol TEXT NOT NULL,
-        date DATE NOT NULL,
-        region TEXT NOT NULL,
-        ma50 NUMERIC,
-        ma200 NUMERIC,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW(),
-        UNIQUE(historical_price_id)
+    // Create the moving_average_data table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "moving_average_data" (
+        "id" SERIAL PRIMARY KEY,
+        "symbol" TEXT NOT NULL,
+        "date" TEXT NOT NULL,
+        "ma50" TEXT NOT NULL,
+        "ma200" TEXT NOT NULL,
+        "historical_price_id" INTEGER,
+        "region" TEXT NOT NULL,
+        "updated_at" TIMESTAMP DEFAULT NOW() NOT NULL
       );
     `);
 
-    console.log('Created moving_average_data table successfully');
-    
-    // Add index for faster lookups
-    await pool.query(`
-      CREATE INDEX IF NOT EXISTS idx_moving_average_data_symbol_region 
-      ON moving_average_data(symbol, region);
-    `);
-    
-    await pool.query(`
-      CREATE INDEX IF NOT EXISTS idx_moving_average_data_date
-      ON moving_average_data(date);
+    // Add unique index on symbol, date, and region
+    await db.execute(sql`
+      CREATE UNIQUE INDEX IF NOT EXISTS "moving_avg_symbol_date_unique" 
+      ON "moving_average_data" ("symbol", "date", "region");
     `);
 
-    console.log('Created indices on moving_average_data table');
+    // Add unique index on historical_price_id
+    await db.execute(sql`
+      CREATE UNIQUE INDEX IF NOT EXISTS "moving_average_data_historical_price_id_key" 
+      ON "moving_average_data" ("historical_price_id");
+    `);
 
-    return { success: true, message: 'Successfully created moving_average_data table and indices' };
+    // Add index on symbol, date, and region for faster lookups
+    await db.execute(sql`
+      CREATE UNIQUE INDEX IF NOT EXISTS "moving_average_data_symbol_date_region_key" 
+      ON "moving_average_data" ("symbol", "date", "region");
+    `);
+
+    console.log('Successfully created moving_average_data table and indexes.');
   } catch (error) {
-    console.error('Migration failed:', error);
-    return { success: false, error };
+    console.error('Error creating moving_average_data table:', error);
+    throw error;
   }
+}
+
+// Execute the migration when this file is run directly
+if (process.argv[1] === new URL(import.meta.url).pathname) {
+  runMigration()
+    .then(() => {
+      console.log('Migration completed successfully');
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error('Migration failed:', error);
+      process.exit(1);
+    });
 }
 
 export { runMigration };
