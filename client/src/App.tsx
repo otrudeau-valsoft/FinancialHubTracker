@@ -9,6 +9,7 @@ import UsdPortfolio from "@/pages/usd-portfolio";
 import CadPortfolio from "@/pages/cad-portfolio";
 import IntlPortfolio from "@/pages/intl-portfolio";
 import MatrixRulesPage from "@/pages/matrix-rules";
+import MatrixEngine from "@/pages/matrix-engine";
 import EtfHoldings from "@/pages/etf-holdings";
 import DataManagement from "@/pages/data-management";
 import EarningsPage from "@/pages/earnings-page";
@@ -31,6 +32,7 @@ function Router() {
             <Route path="/cad-portfolio" component={CadPortfolio} />
             <Route path="/intl-portfolio" component={IntlPortfolio} />
             <Route path="/matrix-rules" component={MatrixRulesPage} />
+            <Route path="/matrix-engine" component={MatrixEngine} />
             <Route path="/etf-holdings" component={EtfHoldings} />
             <Route path="/data-management" component={DataManagement} />
             <Route path="/earnings" component={EarningsPage} />

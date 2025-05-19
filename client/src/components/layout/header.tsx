@@ -141,6 +141,12 @@ export function Header() {
                 className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 font-mono text-xs ${location === '/matrix-rules' ? 'bg-blue-900/30' : ''}`}
                 onClick={() => navigateTo("/matrix-rules")}
               >
+                MATRIX RULES
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 font-mono text-xs ${location === '/matrix-engine' ? 'bg-blue-900/30' : ''}`}
+                onClick={() => navigateTo("/matrix-engine")}
+              >
                 MATRIX ENGINE
               </DropdownMenuItem>
               <DropdownMenuItem 
@@ -307,6 +313,13 @@ export function Header() {
               <button 
                 onClick={() => navigateTo("/matrix-rules")} 
                 className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/matrix-rules' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
+              >
+                MATRIX RULES
+              </button>
+              
+              <button 
+                onClick={() => navigateTo("/matrix-engine")} 
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/matrix-engine' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
               >
                 MATRIX ENGINE
               </button>
