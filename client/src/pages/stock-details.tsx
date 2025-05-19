@@ -420,6 +420,49 @@ export default function StockDetailsPage() {
     { enabled: !!symbol && !!region }
   );
   
+  // Function to merge historical prices with moving average data
+  const getChartData = (timeRangeFilter: string = timeRange) => {
+    // If we don't have moving average data, just use historical prices
+    if (!movingAverageData || movingAverageData.length === 0 || !historicalPrices) {
+      return processHistoricalData(historicalPrices || [], timeRangeFilter);
+    }
+    
+    // Process historical prices first with time range filter
+    const processedHistorical = processHistoricalData(historicalPrices, timeRangeFilter);
+    
+    // Create a map of dates to moving average values
+    const maByDate: Record<string, { ma50: number, ma200: number }> = {};
+    
+    movingAverageData.forEach(ma => {
+      // Normalize date format to YYYY-MM-DD for consistent lookup
+      const dateKey = ma.date.split('T')[0];
+      
+      maByDate[dateKey] = {
+        ma50: parseFloat(ma.ma50 || '0'),
+        ma200: parseFloat(ma.ma200 || '0')
+      };
+    });
+    
+    // Merge the data
+    return processedHistorical.map(point => {
+      // Get the date in YYYY-MM-DD format
+      const dateKey = typeof point.date === 'string'
+        ? point.date.split('T')[0]
+        : new Date(point.date).toISOString().split('T')[0];
+      
+      // If we have MA data for this date, add it to the data point
+      if (maByDate[dateKey]) {
+        return {
+          ...point,
+          ma50: maByDate[dateKey].ma50,
+          ma200: maByDate[dateKey].ma200
+        };
+      }
+      
+      return point;
+    });
+  };
+  
   // Fetch earnings data
   const { data: earningsData } = useQuery({
     queryKey: ['earningsData', symbol],
