@@ -50,6 +50,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useToast } from '@/hooks/use-toast';
 import { Input } from "@/components/ui/input";
 import { processHistoricalData, useHistoricalPrices } from '@/hooks/use-historical-prices';
+import { useMovingAverageData, calculateMovingAverageData } from '@/hooks/use-moving-average';
 import { 
   Command, 
   CommandEmpty, 
@@ -409,6 +410,14 @@ export default function StockDetailsPage() {
   
   // Fetch historical price data for chart - use the hook for consistency
   const { data: historicalPrices, isLoading: isLoadingHistorical } = useHistoricalPrices(symbol, region);
+  
+  // Fetch moving average data separately
+  const { data: movingAverageData, isLoading: isLoadingMovingAverages, refetch: refetchMovingAverages } = useMovingAverageData(
+    symbol, 
+    region,
+    200, // Get last 200 data points
+    { enabled: !!symbol && !!region }
+  );
   
   // Fetch earnings data
   const { data: earningsData } = useQuery({
