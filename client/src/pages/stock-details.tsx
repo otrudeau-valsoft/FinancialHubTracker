@@ -52,6 +52,7 @@ import { Input } from "@/components/ui/input";
 import { processHistoricalData, useHistoricalPrices } from '@/hooks/use-historical-prices';
 import { startOfDay, format } from 'date-fns';
 import { useMovingAverageData, calculateMovingAverageData } from '@/hooks/use-moving-average';
+import { MovingAverageChart } from '@/components/moving-average-chart';
 import { 
   Command, 
   CommandEmpty, 
