@@ -338,6 +338,7 @@ export default function StockDetailsPage() {
   const [timeRange, setTimeRange] = useState<'1m' | '3m' | '6m' | '1y' | '5y'>('3m');
   const [showRSI, setShowRSI] = useState<boolean>(true); // Default to showing RSI
   const [rsiPeriod, setRsiPeriod] = useState<'9' | '14' | '21'>('21'); // Default to 21-period RSI
+  const [showMovingAverages, setShowMovingAverages] = useState<boolean>(true); // Default to showing MAs
   // MACD is now always visible (no toggle)
   
   // Get symbol and region from URL
