@@ -6,7 +6,7 @@
  */
 
 import { db } from '../db';
-import { alerts, currentPrices, historicalPrices, rsiData, macdData, portfolioUSD, portfolioCAD, portfolioINTL } from '../../shared/schema';
+import { alerts, currentPrices, historicalPrices, rsiData, macdData, movingAverageData, portfolioUSD, portfolioCAD, portfolioINTL } from '../../shared/schema';
 import { eq, and, or, desc, asc, gt, lt, between, sql, inArray } from 'drizzle-orm';
 import { MATRIX_THRESHOLDS } from '../routes/matrix-thresholds';
 import yahooFinance from 'yahoo-finance2';
@@ -27,7 +27,7 @@ type Rating = typeof RATINGS[number];
 type ActionType = 'Increase' | 'Decrease' | 'Rating';
 
 // Matrix rule data source types
-type DataSource = 'historical_prices' | 'rsi_data' | 'macd_data' | 'market_indices' | 'portfolio' | 'earnings';
+type DataSource = 'historical_prices' | 'rsi_data' | 'macd_data' | 'moving_average_data' | 'market_indices' | 'portfolio' | 'earnings';
 
 // Matrix rule to evaluate
 interface MatrixRule {
