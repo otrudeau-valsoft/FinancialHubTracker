@@ -416,7 +416,7 @@ export default function MatrixEngine() {
         ) : (
           <PortfolioTable
             stocks={usdStocks || []}
-            region={activeRegion}
+            region={activeRegion as "USD" | "CAD" | "INTL"}
             currentPrices={currentPrices || []}
           />
         )}

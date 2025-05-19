@@ -8,7 +8,7 @@ import Dashboard from "@/pages/dashboard";
 import UsdPortfolio from "@/pages/usd-portfolio";
 import CadPortfolio from "@/pages/cad-portfolio";
 import IntlPortfolio from "@/pages/intl-portfolio";
-import MatrixRulesPage from "@/pages/matrix-rules";
+
 import MatrixEngine from "@/pages/matrix-engine";
 import EtfHoldings from "@/pages/etf-holdings";
 import DataManagement from "@/pages/data-management";
@@ -26,12 +26,11 @@ function Router() {
       <div className="flex-1 overflow-hidden">
         <main className="h-full overflow-y-auto focus:outline-none bg-background">
           <Switch>
-            <Route path="/" component={UsdPortfolio} />
+            <Route path="/" component={MatrixEngine} />
             <Route path="/dashboard" component={Dashboard} />
             <Route path="/usd-portfolio" component={UsdPortfolio} />
             <Route path="/cad-portfolio" component={CadPortfolio} />
             <Route path="/intl-portfolio" component={IntlPortfolio} />
-            <Route path="/matrix-rules" component={MatrixRulesPage} />
             <Route path="/matrix-engine" component={MatrixEngine} />
             <Route path="/etf-holdings" component={EtfHoldings} />
             <Route path="/data-management" component={DataManagement} />
