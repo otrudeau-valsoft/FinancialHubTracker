@@ -3,6 +3,7 @@ import portfolioRoutes from './portfolio/portfolio.routes';
 import etfRoutes from './etf/etf.routes';
 import matrixRoutes from './matrix/matrix.routes';
 import matrixRulesMock from './matrix-rules-mock';
+import matrixEngineRoutes from './matrix-engine';
 import alertsRoutes from './alerts/alerts.routes';
 import { historicalPriceRoutes, currentPriceRoutes, performanceHistoryRoutes } from './price/price.routes';
 import dataRoutes from './data/data.routes';
@@ -32,6 +33,8 @@ router.use('/portfolios', portfolioRoutes);
 router.use('/etfs', etfRoutes);
 // Use the mock implementation for matrix rules for now
 router.use('/matrix-rules', matrixRulesMock);
+// Matrix engine routes
+router.use('/matrix-engine', matrixEngineRoutes);
 // Use the alerts route from the matrix rules mock as well
 router.get('/alerts', matrixRulesMock);
 
