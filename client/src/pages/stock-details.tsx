@@ -50,6 +50,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useToast } from '@/hooks/use-toast';
 import { Input } from "@/components/ui/input";
 import { processHistoricalData, useHistoricalPrices } from '@/hooks/use-historical-prices';
+import { startOfDay, format } from 'date-fns';
 import { useMovingAverageData, calculateMovingAverageData } from '@/hooks/use-moving-average';
 import { 
   Command, 
@@ -531,10 +532,27 @@ export default function StockDetailsPage() {
             queryKey: [`/api/historical-prices/${symbol}/${region}`]
           });
           
+          // Step 3: Generate Moving Average data
+          try {
+            console.log("Calculating Moving Average data for", symbol, region);
+            const maResponse = await calculateMovingAverageData(symbol, region);
+            console.log('Moving Average data calculation result:', maResponse);
+            
+            // Refetch moving average data
+            await refetchMovingAverages();
+            
+            // Also invalidate the Moving Average query
+            await queryClient.invalidateQueries({
+              queryKey: [`/api/moving-average/${symbol}/${region}`]
+            });
+          } catch (maError) {
+            console.error('Error calculating Moving Average data:', maError);
+          }
+
           // Show success toast
           toast({
             title: "Updated historical prices",
-            description: "Historical prices, RSI and MACD data have been updated",
+            description: "Historical prices, RSI, MACD and Moving Average data have been updated",
             variant: "default"
           });
         } else {
@@ -1365,17 +1383,22 @@ export default function StockDetailsPage() {
               </div>
               <div className="p-4">
                 {(() => {
-                  // Check if we have enough data for moving averages
-                  const hasMaData = historicalPrices && historicalPrices.some((price: any) => 
-                    price.ma50 !== null && price.ma50 !== undefined
-                  );
+                  // Check if we have moving average data from our dedicated endpoint
+                  const hasMaData = movingAverageData && movingAverageData.length > 0;
                   
-                  if (historicalPrices && historicalPrices.length > 0) {
-                    console.log(`Moving Average Data Check:`, {
+                  if (movingAverageData && movingAverageData.length > 0) {
+                    console.log(`Moving Average Data Check (from dedicated API):`, {
+                      totalDataPoints: movingAverageData.length,
+                      ma50Available: movingAverageData.some(point => point.ma50),
+                      ma200Available: movingAverageData.some(point => point.ma200),
+                      samplePoint: movingAverageData[0] // API returns newest first
+                    });
+                  } else if (historicalPrices && historicalPrices.length > 0) {
+                    // Fallback check on historical prices (legacy approach)
+                    console.log(`Moving Average Data Check (from historical prices - deprecated):`, {
                       totalPoints: historicalPrices.length,
                       ma50Datapoints: historicalPrices.filter((price: any) => price.ma50 !== null && price.ma50 !== undefined).length,
-                      ma200Datapoints: historicalPrices.filter((price: any) => price.ma200 !== null && price.ma200 !== undefined).length,
-                      samplePoint: historicalPrices[historicalPrices.length - 1]
+                      ma200Datapoints: historicalPrices.filter((price: any) => price.ma200 !== null && price.ma200 !== undefined).length
                     });
                   }
                   
