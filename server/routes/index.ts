@@ -2,6 +2,7 @@ import { Router } from 'express';
 import portfolioRoutes from './portfolio/portfolio.routes';
 import etfRoutes from './etf/etf.routes';
 import matrixRoutes from './matrix/matrix.routes';
+import matrixRulesMock from './matrix-rules-mock';
 import alertsRoutes from './alerts/alerts.routes';
 import { historicalPriceRoutes, currentPriceRoutes, performanceHistoryRoutes } from './price/price.routes';
 import dataRoutes from './data/data.routes';
@@ -29,8 +30,10 @@ router.use('/', apiHealthRoutes);
 // Register all routes with their respective prefixes to maintain original API paths
 router.use('/portfolios', portfolioRoutes);
 router.use('/etfs', etfRoutes);
-router.use('/matrix-rules', matrixRoutes);
-router.use('/alerts', alertsRoutes);
+// Use the mock implementation for matrix rules for now
+router.use('/matrix-rules', matrixRulesMock);
+// Use the alerts route from the matrix rules mock as well
+router.get('/alerts', matrixRulesMock);
 
 // Historical prices routes - now using dedicated router
 router.use('/historical-prices', historicalPriceRoutes);

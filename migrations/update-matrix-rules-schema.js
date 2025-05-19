@@ -455,17 +455,19 @@ async function seedMatrixRules(db) {
     ...ratingDecreaseRules
   ];
 
-  // Insert each rule
+  // Insert each rule one by one with careful handling of the JSON data
   for (const rule of allRules) {
+    const thresholdsJson = JSON.stringify(rule.thresholds);
+    
     await db.execute(sql`
       INSERT INTO matrix_rules (
         rule_id, rule_name, description, action_type, rating_action,
         thresholds, evaluation_method, evaluation_logic, data_source, order_number
       ) VALUES (
         ${rule.rule_id}, ${rule.rule_name}, ${rule.description}, ${rule.action_type}, ${rule.rating_action},
-        ${JSON.stringify(rule.thresholds)}::jsonb, ${rule.evaluation_method}, ${rule.evaluation_logic}, 
+        ${thresholdsJson}::jsonb, ${rule.evaluation_method}, ${rule.evaluation_logic}, 
         ${rule.data_source}, ${rule.order_number}
-      );
+      )
     `);
   }
 
