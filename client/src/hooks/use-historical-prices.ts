@@ -17,6 +17,8 @@ export interface HistoricalPrice {
   macd?: string;
   signal?: string;
   histogram?: string;
+  ma50?: number | null;
+  ma200?: number | null;
 }
 
 /**
@@ -76,7 +78,7 @@ export const useHistoricalPrices = (symbol: string, region: string) => {
 
 /**
  * Process historical price data based on the selected time range
- * Adds formatted date and extracts numeric values, including RSI
+ * Adds formatted date and extracts numeric values, including RSI and Moving Averages
  */
 export const processHistoricalData = (
   data: HistoricalPrice[] | null | undefined, 
@@ -93,6 +95,32 @@ export const processHistoricalData = (
       const dateA = a.date ? new Date(a.date).getTime() : 0;
       const dateB = b.date ? new Date(b.date).getTime() : 0;
       return dateA - dateB;
+    });
+    
+    // Calculate moving averages for all data points
+    // This needs to be done on the full dataset before filtering by time range
+    const dataWithMovingAverages = sortedData.map((item, index, array) => {
+      // Calculate 50-day moving average
+      let ma50 = null;
+      if (index >= 49) {
+        const last50 = array.slice(index - 49, index + 1);
+        const sum = last50.reduce((acc, curr) => acc + parseFloat(String(curr.close)), 0);
+        ma50 = sum / 50;
+      }
+
+      // Calculate 200-day moving average
+      let ma200 = null;
+      if (index >= 199) {
+        const last200 = array.slice(index - 199, index + 1);
+        const sum = last200.reduce((acc, curr) => acc + parseFloat(String(curr.close)), 0);
+        ma200 = sum / 200;
+      }
+
+      return {
+        ...item,
+        ma50,
+        ma200
+      };
     });
 
     // Determine how many days to include based on time range
@@ -141,6 +169,9 @@ export const processHistoricalData = (
           macd: p.macd ? parseFloat(p.macd) : undefined,
           signal: p.signal ? parseFloat(p.signal) : undefined,
           histogram: p.histogram ? parseFloat(p.histogram) : undefined,
+          // Add moving averages from the calculations we did earlier
+          ma50: p.ma50 !== undefined ? p.ma50 : undefined,
+          ma200: p.ma200 !== undefined ? p.ma200 : undefined,
           dateObj: date
         };
       } catch (error) {
@@ -160,6 +191,8 @@ export const processHistoricalData = (
           macd: undefined,
           signal: undefined,
           histogram: undefined,
+          ma50: undefined,
+          ma200: undefined,
           dateObj: now
         };
       }
