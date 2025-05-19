@@ -285,14 +285,24 @@ export type MacdData = typeof macdData.$inferSelect;
 // Matrix Rules Schema
 export const matrixRules = pgTable("matrix_rules", {
   id: serial("id").primaryKey(),
-  ruleType: text("rule_type").notNull(), // e.g., "Price % vs 52-wk Hi", "RSI", etc.
-  actionType: text("action_type").notNull(), // "Increase" or "Decrease"
-  stockTypeValue: json("stock_type_value").notNull(), // { Comp: "10%", Cat: "20%", Cycl: "15%" }
-  orderNumber: integer("order_number").notNull(), // 1, 2, 3, 4
+  ruleId: text("rule_id").notNull(),            // e.g., "price-52wk", "rsi-low"
+  ruleName: text("rule_name").notNull(),        // Human-readable name e.g., "Price % vs 52-wk High"
+  description: text("description"),             // Detailed rule description
+  actionType: text("action_type").notNull(),    // "Increase" or "Decrease" (position) or "Rating" (for rating changes)
+  ratingAction: text("rating_action"),          // "Increase" or "Decrease" (only for rating rules)
+  thresholds: json("thresholds").notNull(),     // JSON object with structure for stock type and rating thresholds
+  evaluationMethod: text("evaluation_method").notNull(),  // "percent", "value", "boolean", "delta"
+  evaluationLogic: text("evaluation_logic").notNull(),    // "below", "above", "at", "positive", "negative"
+  dataSource: text("data_source").notNull(),              // "historical_prices", "rsi_data", "macd_data", "market_indices"
+  orderNumber: integer("order_number").notNull(),         // Priority order within action type group
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const insertMatrixRuleSchema = createInsertSchema(matrixRules).omit({
   id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export type InsertMatrixRule = z.infer<typeof insertMatrixRuleSchema>;
