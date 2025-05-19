@@ -437,18 +437,9 @@ export default function MatrixEngine() {
         </div>
       </div>
       
-      {/* Matrix Engine Controls */}
+      {/* Matrix Engine with streamlined controls */}
       <div className="mb-6">
         <MatrixEngineControls />
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <div className="lg:col-span-2">
-          <RuleFlowDiagram />
-        </div>
-        <div>
-          <TriggeredRules />
-        </div>
       </div>
       
       <Tabs defaultValue="position" className="mb-6" onValueChange={(value) => setActiveTab(value)}>

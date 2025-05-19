@@ -20,8 +20,8 @@ interface Alert {
   region: string;
 }
 
-// Alert card for displaying individual alerts
-const AlertCard = ({ alert }: { alert: Alert }) => {
+// Stock Alert Row for the data table
+const StockAlertRow = ({ alert, index, symbolCount }: { alert: Alert, index: number, symbolCount?: { [key: string]: number } }) => {
   // Define color based on severity
   const getSeverityColor = (severity: AlertSeverity) => {
     switch (severity) {
@@ -41,29 +41,60 @@ const AlertCard = ({ alert }: { alert: Alert }) => {
       default: return <CheckCircle className="h-3 w-3" />;
     }
   };
+  
+  // Get rule type color
+  const getRuleTypeColor = (ruleType: string) => {
+    if (ruleType.includes('increase') || ruleType === 'rsi-low') {
+      return 'text-[#4CAF50]';
+    } else if (ruleType.includes('decrease') || ruleType === 'rsi-high' || ruleType.includes('max-weight')) {
+      return 'text-[#FF3D00]';
+    } else if (ruleType.includes('rating')) {
+      return 'text-[#805AD5]';
+    } else {
+      return 'text-[#7A8999]';
+    }
+  };
+
+  // Format rule name for display
+  const formatRuleName = (ruleType: string) => {
+    // Convert 'some-rule-name' to 'Some Rule Name'
+    return ruleType
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
 
   return (
-    <div className="mb-2 bg-[#061220] border border-[#1A304A] rounded-md p-2 text-xs">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-1.5">
-          <Badge className={`h-5 px-1.5 ${getSeverityColor(alert.severity)} flex items-center`}>
-            <SeverityIcon /> 
-            <span className="ml-1 text-[10px]">{alert.severity}</span>
+    <tr className={`${index % 2 === 0 ? 'bg-[#061220]' : 'bg-[#0A1524]'}`}>
+      <td className="py-2 px-3 text-xs">
+        <div className="flex items-center">
+          <Badge className={`h-5 px-1.5 mr-2 ${getSeverityColor(alert.severity)} flex items-center`}>
+            <SeverityIcon />
           </Badge>
           <span className="font-mono text-[#EFEFEF]">{alert.symbol}</span>
+          {symbolCount && symbolCount[alert.symbol] > 1 && (
+            <Badge className="ml-2 bg-[#1C2938] text-[#EFEFEF] text-[10px]">
+              {symbolCount[alert.symbol]}
+            </Badge>
+          )}
         </div>
-        <Badge variant="outline" className="h-5 px-1.5 border-[#1A304A] text-[10px]">
-          {alert.ruleType}
-        </Badge>
-      </div>
-      <p className="text-[#EFEFEF] mb-1">{alert.message}</p>
-      <p className="text-[#7A8999] text-[10px]">{alert.details}</p>
-    </div>
+      </td>
+      <td className="py-2 px-3 text-xs">
+        <div className={`${getRuleTypeColor(alert.ruleType)}`}>
+          {formatRuleName(alert.ruleType)}
+        </div>
+        <div className="text-[#7A8999] text-[10px]">{alert.message}</div>
+      </td>
+      <td className="py-2 px-3 text-xs text-right">
+        <span className="text-[#EFEFEF] font-mono">{alert.details}</span>
+      </td>
+    </tr>
   );
 };
 
 // Matrix Engine Controls component
 export const MatrixEngineControls = () => {
+  const [activeRegion, setActiveRegion] = useState<string>("USD");
   const [alertsUSD, setAlertsUSD] = useState<Alert[]>([]);
   const [alertsCAD, setAlertsCAD] = useState<Alert[]>([]);
   const [alertsINTL, setAlertsINTL] = useState<Alert[]>([]);
@@ -71,6 +102,8 @@ export const MatrixEngineControls = () => {
   const [isLoadingCAD, setIsLoadingCAD] = useState(false);
   const [isLoadingINTL, setIsLoadingINTL] = useState(false);
   const [isLoadingAll, setIsLoadingAll] = useState(false);
+  const [sortBy, setSortBy] = useState<string>("symbol");
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   // Run matrix engine for a specific region
   const runMatrixEngine = async (region: string) => {
@@ -99,8 +132,8 @@ export const MatrixEngineControls = () => {
       if (response.status === 'success') {
         setAlerts(response.data);
         toast({
-          title: 'Matrix Engine',
-          description: `Generated ${response.data.length} alerts for ${region} region`,
+          title: 'Matrix Engine Analysis',
+          description: `Generated ${response.data.length} insights for ${region} portfolio`,
         });
       } else {
         toast({
@@ -138,8 +171,8 @@ export const MatrixEngineControls = () => {
         setAlertsINTL(intlAlerts);
         
         toast({
-          title: 'Matrix Engine',
-          description: `Generated ${response.data.length} alerts across all regions`,
+          title: 'Matrix Engine Analysis',
+          description: `Generated ${response.data.length} insights across all portfolios`,
         });
       } else {
         toast({
@@ -160,49 +193,130 @@ export const MatrixEngineControls = () => {
     }
   };
 
+  // Calculate alert statistics
+  const getAlertStats = (alerts: Alert[]) => {
+    const increasePositionCount = alerts.filter(a => 
+      a.ruleType.includes('price-52wk') || 
+      a.ruleType === 'rsi-low' || 
+      a.ruleType.includes('sector-perf-neg')
+    ).length;
+    
+    const decreasePositionCount = alerts.filter(a => 
+      a.ruleType.includes('price-90day') || 
+      a.ruleType === 'rsi-high' || 
+      a.ruleType.includes('max-weight')
+    ).length;
+    
+    const ratingChangeCount = alerts.filter(a => 
+      a.ruleType.includes('rating') || 
+      a.ruleType.includes('earnings') || 
+      a.ruleType.includes('debt')
+    ).length;
+
+    // Group by symbol to see which stocks have the most alerts
+    const symbolCount: {[key: string]: number} = {};
+    alerts.forEach(alert => {
+      symbolCount[alert.symbol] = (symbolCount[alert.symbol] || 0) + 1;
+    });
+
+    // Sort symbols by count
+    const topSymbols = Object.entries(symbolCount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    return {
+      increasePositionCount,
+      decreasePositionCount,
+      ratingChangeCount,
+      symbolCount,
+      topSymbols
+    };
+  };
+
+  // Get current alerts based on active region
+  const currentAlerts = activeRegion === 'USD' 
+    ? alertsUSD 
+    : activeRegion === 'CAD' 
+      ? alertsCAD 
+      : alertsINTL;
+
+  // Get alert stats for current region
+  const alertStats = getAlertStats(currentAlerts);
+
+  // Sort alerts
+  const sortedAlerts = [...currentAlerts].sort((a, b) => {
+    if (sortBy === 'symbol') {
+      return sortOrder === 'asc' 
+        ? a.symbol.localeCompare(b.symbol)
+        : b.symbol.localeCompare(a.symbol);
+    } else if (sortBy === 'severity') {
+      const severityOrder = { critical: 3, warning: 2, info: 1 };
+      return sortOrder === 'asc'
+        ? severityOrder[a.severity as keyof typeof severityOrder] - severityOrder[b.severity as keyof typeof severityOrder]
+        : severityOrder[b.severity as keyof typeof severityOrder] - severityOrder[a.severity as keyof typeof severityOrder];
+    } else if (sortBy === 'ruleType') {
+      return sortOrder === 'asc'
+        ? a.ruleType.localeCompare(b.ruleType)
+        : b.ruleType.localeCompare(a.ruleType);
+    }
+    return 0;
+  });
+
+  // Handle sorting change
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortOrder('asc');
+    }
+  };
+
   return (
     <Card className="bg-[#0A1524] border-[#1A304A]">
       <CardHeader className="pb-3">
-        <CardTitle className="text-[#EFEFEF] font-mono text-lg">MATRIX ENGINE CONTROLS</CardTitle>
+        <CardTitle className="text-[#EFEFEF] font-mono text-lg">MATRIX ENGINE</CardTitle>
         <CardDescription className="text-[#7A8999]">
-          Execute rule evaluation against portfolio stocks
+          Decision analysis system for portfolio optimization
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-wrap gap-2 mb-4">
-          <Button 
-            variant="outline" 
-            onClick={() => runMatrixEngine('USD')} 
-            disabled={isLoadingUSD || isLoadingAll}
-            className="h-8 bg-[#0A1524] border-[#38AAFD] text-[#38AAFD] hover:bg-[#0A1524]/80"
-            size="sm"
-          >
-            {isLoadingUSD && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
-            {!isLoadingUSD && <RefreshCw className="mr-2 h-3.5 w-3.5" />}
-            USD Portfolio
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => runMatrixEngine('CAD')} 
-            disabled={isLoadingCAD || isLoadingAll}
-            className="h-8 bg-[#0A1524] border-[#4CAF50] text-[#4CAF50] hover:bg-[#0A1524]/80"
-            size="sm"
-          >
-            {isLoadingCAD && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
-            {!isLoadingCAD && <RefreshCw className="mr-2 h-3.5 w-3.5" />}
-            CAD Portfolio
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => runMatrixEngine('INTL')} 
-            disabled={isLoadingINTL || isLoadingAll}
-            className="h-8 bg-[#0A1524] border-[#FFD700] text-[#FFD700] hover:bg-[#0A1524]/80"
-            size="sm"
-          >
-            {isLoadingINTL && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
-            {!isLoadingINTL && <RefreshCw className="mr-2 h-3.5 w-3.5" />}
-            INTL Portfolio
-          </Button>
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => { setActiveRegion('USD'); runMatrixEngine('USD'); }} 
+              disabled={isLoadingUSD || isLoadingAll}
+              className={`h-8 bg-[#0A1524] border-[#38AAFD] hover:bg-[#0A1524]/80 ${activeRegion === 'USD' ? 'text-[#EFEFEF] bg-[#38AAFD]/20' : 'text-[#38AAFD]'}`}
+              size="sm"
+            >
+              {isLoadingUSD && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+              {!isLoadingUSD && <RefreshCw className="mr-2 h-3.5 w-3.5" />}
+              USD Portfolio
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => { setActiveRegion('CAD'); runMatrixEngine('CAD'); }} 
+              disabled={isLoadingCAD || isLoadingAll}
+              className={`h-8 bg-[#0A1524] border-[#4CAF50] hover:bg-[#0A1524]/80 ${activeRegion === 'CAD' ? 'text-[#EFEFEF] bg-[#4CAF50]/20' : 'text-[#4CAF50]'}`}
+              size="sm"
+            >
+              {isLoadingCAD && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+              {!isLoadingCAD && <RefreshCw className="mr-2 h-3.5 w-3.5" />}
+              CAD Portfolio
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => { setActiveRegion('INTL'); runMatrixEngine('INTL'); }} 
+              disabled={isLoadingINTL || isLoadingAll}
+              className={`h-8 bg-[#0A1524] border-[#FFD700] hover:bg-[#0A1524]/80 ${activeRegion === 'INTL' ? 'text-[#EFEFEF] bg-[#FFD700]/20' : 'text-[#FFD700]'}`}
+              size="sm"
+            >
+              {isLoadingINTL && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+              {!isLoadingINTL && <RefreshCw className="mr-2 h-3.5 w-3.5" />}
+              INTL Portfolio
+            </Button>
+          </div>
           <Button 
             variant="outline" 
             onClick={runMatrixEngineForAll} 
@@ -216,192 +330,118 @@ export const MatrixEngineControls = () => {
           </Button>
         </div>
 
-        {(alertsUSD.length > 0 || alertsCAD.length > 0 || alertsINTL.length > 0) && (
-          <div className="mt-4">
-            <Tabs defaultValue="usd" className="w-full">
-              <TabsList className="bg-[#061220] border border-[#1A304A] grid grid-cols-3 mb-4 h-8 p-0.5">
-                <TabsTrigger value="usd" className="text-xs h-7 data-[state=active]:bg-[#1C2938]">
-                  USD
-                  {alertsUSD.length > 0 && (
-                    <Badge className="ml-2 bg-[#38AAFD] text-white text-[10px] h-4 px-1.5">{alertsUSD.length}</Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="cad" className="text-xs h-7 data-[state=active]:bg-[#1C2938]">
-                  CAD
-                  {alertsCAD.length > 0 && (
-                    <Badge className="ml-2 bg-[#4CAF50] text-white text-[10px] h-4 px-1.5">{alertsCAD.length}</Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="intl" className="text-xs h-7 data-[state=active]:bg-[#1C2938]">
-                  INTL
-                  {alertsINTL.length > 0 && (
-                    <Badge className="ml-2 bg-[#FFD700] text-[#061220] text-[10px] h-4 px-1.5">{alertsINTL.length}</Badge>
-                  )}
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="usd" className="max-h-64 overflow-auto pr-1">
-                {alertsUSD.length === 0 ? (
-                  <p className="text-center text-[#7A8999] py-2 text-xs">No alerts generated</p>
-                ) : (
-                  <div>
-                    {/* Group alerts by their type for better organization */}
-                    {alertsUSD.some(alert => alert.ruleType.includes('increase') || alert.ruleType.includes('max-weight') || alert.ruleType.includes('rsi-low')) && (
-                      <div className="mb-3">
-                        <div className="flex items-center mb-2">
-                          <div className="h-0.5 w-3 bg-[#4CAF50] mr-2"></div>
-                          <h4 className="text-[#4CAF50] font-mono text-xs">INCREASE POSITION</h4>
-                        </div>
-                        {alertsUSD
-                          .filter(alert => alert.ruleType.includes('increase') || alert.ruleType.includes('max-weight') || alert.ruleType.includes('rsi-low'))
-                          .map((alert, index) => (
-                            <AlertCard key={`usd-increase-${index}`} alert={alert} />
-                          ))
-                        }
+        {/* Dashboard summary */}
+        {currentAlerts.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-[#061220] border border-[#1A304A] rounded-md p-3">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-[#4CAF50] font-mono text-xs">INCREASE POSITION</span>
+                <span className="font-mono text-lg text-[#EFEFEF]">{alertStats.increasePositionCount}</span>
+              </div>
+              <div className="text-[#7A8999] text-xs">
+                {alertStats.increasePositionCount > 0 
+                  ? "Stocks with buy or add signals based on technical and fundamental criteria"
+                  : "No stocks currently have buy signals"}
+              </div>
+            </div>
+            <div className="bg-[#061220] border border-[#1A304A] rounded-md p-3">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-[#FF3D00] font-mono text-xs">DECREASE POSITION</span>
+                <span className="font-mono text-lg text-[#EFEFEF]">{alertStats.decreasePositionCount}</span>
+              </div>
+              <div className="text-[#7A8999] text-xs">
+                {alertStats.decreasePositionCount > 0 
+                  ? "Stocks with sell or reduce signals based on technical and fundamental criteria"
+                  : "No stocks currently have sell signals"}
+              </div>
+            </div>
+            <div className="bg-[#061220] border border-[#1A304A] rounded-md p-3">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-[#805AD5] font-mono text-xs">RATING CHANGES</span>
+                <span className="font-mono text-lg text-[#EFEFEF]">{alertStats.ratingChangeCount}</span>
+              </div>
+              <div className="text-[#7A8999] text-xs">
+                {alertStats.ratingChangeCount > 0 
+                  ? "Stocks with quality rating change signals from earnings or fundamentals"
+                  : "No stocks currently have rating change signals"}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Top stocks with alerts */}
+        {currentAlerts.length > 0 && alertStats.topSymbols.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center mb-3">
+              <div className="h-0.5 w-4 bg-[#38AAFD]"></div>
+              <h3 className="text-[#38AAFD] font-mono text-xs ml-2">TOP SIGNALS</h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {alertStats.topSymbols.map(([symbol, count]) => (
+                <Badge key={symbol} className="bg-[#1C2938] text-[#EFEFEF] p-1.5">
+                  <span className="font-mono">{symbol}</span>
+                  <span className="ml-1.5 bg-[#38AAFD] text-[#061220] rounded-full text-[10px] px-1.5">{count}</span>
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Alert table */}
+        {currentAlerts.length > 0 && (
+          <div>
+            <div className="bg-[#061220] border border-[#1A304A] rounded-md overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-[#1A304A]">
+                    <th 
+                      className="text-left py-2 px-3 text-xs font-mono text-[#7A8999] cursor-pointer hover:text-[#EFEFEF]"
+                      onClick={() => handleSort('symbol')}
+                    >
+                      <div className="flex items-center">
+                        SYMBOL
+                        {sortBy === 'symbol' && (
+                          <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                        )}
                       </div>
-                    )}
-                    
-                    {alertsUSD.some(alert => alert.ruleType.includes('decrease') || alert.ruleType.includes('rsi-high')) && (
-                      <div className="mb-3">
-                        <div className="flex items-center mb-2">
-                          <div className="h-0.5 w-3 bg-[#FF3D00] mr-2"></div>
-                          <h4 className="text-[#FF3D00] font-mono text-xs">DECREASE POSITION</h4>
-                        </div>
-                        {alertsUSD
-                          .filter(alert => alert.ruleType.includes('decrease') || alert.ruleType.includes('rsi-high'))
-                          .map((alert, index) => (
-                            <AlertCard key={`usd-decrease-${index}`} alert={alert} />
-                          ))
-                        }
+                    </th>
+                    <th 
+                      className="text-left py-2 px-3 text-xs font-mono text-[#7A8999] cursor-pointer hover:text-[#EFEFEF]"
+                      onClick={() => handleSort('ruleType')}
+                    >
+                      <div className="flex items-center">
+                        SIGNAL
+                        {sortBy === 'ruleType' && (
+                          <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                        )}
                       </div>
-                    )}
-                    
-                    {alertsUSD.some(alert => alert.ruleType.includes('rating')) && (
-                      <div className="mb-3">
-                        <div className="flex items-center mb-2">
-                          <div className="h-0.5 w-3 bg-[#805AD5] mr-2"></div>
-                          <h4 className="text-[#805AD5] font-mono text-xs">RATING CHANGE</h4>
-                        </div>
-                        {alertsUSD
-                          .filter(alert => alert.ruleType.includes('rating'))
-                          .map((alert, index) => (
-                            <AlertCard key={`usd-rating-${index}`} alert={alert} />
-                          ))
-                        }
-                      </div>
-                    )}
-                  </div>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="cad" className="max-h-64 overflow-auto pr-1">
-                {alertsCAD.length === 0 ? (
-                  <p className="text-center text-[#7A8999] py-2 text-xs">No alerts generated</p>
-                ) : (
-                  <div>
-                    {/* Group alerts by their type for better organization */}
-                    {alertsCAD.some(alert => alert.ruleType.includes('increase') || alert.ruleType.includes('max-weight') || alert.ruleType.includes('rsi-low')) && (
-                      <div className="mb-3">
-                        <div className="flex items-center mb-2">
-                          <div className="h-0.5 w-3 bg-[#4CAF50] mr-2"></div>
-                          <h4 className="text-[#4CAF50] font-mono text-xs">INCREASE POSITION</h4>
-                        </div>
-                        {alertsCAD
-                          .filter(alert => alert.ruleType.includes('increase') || alert.ruleType.includes('max-weight') || alert.ruleType.includes('rsi-low'))
-                          .map((alert, index) => (
-                            <AlertCard key={`cad-increase-${index}`} alert={alert} />
-                          ))
-                        }
-                      </div>
-                    )}
-                    
-                    {alertsCAD.some(alert => alert.ruleType.includes('decrease') || alert.ruleType.includes('rsi-high')) && (
-                      <div className="mb-3">
-                        <div className="flex items-center mb-2">
-                          <div className="h-0.5 w-3 bg-[#FF3D00] mr-2"></div>
-                          <h4 className="text-[#FF3D00] font-mono text-xs">DECREASE POSITION</h4>
-                        </div>
-                        {alertsCAD
-                          .filter(alert => alert.ruleType.includes('decrease') || alert.ruleType.includes('rsi-high'))
-                          .map((alert, index) => (
-                            <AlertCard key={`cad-decrease-${index}`} alert={alert} />
-                          ))
-                        }
-                      </div>
-                    )}
-                    
-                    {alertsCAD.some(alert => alert.ruleType.includes('rating')) && (
-                      <div className="mb-3">
-                        <div className="flex items-center mb-2">
-                          <div className="h-0.5 w-3 bg-[#805AD5] mr-2"></div>
-                          <h4 className="text-[#805AD5] font-mono text-xs">RATING CHANGE</h4>
-                        </div>
-                        {alertsCAD
-                          .filter(alert => alert.ruleType.includes('rating'))
-                          .map((alert, index) => (
-                            <AlertCard key={`cad-rating-${index}`} alert={alert} />
-                          ))
-                        }
-                      </div>
-                    )}
-                  </div>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="intl" className="max-h-64 overflow-auto pr-1">
-                {alertsINTL.length === 0 ? (
-                  <p className="text-center text-[#7A8999] py-2 text-xs">No alerts generated</p>
-                ) : (
-                  <div>
-                    {/* Group alerts by their type for better organization */}
-                    {alertsINTL.some(alert => alert.ruleType.includes('increase') || alert.ruleType.includes('max-weight') || alert.ruleType.includes('rsi-low')) && (
-                      <div className="mb-3">
-                        <div className="flex items-center mb-2">
-                          <div className="h-0.5 w-3 bg-[#4CAF50] mr-2"></div>
-                          <h4 className="text-[#4CAF50] font-mono text-xs">INCREASE POSITION</h4>
-                        </div>
-                        {alertsINTL
-                          .filter(alert => alert.ruleType.includes('increase') || alert.ruleType.includes('max-weight') || alert.ruleType.includes('rsi-low'))
-                          .map((alert, index) => (
-                            <AlertCard key={`intl-increase-${index}`} alert={alert} />
-                          ))
-                        }
-                      </div>
-                    )}
-                    
-                    {alertsINTL.some(alert => alert.ruleType.includes('decrease') || alert.ruleType.includes('rsi-high')) && (
-                      <div className="mb-3">
-                        <div className="flex items-center mb-2">
-                          <div className="h-0.5 w-3 bg-[#FF3D00] mr-2"></div>
-                          <h4 className="text-[#FF3D00] font-mono text-xs">DECREASE POSITION</h4>
-                        </div>
-                        {alertsINTL
-                          .filter(alert => alert.ruleType.includes('decrease') || alert.ruleType.includes('rsi-high'))
-                          .map((alert, index) => (
-                            <AlertCard key={`intl-decrease-${index}`} alert={alert} />
-                          ))
-                        }
-                      </div>
-                    )}
-                    
-                    {alertsINTL.some(alert => alert.ruleType.includes('rating')) && (
-                      <div className="mb-3">
-                        <div className="flex items-center mb-2">
-                          <div className="h-0.5 w-3 bg-[#805AD5] mr-2"></div>
-                          <h4 className="text-[#805AD5] font-mono text-xs">RATING CHANGE</h4>
-                        </div>
-                        {alertsINTL
-                          .filter(alert => alert.ruleType.includes('rating'))
-                          .map((alert, index) => (
-                            <AlertCard key={`intl-rating-${index}`} alert={alert} />
-                          ))
-                        }
-                      </div>
-                    )}
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
+                    </th>
+                    <th className="text-right py-2 px-3 text-xs font-mono text-[#7A8999]">DATA</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedAlerts.map((alert, index) => (
+                    <StockAlertRow 
+                      key={`${activeRegion}-${alert.symbol}-${alert.ruleType}-${index}`} 
+                      alert={alert}
+                      index={index}
+                      symbolCount={alertStats.symbolCount}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {currentAlerts.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-6 bg-[#061220] border border-[#1A304A] rounded-md">
+            <RefreshCw className="h-8 w-8 text-[#7A8999] mb-2 opacity-50" />
+            <p className="text-[#7A8999] text-sm mb-1">No insights generated yet</p>
+            <p className="text-[#7A8999] text-xs">
+              Run the Matrix Engine to analyze your portfolio stocks against decision rules
+            </p>
           </div>
         )}
       </CardContent>
