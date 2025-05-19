@@ -10,7 +10,8 @@ import {
   currentPrices,
   historicalPrices,
   rsiData,
-  macdData
+  macdData,
+  movingAverageData
 } from '../shared/schema';
 
 /**
@@ -884,6 +885,162 @@ export class DatabaseStorage {
         ));
     } catch (error) {
       console.error(`Error deleting MACD data for ${symbol} (${region}):`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Get Moving Average data for a symbol and region with optional date range
+   * @param symbol Stock symbol
+   * @param region Portfolio region (USD, CAD, INTL)
+   * @param startDate Optional start date filter
+   * @param endDate Optional end date filter
+   */
+  async getMovingAverageData(symbol: string, region: string, startDate?: Date, endDate?: Date) {
+    try {
+      let query = db.select()
+        .from(movingAverageData)
+        .where(and(
+          eq(movingAverageData.symbol, symbol),
+          eq(movingAverageData.region, region)
+        ));
+      
+      // Add date range filters if provided
+      if (startDate) {
+        query = query.where(gte(movingAverageData.date, startDate.toISOString().split('T')[0]));
+      }
+      
+      if (endDate) {
+        query = query.where(lte(movingAverageData.date, endDate.toISOString().split('T')[0]));
+      }
+      
+      return await query.orderBy(desc(movingAverageData.date));
+    } catch (error) {
+      console.error(`Error getting Moving Average data for ${symbol} (${region}):`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Get Moving Average data for a specific historical price
+   * @param historicalPriceId Historical price ID
+   */
+  async getMovingAverageDataByHistoricalPriceId(historicalPriceId: number) {
+    try {
+      const result = await db.select()
+        .from(movingAverageData)
+        .where(eq(movingAverageData.historicalPriceId, historicalPriceId));
+      
+      return result.length > 0 ? result[0] : null;
+    } catch (error) {
+      console.error(`Error getting Moving Average data for historical price ID ${historicalPriceId}:`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Create or update Moving Average data
+   * @param data Moving Average data to create or update
+   */
+  async createOrUpdateMovingAverageData(data: any) {
+    try {
+      const { historicalPriceId, symbol, date, region, ma50, ma200 } = data;
+      
+      if (!historicalPriceId || !symbol || !date || !region) {
+        throw new Error('Missing required fields for Moving Average data');
+      }
+      
+      const result = await db.insert(movingAverageData)
+        .values({
+          historicalPriceId,
+          symbol,
+          date,
+          region,
+          ma50,
+          ma200
+        })
+        .onConflictDoUpdate({
+          target: movingAverageData.historicalPriceId,
+          set: {
+            ma50: ma50 !== undefined ? ma50 : sql`EXCLUDED.ma50`,
+            ma200: ma200 !== undefined ? ma200 : sql`EXCLUDED.ma200`,
+            updatedAt: new Date()
+          }
+        })
+        .returning();
+      
+      return result[0];
+    } catch (error) {
+      console.error(`Error creating/updating Moving Average data:`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Bulk create or update Moving Average data
+   * @param dataArray Array of Moving Average data objects to create or update
+   */
+  async bulkCreateOrUpdateMovingAverageData(dataArray: any[]) {
+    try {
+      if (!dataArray || dataArray.length === 0) {
+        return [];
+      }
+      
+      // Process in batches to avoid overloading the database
+      const batchSize = 100;
+      const results = [];
+      
+      for (let i = 0; i < dataArray.length; i += batchSize) {
+        const batch = dataArray.slice(i, i + batchSize);
+        console.log(`Processing Moving Average data batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(dataArray.length/batchSize)}`);
+        
+        // Prepare the values for insertion
+        const valuesToInsert = batch.map(item => ({
+          historicalPriceId: item.historicalPriceId,
+          symbol: item.symbol,
+          date: item.date,
+          region: item.region,
+          ma50: item.ma50,
+          ma200: item.ma200
+        }));
+        
+        // Insert with on conflict do update
+        const batchResults = await db.insert(movingAverageData)
+          .values(valuesToInsert)
+          .onConflictDoUpdate({
+            target: [movingAverageData.historicalPriceId],
+            set: {
+              ma50: sql`EXCLUDED.ma50`,
+              ma200: sql`EXCLUDED.ma200`,
+              updatedAt: new Date()
+            }
+          })
+          .returning();
+        
+        results.push(...batchResults);
+      }
+      
+      return results;
+    } catch (error) {
+      console.error(`Error bulk creating/updating Moving Average data:`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Delete Moving Average data for a symbol and region
+   * @param symbol Stock symbol
+   * @param region Portfolio region (USD, CAD, INTL)
+   */
+  async deleteMovingAverageData(symbol: string, region: string) {
+    try {
+      return await db.delete(movingAverageData)
+        .where(and(
+          eq(movingAverageData.symbol, symbol),
+          eq(movingAverageData.region, region)
+        ));
+    } catch (error) {
+      console.error(`Error deleting Moving Average data for ${symbol} (${region}):`, error);
       throw error;
     }
   }
