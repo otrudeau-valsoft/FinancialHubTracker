@@ -582,9 +582,11 @@ function generateAlertMessage(rule: MatrixRule, stock: StockData): string {
       return `MACD negative crossover detected`;
       
     case 'golden-cross-pos':
+    case 'ma50-above-ma200':
       return `Golden Cross detected (50MA > 200MA)`;
       
     case 'golden-cross-neg':
+    case 'ma50-below-ma200':
       return `Death Cross detected (50MA < 200MA)`;
       
     case 'price-90day':
@@ -598,7 +600,17 @@ function generateAlertMessage(rule: MatrixRule, stock: StockData): string {
       return `Price is at 200-day moving average (±${Math.round(Math.abs((stock.currentPrice! - stock.ma200!) / stock.ma200!) * 100)}%)`;
       
     case 'under-200ma':
+    case 'price-below-ma200':
       return `Price is ${Math.round((stock.ma200! - stock.currentPrice!) / stock.ma200! * 100)}% below 200-day MA`;
+      
+    case 'price-above-ma50':
+      return `Price is ${Math.round((stock.currentPrice! - stock.ma50!) / stock.ma50! * 100)}% above 50-day MA`;
+      
+    case 'price-below-ma50':
+      return `Price is ${Math.round((stock.ma50! - stock.currentPrice!) / stock.ma50! * 100)}% below 50-day MA`;
+      
+    case 'price-above-ma200':
+      return `Price is ${Math.round((stock.currentPrice! - stock.ma200!) / stock.ma200! * 100)}% above 200-day MA`;
       
     default:
       return `${rule.ruleName} triggered`;
@@ -628,6 +640,8 @@ function generateAlertDetails(rule: MatrixRule, stock: StockData): string {
       
     case 'golden-cross-pos':
     case 'golden-cross-neg':
+    case 'ma50-above-ma200':
+    case 'ma50-below-ma200':
       details = `50-day MA: ${stock.ma50!.toFixed(2)}, 200-day MA: ${stock.ma200!.toFixed(2)}`;
       break;
       
@@ -645,7 +659,20 @@ function generateAlertDetails(rule: MatrixRule, stock: StockData): string {
       break;
       
     case 'under-200ma':
+    case 'price-below-ma200':
       details = `Current: $${stock.currentPrice!.toFixed(2)}, 200-day MA: $${stock.ma200!.toFixed(2)}, Below by: ${((stock.ma200! - stock.currentPrice!) / stock.ma200! * 100).toFixed(1)}%`;
+      break;
+      
+    case 'price-above-ma50':
+      details = `Current: $${stock.currentPrice!.toFixed(2)}, 50-day MA: $${stock.ma50!.toFixed(2)}, Above by: ${((stock.currentPrice! - stock.ma50!) / stock.ma50! * 100).toFixed(1)}%`;
+      break;
+      
+    case 'price-below-ma50':
+      details = `Current: $${stock.currentPrice!.toFixed(2)}, 50-day MA: $${stock.ma50!.toFixed(2)}, Below by: ${((stock.ma50! - stock.currentPrice!) / stock.ma50! * 100).toFixed(1)}%`;
+      break;
+      
+    case 'price-above-ma200':
+      details = `Current: $${stock.currentPrice!.toFixed(2)}, 200-day MA: $${stock.ma200!.toFixed(2)}, Above by: ${((stock.currentPrice! - stock.ma200!) / stock.ma200! * 100).toFixed(1)}%`;
       break;
       
     default:
