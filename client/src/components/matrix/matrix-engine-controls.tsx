@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/apiRequest';
+import { apiRequest } from '../../lib/apiRequest';
 import { Loader2, AlertTriangle, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 
 // Alert severity types
