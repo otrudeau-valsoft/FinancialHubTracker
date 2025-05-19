@@ -22,6 +22,7 @@ import marketIndicesRoutes from './market-indices';
 import diagnosticsRoutes from './diagnostics/diagnostics.routes';
 import { getNewsBySymbol, getNewsForPortfolio } from './news';
 import economicCalendarRoutes from './economic-calendar/economic-calendar.routes';
+import movingAverageRoutes from './moving-average';
 
 const router = Router();
 
@@ -111,5 +112,8 @@ router.get('/news/portfolio', getNewsForPortfolio);
 
 // Economic calendar routes
 router.use('/economic-calendar', economicCalendarRoutes);
+
+// Moving Average routes
+router.use('/moving-average', movingAverageRoutes);
 
 export default router;
