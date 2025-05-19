@@ -52,7 +52,7 @@ import { Input } from "@/components/ui/input";
 import { processHistoricalData, useHistoricalPrices } from '@/hooks/use-historical-prices';
 import { startOfDay, format } from 'date-fns';
 import { useMovingAverageData, calculateMovingAverageData } from '@/hooks/use-moving-average';
-import { MovingAverageChart } from '@/components/moving-average-chart';
+
 import { 
   Command, 
   CommandEmpty, 
@@ -443,6 +443,11 @@ export default function StockDetailsPage() {
         ma200: parseFloat(ma.ma200 || '0')
       };
     });
+    
+    // Debug missing MA data
+    console.log('MA Data Map Keys:', Object.keys(maByDate).length);
+    console.log('Historical Data Points:', processedHistorical.length);
+    console.log('Sample MA Data:', Object.keys(maByDate).slice(0, 3));
     
     // Merge the data
     return processedHistorical.map(point => {
