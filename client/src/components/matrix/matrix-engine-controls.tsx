@@ -25,43 +25,40 @@ const AlertCard = ({ alert }: { alert: Alert }) => {
   // Define color based on severity
   const getSeverityColor = (severity: AlertSeverity) => {
     switch (severity) {
-      case 'critical': return 'bg-destructive text-destructive-foreground';
-      case 'warning': return 'bg-amber-500 text-white';
-      case 'info': return 'bg-blue-500 text-white';
-      default: return 'bg-blue-500 text-white';
+      case 'critical': return 'bg-[#FF3D00] text-white';
+      case 'warning': return 'bg-[#FF9800] text-white';
+      case 'info': return 'bg-[#38AAFD] text-white';
+      default: return 'bg-[#38AAFD] text-white';
     }
   };
 
   // Define icon based on severity
   const SeverityIcon = () => {
     switch (alert.severity) {
-      case 'critical': return <AlertTriangle className="h-5 w-5" />;
-      case 'warning': return <AlertCircle className="h-5 w-5" />;
-      case 'info': return <CheckCircle className="h-5 w-5" />;
-      default: return <CheckCircle className="h-5 w-5" />;
+      case 'critical': return <AlertTriangle className="h-3 w-3" />;
+      case 'warning': return <AlertCircle className="h-3 w-3" />;
+      case 'info': return <CheckCircle className="h-3 w-3" />;
+      default: return <CheckCircle className="h-3 w-3" />;
     }
   };
 
   return (
-    <Card className="mb-4 border-[#1A304A] bg-[#0A1524]">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <Badge className={getSeverityColor(alert.severity)}>
-              <SeverityIcon /> 
-              <span className="ml-1">{alert.severity}</span>
-            </Badge>
-            <Badge className="bg-slate-700">{alert.region}</Badge>
-          </div>
-          <Badge variant="outline">{alert.ruleType}</Badge>
+    <div className="mb-2 bg-[#061220] border border-[#1A304A] rounded-md p-2 text-xs">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-1.5">
+          <Badge className={`h-5 px-1.5 ${getSeverityColor(alert.severity)} flex items-center`}>
+            <SeverityIcon /> 
+            <span className="ml-1 text-[10px]">{alert.severity}</span>
+          </Badge>
+          <span className="font-mono text-[#EFEFEF]">{alert.symbol}</span>
         </div>
-        <CardTitle className="text-xl mt-2">{alert.symbol}</CardTitle>
-        <CardDescription className="font-medium text-white/80">{alert.message}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground">{alert.details}</p>
-      </CardContent>
-    </Card>
+        <Badge variant="outline" className="h-5 px-1.5 border-[#1A304A] text-[10px]">
+          {alert.ruleType}
+        </Badge>
+      </div>
+      <p className="text-[#EFEFEF] mb-1">{alert.message}</p>
+      <p className="text-[#7A8999] text-[10px]">{alert.details}</p>
+    </div>
   );
 };
 
@@ -164,111 +161,118 @@ export const MatrixEngineControls = () => {
   };
 
   return (
-    <Card className="border-[#1A304A] bg-[#0A1524] mb-8">
-      <CardHeader>
-        <CardTitle>Matrix Engine Controls</CardTitle>
-        <CardDescription>
-          Run rule evaluation against portfolio stocks to generate alerts
+    <Card className="bg-[#0A1524] border-[#1A304A]">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-[#EFEFEF] font-mono text-lg">MATRIX ENGINE CONTROLS</CardTitle>
+        <CardDescription className="text-[#7A8999]">
+          Execute rule evaluation against portfolio stocks
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex gap-4 mb-6">
+        <div className="flex flex-wrap gap-2 mb-4">
           <Button 
-            variant="default" 
+            variant="outline" 
             onClick={() => runMatrixEngine('USD')} 
             disabled={isLoadingUSD || isLoadingAll}
-            className="w-full bg-blue-500 hover:bg-blue-600"
+            className="h-8 bg-[#0A1524] border-[#38AAFD] text-[#38AAFD] hover:bg-[#0A1524]/80"
+            size="sm"
           >
-            {isLoadingUSD && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {!isLoadingUSD && <RefreshCw className="mr-2 h-4 w-4" />}
-            Run USD Portfolio
+            {isLoadingUSD && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+            {!isLoadingUSD && <RefreshCw className="mr-2 h-3.5 w-3.5" />}
+            USD Portfolio
           </Button>
           <Button 
-            variant="default" 
+            variant="outline" 
             onClick={() => runMatrixEngine('CAD')} 
             disabled={isLoadingCAD || isLoadingAll}
-            className="w-full bg-green-600 hover:bg-green-700"
+            className="h-8 bg-[#0A1524] border-[#4CAF50] text-[#4CAF50] hover:bg-[#0A1524]/80"
+            size="sm"
           >
-            {isLoadingCAD && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {!isLoadingCAD && <RefreshCw className="mr-2 h-4 w-4" />}
-            Run CAD Portfolio
+            {isLoadingCAD && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+            {!isLoadingCAD && <RefreshCw className="mr-2 h-3.5 w-3.5" />}
+            CAD Portfolio
           </Button>
           <Button 
-            variant="default" 
+            variant="outline" 
             onClick={() => runMatrixEngine('INTL')} 
             disabled={isLoadingINTL || isLoadingAll}
-            className="w-full bg-amber-500 hover:bg-amber-600"
+            className="h-8 bg-[#0A1524] border-[#FFD700] text-[#FFD700] hover:bg-[#0A1524]/80"
+            size="sm"
           >
-            {isLoadingINTL && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {!isLoadingINTL && <RefreshCw className="mr-2 h-4 w-4" />}
-            Run INTL Portfolio
+            {isLoadingINTL && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+            {!isLoadingINTL && <RefreshCw className="mr-2 h-3.5 w-3.5" />}
+            INTL Portfolio
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={runMatrixEngineForAll} 
+            disabled={isLoadingUSD || isLoadingCAD || isLoadingINTL || isLoadingAll}
+            className="h-8 bg-[#0A1524] border-[#FF9800] text-[#FF9800] hover:bg-[#0A1524]/80"
+            size="sm"
+          >
+            {isLoadingAll && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
+            {!isLoadingAll && <RefreshCw className="mr-2 h-3.5 w-3.5" />}
+            All Portfolios
           </Button>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={runMatrixEngineForAll} 
-          disabled={isLoadingUSD || isLoadingCAD || isLoadingINTL || isLoadingAll}
-          className="w-full"
-        >
-          {isLoadingAll && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {!isLoadingAll && <RefreshCw className="mr-2 h-4 w-4" />}
-          Run All Portfolios
-        </Button>
+
+        {(alertsUSD.length > 0 || alertsCAD.length > 0 || alertsINTL.length > 0) && (
+          <div className="mt-4">
+            <Tabs defaultValue="usd" className="w-full">
+              <TabsList className="bg-[#061220] border border-[#1A304A] grid grid-cols-3 mb-4 h-8 p-0.5">
+                <TabsTrigger value="usd" className="text-xs h-7 data-[state=active]:bg-[#1C2938]">
+                  USD
+                  {alertsUSD.length > 0 && (
+                    <Badge className="ml-2 bg-[#38AAFD] text-white text-[10px] h-4 px-1.5">{alertsUSD.length}</Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="cad" className="text-xs h-7 data-[state=active]:bg-[#1C2938]">
+                  CAD
+                  {alertsCAD.length > 0 && (
+                    <Badge className="ml-2 bg-[#4CAF50] text-white text-[10px] h-4 px-1.5">{alertsCAD.length}</Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="intl" className="text-xs h-7 data-[state=active]:bg-[#1C2938]">
+                  INTL
+                  {alertsINTL.length > 0 && (
+                    <Badge className="ml-2 bg-[#FFD700] text-[#061220] text-[10px] h-4 px-1.5">{alertsINTL.length}</Badge>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="usd" className="max-h-64 overflow-auto pr-1">
+                {alertsUSD.length === 0 ? (
+                  <p className="text-center text-[#7A8999] py-2 text-xs">No alerts generated</p>
+                ) : (
+                  alertsUSD.map((alert, index) => (
+                    <AlertCard key={`usd-alert-${index}`} alert={alert} />
+                  ))
+                )}
+              </TabsContent>
+              
+              <TabsContent value="cad" className="max-h-64 overflow-auto pr-1">
+                {alertsCAD.length === 0 ? (
+                  <p className="text-center text-[#7A8999] py-2 text-xs">No alerts generated</p>
+                ) : (
+                  alertsCAD.map((alert, index) => (
+                    <AlertCard key={`cad-alert-${index}`} alert={alert} />
+                  ))
+                )}
+              </TabsContent>
+              
+              <TabsContent value="intl" className="max-h-64 overflow-auto pr-1">
+                {alertsINTL.length === 0 ? (
+                  <p className="text-center text-[#7A8999] py-2 text-xs">No alerts generated</p>
+                ) : (
+                  alertsINTL.map((alert, index) => (
+                    <AlertCard key={`intl-alert-${index}`} alert={alert} />
+                  ))
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
       </CardContent>
-      <CardFooter className="flex-col">
-        <Tabs defaultValue="usd" className="w-full">
-          <TabsList className="grid grid-cols-3 mb-6">
-            <TabsTrigger value="usd">
-              USD
-              {alertsUSD.length > 0 && (
-                <Badge className="ml-2 bg-blue-500">{alertsUSD.length}</Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="cad">
-              CAD
-              {alertsCAD.length > 0 && (
-                <Badge className="ml-2 bg-green-600">{alertsCAD.length}</Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="intl">
-              INTL
-              {alertsINTL.length > 0 && (
-                <Badge className="ml-2 bg-amber-500">{alertsINTL.length}</Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="usd" className="max-h-96 overflow-auto">
-            {alertsUSD.length === 0 ? (
-              <p className="text-center text-muted-foreground py-4">No alerts generated for USD portfolio</p>
-            ) : (
-              alertsUSD.map((alert, index) => (
-                <AlertCard key={`usd-alert-${index}`} alert={alert} />
-              ))
-            )}
-          </TabsContent>
-          
-          <TabsContent value="cad" className="max-h-96 overflow-auto">
-            {alertsCAD.length === 0 ? (
-              <p className="text-center text-muted-foreground py-4">No alerts generated for CAD portfolio</p>
-            ) : (
-              alertsCAD.map((alert, index) => (
-                <AlertCard key={`cad-alert-${index}`} alert={alert} />
-              ))
-            )}
-          </TabsContent>
-          
-          <TabsContent value="intl" className="max-h-96 overflow-auto">
-            {alertsINTL.length === 0 ? (
-              <p className="text-center text-muted-foreground py-4">No alerts generated for INTL portfolio</p>
-            ) : (
-              alertsINTL.map((alert, index) => (
-                <AlertCard key={`intl-alert-${index}`} alert={alert} />
-              ))
-            )}
-          </TabsContent>
-        </Tabs>
-      </CardFooter>
     </Card>
   );
 };
