@@ -1337,6 +1337,147 @@ export default function StockDetailsPage() {
             </div>
           )}
           
+          {/* Moving Average Chart Section - Full Width */}
+          {showMovingAverages && !isLoadingHistorical && historicalPrices && historicalPrices.length > 0 && (
+            <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden mb-6">
+              <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
+                <div className="flex items-center">
+                  <Activity className="h-4 w-4 mr-2 text-[#38AAFD]" />
+                  <h3 className="text-[#EFEFEF] font-mono text-sm font-medium tracking-wide">MOVING AVERAGES</h3>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-[#7A8999] font-mono text-xs mr-4">
+                    <span className="text-[#38AAFD]">━</span> 50-Day MA
+                  </span>
+                  <span className="text-[#7A8999] font-mono text-xs">
+                    <span className="text-[#FF3D00]">━</span> 200-Day MA
+                  </span>
+                </div>
+              </div>
+              <div className="p-4">
+                {(() => {
+                  // Check if we have enough data for moving averages
+                  const hasMaData = historicalPrices && historicalPrices.some((price: any) => 
+                    price.ma50 !== null && price.ma50 !== undefined
+                  );
+                  
+                  if (historicalPrices && historicalPrices.length > 0) {
+                    console.log(`Moving Average Data Check:`, {
+                      totalPoints: historicalPrices.length,
+                      ma50Datapoints: historicalPrices.filter((price: any) => price.ma50 !== null && price.ma50 !== undefined).length,
+                      ma200Datapoints: historicalPrices.filter((price: any) => price.ma200 !== null && price.ma200 !== undefined).length,
+                      samplePoint: historicalPrices[historicalPrices.length - 1]
+                    });
+                  }
+                  
+                  return hasMaData;
+                })() ? (
+                  <div className="h-48">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart
+                        data={processHistoricalData(historicalPrices, timeRange)}
+                        margin={{ top: 10, right: 10, left: 20, bottom: 20 }}
+                        syncId="stockChart" // Synchronize with main chart
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#1A304A" vertical={false} />
+                        <XAxis 
+                          dataKey="formattedDate"
+                          tick={{ fontSize: 10, fill: '#7A8999' }}
+                          interval="preserveStartEnd"
+                          tickMargin={5}
+                          stroke="#1A304A"
+                          minTickGap={30}
+                        />
+                        <YAxis 
+                          tick={{ fontSize: 10, fill: '#7A8999' }}
+                          tickFormatter={(val) => `${val.toFixed(1)}`}
+                          domain={['auto', 'auto']}
+                          stroke="#1A304A"
+                        />
+                        <RechartTooltip 
+                          formatter={(value: any, name: string) => {
+                            if (name === 'close') return [`${formatCurrency(value, 2)}`, 'Price'];
+                            if (name === 'ma50') return [`${formatCurrency(value, 2)}`, '50-Day MA'];
+                            if (name === 'ma200') return [`${formatCurrency(value, 2)}`, '200-Day MA'];
+                            return [value, name];
+                          }}
+                          labelFormatter={(label) => `Date: ${label}`}
+                          contentStyle={{ 
+                            backgroundColor: '#0B1728', 
+                            borderColor: '#1A304A',
+                            color: '#EFEFEF'
+                          }}
+                          itemStyle={{ color: '#EFEFEF' }}
+                        />
+                        
+                        {/* Price Line */}
+                        <Line
+                          type="monotone"
+                          dataKey="close"
+                          stroke="#EFEFEF"
+                          strokeWidth={1.5}
+                          dot={false}
+                          activeDot={{ r: 4, stroke: '#EFEFEF', fill: '#0B1728' }}
+                          name="close"
+                        />
+                        
+                        {/* 50-Day Moving Average */}
+                        <Line
+                          type="monotone"
+                          dataKey="ma50"
+                          stroke="#38AAFD"
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{ r: 4, stroke: '#38AAFD', fill: '#FFFFFF' }}
+                          name="ma50"
+                          connectNulls
+                        />
+                        
+                        {/* 200-Day Moving Average */}
+                        <Line
+                          type="monotone"
+                          dataKey="ma200"
+                          stroke="#FF3D00"
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{ r: 4, stroke: '#FF3D00', fill: '#FFFFFF' }}
+                          name="ma200"
+                          connectNulls
+                        />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="p-8 flex flex-col items-center justify-center">
+                    <p className="text-[#7A8999] mb-4 text-center">
+                      Not enough data to generate moving averages.<br />
+                      50-day and 200-day moving averages require sufficient historical data.
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="bg-[#0B1728] border-[#1A304A] hover:bg-[#162639] text-[#38AAFD] hover:text-[#38AAFD] font-mono text-xs"
+                      onClick={refreshPriceData}
+                      disabled={isRefreshing}
+                    >
+                      {isRefreshing ? (
+                        <>
+                          <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                          Updating Price Data...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-3 w-3 mr-2" />
+                          Refresh Price Data
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
           {/* Company Overview Section - Full Width */}
           <div className="bg-[#0A1524] border border-[#1A304A] rounded-sm shadow-lg overflow-hidden mb-6">
             <div className="flex justify-between items-center py-2 px-4 border-b border-[#1A304A]">
