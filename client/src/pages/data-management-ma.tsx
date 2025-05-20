@@ -1,11 +1,22 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { LineChart, RotateCw, Loader2 } from 'lucide-react';
+import { 
+  LineChart, 
+  Activity,
+  Loader2 
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { queryClient } from '@/lib/queryClient';
-import { calculatePortfolioMovingAverages } from '@/hooks/use-moving-average';
+import { queryClient, apiRequest } from '@/lib/queryClient';
+
+/**
+ * Helper function to calculate Moving Average data for a portfolio region
+ */
+async function calculatePortfolioMovingAverages(region: string) {
+  const response = await apiRequest('POST', `/api/moving-average/calculate-portfolio/${region}`);
+  return response;
+}
 
 /**
  * Moving Average Data Management Panel
@@ -50,9 +61,28 @@ export function MovingAverageDataPanel() {
     mutationFn: async () => {
       try {
         setIsCalculating(true);
+        
+        // Show progress toasts for each portfolio
+        toast({
+          title: "Starting MA Calculation",
+          description: "Calculating Moving Averages for USD portfolio...",
+        });
+        
         // Calculate MA data for all three portfolios in sequence
         await calculatePortfolioMovingAverages('USD');
+        
+        toast({
+          title: "Progress",
+          description: "Calculating Moving Averages for CAD portfolio...",
+        });
+        
         await calculatePortfolioMovingAverages('CAD');
+        
+        toast({
+          title: "Progress",
+          description: "Calculating Moving Averages for INTL portfolio...",
+        });
+        
         await calculatePortfolioMovingAverages('INTL');
         return { success: true };
       } finally {
@@ -62,7 +92,7 @@ export function MovingAverageDataPanel() {
     onSuccess: () => {
       toast({
         title: "All Moving Averages Calculated",
-        description: "Successfully calculated Moving Average data for all portfolios",
+        description: "Successfully calculated 50-day & 200-day MA data for all portfolios",
       });
       
       // Invalidate all MA data queries to refresh any views
@@ -100,9 +130,9 @@ export function MovingAverageDataPanel() {
             {calculateMAMutation.isPending && calculateMAMutation.variables === 'USD' ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
-              <RotateCw className="h-4 w-4 mr-2" />
+              <LineChart className="h-4 w-4 mr-2 text-green-500" />
             )}
-            Update USD MA
+            Calculate USD MA
           </Button>
           
           <Button 
@@ -115,9 +145,9 @@ export function MovingAverageDataPanel() {
             {calculateMAMutation.isPending && calculateMAMutation.variables === 'CAD' ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
-              <RotateCw className="h-4 w-4 mr-2" />
+              <LineChart className="h-4 w-4 mr-2 text-red-500" />
             )}
-            Update CAD MA
+            Calculate CAD MA
           </Button>
           
           <Button 
@@ -130,14 +160,13 @@ export function MovingAverageDataPanel() {
             {calculateMAMutation.isPending && calculateMAMutation.variables === 'INTL' ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
-              <RotateCw className="h-4 w-4 mr-2" />
+              <LineChart className="h-4 w-4 mr-2 text-yellow-500" />
             )}
-            Update INTL MA
+            Calculate INTL MA
           </Button>
         </div>
         
         <Button 
-          variant="default" 
           onClick={() => calculateAllMAMutation.mutate()}
           disabled={isCalculating}
           className="w-full bg-[#38AAFD] hover:bg-[#2B85DB] text-white"

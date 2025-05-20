@@ -31,6 +31,7 @@ import {
 import CashManagementPanel from '@/components/dashboard/cash-management-panel';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient, apiRequest } from '@/lib/queryClient';
+import { MovingAverageDataPanel } from './data-management-ma';
 import { formatDistanceToNow } from 'date-fns';
 
 type SchedulerConfig = {
@@ -625,6 +626,9 @@ export default function DataManagement() {
 
         {/* Cash Management Panel */}
         <CashManagementPanel className="shadow-lg" />
+        
+        {/* Moving Average Data Panel */}
+        <MovingAverageDataPanel />
         
         {/* Update Panels - Real-time and Historical Data Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">

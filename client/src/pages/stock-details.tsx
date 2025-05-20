@@ -439,8 +439,8 @@ export default function StockDetailsPage() {
         // Normalize the date format to ensure matching
         const dateKey = ma.date.split('T')[0];
         maMap.set(dateKey, {
-          ma50: parseFloat(ma.ma50 || '0'),
-          ma200: parseFloat(ma.ma200 || '0')
+          ma50: ma.ma50 ? parseFloat(ma.ma50) : null,
+          ma200: ma.ma200 ? parseFloat(ma.ma200) : null
         });
       });
       
@@ -454,7 +454,7 @@ export default function StockDetailsPage() {
       }
     }
     
-    // Create the combined chart data
+    // Create the combined chart data with specifically formatted MA values
     const result = filtered.map(point => {
       // Extract just the date part for matching
       const dateKey = typeof point.date === 'string' 
@@ -462,17 +462,25 @@ export default function StockDetailsPage() {
         : new Date(point.date).toISOString().split('T')[0];
       
       // Start with the historical price point
-      const chartPoint = { ...point };
+      const chartPoint = { 
+        ...point,
+        // Initialize MA values to null for proper chart rendering
+        ma50: null,
+        ma200: null
+      };
       
       // Add MA data if available for this date
       if (maMap.has(dateKey)) {
         const maData = maMap.get(dateKey);
-        chartPoint.ma50 = maData.ma50;
-        chartPoint.ma200 = maData.ma200;
-      } else {
-        // Ensure we have null values rather than undefined
-        chartPoint.ma50 = null;
-        chartPoint.ma200 = null;
+        
+        // Only set non-zero values to avoid display issues
+        if (maData.ma50 && maData.ma50 > 0) {
+          chartPoint.ma50 = maData.ma50;
+        }
+        
+        if (maData.ma200 && maData.ma200 > 0) {
+          chartPoint.ma200 = maData.ma200;
+        }
       }
       
       return chartPoint;
@@ -482,6 +490,11 @@ export default function StockDetailsPage() {
     const ma50Count = result.filter(p => p.ma50 !== null).length;
     const ma200Count = result.filter(p => p.ma200 !== null).length;
     console.log(`Final chart data has ${result.length} points, ${ma50Count} with MA50, ${ma200Count} with MA200`);
+    
+    // Log a sample of the final data
+    if (result.length > 0) {
+      console.log("MA Chart Data Sample:", result.slice(0, 3));
+    }
     
     return result;
   };
