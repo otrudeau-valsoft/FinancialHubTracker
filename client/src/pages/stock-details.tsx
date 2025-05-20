@@ -423,45 +423,58 @@ export default function StockDetailsPage() {
   
   // Prepare data for the Moving Average chart by combining historical prices with MA data
   const prepareMAChartData = () => {
-    if (!historicalPrices || !movingAverageData || movingAverageData.length === 0) {
+    if (!historicalPrices || historicalPrices.length === 0) {
       return [];
     }
-    
-    // Create date-indexed map of MA data for quick lookup
-    const maMap = new Map();
-    movingAverageData.forEach(ma => {
-      const dateKey = ma.date.split('T')[0];
-      maMap.set(dateKey, {
-        ma50: parseFloat(ma.ma50),
-        ma200: parseFloat(ma.ma200)
-      });
-    });
     
     // Get filtered historical data based on selected time range
     const filtered = processHistoricalData(historicalPrices, timeRange);
     
+    // Create a result array for the chart data
+    const result = [];
+    
+    // Create date-indexed map of MA data for quick lookup if available
+    const maMap = new Map();
+    
+    if (movingAverageData && movingAverageData.length > 0) {
+      // Build the map from MA data
+      movingAverageData.forEach(ma => {
+        const dateKey = ma.date.split('T')[0];
+        maMap.set(dateKey, {
+          ma50: parseFloat(ma.ma50 || '0'),
+          ma200: parseFloat(ma.ma200 || '0')
+        });
+      });
+      
+      // Map debugging
+      console.log(`MA Map has ${maMap.size} entries with data`);
+      
+      // Log a sample of the data to confirm structure
+      if (maMap.size > 0) {
+        const sampleDate = Array.from(maMap.keys())[0];
+        console.log(`Sample MA data for ${sampleDate}:`, maMap.get(sampleDate));
+      }
+    }
+    
     // Merge historical prices with MA data
-    return filtered.map(point => {
+    for (const point of filtered) {
       const dateKey = typeof point.date === 'string' 
         ? point.date.split('T')[0] 
         : new Date(point.date).toISOString().split('T')[0];
       
-      const maData = maMap.get(dateKey);
+      const chartPoint = { ...point };
       
-      if (maData) {
-        return {
-          ...point,
-          ma50: maData.ma50,
-          ma200: maData.ma200
-        };
+      // Add MA data if available for this date
+      if (maMap.has(dateKey)) {
+        const maData = maMap.get(dateKey);
+        chartPoint.ma50 = maData.ma50;
+        chartPoint.ma200 = maData.ma200;
       }
       
-      return {
-        ...point,
-        ma50: null,
-        ma200: null
-      };
-    });
+      result.push(chartPoint);
+    }
+    
+    return result;
   };
   
   // Function to create dedicated MA chart data
