@@ -421,77 +421,64 @@ export default function StockDetailsPage() {
     { enabled: !!symbol && !!region }
   );
   
-  // Function to merge historical prices with moving average data
+  // Function to create dedicated MA chart data
+  const getMAChartData = () => {
+    // Exit early if no data
+    if (!historicalPrices || historicalPrices.length === 0 || !movingAverageData || movingAverageData.length === 0) {
+      return [];
+    }
+    
+    // Create a direct map of MA data by date
+    const maByDate = {};
+    movingAverageData.forEach(point => {
+      const dateKey = point.date.split('T')[0];
+      maByDate[dateKey] = {
+        ma50: parseFloat(point.ma50 || '0'),
+        ma200: parseFloat(point.ma200 || '0')
+      };
+    });
+    
+    // Process historical prices with the time range filter
+    const filtered = processHistoricalData(historicalPrices, timeRange);
+    
+    // Create a final array with all data
+    const chartData = filtered.map(price => {
+      // Get the date key for lookup
+      const dateKey = typeof price.date === 'string'
+        ? price.date.split('T')[0]
+        : new Date(price.date).toISOString().split('T')[0];
+      
+      // See if we have MA data for this date
+      const maData = maByDate[dateKey];
+      
+      if (maData) {
+        return {
+          ...price,
+          ma50: maData.ma50,
+          ma200: maData.ma200
+        };
+      }
+      
+      // No MA data for this point
+      return {
+        ...price,
+        ma50: null,
+        ma200: null
+      };
+    });
+    
+    return chartData;
+  };
+  
+  // Function to merge historical prices with moving average data (for other charts)
   const getChartData = (timeRangeFilter: string = timeRange) => {
     // If we don't have historical prices, return empty array
     if (!historicalPrices || historicalPrices.length === 0) {
       return [];
     }
     
-    // Process historical prices first with time range filter
-    const processedHistorical = processHistoricalData(historicalPrices, timeRangeFilter);
-    
-    // If we don't have MA data, just return the historical data
-    if (!movingAverageData || movingAverageData.length === 0) {
-      return processedHistorical;
-    }
-    
-    // Create a map of historical prices by date for easy lookup
-    const historicalByDate = {};
-    processedHistorical.forEach(price => {
-      const dateKey = typeof price.date === 'string' 
-        ? price.date.split('T')[0] 
-        : new Date(price.date).toISOString().split('T')[0];
-      historicalByDate[dateKey] = price;
-    });
-    
-    // Create complete dataset with both price and MA data
-    const combinedData = [];
-    
-    // Add data points from MA dataset (will include both price and MA)
-    movingAverageData.forEach(ma => {
-      // Normalize date
-      const dateKey = ma.date.split('T')[0];
-      
-      // Only include data points within our filtered time range
-      if (historicalByDate[dateKey]) {
-        const histPrice = historicalByDate[dateKey];
-        
-        // Debug the MA data being added
-        console.log('Adding MA data point:', {
-          date: dateKey,
-          ma50: parseFloat(ma.ma50 || '0'),
-          ma200: parseFloat(ma.ma200 || '0')
-        });
-        
-        combinedData.push({
-          ...histPrice,
-          ma50: parseFloat(ma.ma50 || '0'),
-          ma200: parseFloat(ma.ma200 || '0')
-        });
-        
-        // Remove this entry so we don't duplicate it
-        delete historicalByDate[dateKey];
-      }
-    });
-    
-    // Add any remaining historical data points that didn't have MA data
-    Object.values(historicalByDate).forEach((price: any) => {
-      combinedData.push({
-        ...price,
-        ma50: null,
-        ma200: null
-      });
-    });
-    
-    // Sort the data by date (oldest to newest)
-    combinedData.sort((a: any, b: any) => {
-      const dateA = new Date(a.date).getTime();
-      const dateB = new Date(b.date).getTime();
-      return dateA - dateB;
-    });
-    
-    return combinedData;
+    // Process historical prices with time range filter
+    return processHistoricalData(historicalPrices, timeRangeFilter);
   };
   
   // Fetch earnings data
