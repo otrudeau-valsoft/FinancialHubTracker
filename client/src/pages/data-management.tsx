@@ -350,6 +350,72 @@ export default function DataManagement() {
     }
   });
   
+  // Mutation for calculating Moving Average data for all stocks in a portfolio
+  const calculatePortfolioMovingAveragesMutation = useMutation({
+    mutationFn: (region: string) => apiRequest('POST', `/api/moving-average/calculate-portfolio/${region}`),
+    onSuccess: (data, region) => {
+      toast({
+        title: "Moving Averages calculated",
+        description: `Successfully calculated Moving Averages for ${region} portfolio`,
+      });
+      refetchLogs();
+      
+      // Invalidate moving average data
+      queryClient.invalidateQueries({ queryKey: ['/api/moving-average'] });
+      
+      // Also invalidate individual stock Moving Average queries
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const queryKey = query.queryKey;
+          if (Array.isArray(queryKey) && queryKey[0] === '/api/moving-average' && queryKey[2] === region) {
+            return true;
+          }
+          return false;
+        }
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to calculate Moving Averages",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Mutation for calculating Moving Average data for all portfolios
+  const calculateAllMovingAveragesMutation = useMutation({
+    mutationFn: async () => {
+      // Call the API for each region in sequence
+      const usdResult = await apiRequest('POST', '/api/moving-average/calculate-portfolio/USD');
+      const cadResult = await apiRequest('POST', '/api/moving-average/calculate-portfolio/CAD');
+      const intlResult = await apiRequest('POST', '/api/moving-average/calculate-portfolio/INTL');
+      
+      return {
+        USD: usdResult,
+        CAD: cadResult,
+        INTL: intlResult
+      };
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "All Moving Averages calculated",
+        description: "Successfully calculated Moving Averages for all portfolios",
+      });
+      refetchLogs();
+      
+      // Invalidate ALL Moving Average queries in the cache
+      queryClient.invalidateQueries({ queryKey: ['/api/moving-average'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to calculate all Moving Averages",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   const updateAllHistoricalPricesMutation = useMutation({
     mutationFn: () => apiRequest('POST', '/api/historical-prices/fetch/all', {
       forceRsiRefresh: true, // Force RSI refresh to ensure values are saved to database

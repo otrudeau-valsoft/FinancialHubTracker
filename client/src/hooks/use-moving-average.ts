@@ -65,3 +65,19 @@ export async function calculateMovingAverageData(symbol: string, region: string)
     throw error;
   }
 }
+
+/**
+ * Function to trigger calculation of Moving Average data for all stocks in a portfolio
+ * 
+ * @param region Portfolio region (USD, CAD, INTL)
+ * @returns Promise with the calculation results
+ */
+export async function calculatePortfolioMovingAverages(region: string) {
+  try {
+    const response = await axios.post(`/api/moving-average/calculate-portfolio/${region}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error calculating portfolio Moving Average data:', error);
+    throw error;
+  }
+}

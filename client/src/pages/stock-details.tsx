@@ -1499,28 +1499,7 @@ export default function StockDetailsPage() {
                 </div>
               </div>
               <div className="p-4">
-                {(() => {
-                  // Check if we have moving average data from our dedicated endpoint
-                  const hasMaData = movingAverageData && movingAverageData.length > 0;
-                  
-                  if (movingAverageData && movingAverageData.length > 0) {
-                    console.log(`Moving Average Data Check (from dedicated API):`, {
-                      totalDataPoints: movingAverageData.length,
-                      ma50Available: movingAverageData.some(point => point.ma50),
-                      ma200Available: movingAverageData.some(point => point.ma200),
-                      samplePoint: movingAverageData[0] // API returns newest first
-                    });
-                  } else if (historicalPrices && historicalPrices.length > 0) {
-                    // Fallback check on historical prices (legacy approach)
-                    console.log(`Moving Average Data Check (from historical prices - deprecated):`, {
-                      totalPoints: historicalPrices.length,
-                      ma50Datapoints: historicalPrices.filter((price: any) => price.ma50 !== null && price.ma50 !== undefined).length,
-                      ma200Datapoints: historicalPrices.filter((price: any) => price.ma200 !== null && price.ma200 !== undefined).length
-                    });
-                  }
-                  
-                  return hasMaData;
-                })() ? (
+                {movingAverageData && movingAverageData.length > 0 ? (
                   <div className="h-48">
                     <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart
