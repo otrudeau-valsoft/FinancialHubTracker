@@ -421,6 +421,49 @@ export default function StockDetailsPage() {
     { enabled: !!symbol && !!region }
   );
   
+  // Prepare data for the Moving Average chart by combining historical prices with MA data
+  const prepareMAChartData = () => {
+    if (!historicalPrices || !movingAverageData || movingAverageData.length === 0) {
+      return [];
+    }
+    
+    // Create date-indexed map of MA data for quick lookup
+    const maMap = new Map();
+    movingAverageData.forEach(ma => {
+      const dateKey = ma.date.split('T')[0];
+      maMap.set(dateKey, {
+        ma50: parseFloat(ma.ma50),
+        ma200: parseFloat(ma.ma200)
+      });
+    });
+    
+    // Get filtered historical data based on selected time range
+    const filtered = processHistoricalData(historicalPrices, timeRange);
+    
+    // Merge historical prices with MA data
+    return filtered.map(point => {
+      const dateKey = typeof point.date === 'string' 
+        ? point.date.split('T')[0] 
+        : new Date(point.date).toISOString().split('T')[0];
+      
+      const maData = maMap.get(dateKey);
+      
+      if (maData) {
+        return {
+          ...point,
+          ma50: maData.ma50,
+          ma200: maData.ma200
+        };
+      }
+      
+      return {
+        ...point,
+        ma50: null,
+        ma200: null
+      };
+    });
+  };
+  
   // Function to create dedicated MA chart data
   const getMAChartData = () => {
     // Exit early if no data
@@ -1468,7 +1511,7 @@ export default function StockDetailsPage() {
                   <div className="h-48">
                     <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart
-                        data={getChartData()}
+                        data={prepareMAChartData()}
                         margin={{ top: 10, right: 10, left: 20, bottom: 20 }}
                         syncId="stockChart" // Synchronize with main chart
                       >
