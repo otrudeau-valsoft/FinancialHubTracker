@@ -430,15 +430,13 @@ export default function StockDetailsPage() {
     // Get filtered historical data based on selected time range
     const filtered = processHistoricalData(historicalPrices, timeRange);
     
-    // Create a result array for the chart data
-    const result = [];
-    
     // Create date-indexed map of MA data for quick lookup if available
     const maMap = new Map();
     
     if (movingAverageData && movingAverageData.length > 0) {
       // Build the map from MA data
       movingAverageData.forEach(ma => {
+        // Normalize the date format to ensure matching
         const dateKey = ma.date.split('T')[0];
         maMap.set(dateKey, {
           ma50: parseFloat(ma.ma50 || '0'),
@@ -446,22 +444,24 @@ export default function StockDetailsPage() {
         });
       });
       
-      // Map debugging
-      console.log(`MA Map has ${maMap.size} entries with data`);
+      // Log some debug info about the MA data
+      console.log(`MA Map has ${maMap.size} entries with data for ${symbol}`);
       
-      // Log a sample of the data to confirm structure
+      // Log a sample for debugging
       if (maMap.size > 0) {
         const sampleDate = Array.from(maMap.keys())[0];
         console.log(`Sample MA data for ${sampleDate}:`, maMap.get(sampleDate));
       }
     }
     
-    // Merge historical prices with MA data
-    for (const point of filtered) {
+    // Create the combined chart data
+    const result = filtered.map(point => {
+      // Extract just the date part for matching
       const dateKey = typeof point.date === 'string' 
         ? point.date.split('T')[0] 
         : new Date(point.date).toISOString().split('T')[0];
       
+      // Start with the historical price point
       const chartPoint = { ...point };
       
       // Add MA data if available for this date
@@ -469,10 +469,19 @@ export default function StockDetailsPage() {
         const maData = maMap.get(dateKey);
         chartPoint.ma50 = maData.ma50;
         chartPoint.ma200 = maData.ma200;
+      } else {
+        // Ensure we have null values rather than undefined
+        chartPoint.ma50 = null;
+        chartPoint.ma200 = null;
       }
       
-      result.push(chartPoint);
-    }
+      return chartPoint;
+    });
+    
+    // Verify we have MA data in the result
+    const ma50Count = result.filter(p => p.ma50 !== null).length;
+    const ma200Count = result.filter(p => p.ma200 !== null).length;
+    console.log(`Final chart data has ${result.length} points, ${ma50Count} with MA50, ${ma200Count} with MA200`);
     
     return result;
   };
