@@ -81,16 +81,7 @@ export default function MovingAverageChart({ data, height = '100%' }: MovingAver
           itemStyle={{ color: '#EFEFEF' }}
         />
         
-        {/* Price Line */}
-        <Line
-          type="monotone"
-          dataKey="close"
-          stroke="#EFEFEF"
-          strokeWidth={1.5}
-          dot={false}
-          activeDot={{ r: 4, stroke: '#EFEFEF', fill: '#0B1728' }}
-          name="close"
-        />
+        {/* Price line removed as requested */}
         
         {/* 50-Day Moving Average */}
         <Line
