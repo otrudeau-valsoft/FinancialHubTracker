@@ -1539,6 +1539,7 @@ export default function StockDetailsPage() {
                           tickMargin={5}
                           stroke="#1A304A"
                           minTickGap={30}
+                          scale="point"
                         />
                         <YAxis 
                           tick={{ fontSize: 10, fill: '#7A8999' }}
@@ -1546,9 +1547,9 @@ export default function StockDetailsPage() {
                           domain={['auto', 'auto']}
                           stroke="#1A304A"
                         />
-                        <RechartTooltip 
+                        <Tooltip 
+                          cursor={{stroke: '#38AAFD', strokeWidth: 1, strokeDasharray: '5 5'}}
                           formatter={(value, name) => {
-                            if (name === 'close') return [formatCurrency(value), 'Price'];
                             if (name === 'ma50') return [formatCurrency(value), '50-Day MA'];
                             if (name === 'ma200') return [formatCurrency(value), '200-Day MA'];
                             return [value, name];
@@ -1556,7 +1557,7 @@ export default function StockDetailsPage() {
                           labelFormatter={(label, payload) => {
                             if (payload && payload.length > 0 && payload[0].payload.date) {
                               const date = new Date(payload[0].payload.date);
-                              return `Date: ${format(date, 'MMM d, yyyy')}`;
+                              return `Date: ${format(date, 'EEE, MMM d, yyyy')}`;
                             }
                             return `Date: ${label}`;
                           }}
@@ -1566,6 +1567,7 @@ export default function StockDetailsPage() {
                             color: '#EFEFEF'
                           }}
                           itemStyle={{ color: '#EFEFEF' }}
+                          isAnimationActive={false}
                         />
                         
                         {/* Price line removed as requested */}
@@ -1580,6 +1582,7 @@ export default function StockDetailsPage() {
                           activeDot={{ r: 4, stroke: '#38AAFD', fill: '#FFFFFF' }}
                           name="ma50"
                           connectNulls
+                          isAnimationActive={false}
                         />
                         
                         {/* 200-Day Moving Average */}
@@ -1592,6 +1595,7 @@ export default function StockDetailsPage() {
                           activeDot={{ r: 4, stroke: '#FF3D00', fill: '#FFFFFF' }}
                           name="ma200"
                           connectNulls
+                          isAnimationActive={false}
                         />
                       </ComposedChart>
                     </ResponsiveContainer>
