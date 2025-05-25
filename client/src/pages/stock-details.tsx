@@ -449,10 +449,32 @@ export default function StockDetailsPage() {
     // Sort by date ascending to ensure proper chart rendering
     result.sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
     
-    // Filter based on time range
-    let filteredResult = result;
+    // For 5y view, we need to reduce the number of data points to avoid rendering issues
+    // but still maintain the overall trend
+    if (timeRange === '5y' && result.length > 300) {
+      // For 5-year view, we'll sample data points to avoid overcrowding
+      // This approach maintains the overall trend while reducing the number of points
+      const samplingInterval = Math.floor(result.length / 250);
+      const sampledResult = [];
+      
+      // Always include the most recent data point
+      sampledResult.push(result[result.length - 1]);
+      
+      // Sample data points at regular intervals
+      for (let i = result.length - 1 - samplingInterval; i >= 0; i -= samplingInterval) {
+        sampledResult.unshift(result[i]);
+      }
+      
+      // Keep track of how many data points we have
+      const ma50Count = sampledResult.filter(p => p.ma50 !== null).length;
+      const ma200Count = sampledResult.filter(p => p.ma200 !== null).length;
+      console.log(`5Y view: Sampled data has ${sampledResult.length} points from ${result.length} original points. ${ma50Count} with MA50, ${ma200Count} with MA200`);
+      
+      return sampledResult;
+    }
     
-    // Always ensure we display all data for 5y view
+    // For other time ranges, filter based on the time range
+    let filteredResult = result;
     if (timeRange && timeRange !== '5y') {
       const now = new Date();
       let cutoffDate;
@@ -471,7 +493,7 @@ export default function StockDetailsPage() {
           cutoffDate = new Date(now.setFullYear(now.getFullYear() - 1));
           break;
         default:
-          // For 5y or any other option, we want all data
+          // For any other option, we want all data
           cutoffDate = new Date(0); // January 1, 1970
           break;
       }
