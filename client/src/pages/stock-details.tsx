@@ -451,7 +451,9 @@ export default function StockDetailsPage() {
     
     // Filter based on time range
     let filteredResult = result;
-    if (timeRange) {
+    
+    // Always ensure we display all data for 5y view
+    if (timeRange && timeRange !== '5y') {
       const now = new Date();
       let cutoffDate;
       
@@ -468,13 +470,18 @@ export default function StockDetailsPage() {
         case '1y':
           cutoffDate = new Date(now.setFullYear(now.getFullYear() - 1));
           break;
-        case '5y':
         default:
-          cutoffDate = new Date(now.setFullYear(now.getFullYear() - 5));
+          // For 5y or any other option, we want all data
+          cutoffDate = new Date(0); // January 1, 1970
           break;
       }
       
       filteredResult = result.filter(item => item.dateObj >= cutoffDate);
+    }
+    
+    // Handle case where filtering resulted in no data - return all data instead
+    if (filteredResult.length < 2) {
+      filteredResult = result;
     }
     
     // Keep track of how many data points we have for each MA
@@ -1566,11 +1573,14 @@ export default function StockDetailsPage() {
                                 return `Date: ${label}`;
                               }}
                               contentStyle={{ 
-                                backgroundColor: '#0B1728', 
+                                backgroundColor: '#0A1524', 
                                 borderColor: '#1A304A',
-                                color: '#EFEFEF'
+                                color: '#EFEFEF',
+                                fontSize: 12,
+                                fontFamily: 'monospace'
                               }}
-                              itemStyle={{ color: '#EFEFEF' }}
+                              itemStyle={{ color: '#38AAFD' }}
+                              labelStyle={{ color: '#7A8999', fontFamily: 'monospace' }}
                             />
                             
                             {/* 50-Day Moving Average */}
