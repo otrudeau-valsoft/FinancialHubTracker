@@ -1,0 +1,82 @@
+
+DOMException {line: 2, column: 218742, sourceURL: "https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/__replco/static/devt…"}
+column: 218742
+line: 2
+sourceURL: "https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js"
+stack: "WebSocket@[native code]↵t@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:218742↵setupWebSocket@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@vite/client:536:32↵fallback@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@vite/client:509:30↵@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@vite/client:555:25↵@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@vite/client:552:46"
+[[Prototype]]: DOMException
+ABORT_ERR: 20
+DATA_CLONE_ERR: 25
+DOMSTRING_SIZE_ERR: 2
+HIERARCHY_REQUEST_ERR: 3
+INDEX_SIZE_ERR: 1
+INUSE_ATTRIBUTE_ERR: 10
+INVALID_ACCESS_ERR: 15
+INVALID_CHARACTER_ERR: 5
+INVALID_MODIFICATION_ERR: 13
+INVALID_NODE_TYPE_ERR: 24
+INVALID_STATE_ERR: 11
+NAMESPACE_ERR: 14
+NETWORK_ERR: 19
+NOT_FOUND_ERR: 8
+NOT_SUPPORTED_ERR: 9
+NO_DATA_ALLOWED_ERR: 6
+NO_MODIFICATION_ALLOWED_ERR: 7
+QUOTA_EXCEEDED_ERR: 22
+SECURITY_ERR: 18
+SYNTAX_ERR: 12
+TIMEOUT_ERR: 23
+TYPE_MISMATCH_ERR: 17
+URL_MISMATCH_ERR: 21
+VALIDATION_ERR: 16
+WRONG_DOCUMENT_ERR: 4
+code: 12
+get code: ƒ code()
+length: 0
+name: "get code"
+[[Prototype]]: ƒ ()
+message: "The string did not match the expected pattern."
+get message: ƒ message()
+length: 0
+name: "get message"
+[[Prototype]]: ƒ ()
+apply: ƒ apply()
+arguments: "'arguments', 'callee', and 'caller' cannot be accessed in this context."
+get arguments: ƒ arguments()
+set arguments: ƒ arguments()
+bind: ƒ bind()
+call: ƒ call()
+caller: "'arguments', 'callee', and 'caller' cannot be accessed in this context."
+get caller: ƒ caller()
+set caller: ƒ caller()
+constructor: ƒ Function()
+length: 0
+name: "get code"
+toString: ƒ toString()
+Symbol(Symbol.hasInstance): undefined
+[[Prototype]]: Object
+name: "SyntaxError"
+get name: ƒ name()
+length: 0
+name: "get name"
+[[Prototype]]: ƒ ()
+constructor: ƒ DOMException()
+Symbol(Symbol.toStringTag): undefined
+[[Prototype]]: Object
+
+Latest historical price entry for MSFT (USD): 
+Object {date: "2025-05-23", rsi9: "64.80075378582283", rsi14: "67.04177354454285", rsi21: "64.82403972906566"}
+RSI Data Check: 
+Object {totalPoints: 1281, rsiDatapoints: 1268, period: "21", samplePoint: {…}}
+MACD Data Check: 
+Object {totalPoints: 1281, macdDatapoints: 1248, samplePoint: {…}}
+Raw MA data sample: 
+(3) [{…}, {…}, {…}]
+Final chart data has 62 points, 62 with MA50, 62 with MA200
+RSI Data Check: 
+Object {totalPoints: 1281, rsiDatapoints: 1268, period: "21", samplePoint: {…}}
+MACD Data Check: 
+Object {totalPoints: 1281, macdDatapoints: 1248, samplePoint: {…}}
+Raw MA data sample: 
+(3) [{…}, {…}, {…}]
+Final chart data has 249 points, 249 with MA50, 249 with MA200

@@ -1618,10 +1618,7 @@ export default function StockDetailsPage() {
                 {(() => {
                   // Debug what data we have available
                   if (movingAverageData && movingAverageData.length > 0) {
-                    // Add more detailed debugging to see what's happening with the data
-                    console.log("Raw MA data sample:", movingAverageData.slice(0, 3));
-                    
-                    // Create a fresh implementation that preserves our data while fixing the chart
+                    // Process data for the chart
                     const maData = movingAverageData.map(ma => {
                       const dateObj = new Date(ma.date);
                       const month = dateObj.toLocaleString('default', { month: 'short' });
@@ -1629,20 +1626,11 @@ export default function StockDetailsPage() {
                       const formattedDate = `${month} ${year}`;
                       
                       // Force conversion to numbers with explicit parseFloat - this is crucial
-                      let ma50Value = null;
-                      let ma200Value = null;
-                      
-                      if (ma.ma50) {
-                        ma50Value = parseFloat(String(ma.ma50));
-                      }
-                      
-                      if (ma.ma200) {
-                        ma200Value = parseFloat(String(ma.ma200));
-                      }
+                      const ma50Value = ma.ma50 ? parseFloat(String(ma.ma50)) : null;
+                      const ma200Value = ma.ma200 ? parseFloat(String(ma.ma200)) : null;
                       
                       return {
                         date: ma.date,
-                        dateObj: dateObj,
                         formattedDate: formattedDate,
                         ma50: ma50Value,
                         ma200: ma200Value
@@ -1650,7 +1638,11 @@ export default function StockDetailsPage() {
                     });
                     
                     // Sort by date to ensure proper chart rendering
-                    maData.sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+                    maData.sort((a, b) => {
+                      const dateA = new Date(a.date).getTime();
+                      const dateB = new Date(b.date).getTime();
+                      return dateA - dateB;
+                    });
                     
                     // Filter based on selected time range
                     let filteredData = maData;
@@ -1666,10 +1658,10 @@ export default function StockDetailsPage() {
                         default: cutoffDate = new Date(0);
                       }
                       
-                      filteredData = maData.filter(item => item.dateObj >= cutoffDate);
+                      filteredData = maData.filter(item => new Date(item.date) >= cutoffDate);
                     }
                     
-                    // Check if we have enough data points
+                    // Make sure we have enough data points
                     if (filteredData.length < 2) {
                       filteredData = maData;
                     }
@@ -1677,11 +1669,8 @@ export default function StockDetailsPage() {
                     // Log diagnostics
                     const ma50Count = filteredData.filter(d => d.ma50 !== null).length;
                     const ma200Count = filteredData.filter(d => d.ma200 !== null).length;
+                    console.log("Moving Average Chart Data Sample:", filteredData.slice(0, 3));
                     console.log(`Final chart data has ${filteredData.length} points, ${ma50Count} with MA50, ${ma200Count} with MA200`);
-                    
-                    // Display settings
-                    const isLargeDataset = filteredData.length > 100;
-                    const is5YView = timeRange === '5y';
                     
                     return (
                       <div className="h-48">
@@ -1694,13 +1683,9 @@ export default function StockDetailsPage() {
                             <XAxis 
                               dataKey="formattedDate"
                               tick={{ fontSize: 10, fill: '#7A8999' }}
-                              interval="preserveStartEnd"
+                              interval={Math.max(1, Math.floor(filteredData.length / 10))}
                               tickMargin={5}
                               stroke="#1A304A"
-                              minTickGap={is5YView ? 80 : 30}
-                              scale="point"
-                              allowDataOverflow={is5YView}
-                              padding={{ left: 10, right: 10 }}
                             />
                             <YAxis 
                               tick={{ fontSize: 10, fill: '#7A8999' }}
@@ -1711,14 +1696,14 @@ export default function StockDetailsPage() {
                             <RechartTooltip 
                               cursor={{stroke: '#38AAFD', strokeWidth: 1, strokeDasharray: '5 5'}}
                               formatter={(value: any, name: string) => {
-                                if (name === 'ma50') return [formatCurrency(value), '50-Day MA'];
-                                if (name === 'ma200') return [formatCurrency(value), '200-Day MA'];
+                                if (name === 'ma50') return [`$${value.toFixed(2)}`, '50-Day MA'];
+                                if (name === 'ma200') return [`$${value.toFixed(2)}`, '200-Day MA'];
                                 return [value, name];
                               }}
-                              labelFormatter={(label: string, payload: any) => {
-                                if (payload && payload.length > 0 && payload[0].payload.date) {
-                                  const date = new Date(payload[0].payload.date);
-                                  return `Date: ${format(date, 'EEE, MMM d, yyyy')}`;
+                              labelFormatter={(label) => {
+                                const item = filteredData.find(d => d.formattedDate === label);
+                                if (item) {
+                                  return `Date: ${format(new Date(item.date), 'MMM d, yyyy')}`;
                                 }
                                 return `Date: ${label}`;
                               }}
@@ -1729,8 +1714,6 @@ export default function StockDetailsPage() {
                                 fontSize: 12,
                                 fontFamily: 'monospace'
                               }}
-                              itemStyle={{ color: '#38AAFD' }}
-                              labelStyle={{ color: '#7A8999', fontFamily: 'monospace' }}
                             />
                             
                             {/* 50-Day Moving Average */}
@@ -1740,10 +1723,8 @@ export default function StockDetailsPage() {
                               stroke="#38AAFD"
                               strokeWidth={2}
                               dot={false}
-                              activeDot={{ r: 4, stroke: '#38AAFD', fill: '#FFFFFF' }}
-                              name="ma50"
                               connectNulls
-                              isAnimationActive={!isLargeDataset}
+                              isAnimationActive={false}
                             />
                             
                             {/* 200-Day Moving Average */}
@@ -1753,10 +1734,8 @@ export default function StockDetailsPage() {
                               stroke="#FF3D00"
                               strokeWidth={2}
                               dot={false}
-                              activeDot={{ r: 4, stroke: '#FF3D00', fill: '#FFFFFF' }}
-                              name="ma200"
                               connectNulls
-                              isAnimationActive={!isLargeDataset}
+                              isAnimationActive={false}
                             />
                           </LineChart>
                         </ResponsiveContainer>
