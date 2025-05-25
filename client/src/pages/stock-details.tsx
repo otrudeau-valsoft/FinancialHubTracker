@@ -48,6 +48,7 @@ import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
+import MovingAverageChart from '@/components/moving-average-chart';
 import { Input } from "@/components/ui/input";
 import { processHistoricalData, useHistoricalPrices } from '@/hooks/use-historical-prices';
 import { startOfDay, format } from 'date-fns';

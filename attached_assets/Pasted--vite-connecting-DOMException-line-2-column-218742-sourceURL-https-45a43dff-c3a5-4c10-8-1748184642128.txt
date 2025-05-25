@@ -1,0 +1,57 @@
+[vite] connecting...
+DOMException {line: 2, column: 218742, sourceURL: "https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/__replco/static/devt…"}
+
+Latest historical price entry for MSFT (USD): 
+Object {date: "2025-05-23", rsi9: "64.80075378582283", rsi14: "67.04177354454285", rsi21: "64.82403972906566"}
+RSI Data Check: 
+Object {totalPoints: 1281, rsiDatapoints: 1268, period: "21", samplePoint: {…}}
+MACD Data Check: 
+Object {totalPoints: 1281, macdDatapoints: 1248, samplePoint: {…}}
+Moving Average Chart Data Sample: 
+(3) [{…}, {…}, {…}]
+Final chart data has 62 points, 62 with MA50, 62 with MA200
+RSI Data Check: 
+Object {totalPoints: 1281, rsiDatapoints: 1268, period: "21", samplePoint: {…}}
+MACD Data Check: 
+Object {totalPoints: 1281, macdDatapoints: 1248, samplePoint: {…}}
+Moving Average Chart Data Sample: 
+(3) [{…}, {…}, {…}]
+Final chart data has 62 points, 62 with MA50, 62 with MA200
+Can't find variable: MovingAverageChart
+RSI Data Check: 
+Object {totalPoints: 1281, rsiDatapoints: 1268, period: "21", samplePoint: {…}}
+MACD Data Check: 
+Object {totalPoints: 1281, macdDatapoints: 1248, samplePoint: {…}}
+Moving Average Chart Data Sample: 
+(3) [{…}, {…}, {…}]
+Final chart data has 62 points, 62 with MA50, 62 with MA200
+RSI Data Check: 
+Object {totalPoints: 1281, rsiDatapoints: 1268, period: "21", samplePoint: {…}}
+MACD Data Check: 
+Object {totalPoints: 1281, macdDatapoints: 1248, samplePoint: {…}}
+Moving Average Chart Data Sample: 
+(3) [{…}, {…}, {…}]
+Final chart data has 62 points, 62 with MA50, 62 with MA200
+Can't find variable: MovingAverageChart
+The above error occurred in the <StockDetailsPage> component:
+
+StockDetailsPage@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/src/pages/stock-details.tsx:361:37
+Route@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js:323:14
+Switch@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js:380:27
+main
+div
+div
+Router
+TooltipProviderProvider@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-S34NKWM7.js:48:13
+TooltipProvider@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js:62:43
+QueryClientProvider@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js:2805:9
+App
+V@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js:44:26
+J@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js:42:28
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+t@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12639
+value@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32772
+@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34410
+Can't find variable: MovingAverageChart
