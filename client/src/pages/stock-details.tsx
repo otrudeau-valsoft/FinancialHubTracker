@@ -458,10 +458,24 @@ export default function StockDetailsPage() {
       // Create a date object for formatting
       const dateObj = new Date(ma.date);
       
-      // Format the date for display on x-axis
-      const month = dateObj.toLocaleString('default', { month: 'short' });
-      const day = dateObj.getDate();
-      const formattedDate = `${month} ${day}`;
+      // Format the date for display on x-axis based on timeframe
+      let formattedDate;
+      if (timeRange === '5y') {
+        // For 5Y view, use consistent "MMM YY" format
+        const month = dateObj.toLocaleString('default', { month: 'short' });
+        const year = dateObj.getFullYear().toString().substr(2); // Get last 2 digits of year
+        formattedDate = `${month} ${year}`;
+      } else if (timeRange === '1y' || timeRange === '2y') {
+        // For 1Y and 2Y views, use "MMM YY" format
+        const month = dateObj.toLocaleString('default', { month: 'short' });
+        const year = dateObj.getFullYear().toString().substr(2);
+        formattedDate = `${month} ${year}`;
+      } else {
+        // For shorter timeframes, use "MMM D" format
+        const month = dateObj.toLocaleString('default', { month: 'short' });
+        const day = dateObj.getDate();
+        formattedDate = `${month} ${day}`;
+      }
       
       // Parse values, ensuring we return a number or null (not undefined)
       const ma50Value = ma.ma50 !== null && ma.ma50 !== undefined ? parseFloat(ma.ma50) : null;
@@ -1634,12 +1648,13 @@ export default function StockDetailsPage() {
                             <XAxis 
                               dataKey="formattedDate"
                               tick={{ fontSize: 10, fill: '#7A8999' }}
-                              interval={is5YView ? 'preserveStartEnd' : intervalValue}
+                              interval="preserveStartEnd"
                               tickMargin={5}
                               stroke="#1A304A"
-                              minTickGap={isLargeDataset ? 60 : 30}
-                              scale={is5YView ? 'auto' : 'point'}
+                              minTickGap={is5YView ? 80 : 30}
+                              scale="point"
                               allowDataOverflow={is5YView}
+                              padding={{ left: 10, right: 10 }}
                             />
                             <YAxis 
                               tick={{ fontSize: 10, fill: '#7A8999' }}
