@@ -1616,6 +1616,10 @@ export default function StockDetailsPage() {
                     console.log(`Final chart data has ${maData.length} points, ${maData.filter(d => d.ma50).length} with MA50, ${maData.filter(d => d.ma200).length} with MA200`);
                     
                     // Only render if we have prepared data with valid MA values
+                    // For large datasets (5Y view), adjust X-axis interval
+                    const isLargeDataset = maData.length > 100;
+                    const intervalValue = isLargeDataset ? Math.ceil(maData.length / 12) : "preserveStartEnd";
+                    
                     return (
                       <div className="h-48">
                         <ResponsiveContainer width="100%" height="100%">
@@ -1627,10 +1631,10 @@ export default function StockDetailsPage() {
                             <XAxis 
                               dataKey="formattedDate"
                               tick={{ fontSize: 10, fill: '#7A8999' }}
-                              interval="preserveStartEnd"
+                              interval={intervalValue}
                               tickMargin={5}
                               stroke="#1A304A"
-                              minTickGap={30}
+                              minTickGap={isLargeDataset ? 60 : 30}
                               scale="point"
                             />
                             <YAxis 
@@ -1674,6 +1678,7 @@ export default function StockDetailsPage() {
                               activeDot={{ r: 4, stroke: '#38AAFD', fill: '#FFFFFF' }}
                               name="ma50"
                               connectNulls
+                              isAnimationActive={!isLargeDataset}
                             />
                             
                             {/* 200-Day Moving Average */}
@@ -1686,6 +1691,7 @@ export default function StockDetailsPage() {
                               activeDot={{ r: 4, stroke: '#FF3D00', fill: '#FFFFFF' }}
                               name="ma200"
                               connectNulls
+                              isAnimationActive={!isLargeDataset}
                             />
                           </LineChart>
                         </ResponsiveContainer>
