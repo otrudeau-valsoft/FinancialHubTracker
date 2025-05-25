@@ -901,8 +901,13 @@ class HistoricalPriceService {
    * Uses a mutex pattern to prevent duplicate concurrent executions
    * @param forceRsiRefresh If true, will force updating RSI values for recent price points
    * @param forceMacdRefresh If true, will force updating MACD values for recent price points
+   * @param forceMovingAverageRefresh If true, will force updating Moving Average values for recent price points
    */
-  async updateAllHistoricalPrices(forceRsiRefresh: boolean = false, forceMacdRefresh: boolean = false) {
+  async updateAllHistoricalPrices(
+    forceRsiRefresh: boolean = false,
+    forceMacdRefresh: boolean = false,
+    forceMovingAverageRefresh: boolean = false
+  ) {
     // Check if already running to prevent duplicate executions
     if (this.isUpdatingAllHistoricalPrices) {
       console.log('Historical price update already in progress, skipping duplicate request');
@@ -1010,8 +1015,15 @@ class HistoricalPriceService {
                 // Calculate RSI and MACD indicators
                 await this.calculateAndUpdateRSIForSymbol(symbol, region, forceRsiRefresh, forceMacdRefresh);
                 
-                // Moving Average calculation is now handled separately
-                // We no longer calculate moving averages here to avoid circular dependencies
+                // Calculate Moving Averages for this symbol
+                if (forceMovingAverageRefresh) {
+                  try {
+                    await calculateAndStoreMovingAverages(symbol, region);
+                    console.log(`Successfully calculated moving averages for ${symbol} (${region})`);
+                  } catch (maError) {
+                    console.error(`Error calculating moving averages for ${symbol} (${region}):`, maError);
+                  }
+                }
               } catch (error) {
                 console.error(`Error calculating indicators for ${symbol} (${region}):`, error);
               }

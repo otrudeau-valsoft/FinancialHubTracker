@@ -72,7 +72,7 @@ async function runMigration() {
 }
 
 // Execute the migration when this file is run directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runMigration()
     .then(() => {
       console.log('Migration completed successfully.');
@@ -84,4 +84,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { runMigration };
+export { runMigration };
