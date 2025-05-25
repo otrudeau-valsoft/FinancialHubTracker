@@ -458,24 +458,16 @@ export default function StockDetailsPage() {
       // Create a date object for formatting
       const dateObj = new Date(ma.date);
       
-      // Format the date for display on x-axis based on timeframe
+      // Format the date for display on x-axis - all using same month-year format
+      // This ensures consistency across all chart types
+      const month = dateObj.toLocaleString('default', { month: 'short' });
+      
+      // For all views, use the format "MMM DD" (for tooltip) and "MMM YY" (for axis labels)
       let formattedDate;
-      if (timeRange === '5y') {
-        // For 5Y view, use consistent "MMM YY" format
-        const month = dateObj.toLocaleString('default', { month: 'short' });
-        const year = dateObj.getFullYear().toString().substr(2); // Get last 2 digits of year
-        formattedDate = `${month} ${year}`;
-      } else if (timeRange === '1y' || timeRange === '2y') {
-        // For 1Y and 2Y views, use "MMM YY" format
-        const month = dateObj.toLocaleString('default', { month: 'short' });
-        const year = dateObj.getFullYear().toString().substr(2);
-        formattedDate = `${month} ${year}`;
-      } else {
-        // For shorter timeframes, use "MMM D" format
-        const month = dateObj.toLocaleString('default', { month: 'short' });
-        const day = dateObj.getDate();
-        formattedDate = `${month} ${day}`;
-      }
+      
+      // Always use Month + Year format for axis labels for consistency
+      const year = dateObj.getFullYear().toString().substr(2); // Get last 2 digits of year
+      formattedDate = `${month} ${year}`;
       
       // Parse values, ensuring we return a number or null (not undefined)
       const ma50Value = ma.ma50 !== null && ma.ma50 !== undefined ? parseFloat(ma.ma50) : null;
