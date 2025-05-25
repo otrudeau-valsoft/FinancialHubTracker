@@ -387,16 +387,8 @@ export default function DataManagement() {
   // Mutation for calculating Moving Average data for all portfolios
   const calculateAllMovingAveragesMutation = useMutation({
     mutationFn: async () => {
-      // Call the API for each region in sequence
-      const usdResult = await apiRequest('POST', '/api/moving-average/calculate-portfolio/USD');
-      const cadResult = await apiRequest('POST', '/api/moving-average/calculate-portfolio/CAD');
-      const intlResult = await apiRequest('POST', '/api/moving-average/calculate-portfolio/INTL');
-      
-      return {
-        USD: usdResult,
-        CAD: cadResult,
-        INTL: intlResult
-      };
+      // Use the new endpoint that handles all regions in a single request
+      return await apiRequest('POST', '/api/moving-average/calculate-all-regions');
     },
     onSuccess: (data) => {
       toast({
@@ -434,6 +426,26 @@ export default function DataManagement() {
       });
       refetchLogs();
       console.log("Historical price refresh complete with RSI and MACD data", data);
+      
+      // Calculate Moving Averages for all regions
+      try {
+        toast({
+          title: "Calculating Moving Averages",
+          description: "Calculating 50-day and 200-day Moving Averages for all regions",
+        });
+        
+        // Call the new endpoint to calculate Moving Averages for all regions
+        await calculateAllMovingAveragesMutation.mutateAsync();
+        
+        console.log("Moving Average calculation complete for all regions");
+      } catch (error) {
+        console.error("Error calculating Moving Averages:", error);
+        toast({
+          title: "Error calculating Moving Averages",
+          description: "Historical prices were updated, but there was an error calculating Moving Averages",
+          variant: "destructive"
+        });
+      }
       
       // Invalidate ALL queries in the cache to ensure fresh data
       await queryClient.invalidateQueries();
