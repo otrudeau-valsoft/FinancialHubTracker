@@ -1620,6 +1620,9 @@ export default function StockDetailsPage() {
                     const isLargeDataset = maData.length > 100;
                     const intervalValue = isLargeDataset ? Math.ceil(maData.length / 12) : "preserveStartEnd";
                     
+                    // For 5Y view, use a different chart approach
+                    const is5YView = timeRange === '5y';
+                    
                     return (
                       <div className="h-48">
                         <ResponsiveContainer width="100%" height="100%">
@@ -1631,11 +1634,12 @@ export default function StockDetailsPage() {
                             <XAxis 
                               dataKey="formattedDate"
                               tick={{ fontSize: 10, fill: '#7A8999' }}
-                              interval={intervalValue}
+                              interval={is5YView ? 'preserveStartEnd' : intervalValue}
                               tickMargin={5}
                               stroke="#1A304A"
                               minTickGap={isLargeDataset ? 60 : 30}
-                              scale="point"
+                              scale={is5YView ? 'auto' : 'point'}
+                              allowDataOverflow={is5YView}
                             />
                             <YAxis 
                               tick={{ fontSize: 10, fill: '#7A8999' }}
