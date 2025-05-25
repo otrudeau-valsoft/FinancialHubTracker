@@ -1672,73 +1672,10 @@ export default function StockDetailsPage() {
                     console.log("Moving Average Chart Data Sample:", filteredData.slice(0, 3));
                     console.log(`Final chart data has ${filteredData.length} points, ${ma50Count} with MA50, ${ma200Count} with MA200`);
                     
+                    // Use our existing MovingAverageChart component
                     return (
                       <div className="h-48">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart
-                            data={filteredData}
-                            margin={{ top: 10, right: 10, left: 20, bottom: 20 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" stroke="#1A304A" vertical={false} />
-                            <XAxis 
-                              dataKey="formattedDate"
-                              tick={{ fontSize: 10, fill: '#7A8999' }}
-                              interval={Math.max(1, Math.floor(filteredData.length / 10))}
-                              tickMargin={5}
-                              stroke="#1A304A"
-                            />
-                            <YAxis 
-                              tick={{ fontSize: 10, fill: '#7A8999' }}
-                              tickFormatter={(val) => `${val.toFixed(1)}`}
-                              domain={['auto', 'auto']}
-                              stroke="#1A304A"
-                            />
-                            <RechartTooltip 
-                              cursor={{stroke: '#38AAFD', strokeWidth: 1, strokeDasharray: '5 5'}}
-                              formatter={(value: any, name: string) => {
-                                if (name === 'ma50') return [`$${value.toFixed(2)}`, '50-Day MA'];
-                                if (name === 'ma200') return [`$${value.toFixed(2)}`, '200-Day MA'];
-                                return [value, name];
-                              }}
-                              labelFormatter={(label) => {
-                                const item = filteredData.find(d => d.formattedDate === label);
-                                if (item) {
-                                  return `Date: ${format(new Date(item.date), 'MMM d, yyyy')}`;
-                                }
-                                return `Date: ${label}`;
-                              }}
-                              contentStyle={{ 
-                                backgroundColor: '#0A1524', 
-                                borderColor: '#1A304A',
-                                color: '#EFEFEF',
-                                fontSize: 12,
-                                fontFamily: 'monospace'
-                              }}
-                            />
-                            
-                            {/* 50-Day Moving Average */}
-                            <Line
-                              type="monotone"
-                              dataKey="ma50"
-                              stroke="#38AAFD"
-                              strokeWidth={2}
-                              dot={false}
-                              connectNulls
-                              isAnimationActive={false}
-                            />
-                            
-                            {/* 200-Day Moving Average */}
-                            <Line
-                              type="monotone"
-                              dataKey="ma200"
-                              stroke="#FF3D00"
-                              strokeWidth={2}
-                              dot={false}
-                              connectNulls
-                              isAnimationActive={false}
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
+                        <MovingAverageChart data={filteredData} />
                       </div>
                     );
                   } else {
