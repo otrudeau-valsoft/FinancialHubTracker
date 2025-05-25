@@ -16,4 +16,7 @@ router.post('/calculate/:symbol/:region', MovingAverageController.calculateMovin
 // Calculate Moving Average data for all symbols in a portfolio
 router.post('/calculate-portfolio/:region', MovingAverageController.calculatePortfolioMovingAverages);
 
+// Calculate Moving Average data for all symbols across all regions (USD, CAD, INTL)
+router.post('/calculate-all-regions', MovingAverageController.calculateAllRegionsMovingAverages);
+
 export default router;

@@ -72,3 +72,28 @@ export const calculatePortfolioMovingAverages = async (req: Request, res: Respon
     });
   }
 };
+
+/**
+ * Calculate and update Moving Average data for all symbols across all regions (USD, CAD, INTL)
+ */
+export const calculateAllRegionsMovingAverages = async (req: Request, res: Response) => {
+  try {
+    const results = await MovingAverageService.calculateMovingAveragesForAllRegions();
+    
+    // Calculate total processed data points
+    const totalProcessed = Object.values(results).reduce((sum, count) => sum + count, 0);
+    
+    return res.json({
+      status: 'success',
+      message: `Successfully processed Moving Average data for all regions`,
+      results,
+      totalProcessed
+    });
+  } catch (error) {
+    console.error(`Error calculating Moving Average data for all regions:`, error);
+    return res.status(500).json({
+      status: 'error',
+      error: 'Failed to calculate Moving Average data for all regions'
+    });
+  }
+};

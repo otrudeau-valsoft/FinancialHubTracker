@@ -207,6 +207,34 @@ export async function calculateMovingAveragesForPortfolio(region: string): Promi
 }
 
 /**
+ * Calculate and store moving average data for all symbols across all regions (USD, CAD, INTL)
+ * 
+ * @returns Promise<{[region: string]: number}> - Total number of data points processed per region
+ */
+export async function calculateMovingAveragesForAllRegions(): Promise<{[region: string]: number}> {
+  console.log('Calculating moving averages for all symbols across all regions (USD, CAD, INTL)');
+  
+  const regions = ['USD', 'CAD', 'INTL'];
+  const results: {[region: string]: number} = {};
+  
+  try {
+    for (const region of regions) {
+      console.log(`Processing ${region} region...`);
+      const processed = await calculateMovingAveragesForPortfolio(region);
+      results[region] = processed;
+    }
+    
+    const totalProcessed = Object.values(results).reduce((sum, count) => sum + count, 0);
+    console.log(`Processed a total of ${totalProcessed} moving average data points across all regions`);
+    
+    return results;
+  } catch (error) {
+    console.error('Error calculating moving averages for all regions:', error);
+    throw error;
+  }
+}
+
+/**
  * Get moving average data for a specific symbol
  * 
  * @param symbol - Stock symbol
