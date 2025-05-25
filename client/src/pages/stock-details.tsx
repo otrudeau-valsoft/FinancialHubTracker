@@ -421,82 +421,68 @@ export default function StockDetailsPage() {
     { enabled: !!symbol && !!region }
   );
   
-  // Prepare data for the Moving Average chart by combining historical prices with MA data
+  // Prepare data for the Moving Average chart using the MA data directly
   const prepareMAChartData = () => {
-    if (!historicalPrices || historicalPrices.length === 0) {
+    if (!movingAverageData || movingAverageData.length === 0) {
       return [];
     }
     
-    // Get filtered historical data based on selected time range
-    const filtered = processHistoricalData(historicalPrices, timeRange);
-    
-    // Create date-indexed map of MA data for quick lookup if available
-    const maMap = new Map();
-    
-    if (movingAverageData && movingAverageData.length > 0) {
-      // Build the map from MA data
-      movingAverageData.forEach(ma => {
-        // Normalize the date format to ensure matching
-        const dateKey = ma.date.split('T')[0];
-        maMap.set(dateKey, {
-          ma50: ma.ma50 ? parseFloat(ma.ma50) : null,
-          ma200: ma.ma200 ? parseFloat(ma.ma200) : null
-        });
-      });
+    // Format the moving average data for the chart
+    const result = movingAverageData.map(ma => {
+      // Create a date object for formatting
+      const dateObj = new Date(ma.date);
       
-      // Log some debug info about the MA data
-      console.log(`MA Map has ${maMap.size} entries with data for ${symbol}`);
+      // Format the date for display on x-axis
+      const month = dateObj.toLocaleString('default', { month: 'short' });
+      const day = dateObj.getDate();
+      const formattedDate = `${month} ${day}`;
       
-      // Log a sample for debugging
-      if (maMap.size > 0) {
-        const sampleDate = Array.from(maMap.keys())[0];
-        console.log(`Sample MA data for ${sampleDate}:`, maMap.get(sampleDate));
-      }
-    }
-    
-    // Create the combined chart data with specifically formatted MA values
-    const result = filtered.map(point => {
-      // Extract just the date part for matching
-      const dateKey = typeof point.date === 'string' 
-        ? point.date.split('T')[0] 
-        : new Date(point.date).toISOString().split('T')[0];
-      
-      // Start with the historical price point
-      const chartPoint = { 
-        ...point,
-        // Initialize MA values to null for proper chart rendering
-        ma50: null,
-        ma200: null
+      return {
+        date: ma.date,
+        dateObj: dateObj,
+        formattedDate: formattedDate,
+        ma50: ma.ma50 ? parseFloat(ma.ma50) : null,
+        ma200: ma.ma200 ? parseFloat(ma.ma200) : null
       };
-      
-      // Add MA data if available for this date
-      if (maMap.has(dateKey)) {
-        const maData = maMap.get(dateKey);
-        
-        // Only set non-zero values to avoid display issues
-        if (maData.ma50 && maData.ma50 > 0) {
-          chartPoint.ma50 = maData.ma50;
-        }
-        
-        if (maData.ma200 && maData.ma200 > 0) {
-          chartPoint.ma200 = maData.ma200;
-        }
-      }
-      
-      return chartPoint;
     });
     
-    // Verify we have MA data in the result
-    const ma50Count = result.filter(p => p.ma50 !== null).length;
-    const ma200Count = result.filter(p => p.ma200 !== null).length;
-    console.log(`Final chart data has ${result.length} points, ${ma50Count} with MA50, ${ma200Count} with MA200`);
+    // Sort by date ascending to ensure proper chart rendering
+    result.sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
     
-    // Log a sample of the final data
-    if (result.length > 0) {
-      console.log("MA Chart Data Sample:", result.slice(0, 3));
+    // Filter based on time range
+    let filteredResult = result;
+    if (timeRange) {
+      const now = new Date();
+      let cutoffDate;
+      
+      switch (timeRange) {
+        case '1m':
+          cutoffDate = new Date(now.setMonth(now.getMonth() - 1));
+          break;
+        case '3m':
+          cutoffDate = new Date(now.setMonth(now.getMonth() - 3));
+          break;
+        case '6m':
+          cutoffDate = new Date(now.setMonth(now.getMonth() - 6));
+          break;
+        case '1y':
+          cutoffDate = new Date(now.setFullYear(now.getFullYear() - 1));
+          break;
+        case '5y':
+        default:
+          cutoffDate = new Date(now.setFullYear(now.getFullYear() - 5));
+          break;
+      }
+      
+      filteredResult = result.filter(item => item.dateObj >= cutoffDate);
     }
     
-    return result;
+    // Keep track of how many data points we have for each MA
+    const ma50Count = filteredResult.filter(p => p.ma50 !== null).length;
+    const ma200Count = filteredResult.filter(p => p.ma200 !== null).length;
+    console.log(`Final chart data has ${filteredResult.length} points, ${ma50Count} with MA50, ${ma200Count} with MA200`);
+    
+    return filteredResult;
   };
   
   // Function to create dedicated MA chart data
@@ -1291,7 +1277,13 @@ export default function StockDetailsPage() {
                           stroke="#1A304A"
                         />
                         <RechartTooltip
-                          labelFormatter={(label) => `Date: ${label}`}
+                          labelFormatter={(label, payload) => {
+                            if (payload && payload.length > 0 && payload[0].payload.date) {
+                              const date = new Date(payload[0].payload.date);
+                              return `Date: ${format(date, 'EEE, MMM d, yyyy')}`;
+                            }
+                            return `Date: ${label}`;
+                          }}
                           formatter={(value: number) => [`${value.toFixed(1)}`, `RSI-${rsiPeriod}`]}
                           contentStyle={{ 
                             backgroundColor: '#0A1524', 
@@ -1302,6 +1294,7 @@ export default function StockDetailsPage() {
                           }}
                           itemStyle={{ color: '#805AD5' }}
                           labelStyle={{ color: '#7A8999', fontFamily: 'monospace' }}
+                          cursor={{stroke: '#38AAFD', strokeWidth: 1, strokeDasharray: '5 5'}}
                         />
                         
                         {/* Background fill for overbought/oversold regions */}
@@ -1419,7 +1412,13 @@ export default function StockDetailsPage() {
                           stroke="#1A304A"
                         />
                         <RechartTooltip
-                          labelFormatter={(label) => `Date: ${label}`}
+                          labelFormatter={(label, payload) => {
+                            if (payload && payload.length > 0 && payload[0].payload.date) {
+                              const date = new Date(payload[0].payload.date);
+                              return `Date: ${format(date, 'EEE, MMM d, yyyy')}`;
+                            }
+                            return `Date: ${label}`;
+                          }}
                           formatter={(value: number, name: string) => {
                             return [`${value.toFixed(2)}`, name === 'histogram' ? 'Histogram' : name === 'macd' ? 'MACD Line' : 'Signal Line'];
                           }}
@@ -1432,6 +1431,7 @@ export default function StockDetailsPage() {
                           }}
                           itemStyle={{ color: '#FF9800' }}
                           labelStyle={{ color: '#7A8999', fontFamily: 'monospace' }}
+                          cursor={{stroke: '#38AAFD', strokeWidth: 1, strokeDasharray: '5 5'}}
                         />
                         
                         {/* Zero line reference */}
