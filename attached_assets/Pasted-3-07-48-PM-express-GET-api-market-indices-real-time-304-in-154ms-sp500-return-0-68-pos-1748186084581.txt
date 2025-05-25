@@ -1,0 +1,926 @@
+3:07:48 PM [express] GET /api/market-indices/real-time 304 in 154ms :: {"sp500":{"return":-0.68,"pos…
+Bulk update with forceRsiRefresh=true, forceMacdRefresh=true, forceMovingAverageRefresh=true
+Historical price update already in progress, skipping duplicate request
+Automatically updating portfolio holdings after historical price update...
+Updating all portfolio holdings...
+Current timestamp: 2025-05-25T15:07:50.801Z
+Starting USD holdings update...
+Processed batch 7 of 13
+3:07:51 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Updated 21 holdings for USD portfolio (including CASH)
+USD holdings update completed with 21 entries
+Starting CAD holdings update...
+Updated 21 holdings for CAD portfolio (including CASH)
+CAD holdings update completed with 21 entries
+Starting INTL holdings update...
+Processed batch 8 of 13
+3:07:54 PM [express] GET /api/data-updates/logs 304 in 15ms :: []
+Updated 16 holdings for INTL portfolio (including CASH)
+INTL holdings update completed with 16 entries
+Updated 58 total holdings across all portfolios (including CASH rows)
+Updating portfolio performance history with new historical price data...
+Error updating holdings after historical price update: ReferenceError: require is not defined
+    at fetchAllHistoricalPrices (/home/runner/workspace/server/controllers/price/price.controller.ts:438:47)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+3:07:55 PM [express] POST /api/historical-prices/fetch/all 200 in 5134ms :: {"message":"Update alrea…
+Calculating moving averages for all symbols across all regions (USD, CAD, INTL)
+Processing USD region...
+Calculating moving averages for all symbols in USD portfolio
+3:07:56 PM [express] GET /api/data-updates/logs 304 in 25ms :: []
+Found 28 symbols for USD portfolio
+Calculating moving averages for AAPL (USD)
+Found 1281 historical price points for AAPL (USD)
+Upserting 1232 moving average data points for AAPL (USD)
+Processed batch 9 of 13
+3:07:59 PM [express] GET /api/data-updates/logs 304 in 21ms :: []
+Processed batch 1 of 13
+Processed batch 10 of 13
+3:08:02 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 2 of 13
+Processed batch 11 of 13
+3:08:05 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 3 of 13
+Processed batch 12 of 13
+Processed batch 13 of 13
+Successfully calculated moving averages for COST (USD)
+Calculating and updating RSI values for PWR (USD) with forceRsiRefresh=true
+Latest price for PWR is from 2025-05-23, which is 2 days ago 
+Forcing RSI refresh for recent data of PWR
+Forcing refresh of most recent price point for PWR
+Calculating RSI for PWR (USD): 1 missing data points, 1 recent points to refresh
+Calculating MACD values for PWR (USD)
+Updating most recent price for PWR from 2025-05-23 with RSI values: 9=59.60691661855465, 14=63.58437460792625, 21=62.84744048076085
+Updating 1 RSI data records for PWR (USD)
+Processing RSI data batch 1 of 1
+Updated RSI data for PWR (USD) on 2025-05-23: RSI9=59.60691661855465, RSI14=63.58437460792625, RSI21=62.84744048076085
+Updating 1248 MACD data records for PWR (USD)
+Processing MACD data batch 1 of 13
+Processing MACD data batch 2 of 13
+Processing MACD data batch 3 of 13
+Processing MACD data batch 4 of 13
+3:08:08 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processing MACD data batch 5 of 13
+Processing MACD data batch 6 of 13
+Processing MACD data batch 7 of 13
+Processing MACD data batch 8 of 13
+Processing MACD data batch 9 of 13
+Processing MACD data batch 10 of 13
+Processing MACD data batch 11 of 13
+Processing MACD data batch 12 of 13
+Processing MACD data batch 13 of 13
+Updated MACD data for PWR (USD) on 2025-05-23: MACD=15.446525379311822, Signal=16.941178326046735, Histogram=-1.494652946734913
+Calculating moving averages for PWR (USD)
+Found 1281 historical price points for PWR (USD)
+Upserting 1232 moving average data points for PWR (USD)
+Processed batch 4 of 13
+3:08:11 PM [express] GET /api/data-updates/logs 304 in 28ms :: []
+Processed batch 1 of 13
+Processed batch 5 of 13
+3:08:14 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 2 of 13
+3:08:17 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+Processed batch 6 of 13
+Processed batch 3 of 13
+3:08:19 PM [express] GET /api/market-indices/real-time 304 in 638ms :: {"sp500":{"return":-0.68,"pos…
+3:08:20 PM [express] GET /api/data-updates/logs 304 in 18ms :: []
+Processed batch 7 of 13
+Processed batch 4 of 13
+3:08:24 PM [express] GET /api/data-updates/logs 304 in 34ms :: []
+Processed batch 5 of 13
+Processed batch 8 of 13
+3:08:27 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 6 of 13
+Processed batch 9 of 13
+3:08:30 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 7 of 13
+Processed batch 10 of 13
+3:08:33 PM [express] GET /api/data-updates/logs 304 in 22ms :: []
+Processed batch 8 of 13
+Processed batch 11 of 13
+3:08:36 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 9 of 13
+Processed batch 12 of 13
+3:08:39 PM [express] GET /api/data-updates/logs 304 in 15ms :: []
+Processed batch 13 of 13
+Calculating moving averages for AMZN (USD)
+Found 1281 historical price points for AMZN (USD)
+Upserting 1232 moving average data points for AMZN (USD)
+Processed batch 10 of 13
+3:08:42 PM [express] GET /api/data-updates/logs 304 in 15ms :: []
+Processed batch 11 of 13
+Processed batch 1 of 13
+3:08:45 PM [express] GET /api/data-updates/logs 304 in 18ms :: []
+Processed batch 12 of 13
+Processed batch 2 of 13
+Processed batch 13 of 13
+Successfully calculated moving averages for PWR (USD)
+Calculating and updating RSI values for AVGO (USD) with forceRsiRefresh=true
+Latest price for AVGO is from 2025-05-23, which is 2 days ago 
+Forcing RSI refresh for recent data of AVGO
+Forcing refresh of most recent price point for AVGO
+Calculating RSI for AVGO (USD): 1 missing data points, 1 recent points to refresh
+Calculating MACD values for AVGO (USD)
+Updating most recent price for AVGO from 2025-05-23 with RSI values: 9=69.56724795356409, 14=68.03484917120522, 21=63.61577267719848
+Updating 1 RSI data records for AVGO (USD)
+Processing RSI data batch 1 of 1
+Updated RSI data for AVGO (USD) on 2025-05-23: RSI9=69.56724795356409, RSI14=68.03484917120522, RSI21=63.61577267719848
+Updating 1248 MACD data records for AVGO (USD)
+Processing MACD data batch 1 of 13
+Processing MACD data batch 2 of 13
+Processing MACD data batch 3 of 13
+Processing MACD data batch 4 of 13
+Processing MACD data batch 5 of 13
+Processing MACD data batch 6 of 13
+Processing MACD data batch 7 of 13
+Processing MACD data batch 8 of 13
+Processing MACD data batch 9 of 13
+Processing MACD data batch 10 of 13
+Processing MACD data batch 11 of 13
+Processing MACD data batch 12 of 13
+Processing MACD data batch 13 of 13
+Updated MACD data for AVGO (USD) on 2025-05-23: MACD=12.188167609769494, Signal=11.558763850859682, Histogram=0.6294037589098114
+Calculating moving averages for AVGO (USD)
+Found 1281 historical price points for AVGO (USD)
+Upserting 1232 moving average data points for AVGO (USD)
+3:08:48 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+3:08:49 PM [express] GET /api/market-indices/real-time 304 in 153ms :: {"sp500":{"return":-0.68,"pos…
+Processed batch 3 of 13
+Processed batch 1 of 13
+3:08:52 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 2 of 13
+Processed batch 4 of 13
+3:08:55 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 3 of 13
+3:08:58 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+Processed batch 5 of 13
+Processed batch 4 of 13
+3:09:01 PM [express] GET /api/data-updates/logs 304 in 31ms :: []
+Processed batch 6 of 13
+Processed batch 5 of 13
+3:09:04 PM [express] GET /api/data-updates/logs 304 in 22ms :: []
+Processed batch 7 of 13
+3:09:08 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+Processed batch 6 of 13
+Processed batch 8 of 13
+3:09:11 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 7 of 13
+Processed batch 9 of 13
+3:09:14 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 8 of 13
+Processed batch 10 of 13
+3:09:17 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 9 of 13
+3:09:19 PM [express] GET /api/market-indices/real-time 304 in 151ms :: {"sp500":{"return":-0.68,"pos…
+Processed batch 11 of 13
+3:09:20 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Processed batch 10 of 13
+3:09:23 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Processed batch 12 of 13
+Processed batch 11 of 13
+Processed batch 13 of 13
+Calculating moving averages for AVGO (USD)
+Found 1281 historical price points for AVGO (USD)
+Upserting 1232 moving average data points for AVGO (USD)
+3:09:26 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Processed batch 12 of 13
+Processed batch 13 of 13
+Successfully calculated moving averages for AVGO (USD)
+Processed batch 1 of 13
+Processing indicators batch 4 of 4 for USD
+Calculating and updating RSI values for UBER (USD) with forceRsiRefresh=true
+Latest price for UBER is from 2025-05-23, which is 2 days ago 
+Forcing RSI refresh for recent data of UBER
+Forcing refresh of most recent price point for UBER
+Calculating RSI for UBER (USD): 6 missing data points, 0 recent points to refresh
+Calculating MACD values for UBER (USD)
+Updating most recent price for UBER from 2025-05-23 with RSI values: 9=53.98426437871449, 14=58.45686054784407, 21=59.29647755044603
+Updating 5 RSI data records for UBER (USD)
+Processing RSI data batch 1 of 1
+Updated RSI data for UBER (USD) on 2025-05-23: RSI9=53.98426437871449, RSI14=58.45686054784407, RSI21=59.29647755044603
+Updating 1248 MACD data records for UBER (USD)
+Processing MACD data batch 1 of 13
+Processing MACD data batch 2 of 13
+Processing MACD data batch 3 of 13
+Processing MACD data batch 4 of 13
+Processing MACD data batch 5 of 13
+Processing MACD data batch 6 of 13
+Processing MACD data batch 7 of 13
+Processing MACD data batch 8 of 13
+Processing MACD data batch 9 of 13
+Processing MACD data batch 10 of 13
+Processing MACD data batch 11 of 13
+Processing MACD data batch 12 of 13
+Processing MACD data batch 13 of 13
+Updated MACD data for UBER (USD) on 2025-05-23: MACD=3.5427353673573236, Signal=3.836459101747378, Histogram=-0.2937237343900545
+Calculating moving averages for UBER (USD)
+Found 1281 historical price points for UBER (USD)
+Upserting 1232 moving average data points for UBER (USD)
+3:09:29 PM [express] GET /api/data-updates/logs 304 in 18ms :: []
+Processed batch 2 of 13
+Processed batch 1 of 13
+3:09:32 PM [express] GET /api/data-updates/logs 304 in 18ms :: []
+Processed batch 3 of 13
+Processed batch 2 of 13
+3:09:36 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 4 of 13
+Processed batch 3 of 13
+3:09:39 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+3:09:42 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 4 of 13
+Processed batch 5 of 13
+3:09:45 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 5 of 13
+Processed batch 6 of 13
+3:09:48 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 6 of 13
+3:09:50 PM [express] GET /api/market-indices/real-time 304 in 153ms :: {"sp500":{"return":-0.68,"pos…
+Processed batch 7 of 13
+3:09:51 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 7 of 13
+Processed batch 8 of 13
+3:09:54 PM [express] GET /api/data-updates/logs 304 in 18ms :: []
+Processed batch 8 of 13
+Processed batch 9 of 13
+3:09:57 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 9 of 13
+3:10:00 PM [express] GET /api/data-updates/logs 304 in 22ms :: []
+Processed batch 10 of 13
+Processed batch 10 of 13
+3:10:04 PM [express] GET /api/data-updates/logs 304 in 15ms :: []
+Processed batch 11 of 13
+Processed batch 11 of 13
+3:10:07 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Processed batch 12 of 13
+Processed batch 12 of 13
+Processed batch 13 of 13
+Successfully calculated moving averages for UBER (USD)
+Calculating and updating RSI values for GLD (USD) with forceRsiRefresh=true
+Latest price for GLD is from 2025-05-23, which is 2 days ago 
+Forcing RSI refresh for recent data of GLD
+Forcing refresh of most recent price point for GLD
+Calculating RSI for GLD (USD): 6 missing data points, 0 recent points to refresh
+Calculating MACD values for GLD (USD)
+Updating most recent price for GLD from 2025-05-23 with RSI values: 9=60.216421967277306, 14=57.97138651741626, 21=57.68471621458014
+Updating 5 RSI data records for GLD (USD)
+Processing RSI data batch 1 of 1
+Updated RSI data for GLD (USD) on 2025-05-23: RSI9=60.216421967277306, RSI14=57.97138651741626, RSI21=57.68471621458014
+Updating 1248 MACD data records for GLD (USD)
+Processing MACD data batch 1 of 13
+Processing MACD data batch 2 of 13
+Processing MACD data batch 3 of 13
+Processing MACD data batch 4 of 13
+Processing MACD data batch 5 of 13
+Processing MACD data batch 6 of 13
+Processing MACD data batch 7 of 13
+Processing MACD data batch 8 of 13
+Processing MACD data batch 9 of 13
+Processing MACD data batch 10 of 13
+Processing MACD data batch 11 of 13
+Processing MACD data batch 12 of 13
+Processing MACD data batch 13 of 13
+Processed batch 13 of 13
+Calculating moving averages for BIL (USD)
+Updated MACD data for GLD (USD) on 2025-05-23: MACD=2.1453950298446216, Signal=2.3239234145986627, Histogram=-0.1785283847540411
+Calculating moving averages for GLD (USD)
+Found 1281 historical price points for BIL (USD)
+Upserting 1232 moving average data points for BIL (USD)
+Found 1281 historical price points for GLD (USD)
+Upserting 1232 moving average data points for GLD (USD)
+3:10:10 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Processed batch 1 of 13
+Processed batch 1 of 13
+3:10:13 PM [express] GET /api/data-updates/logs 304 in 18ms :: []
+Processed batch 2 of 13
+3:10:16 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 2 of 13
+Processed batch 3 of 13
+3:10:19 PM [express] GET /api/data-updates/logs 304 in 15ms :: []
+Processed batch 3 of 13
+3:10:20 PM [express] GET /api/market-indices/real-time 304 in 142ms :: {"sp500":{"return":-0.68,"pos…
+Processed batch 4 of 13
+3:10:22 PM [express] GET /api/data-updates/logs 304 in 18ms :: []
+Processed batch 4 of 13
+Processed batch 5 of 13
+3:10:25 PM [express] GET /api/data-updates/logs 304 in 15ms :: []
+Processed batch 5 of 13
+Processed batch 6 of 13
+3:10:28 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 6 of 13
+3:10:32 PM [express] GET /api/data-updates/logs 304 in 18ms :: []
+Processed batch 7 of 13
+Processed batch 7 of 13
+3:10:35 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 8 of 13
+Processed batch 8 of 13
+3:10:38 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 9 of 13
+Processed batch 9 of 13
+3:10:41 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Processed batch 10 of 13
+Processed batch 10 of 13
+3:10:44 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 11 of 13
+Processed batch 11 of 13
+3:10:47 PM [express] GET /api/data-updates/logs 304 in 15ms :: []
+Processed batch 12 of 13
+Processed batch 13 of 13
+Successfully calculated moving averages for GLD (USD)
+Calculating and updating RSI values for CW (USD) with forceRsiRefresh=true
+Latest price for CW is from 2025-05-23, which is 2 days ago 
+Forcing RSI refresh for recent data of CW
+Forcing refresh of most recent price point for CW
+Calculating RSI for CW (USD): 6 missing data points, 0 recent points to refresh
+Calculating MACD values for CW (USD)
+Updating most recent price for CW from 2025-05-23 with RSI values: 9=90.23587024734147, 14=85.24811020425082, 21=78.21810662467793
+Updating 5 RSI data records for CW (USD)
+Processing RSI data batch 1 of 1
+Updated RSI data for CW (USD) on 2025-05-23: RSI9=90.23587024734147, RSI14=85.24811020425082, RSI21=78.21810662467793
+Updating 1248 MACD data records for CW (USD)
+Processing MACD data batch 1 of 13
+Processing MACD data batch 2 of 13
+Processing MACD data batch 3 of 13
+Processing MACD data batch 4 of 13
+Processing MACD data batch 5 of 13
+Processing MACD data batch 6 of 13
+Processing MACD data batch 7 of 13
+Processing MACD data batch 8 of 13
+Processing MACD data batch 9 of 13
+Processing MACD data batch 10 of 13
+Processing MACD data batch 11 of 13
+Processing MACD data batch 12 of 13
+Processing MACD data batch 13 of 13
+Updated MACD data for CW (USD) on 2025-05-23: MACD=23.853594495258676, Signal=20.96812701583419, Histogram=2.8854674794244843
+Calculating moving averages for CW (USD)
+Found 1281 historical price points for CW (USD)
+Upserting 1232 moving average data points for CW (USD)
+Processed batch 12 of 13
+3:10:50 PM [express] GET /api/market-indices/real-time 304 in 154ms :: {"sp500":{"return":-0.68,"pos…
+3:10:50 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Processed batch 13 of 13
+Calculating moving averages for CAT (USD)
+Found 1281 historical price points for CAT (USD)
+Upserting 1232 moving average data points for CAT (USD)
+Processed batch 1 of 13
+3:10:53 PM [express] GET /api/data-updates/logs 304 in 15ms :: []
+Processed batch 1 of 13
+Processed batch 2 of 13
+3:10:57 PM [express] GET /api/data-updates/logs 304 in 18ms :: []
+Processed batch 2 of 13
+Processed batch 3 of 13
+3:11:00 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 3 of 13
+Processed batch 4 of 13
+3:11:03 PM [express] GET /api/data-updates/logs 304 in 15ms :: []
+Processed batch 4 of 13
+Processed batch 5 of 13
+3:11:06 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 5 of 13
+Processed batch 6 of 13
+3:11:09 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 6 of 13
+Processed batch 7 of 13
+3:11:13 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 7 of 13
+Processed batch 8 of 13
+3:11:16 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 8 of 13
+Processed batch 9 of 13
+3:11:19 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+3:11:20 PM [express] GET /api/market-indices/real-time 304 in 158ms :: {"sp500":{"return":-0.68,"pos…
+Processed batch 9 of 13
+Processed batch 10 of 13
+3:11:22 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+Processed batch 10 of 13
+Processed batch 11 of 13
+3:11:25 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+Processed batch 12 of 13
+Processed batch 11 of 13
+3:11:28 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+Processed batch 13 of 13
+Successfully calculated moving averages for CW (USD)
+Calculating and updating RSI values for PEP (USD) with forceRsiRefresh=true
+Latest price for PEP is from 2025-05-23, which is 2 days ago 
+Forcing RSI refresh for recent data of PEP
+Forcing refresh of most recent price point for PEP
+Calculating RSI for PEP (USD): 6 missing data points, 0 recent points to refresh
+Calculating MACD values for PEP (USD)
+Updating most recent price for PEP from 2025-05-23 with RSI values: 9=34.46029346719861, 14=35.82077253144902, 21=37.37272714744033
+Updating 5 RSI data records for PEP (USD)
+Processing RSI data batch 1 of 1
+Updated RSI data for PEP (USD) on 2025-05-23: RSI9=34.46029346719861, RSI14=35.82077253144902, RSI21=37.37272714744033
+Updating 1248 MACD data records for PEP (USD)
+Processing MACD data batch 1 of 13
+Processing MACD data batch 2 of 13
+Processing MACD data batch 3 of 13
+Processing MACD data batch 4 of 13
+Processing MACD data batch 5 of 13
+Processing MACD data batch 6 of 13
+Processing MACD data batch 7 of 13
+Processing MACD data batch 8 of 13
+Processing MACD data batch 9 of 13
+Processing MACD data batch 10 of 13
+Processing MACD data batch 11 of 13
+Processing MACD data batch 12 of 13
+Processing MACD data batch 13 of 13
+Updated MACD data for PEP (USD) on 2025-05-23: MACD=-2.7624535129172045, Signal=-3.120512598512289, Histogram=0.35805908559508426
+Calculating moving averages for PEP (USD)
+Found 1281 historical price points for PEP (USD)
+Upserting 1232 moving average data points for PEP (USD)
+Processed batch 12 of 13
+3:11:31 PM [express] GET /api/data-updates/logs 304 in 21ms :: []
+Processed batch 13 of 13
+Calculating moving averages for COST (USD)
+Found 1281 historical price points for COST (USD)
+Upserting 1232 moving average data points for COST (USD)
+Processed batch 1 of 13
+3:11:34 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 1 of 13
+Processed batch 2 of 13
+3:11:37 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 2 of 13
+Processed batch 3 of 13
+3:11:41 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+Processed batch 4 of 13
+Processed batch 3 of 13
+3:11:44 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 5 of 13
+Processed batch 4 of 13
+3:11:47 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+Processed batch 6 of 13
+Processed batch 5 of 13
+3:11:50 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+3:11:51 PM [express] GET /api/market-indices/real-time 304 in 167ms :: {"sp500":{"return":-0.68,"pos…
+Processed batch 7 of 13
+3:11:53 PM [express] GET /api/data-updates/logs 304 in 21ms :: []
+Processed batch 6 of 13
+Processed batch 8 of 13
+3:11:56 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Processed batch 7 of 13
+Processed batch 9 of 13
+3:11:59 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 8 of 13
+Processed batch 10 of 13
+3:12:02 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Processed batch 9 of 13
+Processed batch 11 of 13
+3:12:05 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Processed batch 10 of 13
+Processed batch 12 of 13
+3:12:09 PM [express] GET /api/data-updates/logs 304 in 18ms :: []
+Processed batch 13 of 13
+Successfully calculated moving averages for PEP (USD)
+Calculating and updating RSI values for CAT (USD) with forceRsiRefresh=true
+Latest price for CAT is from 2025-05-23, which is 2 days ago 
+Forcing RSI refresh for recent data of CAT
+Forcing refresh of most recent price point for CAT
+Calculating RSI for CAT (USD): 6 missing data points, 0 recent points to refresh
+Calculating MACD values for CAT (USD)
+Updating most recent price for CAT from 2025-05-23 with RSI values: 9=59.675796708979256, 14=60.34201479142945, 21=57.53275039232685
+Updating 5 RSI data records for CAT (USD)
+Processing RSI data batch 1 of 1
+Updated RSI data for CAT (USD) on 2025-05-23: RSI9=59.675796708979256, RSI14=60.34201479142945, RSI21=57.53275039232685
+Updating 1248 MACD data records for CAT (USD)
+Processing MACD data batch 1 of 13
+Processing MACD data batch 2 of 13
+Processing MACD data batch 3 of 13
+Processing MACD data batch 4 of 13
+Processing MACD data batch 5 of 13
+Processing MACD data batch 6 of 13
+Processing MACD data batch 7 of 13
+Processing MACD data batch 8 of 13
+Processing MACD data batch 9 of 13
+Processing MACD data batch 10 of 13
+Processing MACD data batch 11 of 13
+Processing MACD data batch 12 of 13
+Processing MACD data batch 13 of 13
+Updated MACD data for CAT (USD) on 2025-05-23: MACD=9.573782885964135, Signal=8.71015217587753, Histogram=0.8636307100866052
+Calculating moving averages for CAT (USD)
+Found 1281 historical price points for CAT (USD)
+Upserting 1232 moving average data points for CAT (USD)
+Processed batch 11 of 13
+3:12:12 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+Processed batch 1 of 13
+Processed batch 12 of 13
+3:12:15 PM [express] GET /api/data-updates/logs 304 in 28ms :: []
+Processed batch 13 of 13
+Calculating moving averages for CRM (USD)
+Found 1256 historical price points for CRM (USD)
+Upserting 1207 moving average data points for CRM (USD)
+Processed batch 2 of 13
+3:12:18 PM [express] GET /api/data-updates/logs 304 in 22ms :: []
+Processed batch 1 of 13
+Processed batch 3 of 13
+3:12:21 PM [express] GET /api/market-indices/real-time 304 in 155ms :: {"sp500":{"return":-0.68,"pos…
+3:12:21 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 2 of 13
+Processed batch 4 of 13
+3:12:24 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+Processed batch 3 of 13
+Processed batch 5 of 13
+3:12:27 PM [express] GET /api/data-updates/logs 304 in 14ms :: []
+Processed batch 4 of 13
+Processed batch 6 of 13
+3:12:30 PM [express] GET /api/data-updates/logs 304 in 21ms :: []
+Processed batch 5 of 13
+Processed batch 7 of 13
+3:12:34 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 6 of 13
+Processed batch 8 of 13
+3:12:37 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 7 of 13
+Processed batch 9 of 13
+3:12:40 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Processed batch 10 of 13
+Processed batch 8 of 13
+3:12:43 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 11 of 13
+Processed batch 9 of 13
+3:12:46 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 12 of 13
+Processed batch 10 of 13
+Processed batch 13 of 13
+Successfully calculated moving averages for CAT (USD)
+Pausing for 3 seconds between regions...
+3:12:49 PM [express] GET /api/data-updates/logs 304 in 15ms :: []
+3:12:51 PM [express] GET /api/market-indices/real-time 304 in 179ms :: {"sp500":{"return":-0.68,"pos…
+Updating historical prices for CAD portfolio with forceRsiRefresh=true
+Updating historical prices for 20 symbols in CAD portfolio
+Processing batch with forceRsiRefresh=true
+Processing batch 1 of 4 (5 symbols)
+Processing RY.TO (CAD) - 1/20
+Fetching historical prices for RY.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for RY.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for RY.TO from 2025-05-17 to 2025-05-25
+Processed batch 11 of 13
+Retrieving existing historical prices for RY.TO (CAD) to calculate RSI
+Calculating RSI values for RY.TO (CAD)
+Calculating MACD values for RY.TO (CAD)
+Forcing RSI refresh for recent entry: RY.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: RY.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for RY.TO (CAD)
+3:12:52 PM [express] GET /api/data-updates/logs 304 in 21ms :: []
+Processing NA.TO (CAD) - 2/20
+Fetching historical prices for NA.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for NA.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for NA.TO from 2025-05-17 to 2025-05-25
+Retrieving existing historical prices for NA.TO (CAD) to calculate RSI
+Calculating RSI values for NA.TO (CAD)
+Calculating MACD values for NA.TO (CAD)
+Forcing RSI refresh for recent entry: NA.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: NA.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for NA.TO (CAD)
+Processing SU.TO (CAD) - 3/20
+Fetching historical prices for SU.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for SU.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for SU.TO from 2025-05-17 to 2025-05-25
+Retrieving existing historical prices for SU.TO (CAD) to calculate RSI
+Calculating RSI values for SU.TO (CAD)
+Calculating MACD values for SU.TO (CAD)
+Forcing RSI refresh for recent entry: SU.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: SU.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for SU.TO (CAD)
+Processing IFC.TO (CAD) - 4/20
+Fetching historical prices for IFC.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for IFC.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for IFC.TO from 2025-05-17 to 2025-05-25
+Retrieving existing historical prices for IFC.TO (CAD) to calculate RSI
+Calculating RSI values for IFC.TO (CAD)
+Calculating MACD values for IFC.TO (CAD)
+Forcing RSI refresh for recent entry: IFC.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: IFC.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for IFC.TO (CAD)
+Processed batch 12 of 13
+Processing WSP.TO (CAD) - 5/20
+Fetching historical prices for WSP.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for WSP.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for WSP.TO from 2025-05-17 to 2025-05-25
+3:12:55 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+Processed batch 13 of 13
+Calculating moving averages for CW (USD)
+Found 1281 historical price points for CW (USD)
+Upserting 1232 moving average data points for CW (USD)
+Retrieving existing historical prices for WSP.TO (CAD) to calculate RSI
+Calculating RSI values for WSP.TO (CAD)
+Calculating MACD values for WSP.TO (CAD)
+Forcing RSI refresh for recent entry: WSP.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: WSP.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for WSP.TO (CAD)
+Pausing for 2 seconds between batches...
+Processing batch with forceRsiRefresh=true
+Processing batch 2 of 4 (5 symbols)
+Processing GIB-A.TO (CAD) - 6/20
+Fetching historical prices for GIB-A.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for GIB-A.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for GIB-A.TO from 2025-05-17 to 2025-05-25
+Retrieving existing historical prices for GIB-A.TO (CAD) to calculate RSI
+Calculating RSI values for GIB-A.TO (CAD)
+Calculating MACD values for GIB-A.TO (CAD)
+Forcing RSI refresh for recent entry: GIB-A.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: GIB-A.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for GIB-A.TO (CAD)
+3:12:58 PM [express] GET /api/data-updates/logs 304 in 25ms :: []
+Processing TOU.TO (CAD) - 7/20
+Fetching historical prices for TOU.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for TOU.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for TOU.TO from 2025-05-17 to 2025-05-25
+Processed batch 1 of 13
+Retrieving existing historical prices for TOU.TO (CAD) to calculate RSI
+Calculating RSI values for TOU.TO (CAD)
+Calculating MACD values for TOU.TO (CAD)
+Forcing RSI refresh for recent entry: TOU.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: TOU.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for TOU.TO (CAD)
+Processing SLF.TO (CAD) - 8/20
+Fetching historical prices for SLF.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for SLF.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for SLF.TO from 2025-05-17 to 2025-05-25
+Retrieving existing historical prices for SLF.TO (CAD) to calculate RSI
+Calculating RSI values for SLF.TO (CAD)
+Calculating MACD values for SLF.TO (CAD)
+Forcing RSI refresh for recent entry: SLF.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: SLF.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for SLF.TO (CAD)
+Processing DFY.TO (CAD) - 9/20
+Fetching historical prices for DFY.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for DFY.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for DFY.TO from 2025-05-17 to 2025-05-25
+Retrieving existing historical prices for DFY.TO (CAD) to calculate RSI
+Calculating RSI values for DFY.TO (CAD)
+Calculating MACD values for DFY.TO (CAD)
+Forcing RSI refresh for recent entry: DFY.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: DFY.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for DFY.TO (CAD)
+3:13:02 PM [express] GET /api/data-updates/logs 304 in 18ms :: []
+Processing DOL.TO (CAD) - 10/20
+Fetching historical prices for DOL.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for DOL.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for DOL.TO from 2025-05-17 to 2025-05-25
+Retrieving existing historical prices for DOL.TO (CAD) to calculate RSI
+Calculating RSI values for DOL.TO (CAD)
+Calculating MACD values for DOL.TO (CAD)
+Forcing RSI refresh for recent entry: DOL.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: DOL.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for DOL.TO (CAD)
+Pausing for 2 seconds between batches...
+Processed batch 2 of 13
+Processing batch with forceRsiRefresh=true
+Processing batch 3 of 4 (5 symbols)
+Processing CNR.TO (CAD) - 11/20
+Fetching historical prices for CNR.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for CNR.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for CNR.TO from 2025-05-17 to 2025-05-25
+Retrieving existing historical prices for CNR.TO (CAD) to calculate RSI
+Calculating RSI values for CNR.TO (CAD)
+Calculating MACD values for CNR.TO (CAD)
+Forcing RSI refresh for recent entry: CNR.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: CNR.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for CNR.TO (CAD)
+3:13:05 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+Processing CCO.TO (CAD) - 12/20
+Fetching historical prices for CCO.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for CCO.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for CCO.TO from 2025-05-17 to 2025-05-25
+Retrieving existing historical prices for CCO.TO (CAD) to calculate RSI
+Calculating RSI values for CCO.TO (CAD)
+Calculating MACD values for CCO.TO (CAD)
+Forcing RSI refresh for recent entry: CCO.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: CCO.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for CCO.TO (CAD)
+Processing ATD.TO (CAD) - 13/20
+Fetching historical prices for ATD.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for ATD.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for ATD.TO from 2025-05-17 to 2025-05-25
+Processed batch 3 of 13
+Retrieving existing historical prices for ATD.TO (CAD) to calculate RSI
+Calculating RSI values for ATD.TO (CAD)
+Calculating MACD values for ATD.TO (CAD)
+Forcing RSI refresh for recent entry: ATD.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: ATD.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for ATD.TO (CAD)
+Processing BMO.TO (CAD) - 14/20
+Fetching historical prices for BMO.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for BMO.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for BMO.TO from 2025-05-17 to 2025-05-25
+Retrieving existing historical prices for BMO.TO (CAD) to calculate RSI
+Calculating RSI values for BMO.TO (CAD)
+Calculating MACD values for BMO.TO (CAD)
+Forcing RSI refresh for recent entry: BMO.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: BMO.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for BMO.TO (CAD)
+3:13:08 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+Processing RCH.TO (CAD) - 15/20
+Fetching historical prices for RCH.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for RCH.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for RCH.TO from 2025-05-17 to 2025-05-25
+Retrieving existing historical prices for RCH.TO (CAD) to calculate RSI
+Calculating RSI values for RCH.TO (CAD)
+Calculating MACD values for RCH.TO (CAD)
+Forcing RSI refresh for recent entry: RCH.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: RCH.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for RCH.TO (CAD)
+Pausing for 2 seconds between batches...
+Processed batch 4 of 13
+Processing batch with forceRsiRefresh=true
+Processing batch 4 of 4 (5 symbols)
+Processing EMP-A.TO (CAD) - 16/20
+Fetching historical prices for EMP-A.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for EMP-A.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for EMP-A.TO from 2025-05-17 to 2025-05-25
+3:13:11 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Retrieving existing historical prices for EMP-A.TO (CAD) to calculate RSI
+Calculating RSI values for EMP-A.TO (CAD)
+Calculating MACD values for EMP-A.TO (CAD)
+Forcing RSI refresh for recent entry: EMP-A.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: EMP-A.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for EMP-A.TO (CAD)
+Processing VNP.TO (CAD) - 17/20
+Fetching historical prices for VNP.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for VNP.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for VNP.TO from 2025-05-17 to 2025-05-25
+Retrieving existing historical prices for VNP.TO (CAD) to calculate RSI
+Calculating RSI values for VNP.TO (CAD)
+Calculating MACD values for VNP.TO (CAD)
+Forcing RSI refresh for recent entry: VNP.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: VNP.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for VNP.TO (CAD)
+Processing TFII.TO (CAD) - 18/20
+Fetching historical prices for TFII.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for TFII.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for TFII.TO from 2025-05-17 to 2025-05-25
+Retrieving existing historical prices for TFII.TO (CAD) to calculate RSI
+Calculating RSI values for TFII.TO (CAD)
+Calculating MACD values for TFII.TO (CAD)
+Forcing RSI refresh for recent entry: TFII.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: TFII.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for TFII.TO (CAD)
+Processed batch 5 of 13
+Processing SHOP.TO (CAD) - 19/20
+Fetching historical prices for SHOP.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for SHOP.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for SHOP.TO from 2025-05-17 to 2025-05-25
+Retrieving existing historical prices for SHOP.TO (CAD) to calculate RSI
+Calculating RSI values for SHOP.TO (CAD)
+Calculating MACD values for SHOP.TO (CAD)
+Forcing RSI refresh for recent entry: SHOP.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: SHOP.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+3:13:14 PM [express] GET /api/data-updates/logs 304 in 101ms :: []
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for SHOP.TO (CAD)
+Processing ZGLD.TO (CAD) - 20/20
+Fetching historical prices for ZGLD.TO from 2025-05-17 with forceRsiRefresh=true
+Fetching historical prices for ZGLD.TO from 2025-05-17 to 2025-05-25 (8 days)
+Fetching historical prices for ZGLD.TO from 2025-05-17 to 2025-05-25
+Retrieving existing historical prices for ZGLD.TO (CAD) to calculate RSI
+Calculating RSI values for ZGLD.TO (CAD)
+Calculating MACD values for ZGLD.TO (CAD)
+Forcing RSI refresh for recent entry: ZGLD.TO on 2025-05-15 (10 days ago)
+Forcing RSI refresh for recent entry: ZGLD.TO on 2025-05-16 (9 days ago)
+Processing 4 new prices and updating RSI for 15 existing prices
+Processing 4 historical price records
+Processing 15 historical price records
+Stored 19 historical prices with RSI data for ZGLD.TO (CAD)
+Calculating and updating indicators for 20 symbols in CAD portfolio
+Processing indicators batch 1 of 4 for CAD
+Calculating and updating RSI values for RY.TO (CAD) with forceRsiRefresh=true
+Latest price for RY.TO is from 2025-05-23, which is 2 days ago 
+Forcing RSI refresh for recent data of RY.TO
+Forcing refresh of most recent price point for RY.TO
+Calculating RSI for RY.TO (CAD): 5 missing data points, 0 recent points to refresh
+Calculating MACD values for RY.TO (CAD)
+Updating most recent price for RY.TO from 2025-05-23 with RSI values: 9=77.75835362553902, 14=72.05930171120417, 21=65.9091169066412
+Updating 4 RSI data records for RY.TO (CAD)
+Processing RSI data batch 1 of 1
+Updated RSI data for RY.TO (CAD) on 2025-05-23: RSI9=77.75835362553902, RSI14=72.05930171120417, RSI21=65.9091169066412
+Updating 1245 MACD data records for RY.TO (CAD)
+Processing MACD data batch 1 of 13
+Processing MACD data batch 2 of 13
+Processing MACD data batch 3 of 13
+Processing MACD data batch 4 of 13
+Processing MACD data batch 5 of 13
+Processing MACD data batch 6 of 13
+Processing MACD data batch 7 of 13
+Processing MACD data batch 8 of 13
+Processing MACD data batch 9 of 13
+Processing MACD data batch 10 of 13
+Processing MACD data batch 11 of 13
+Processing MACD data batch 12 of 13
+Processing MACD data batch 13 of 13
+Updated MACD data for RY.TO (CAD) on 2025-05-23: MACD=3.6236477574204002, Signal=2.9552129692741795, Histogram=0.6684347881462207
+Calculating moving averages for RY.TO (CAD)
+Found 1278 historical price points for RY.TO (CAD)
+Upserting 1229 moving average data points for RY.TO (CAD)
+Processed batch 6 of 13
+3:13:17 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Processed batch 1 of 13
+Processed batch 7 of 13
+3:13:20 PM [express] GET /api/data-updates/logs 304 in 23ms :: []
+3:13:22 PM [express] GET /api/market-indices/real-time 304 in 163ms :: {"sp500":{"return":-0.68,"pos…
+Processed batch 8 of 13
+3:13:23 PM [express] GET /api/data-updates/logs 304 in 28ms :: []
+Processed batch 2 of 13
+3:13:27 PM [express] GET /api/data-updates/logs 304 in 23ms :: []
+Processed batch 9 of 13
+Processed batch 3 of 13
+3:13:30 PM [express] GET /api/data-updates/logs 304 in 24ms :: []
+Processed batch 10 of 13
+Processed batch 4 of 13
+3:13:33 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 11 of 13
+Processed batch 5 of 13
+3:13:36 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 12 of 13
+Processed batch 13 of 13
+Calculating moving averages for GLD (USD)
+Found 1281 historical price points for GLD (USD)
+Upserting 1232 moving average data points for GLD (USD)
+3:13:39 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 6 of 13
+Processed batch 1 of 13
+3:13:42 PM [express] GET /api/data-updates/logs 304 in 20ms :: []
+Processed batch 7 of 13
+Processed batch 2 of 13
+3:13:45 PM [express] GET /api/data-updates/logs 304 in 23ms :: []
+Processed batch 8 of 13
+Processed batch 3 of 13
+3:13:48 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+3:13:51 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+Processed batch 4 of 13
+Processed batch 9 of 13
+3:13:52 PM [express] GET /api/market-indices/real-time 304 in 168ms :: {"sp500":{"return":-0.68,"pos…
+3:13:55 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+Processed batch 5 of 13
+Processed batch 10 of 13
+3:13:58 PM [express] GET /api/data-updates/logs 304 in 18ms :: []
+Processed batch 6 of 13
+Processed batch 11 of 13
+3:14:01 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+Processed batch 7 of 13
+Processed batch 12 of 13
+3:14:04 PM [express] GET /api/data-updates/logs 304 in 18ms :: []
+Processed batch 13 of 13
+Successfully calculated moving averages for RY.TO (CAD)
+Calculating and updating RSI values for NA.TO (CAD) with forceRsiRefresh=true
+Latest price for NA.TO is from 2025-05-23, which is 2 days ago 
+Forcing RSI refresh for recent data of NA.TO
+Forcing refresh of most recent price point for NA.TO
+Calculating RSI for NA.TO (CAD): 5 missing data points, 0 recent points to refresh
+Calculating MACD values for NA.TO (CAD)
+Updating most recent price for NA.TO from 2025-05-23 with RSI values: 9=78.4728069871816, 14=73.53631581708184, 21=67.11683977605861
+Updating 4 RSI data records for NA.TO (CAD)
+Processing RSI data batch 1 of 1

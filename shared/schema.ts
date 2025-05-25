@@ -297,15 +297,16 @@ export const movingAverageData = pgTable(
   },
   (table) => {
     return {
-      // Add a unique constraint on historical_price_id to prevent duplicates
-      historicalPriceIdIdx: uniqueIndex("moving_average_data_historical_price_id_key").on(
-        table.historicalPriceId
-      ),
-      // Add an index on symbol, date, and region for faster lookups
+      // Only keep the proper compound unique index on symbol, date, and region
+      // This ensures we don't have duplicate MA data points for the same stock on the same day
       symbolDateRegionIdx: uniqueIndex("moving_average_data_symbol_date_region_key").on(
         table.symbol,
         table.date,
         table.region
+      ),
+      // Add a regular (non-unique) index on historical_price_id for faster lookups
+      historicalPriceIdIdx: uniqueIndex("moving_average_data_historical_price_id_idx").on(
+        table.historicalPriceId
       ),
     };
   }
