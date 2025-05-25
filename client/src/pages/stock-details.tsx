@@ -1618,22 +1618,65 @@ export default function StockDetailsPage() {
                 {(() => {
                   // Debug what data we have available
                   if (movingAverageData && movingAverageData.length > 0) {
-                    const maData = prepareMAChartData();
-                    console.log(`Final chart data has ${maData.length} points, ${maData.filter(d => d.ma50).length} with MA50, ${maData.filter(d => d.ma200).length} with MA200`);
+                    // Create a fresh implementation that preserves our data while fixing the chart
+                    const maData = movingAverageData.map(ma => {
+                      const dateObj = new Date(ma.date);
+                      const month = dateObj.toLocaleString('default', { month: 'short' });
+                      const year = dateObj.getFullYear().toString().substr(2);
+                      const formattedDate = `${month} ${year}`;
+                      
+                      // Explicitly convert to numbers and handle any potential issues
+                      const ma50Value = ma.ma50 ? Number(ma.ma50) : null;
+                      const ma200Value = ma.ma200 ? Number(ma.ma200) : null;
+                      
+                      return {
+                        date: ma.date,
+                        dateObj: dateObj,
+                        formattedDate: formattedDate,
+                        ma50: isNaN(ma50Value) ? null : ma50Value,
+                        ma200: isNaN(ma200Value) ? null : ma200Value
+                      };
+                    });
                     
-                    // Only render if we have prepared data with valid MA values
-                    // For large datasets (5Y view), adjust X-axis interval
-                    const isLargeDataset = maData.length > 100;
-                    const intervalValue = isLargeDataset ? Math.ceil(maData.length / 12) : "preserveStartEnd";
+                    // Sort by date to ensure proper chart rendering
+                    maData.sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
                     
-                    // For 5Y view, use a different chart approach
+                    // Filter based on selected time range
+                    let filteredData = maData;
+                    if (timeRange !== '5y') {
+                      const now = new Date();
+                      let cutoffDate;
+                      
+                      switch (timeRange) {
+                        case '1m': cutoffDate = new Date(now.setMonth(now.getMonth() - 1)); break;
+                        case '3m': cutoffDate = new Date(now.setMonth(now.getMonth() - 3)); break;
+                        case '6m': cutoffDate = new Date(now.setMonth(now.getMonth() - 6)); break;
+                        case '1y': cutoffDate = new Date(now.setFullYear(now.getFullYear() - 1)); break;
+                        default: cutoffDate = new Date(0);
+                      }
+                      
+                      filteredData = maData.filter(item => item.dateObj >= cutoffDate);
+                    }
+                    
+                    // Check if we have enough data points
+                    if (filteredData.length < 2) {
+                      filteredData = maData;
+                    }
+                    
+                    // Log diagnostics
+                    const ma50Count = filteredData.filter(d => d.ma50 !== null).length;
+                    const ma200Count = filteredData.filter(d => d.ma200 !== null).length;
+                    console.log(`Final chart data has ${filteredData.length} points, ${ma50Count} with MA50, ${ma200Count} with MA200`);
+                    
+                    // Display settings
+                    const isLargeDataset = filteredData.length > 100;
                     const is5YView = timeRange === '5y';
                     
                     return (
                       <div className="h-48">
                         <ResponsiveContainer width="100%" height="100%">
                           <LineChart
-                            data={maData}
+                            data={filteredData}
                             margin={{ top: 10, right: 10, left: 20, bottom: 20 }}
                           >
                             <CartesianGrid strokeDasharray="3 3" stroke="#1A304A" vertical={false} />
