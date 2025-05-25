@@ -1618,6 +1618,9 @@ export default function StockDetailsPage() {
                 {(() => {
                   // Debug what data we have available
                   if (movingAverageData && movingAverageData.length > 0) {
+                    // Add more detailed debugging to see what's happening with the data
+                    console.log("Raw MA data sample:", movingAverageData.slice(0, 3));
+                    
                     // Create a fresh implementation that preserves our data while fixing the chart
                     const maData = movingAverageData.map(ma => {
                       const dateObj = new Date(ma.date);
@@ -1625,16 +1628,24 @@ export default function StockDetailsPage() {
                       const year = dateObj.getFullYear().toString().substr(2);
                       const formattedDate = `${month} ${year}`;
                       
-                      // Explicitly convert to numbers and handle any potential issues
-                      const ma50Value = ma.ma50 ? Number(ma.ma50) : null;
-                      const ma200Value = ma.ma200 ? Number(ma.ma200) : null;
+                      // Force conversion to numbers with explicit parseFloat - this is crucial
+                      let ma50Value = null;
+                      let ma200Value = null;
+                      
+                      if (ma.ma50) {
+                        ma50Value = parseFloat(String(ma.ma50));
+                      }
+                      
+                      if (ma.ma200) {
+                        ma200Value = parseFloat(String(ma.ma200));
+                      }
                       
                       return {
                         date: ma.date,
                         dateObj: dateObj,
                         formattedDate: formattedDate,
-                        ma50: isNaN(ma50Value) ? null : ma50Value,
-                        ma200: isNaN(ma200Value) ? null : ma200Value
+                        ma50: ma50Value,
+                        ma200: ma200Value
                       };
                     });
                     
