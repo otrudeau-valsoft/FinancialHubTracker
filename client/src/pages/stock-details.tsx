@@ -449,33 +449,10 @@ export default function StockDetailsPage() {
     // Sort by date ascending to ensure proper chart rendering
     result.sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
     
-    // For 5y view, we need to reduce the number of data points to avoid rendering issues
-    // but still maintain the overall trend
-    if (timeRange === '5y' && result.length > 300) {
-      // For 5-year view, we'll sample data points to avoid overcrowding
-      // This approach maintains the overall trend while reducing the number of points
-      const samplingInterval = Math.floor(result.length / 250);
-      const sampledResult = [];
-      
-      // Always include the most recent data point
-      sampledResult.push(result[result.length - 1]);
-      
-      // Sample data points at regular intervals
-      for (let i = result.length - 1 - samplingInterval; i >= 0; i -= samplingInterval) {
-        sampledResult.unshift(result[i]);
-      }
-      
-      // Keep track of how many data points we have
-      const ma50Count = sampledResult.filter(p => p.ma50 !== null).length;
-      const ma200Count = sampledResult.filter(p => p.ma200 !== null).length;
-      console.log(`5Y view: Sampled data has ${sampledResult.length} points from ${result.length} original points. ${ma50Count} with MA50, ${ma200Count} with MA200`);
-      
-      return sampledResult;
-    }
-    
-    // For other time ranges, filter based on the time range
+    // Filter based on time range
     let filteredResult = result;
-    if (timeRange && timeRange !== '5y') {
+    
+    if (timeRange) {
       const now = new Date();
       let cutoffDate;
       
@@ -492,8 +469,10 @@ export default function StockDetailsPage() {
         case '1y':
           cutoffDate = new Date(now.setFullYear(now.getFullYear() - 1));
           break;
+        case '5y':
+          cutoffDate = new Date(now.setFullYear(now.getFullYear() - 5));
+          break;
         default:
-          // For any other option, we want all data
           cutoffDate = new Date(0); // January 1, 1970
           break;
       }
@@ -504,6 +483,41 @@ export default function StockDetailsPage() {
     // Handle case where filtering resulted in no data - return all data instead
     if (filteredResult.length < 2) {
       filteredResult = result;
+    }
+    
+    // Optimize rendering for large datasets (especially 5Y view)
+    if (timeRange === '5y' && filteredResult.length > 150) {
+      // For 5-year view with many data points, we need to sample to improve performance
+      const maxPoints = 125; // Target number of points for good performance
+      const sampleSize = Math.max(1, Math.floor(filteredResult.length / maxPoints));
+      
+      const sampledResult = [];
+      
+      // Always include the most recent data points (last 30 days) for detail
+      const recentDataCutoff = new Date();
+      recentDataCutoff.setDate(recentDataCutoff.getDate() - 30);
+      
+      // Split into recent and older data
+      const recentData = filteredResult.filter(item => item.dateObj >= recentDataCutoff);
+      const olderData = filteredResult.filter(item => item.dateObj < recentDataCutoff);
+      
+      // Include all recent data points
+      sampledResult.push(...recentData);
+      
+      // Sample older data at regular intervals
+      for (let i = 0; i < olderData.length; i += sampleSize) {
+        sampledResult.push(olderData[i]);
+      }
+      
+      // Sort the combined result
+      sampledResult.sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+      
+      // Keep track of how many data points we have
+      const ma50Count = sampledResult.filter(p => p.ma50 !== null).length;
+      const ma200Count = sampledResult.filter(p => p.ma200 !== null).length;
+      console.log(`5Y view: Optimized data has ${sampledResult.length} points from ${filteredResult.length} filtered points. ${ma50Count} with MA50, ${ma200Count} with MA200`);
+      
+      return sampledResult;
     }
     
     // Keep track of how many data points we have for each MA
