@@ -1522,12 +1522,9 @@ export default function StockDetailsPage() {
               </div>
               <div className="p-4">
                 {movingAverageData && movingAverageData.length > 0 ? (
-                  // Debug the data being passed to chart
-                  console.log("MA Chart Data Sample:", prepareMAChartData().slice(0, 3)),
                   <div className="h-48">
-                    {/* Use recharts directly to ensure proper rendering */}
                     <ResponsiveContainer width="100%" height="100%">
-                      <ComposedChart
+                      <LineChart
                         data={prepareMAChartData()}
                         margin={{ top: 10, right: 10, left: 20, bottom: 20 }}
                       >
@@ -1549,12 +1546,12 @@ export default function StockDetailsPage() {
                         />
                         <RechartTooltip 
                           cursor={{stroke: '#38AAFD', strokeWidth: 1, strokeDasharray: '5 5'}}
-                          formatter={(value, name) => {
+                          formatter={(value: any, name: string) => {
                             if (name === 'ma50') return [formatCurrency(value), '50-Day MA'];
                             if (name === 'ma200') return [formatCurrency(value), '200-Day MA'];
                             return [value, name];
                           }}
-                          labelFormatter={(label, payload) => {
+                          labelFormatter={(label: string, payload: any) => {
                             if (payload && payload.length > 0 && payload[0].payload.date) {
                               const date = new Date(payload[0].payload.date);
                               return `Date: ${format(date, 'EEE, MMM d, yyyy')}`;
@@ -1567,10 +1564,7 @@ export default function StockDetailsPage() {
                             color: '#EFEFEF'
                           }}
                           itemStyle={{ color: '#EFEFEF' }}
-                          isAnimationActive={false}
                         />
-                        
-                        {/* Price line removed as requested */}
                         
                         {/* 50-Day Moving Average */}
                         <Line
@@ -1582,7 +1576,6 @@ export default function StockDetailsPage() {
                           activeDot={{ r: 4, stroke: '#38AAFD', fill: '#FFFFFF' }}
                           name="ma50"
                           connectNulls
-                          isAnimationActive={false}
                         />
                         
                         {/* 200-Day Moving Average */}
@@ -1595,9 +1588,8 @@ export default function StockDetailsPage() {
                           activeDot={{ r: 4, stroke: '#FF3D00', fill: '#FFFFFF' }}
                           name="ma200"
                           connectNulls
-                          isAnimationActive={false}
                         />
-                      </ComposedChart>
+                      </LineChart>
                     </ResponsiveContainer>
                   </div>
                 ) : (
