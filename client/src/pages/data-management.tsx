@@ -421,8 +421,10 @@ export default function DataManagement() {
     mutationFn: () => apiRequest('POST', '/api/historical-prices/fetch/all', {
       forceRsiRefresh: true, // Force RSI refresh to ensure values are saved to database
       forceMacdRefresh: true, // Force MACD refresh to ensure values are saved to database
+      forceMovingAverageRefresh: true, // Force Moving Average refresh to calculate 50-day and 200-day MAs
       includeRSI: true, // Additional explicit parameter to include RSI calculation
       includeMACD: true, // Additional explicit parameter to include MACD calculation
+      includeMovingAverage: true, // Additional explicit parameter to include Moving Average calculation
       priority: 'high' // Set high priority for this task
     }),
     onSuccess: async (data) => {
@@ -627,8 +629,7 @@ export default function DataManagement() {
         {/* Cash Management Panel */}
         <CashManagementPanel className="shadow-lg" />
         
-        {/* Moving Average Data Panel */}
-        <MovingAverageDataPanel />
+        {/* Moving Average calculation is now integrated with historical price updates */}
         
         {/* Update Panels - Real-time and Historical Data Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">

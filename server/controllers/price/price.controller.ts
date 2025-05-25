@@ -409,16 +409,19 @@ export const fetchAllHistoricalPrices = async (req: Request, res: Response) => {
   try {
     const period = (req.query.period || req.body.period || '5y') as string;
     
-    // Get forceRsiRefresh parameter from request body (defaults to true regardless)
-    const forceRsiRefresh = req.body.forceRsiRefresh !== false; // default to true unless explicitly set to false
+    // Get refresh parameters from request body (all default to true unless explicitly set to false)
+    const forceRsiRefresh = req.body.forceRsiRefresh !== false;
+    const forceMacdRefresh = req.body.forceMacdRefresh !== false;
+    const forceMovingAverageRefresh = req.body.forceMovingAverageRefresh !== false;
     
-    // Get forceMacdRefresh parameter from request body (defaults to true)
-    const forceMacdRefresh = req.body.forceMacdRefresh !== false; // default to true unless explicitly set to false
+    console.log(`Bulk update with forceRsiRefresh=${forceRsiRefresh}, forceMacdRefresh=${forceMacdRefresh}, forceMovingAverageRefresh=${forceMovingAverageRefresh}`);
     
-    console.log(`Bulk update with forceRsiRefresh=${forceRsiRefresh}, forceMacdRefresh=${forceMacdRefresh}`);
-    
-    // Step 1: Update historical prices with RSI and MACD refresh
-    const response = await historicalPriceService.updateAllHistoricalPrices(forceRsiRefresh, forceMacdRefresh);
+    // Step 1: Update historical prices with RSI, MACD, and Moving Average refresh
+    const response = await historicalPriceService.updateAllHistoricalPrices(
+      forceRsiRefresh, 
+      forceMacdRefresh,
+      forceMovingAverageRefresh
+    );
     
     // Step 2: Automatically update portfolio holdings to reflect new historical data
     console.log('Automatically updating portfolio holdings after historical price update...');

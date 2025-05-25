@@ -5,8 +5,8 @@ import { dateToSQLDateString } from '../util';
 import { historicalPrices, type InsertHistoricalPrice, macdData, type InsertMacdData } from '@shared/schema';
 import { and, eq, desc, asc, sql } from 'drizzle-orm';
 import { calculateMultipleRSI, calculateMACD } from '../utils/technical-indicators';
-// We'll import moving average functions only if needed
-// import { calculateAndStoreMovingAverages } from './moving-average-service';
+// Import the moving average service dynamically to avoid circular dependencies
+import { calculateAndStoreMovingAverages } from './moving-average-service';
 
 // Rate limiting configuration for Yahoo Finance API - match the same settings as current-price-service
 const RATE_LIMIT = {
