@@ -150,11 +150,11 @@ export const processHistoricalData = (
     return filteredData.map(p => {
       try {
         const date = p.date ? new Date(p.date) : new Date();
-        // Format the date more cleanly (e.g., "Mar 2023")
-        const formattedDate = date.toLocaleDateString('en-US', { 
-          month: 'short', 
-          year: '2-digit' 
-        });
+        
+        // Format the date consistently as "MMM YY" format (e.g., "Mar 23") for ALL charts
+        const month = date.toLocaleString('default', { month: 'short' });
+        const year = date.getFullYear().toString().substr(2); // Get last 2 digits
+        const formattedDate = `${month} ${year}`;
         
         return {
           date: date.toLocaleDateString(),
