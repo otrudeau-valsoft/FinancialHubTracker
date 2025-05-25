@@ -1673,10 +1673,12 @@ export default function StockDetailsPage() {
                     console.log("Moving Average Chart Data Sample:", filteredData.slice(0, 3));
                     console.log(`Final chart data has ${filteredData.length} points, ${ma50Count} with MA50, ${ma200Count} with MA200`);
                     
-                    // Use our existing MovingAverageChart component
+                    // Use our existing MovingAverageChart component with matching style
                     return (
                       <div className="h-48">
-                        <MovingAverageChart data={filteredData} />
+                        <ResponsiveContainer width="100%" height="100%">
+                          <MovingAverageChart data={filteredData} />
+                        </ResponsiveContainer>
                       </div>
                     );
                   } else {
