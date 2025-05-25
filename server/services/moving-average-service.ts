@@ -49,6 +49,15 @@ export async function calculateAndStoreMovingAverages(symbol: string, region: st
   console.log(`Calculating moving averages for ${symbol} (${region})`);
 
   try {
+    // First, check what data we already have
+    const existingMAData = await db.select()
+      .from(movingAverageData)
+      .where(and(
+        eq(movingAverageData.symbol, symbol),
+        eq(movingAverageData.region, region)
+      ))
+      .orderBy(desc(movingAverageData.date));
+    
     // Get historical prices for the symbol
     const prices = await db.select()
       .from(historicalPrices)
@@ -65,11 +74,67 @@ export async function calculateAndStoreMovingAverages(symbol: string, region: st
 
     console.log(`Found ${prices.length} historical price points for ${symbol} (${region})`);
 
-    // Need to reverse the array since MA calculation needs oldest first
-    const reversedPrices = [...prices].reverse();
+    // Create a map of existing MA data by date for quick lookup
+    const existingMAByDate = new Map();
+    existingMAData.forEach(ma => {
+      let dateStr: string;
+      if (typeof ma.date === 'string') {
+        dateStr = ma.date.split('T')[0];
+      } else {
+        const dateObj = new Date(ma.date as any);
+        dateStr = dateObj.toISOString().split('T')[0];
+      }
+      existingMAByDate.set(dateStr, ma);
+    });
 
+    // Get dates for prices we don't have MA data for
+    const pricesToProcess = prices.filter(price => {
+      let dateStr: string;
+      if (typeof price.date === 'string') {
+        dateStr = price.date.split('T')[0];
+      } else {
+        const dateObj = new Date(price.date as any);
+        dateStr = dateObj.toISOString().split('T')[0];
+      }
+      return !existingMAByDate.has(dateStr);
+    });
+
+    // If we have all data up to date, we're done
+    if (pricesToProcess.length === 0) {
+      console.log(`Moving average data for ${symbol} (${region}) is already up to date`);
+      return 0;
+    }
+
+    console.log(`Found ${pricesToProcess.length} new price points that need MA calculations for ${symbol} (${region})`);
+
+    // Need to include enough historical data to calculate the MAs for the new points
+    // We need at least 200 data points before the newest price without MA data
+    const oldestNewPriceDate = pricesToProcess[pricesToProcess.length - 1].date;
+    
+    // Find the index of this date in the full price array
+    let oldestNewPriceIndex = prices.findIndex(p => {
+      if (typeof p.date === 'string' && typeof oldestNewPriceDate === 'string') {
+        return p.date === oldestNewPriceDate;
+      } else {
+        const pDate = new Date(p.date as any).toISOString();
+        const oldDate = new Date(oldestNewPriceDate as any).toISOString();
+        return pDate === oldDate;
+      }
+    });
+
+    // If we couldn't find it, just process all prices
+    if (oldestNewPriceIndex === -1) {
+      oldestNewPriceIndex = prices.length - 1;
+    }
+
+    // We need at least 200 days of data before the oldest new price
+    const startIndex = Math.min(prices.length - 1, oldestNewPriceIndex + 200);
+    
+    // Get the subset of prices to calculate MA from
+    const pricesForMA = prices.slice(0, startIndex + 1).reverse();
+    
     // Extract closing prices
-    const closingPrices = reversedPrices.map(price => {
+    const closingPrices = pricesForMA.map(price => {
       const priceValue = price.adjustedClose || price.close;
       return parseFloat(priceValue!.toString());
     });
@@ -78,16 +143,19 @@ export async function calculateAndStoreMovingAverages(symbol: string, region: st
     const ma50Values = calculateMA(closingPrices, 50);
     const ma200Values = calculateMA(closingPrices, 200);
 
-    // Prepare data for insertion/update
+    // Prepare data for insertion/update - only for the new prices we need to add
     const maDataToUpsert: any[] = [];
 
-    // Combine the data (matching indices)
-    for (let i = 0; i < reversedPrices.length; i++) {
-      const price = reversedPrices[i];
+    // Find the starting index in the MA calculation that corresponds to our new data
+    const newDataStartIndex = pricesForMA.length - pricesToProcess.length;
+
+    // Combine the data (matching indices) - only for new data points
+    for (let i = newDataStartIndex; i < pricesForMA.length; i++) {
+      const price = pricesForMA[i];
       
       // Only add data points where we have at least MA50
       if (!isNaN(ma50Values[i])) {
-        // For MA200, use a default if not available
+        // For MA200, use null if not available (don't use temporary fallback)
         const ma200Value = isNaN(ma200Values[i]) ? null : ma200Values[i];
         
         // Format date properly handling all possible types
@@ -101,64 +169,57 @@ export async function calculateAndStoreMovingAverages(symbol: string, region: st
           const dateObj = new Date(price.date as any);
           priceDate = dateObj.toISOString().split('T')[0];
         }
-            
-        maDataToUpsert.push({
-          symbol,
-          date: priceDate,
-          ma50: ma50Values[i].toString(),
-          ma200: ma200Value !== null ? ma200Value.toString() : (ma50Values[i] * 0.8).toString(), // Temporary fallback
-          historical_price_id: price.id,
-          region,
-        });
+        
+        // Only add this data point if we don't already have it
+        if (!existingMAByDate.has(priceDate)) {
+          maDataToUpsert.push({
+            symbol,
+            date: priceDate,
+            ma50: ma50Values[i].toString(),
+            ma200: ma200Value !== null ? ma200Value.toString() : null,
+            historical_price_id: price.id,
+            region,
+          });
+        }
       }
     }
 
     // If we have data to upsert
     if (maDataToUpsert.length > 0) {
-      console.log(`Upserting ${maDataToUpsert.length} moving average data points for ${symbol} (${region})`);
+      console.log(`Upserting ${maDataToUpsert.length} new moving average data points for ${symbol} (${region})`);
       
-      // Process in batches to avoid hitting statement limits
+      // Use efficient batch insert with on conflict do update
       const batchSize = 100;
       for (let i = 0; i < maDataToUpsert.length; i += batchSize) {
         const batch = maDataToUpsert.slice(i, i + batchSize);
         
-        // For each item in the batch
-        for (const item of batch) {
-          // Check if record exists
-          const existing = await db.select({ id: movingAverageData.id })
-            .from(movingAverageData)
-            .where(and(
-              eq(movingAverageData.symbol, item.symbol),
-              eq(movingAverageData.date, item.date),
-              eq(movingAverageData.region, item.region)
-            ))
-            .limit(1);
-          
-          if (existing.length > 0) {
-            // Update existing record
-            await db.update(movingAverageData)
-              .set({
-                ma50: item.ma50,
-                ma200: item.ma200,
-                historicalPriceId: item.historical_price_id,
-                updatedAt: new Date()
-              })
-              .where(eq(movingAverageData.id, existing[0].id));
-          } else {
-            // Insert new record
-            await db.insert(movingAverageData)
-              .values({
-                symbol: item.symbol,
-                date: item.date,
-                ma50: item.ma50,
-                ma200: item.ma200,
-                historicalPriceId: item.historical_price_id,
-                region: item.region
-              });
-          }
-        }
+        const valuesToInsert = batch.map(item => ({
+          symbol: item.symbol,
+          date: item.date,
+          ma50: item.ma50,
+          ma200: item.ma200,
+          historicalPriceId: item.historical_price_id,
+          region: item.region
+        }));
         
-        console.log(`Processed batch ${i/batchSize + 1} of ${Math.ceil(maDataToUpsert.length/batchSize)}`);
+        // Insert with on conflict do update using the unique compound key
+        await db.insert(movingAverageData)
+          .values(valuesToInsert)
+          .onConflictDoUpdate({
+            target: [
+              movingAverageData.symbol,
+              movingAverageData.date,
+              movingAverageData.region
+            ],
+            set: {
+              ma50: sql`EXCLUDED.ma50`,
+              ma200: sql`EXCLUDED.ma200`,
+              historicalPriceId: sql`EXCLUDED.historical_price_id`,
+              updatedAt: new Date()
+            }
+          });
+        
+        console.log(`Processed batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(maDataToUpsert.length/batchSize)}`);
       }
       
       return maDataToUpsert.length;

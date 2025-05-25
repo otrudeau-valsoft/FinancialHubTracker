@@ -1,0 +1,113 @@
+Processing indicators batch 3 of 4 for USD
+Calculating and updating RSI values for GS (USD) with forceRsiRefresh=true
+Latest price for GS is from 2025-05-23, which is 2 days ago 
+Forcing RSI refresh for recent data of GS
+Forcing refresh of most recent price point for GS
+Calculating RSI for GS (USD): 1 missing data points, 1 recent points to refresh
+Calculating MACD values for GS (USD)
+Updating most recent price for GS from 2025-05-23 with RSI values: 9=60.27967714525668, 14=60.59382433051339, 21=58.03737541621416
+Updating 1 RSI data records for GS (USD)
+Processing RSI data batch 1 of 1
+Updated RSI data for GS (USD) on 2025-05-23: RSI9=60.27967714525668, RSI14=60.59382433051339, RSI21=58.03737541621416
+Updating 1248 MACD data records for GS (USD)
+Processing MACD data batch 1 of 13
+Processing MACD data batch 2 of 13
+Processing MACD data batch 3 of 13
+Processing MACD data batch 4 of 13
+Processing MACD data batch 5 of 13
+Processing MACD data batch 6 of 13
+Processing MACD data batch 7 of 13
+Processing MACD data batch 8 of 13
+Processing MACD data batch 9 of 13
+Processing MACD data batch 10 of 13
+Processing MACD data batch 11 of 13
+Processing MACD data batch 12 of 13
+Processing MACD data batch 13 of 13
+Updated MACD data for GS (USD) on 2025-05-23: MACD=17.47187877180943, Signal=16.691907548487116, Histogram=0.7799712233223133
+Calculating moving averages for GS (USD)
+Found 1281 historical price points for GS (USD)
+Upserting 1232 moving average data points for GS (USD)
+3:26:34 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 1 of 13
+3:26:37 PM [express] GET /api/market-indices/real-time 304 in 148ms :: {"sp500":{"return":-0.68,"pos…
+3:26:37 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Processed batch 2 of 13
+3:26:40 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 3 of 13
+3:26:43 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 4 of 13
+3:26:46 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Processed batch 5 of 13
+3:26:49 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+3:26:52 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 6 of 13
+3:26:55 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 7 of 13
+3:26:59 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Processed batch 8 of 13
+3:27:02 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 9 of 13
+3:27:05 PM [express] GET /api/data-updates/logs 304 in 18ms :: []
+Processed batch 10 of 13
+3:27:07 PM [express] GET /api/market-indices/real-time 304 in 142ms :: {"sp500":{"return":-0.68,"pos…
+3:27:08 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Processed batch 11 of 13
+3:27:11 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 12 of 13
+3:27:14 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Processed batch 13 of 13
+Successfully calculated moving averages for GS (USD)
+Calculating and updating RSI values for PANW (USD) with forceRsiRefresh=true
+Latest price for PANW is from 2025-05-23, which is 2 days ago 
+Forcing RSI refresh for recent data of PANW
+Forcing refresh of most recent price point for PANW
+Calculating RSI for PANW (USD): 1 missing data points, 1 recent points to refresh
+Calculating MACD values for PANW (USD)
+Updating most recent price for PANW from 2025-05-23 with RSI values: 9=48.827603978246046, 14=51.97759453142781, 21=52.53725714900975
+Updating 1 RSI data records for PANW (USD)
+Processing RSI data batch 1 of 1
+Updated RSI data for PANW (USD) on 2025-05-23: RSI9=48.827603978246046, RSI14=51.97759453142781, RSI21=52.53725714900975
+Updating 1248 MACD data records for PANW (USD)
+Processing MACD data batch 1 of 13
+Processing MACD data batch 2 of 13
+Processing MACD data batch 3 of 13
+Processing MACD data batch 4 of 13
+Processing MACD data batch 5 of 13
+Processing MACD data batch 6 of 13
+Processing MACD data batch 7 of 13
+Processing MACD data batch 8 of 13
+Processing MACD data batch 9 of 13
+Processing MACD data batch 10 of 13
+Processing MACD data batch 11 of 13
+Processing MACD data batch 12 of 13
+Processing MACD data batch 13 of 13
+Updated MACD data for PANW (USD) on 2025-05-23: MACD=2.9298756102467394, Signal=3.8516182154225405, Histogram=-0.9217426051758011
+Calculating moving averages for PANW (USD)
+Found 1281 historical price points for PANW (USD)
+Upserting 1232 moving average data points for PANW (USD)
+3:27:17 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Processed batch 1 of 13
+3:27:20 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 2 of 13
+3:27:23 PM [express] GET /api/data-updates/logs 304 in 19ms :: []
+Processed batch 3 of 13
+3:27:27 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 4 of 13
+3:27:30 PM [express] GET /api/data-updates/logs 304 in 17ms :: []
+3:27:33 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 5 of 13
+3:27:36 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 6 of 13
+3:27:37 PM [express] GET /api/market-indices/real-time 304 in 133ms :: {"sp500":{"return":-0.68,"pos…
+3:27:39 PM [express] GET /api/data-updates/logs 304 in 15ms :: []
+Processed batch 7 of 13
+3:27:42 PM [express] GET /api/data-updates/logs 304 in 15ms :: []
+Processed batch 8 of 13
+3:27:45 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 9 of 13
+3:27:48 PM [express] GET /api/data-updates/logs 304 in 16ms :: []
+Processed batch 10 of 13
+3:27:51 PM [express] GET /api/data-updates/logs 304 in 15ms :: []
+Processed batch 11 of 13
+3:27:54 PM [express] GET /api/data-updates/logs 304 in 15ms :: []
+3:27:58 PM [express] GET /api/data-updates/logs 304 in 15ms :: []
