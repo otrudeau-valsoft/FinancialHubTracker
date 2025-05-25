@@ -421,9 +421,35 @@ export default function StockDetailsPage() {
     { enabled: !!symbol && !!region }
   );
   
+  // Debug function to log the data structure of moving average data
+  const debugMovingAverageData = () => {
+    if (!movingAverageData || movingAverageData.length === 0) {
+      console.log("No moving average data available");
+      return;
+    }
+    
+    // Log a sample of the data structure
+    console.log("Moving Average Data Sample (first 3 items):", 
+      movingAverageData.slice(0, 3).map(item => ({
+        date: item.date,
+        ma50: item.ma50,
+        ma200: item.ma200
+      }))
+    );
+    
+    // Check for null values
+    const ma50NullCount = movingAverageData.filter(item => item.ma50 === null).length;
+    const ma200NullCount = movingAverageData.filter(item => item.ma200 === null).length;
+    console.log(`Moving Average Null Check: MA50 nulls: ${ma50NullCount}/${movingAverageData.length}, MA200 nulls: ${ma200NullCount}/${movingAverageData.length}`);
+  };
+
   // Prepare data for the Moving Average chart using the MA data directly
   const prepareMAChartData = () => {
+    // Debug the data first
+    debugMovingAverageData();
+    
     if (!movingAverageData || movingAverageData.length === 0) {
+      console.log("No moving average data to prepare");
       return [];
     }
     
@@ -437,22 +463,78 @@ export default function StockDetailsPage() {
       const day = dateObj.getDate();
       const formattedDate = `${month} ${day}`;
       
+      // Parse values, ensuring we return a number or null (not undefined)
+      const ma50Value = ma.ma50 !== null && ma.ma50 !== undefined ? parseFloat(ma.ma50) : null;
+      const ma200Value = ma.ma200 !== null && ma.ma200 !== undefined ? parseFloat(ma.ma200) : null;
+      
       return {
         date: ma.date,
         dateObj: dateObj,
         formattedDate: formattedDate,
-        ma50: ma.ma50 ? parseFloat(ma.ma50) : null,
-        ma200: ma.ma200 ? parseFloat(ma.ma200) : null
+        ma50: ma50Value,
+        ma200: ma200Value
       };
     });
     
     // Sort by date ascending to ensure proper chart rendering
     result.sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
     
-    // Filter based on time range
-    let filteredResult = result;
+    // Log the date range in the data
+    if (result.length > 0) {
+      const oldestDate = result[0].dateObj;
+      const newestDate = result[result.length - 1].dateObj;
+      console.log(`Moving Average data range: ${oldestDate.toISOString().split('T')[0]} to ${newestDate.toISOString().split('T')[0]}`);
+    }
     
-    if (timeRange) {
+    // Handle 5Y view specifically for debugging
+    if (timeRange === '5y') {
+      console.log("5Y view selected, preparing data...");
+      // For 5-year view, we need to ensure we're showing all available data
+      // Calculate a date 5 years ago
+      const fiveYearsAgo = new Date();
+      fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+      
+      // Filter to data in the last 5 years
+      const filteredResult = result.filter(item => item.dateObj >= fiveYearsAgo);
+      console.log(`5Y filtered data: ${filteredResult.length} points (from ${result.length} total)`);
+      
+      // For 5Y view, we'll sample to reduce the number of points while preserving the trend
+      const maxDataPoints = 200; // Good balance for performance vs detail
+      
+      if (filteredResult.length > maxDataPoints) {
+        // Sample the data to reduce the point count
+        const sampleInterval = Math.floor(filteredResult.length / maxDataPoints);
+        const sampledData = [];
+        
+        // Always include first and last points for proper range display
+        sampledData.push(filteredResult[0]);
+        
+        // Sample the middle points
+        for (let i = sampleInterval; i < filteredResult.length - sampleInterval; i += sampleInterval) {
+          sampledData.push(filteredResult[i]);
+        }
+        
+        // Always include the most recent point
+        sampledData.push(filteredResult[filteredResult.length - 1]);
+        
+        // Count valid data points
+        const ma50Count = sampledData.filter(p => p.ma50 !== null).length;
+        const ma200Count = sampledData.filter(p => p.ma200 !== null).length;
+        
+        console.log(`5Y view: Sampled data has ${sampledData.length} points. ${ma50Count} with MA50, ${ma200Count} with MA200`);
+        return sampledData;
+      }
+      
+      // If not enough points to sample, return filtered result
+      const ma50Count = filteredResult.filter(p => p.ma50 !== null).length;
+      const ma200Count = filteredResult.filter(p => p.ma200 !== null).length;
+      console.log(`5Y view: Using all ${filteredResult.length} filtered points. ${ma50Count} with MA50, ${ma200Count} with MA200`);
+      return filteredResult;
+    }
+    
+    // For other timeframes, filter based on the selected range
+    let filteredResult = result;
+    if (timeRange && timeRange !== '5y') {
       const now = new Date();
       let cutoffDate;
       
@@ -469,9 +551,6 @@ export default function StockDetailsPage() {
         case '1y':
           cutoffDate = new Date(now.setFullYear(now.getFullYear() - 1));
           break;
-        case '5y':
-          cutoffDate = new Date(now.setFullYear(now.getFullYear() - 5));
-          break;
         default:
           cutoffDate = new Date(0); // January 1, 1970
           break;
@@ -482,42 +561,8 @@ export default function StockDetailsPage() {
     
     // Handle case where filtering resulted in no data - return all data instead
     if (filteredResult.length < 2) {
+      console.log("Not enough data after filtering, using all data");
       filteredResult = result;
-    }
-    
-    // Optimize rendering for large datasets (especially 5Y view)
-    if (timeRange === '5y' && filteredResult.length > 150) {
-      // For 5-year view with many data points, we need to sample to improve performance
-      const maxPoints = 125; // Target number of points for good performance
-      const sampleSize = Math.max(1, Math.floor(filteredResult.length / maxPoints));
-      
-      const sampledResult = [];
-      
-      // Always include the most recent data points (last 30 days) for detail
-      const recentDataCutoff = new Date();
-      recentDataCutoff.setDate(recentDataCutoff.getDate() - 30);
-      
-      // Split into recent and older data
-      const recentData = filteredResult.filter(item => item.dateObj >= recentDataCutoff);
-      const olderData = filteredResult.filter(item => item.dateObj < recentDataCutoff);
-      
-      // Include all recent data points
-      sampledResult.push(...recentData);
-      
-      // Sample older data at regular intervals
-      for (let i = 0; i < olderData.length; i += sampleSize) {
-        sampledResult.push(olderData[i]);
-      }
-      
-      // Sort the combined result
-      sampledResult.sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
-      
-      // Keep track of how many data points we have
-      const ma50Count = sampledResult.filter(p => p.ma50 !== null).length;
-      const ma200Count = sampledResult.filter(p => p.ma200 !== null).length;
-      console.log(`5Y view: Optimized data has ${sampledResult.length} points from ${filteredResult.length} filtered points. ${ma50Count} with MA50, ${ma200Count} with MA200`);
-      
-      return sampledResult;
     }
     
     // Keep track of how many data points we have for each MA
