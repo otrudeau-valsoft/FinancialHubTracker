@@ -1547,7 +1547,7 @@ export default function StockDetailsPage() {
                           domain={['auto', 'auto']}
                           stroke="#1A304A"
                         />
-                        <Tooltip 
+                        <RechartTooltip 
                           cursor={{stroke: '#38AAFD', strokeWidth: 1, strokeDasharray: '5 5'}}
                           formatter={(value, name) => {
                             if (name === 'ma50') return [formatCurrency(value), '50-Day MA'];
