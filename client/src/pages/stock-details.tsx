@@ -413,11 +413,11 @@ export default function StockDetailsPage() {
   // Fetch historical price data for chart - use the hook for consistency
   const { data: historicalPrices, isLoading: isLoadingHistorical } = useHistoricalPrices(symbol, region);
   
-  // Fetch moving average data separately
+  // Fetch moving average data separately - get 5 years of data to match RSI and MACD
   const { data: movingAverageData, isLoading: isLoadingMovingAverages, refetch: refetchMovingAverages } = useMovingAverageData(
     symbol, 
     region,
-    200, // Get last 200 data points
+    1250, // Get 5 years of data points to match RSI and MACD
     { enabled: !!symbol && !!region }
   );
   
