@@ -446,22 +446,19 @@ export class DatabaseAdapter {
       }
       
       return await db.transaction(async (tx) => {
-        // Simply update each stock that was sent
+        // Update each stock individually
         for (const stock of stocks) {
-          const updateData = {
-            symbol: stock.symbol,
-            company: stock.company,
-            stock_type: stock.stockType,
-            rating: stock.rating,
-            sector: stock.sector,
-            quantity: Number(stock.quantity),
-            purchase_price: Number(stock.purchasePrice)
-          };
-          
-          console.log(`Updating ${stock.symbol} with:`, updateData);
           await tx
             .update(portfolioTable)
-            .set(updateData)
+            .set({
+              symbol: stock.symbol,
+              company: stock.company,
+              stock_type: stock.stockType,
+              rating: stock.rating,
+              sector: stock.sector,
+              quantity: Number(stock.quantity),
+              purchase_price: Number(stock.purchasePrice)
+            })
             .where(eq(portfolioTable.symbol, stock.symbol));
         }
         
