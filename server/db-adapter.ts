@@ -462,16 +462,24 @@ export class DatabaseAdapter {
           
           console.log(`Updating ${stock.symbol}: purchase_price ${stock.purchasePrice} -> ${updateData.purchase_price}`);
           
-          await tx
-            .update(portfolioTable)
-            .set(updateData)
-            .where(eq(portfolioTable.symbol, stock.symbol));
+          try {
+            const updateResult = await tx
+              .update(portfolioTable)
+              .set(updateData)
+              .where(eq(portfolioTable.symbol, stock.symbol))
+              .returning();
+            
+            console.log(`✅ Update result for ${stock.symbol}:`, updateResult[0]?.purchase_price);
+          } catch (error) {
+            console.error(`❌ Update failed for ${stock.symbol}:`, error);
+            throw error;
+          }
         }
         
         // Get fresh data and check MSFT specifically
         const updatedStocks = await tx.select().from(portfolioTable);
         const msftStock = updatedStocks.find(s => s.symbol === 'MSFT');
-        console.log(`✅ Database verified - MSFT purchase_price: ${msftStock?.purchase_price}`);
+        console.log(`✅ Database verified - MSFT purchase_price: ${msftStock?.purchase_price || 'UNDEFINED'}`);
         
         return await adaptPortfolioData(updatedStocks, region);
       });

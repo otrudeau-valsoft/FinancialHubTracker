@@ -1,0 +1,271 @@
+=== REBALANCE REQUEST RECEIVED ===
+Region: USD
+Request body: {
+  "stocks": [
+    {
+      "id": 35,
+      "symbol": "AMZN",
+      "company": "AMAZON.COM INC",
+      "stockType": "Comp",
+      "rating": "1",
+      "quantity": 20,
+      "purchasePrice": 175.96,
+      "sector": "Technology"
+    },
+    {
+      "id": 36,
+      "symbol": "WM",
+      "company": "WASTE MANAGEMENT INC",
+      "stockType": "Comp",
+      "rating": "1",
+      "quantity": 20,
+      "purchasePrice": 98.37,
+      "sector": "Industrials"
+    },
+    {
+      "id": 37,
+      "symbol": "GS",
+      "company": "GOLDMAN SACHS GROUP INC",
+      "stockType": "Cycl",
+      "rating": "2",
+      "quantity": 8,
+      "purchasePrice": 544.3,
+      "sector": "Financial Services"
+    },
+    {
+      "id": 38,
+      "symbol": "JPM",
+      "company": "JPMORGAN CHASE & CO",
+      "stockType": "Cycl",
+      "rating": "2",
+      "quantity": 18,
+      "purchasePrice": 130.52,
+      "sector": "Financial Services"
+    },
+    {
+      "id": 39,
+      "symbol": "MA",
+      "company": "MASTERCARD INC CLASS A",
+      "stockType": "Comp",
+      "rating": "1",
+      "quantity": 20,
+      "purchasePrice": 88.7,
+      "sector": "Financial Services"
+    },
+    {
+      "id": 40,
+      "symbol": "COST",
+      "company": "COSTCO WHOLESALE CORP",
+      "stockType": "Comp",
+      "rating": "1",
+      "quantity": 4,
+      "purchasePrice": 543.3,
+      "sector": "Consumer Defensive"
+    },
+    {
+      "id": 41,
+      "symbol": "PEP",
+      "company": "PEPSICO INC",
+      "stockType": "cat",
+      "rating": "3",
+      "quantity": 18,
+      "purchasePrice": 154.53,
+      "sector": "Consumer Defensive"
+    },
+    {
+      "id": 42,
+      "symbol": "CAT",
+      "company": "CATERPILLAR INC",
+      "stockType": "Cycl",
+      "rating": "2",
+      "quantity": 12,
+      "purchasePrice": 348.46,
+      "sector": "Industrials"
+    },
+    {
+      "id": 43,
+      "symbol": "PWR",
+      "company": "QUANTA SERVICES INC",
+      "stockType": "CAT",
+      "rating": "2",
+      "quantity": 14,
+      "purchasePrice": 271.35,
+      "sector": "Industrials"
+    },
+    {
+      "id": 44,
+      "symbol": "CW",
+      "company": "CURTISS WRIGHT",
+      "stockType": "Cat",
+      "rating": "2",
+      "quantity": 10,
+      "purchasePrice": 355.03,
+      "sector": "Industrials"
+    },
+    {
+      "id": 45,
+      "symbol": "PANW",
+      "company": "PALO ALTO NETWORKS INC",
+      "stockType": "Comp",
+      "rating": "2",
+      "quantity": 24,
+      "purchasePrice": 149.18,
+      "sector": "Technology"
+    },
+    {
+      "id": 46,
+      "symbol": "AVGO",
+      "company": "BROADCOM INC",
+      "stockType": "Cycl",
+      "rating": "2",
+      "quantity": 22,
+      "purchasePrice": 146.49,
+      "sector": "Technology"
+    },
+    {
+      "id": 47,
+      "symbol": "UBER",
+      "company": "UBER TECHNOLOGIES INC",
+      "stockType": "Cat",
+      "rating": "2",
+      "quantity": 50,
+      "purchasePrice": 36.58,
+      "sector": "Technology"
+    },
+    {
+      "id": 48,
+      "symbol": "MCO",
+      "company": "MOODYS CORP",
+      "stockType": "Comp",
+      "rating": "2",
+      "quantity": 10,
+      "purchasePrice": 238.21,
+      "sector": "Financial Services"
+    },
+    {
+      "id": 49,
+      "symbol": "BIL",
+      "company": "SPDR BLOOMBERG 1-3 MONTH T-BILL ETF",
+      "stockType": "Comp",
+      "rating": "3",
+      "quantity": 20,
+      "purchasePrice": 91.67,
+      "sector": "Financial Services"
+    },
+    {
+      "id": 50,
+      "symbol": "GLD",
+      "company": "SPDR GOLD ETF",
+      "stockType": "Comp",
+      "rating": "3",
+      "quantity": 12,
+      "purchasePrice": 147.49,
+      "sector": "Commodities"
+    },
+    {
+      "id": 11,
+      "symbol": "MSFT",
+      "company": "Microsoft",
+      "stockType": "Comp",
+      "rating": "1",
+      "quantity": 16,
+      "purchasePrice": 320,
+      "sector": "Technology"
+    },
+    {
+      "id": 32,
+      "symbol": "AAPL",
+      "company": "APPLE INC",
+      "stockType": "Comp",
+      "rating": "1",
+      "quantity": 40,
+      "purchasePrice": 24.8,
+      "sector": "Technology"
+    },
+    {
+      "id": 33,
+      "symbol": "GOOG",
+      "company": "ALPHABET INC CLASS C",
+      "stockType": "Comp",
+      "rating": "1",
+      "quantity": 32,
+      "purchasePrice": 29.06,
+      "sector": "Technology"
+    },
+    {
+      "id": 34,
+      "symbol": "META",
+      "company": "META PLATFORMS INC CLASS A",
+      "stockType": "Cat",
+      "rating": "2",
+      "quantity": 8,
+      "purchasePrice": 416.04,
+      "sector": "Technology"
+    }
+  ]
+}
+Validation passed. Processing 20 stocks.
+🔄 SIMPLE REBALANCE: Updating 20 stocks for USD
+Updating AMZN: purchase_price 175.96 -> 175.96
+Updating WM: purchase_price 98.37 -> 98.37
+Updating GS: purchase_price 544.3 -> 544.3
+Updating JPM: purchase_price 130.52 -> 130.52
+Updating MA: purchase_price 88.7 -> 88.7
+Updating COST: purchase_price 543.3 -> 543.3
+Updating PEP: purchase_price 154.53 -> 154.53
+Updating CAT: purchase_price 348.46 -> 348.46
+Updating PWR: purchase_price 271.35 -> 271.35
+Updating CW: purchase_price 355.03 -> 355.03
+Updating PANW: purchase_price 149.18 -> 149.18
+Updating AVGO: purchase_price 146.49 -> 146.49
+Updating UBER: purchase_price 36.58 -> 36.58
+Updating MCO: purchase_price 238.21 -> 238.21
+Updating BIL: purchase_price 91.67 -> 91.67
+Updating GLD: purchase_price 147.49 -> 147.49
+Updating MSFT: purchase_price 320 -> 320
+Updating AAPL: purchase_price 24.8 -> 24.8
+Updating GOOG: purchase_price 29.06 -> 29.06
+Updating META: purchase_price 416.04 -> 416.04
+✅ Database verified - MSFT purchase_price: undefined
+Getting current prices for 20 symbols in USD region
+GS current price: 598.54, daily change: 0.0518191%
+MA current price: 563.58, daily change: -1.15059%
+MCO current price: 469.65, daily change: -0.447265%
+CAT current price: 343.39, daily change: -0.521448%
+JPM current price: 260.71, daily change: 0.0153366%
+PANW current price: 186.736, daily change: 0.32018536%
+PWR current price: 335.36, daily change: 1.36928%
+GLD current price: 309.75, daily change: 2.19063%
+AVGO current price: 228.72, daily change: -0.7851462%
+CW current price: 428.45, daily change: 3.01013%
+WM current price: 236.81, daily change: 1.4958%
+UBER current price: 87.75, daily change: -0.284091%
+AMZN current price: 200.99, daily change: -1.0388974%
+META current price: 627.06, daily change: -1.4939456%
+GOOG current price: 169.59, daily change: -1.3896961%
+MSFT current price: 450.18, daily change: -1.0288864%
+COST current price: 1008.5, daily change: -0.94585216%
+BIL current price: 91.69, daily change: 0.0436453%
+PEP current price: 129.34, daily change: -0.5994457%
+AAPL current price: 195.27, daily change: -3.0244322%
+Found current prices for 20/20 symbols in USD region
+Debug AMZN: DB purchasePrice=175.96, converted=175.96
+Debug WM: DB purchasePrice=98.37, converted=98.37
+Debug GS: DB purchasePrice=544.30, converted=544.3
+Debug JPM: DB purchasePrice=130.52, converted=130.52
+Debug MA: DB purchasePrice=88.70, converted=88.7
+Debug COST: DB purchasePrice=543.30, converted=543.3
+Debug PEP: DB purchasePrice=154.53, converted=154.53
+Debug CAT: DB purchasePrice=348.46, converted=348.46
+Debug PWR: DB purchasePrice=271.35, converted=271.35
+Debug CW: DB purchasePrice=355.03, converted=355.03
+Debug PANW: DB purchasePrice=149.18, converted=149.18
+Debug AVGO: DB purchasePrice=146.49, converted=146.49
+Debug UBER: DB purchasePrice=36.58, converted=36.58
+Debug MCO: DB purchasePrice=238.21, converted=238.21
+Debug BIL: DB purchasePrice=91.67, converted=91.67
+Debug GLD: DB purchasePrice=147.49, converted=147.49
+Debug MSFT: DB purchasePrice=305.11, converted=305.11
+Debug AAPL: DB purchasePrice=24.80, converted=24.8
+Debug GOOG: DB purchasePrice=29.06, converted=29.06
+Debug META: DB purchasePrice=416.04, converted=416.04
