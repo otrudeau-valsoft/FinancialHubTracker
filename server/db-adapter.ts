@@ -427,7 +427,7 @@ export class DatabaseAdapter {
   /**
    * Rebalance portfolio by smartly updating existing stocks and preserving purchase prices
    */
-  async rebalancePortfolio(stocks: any[], region: string): Promise<LegacyPortfolioItem[]> {
+  async updateDatabaseRows(updates: any[], region: string): Promise<void> {
     try {
       // Get the appropriate portfolio table
       let portfolioTable: any;
@@ -445,26 +445,25 @@ export class DatabaseAdapter {
           throw new Error(`Invalid region: ${region}`);
       }
       
-      // Update each stock individually outside of transaction to avoid issues
-      for (const stock of stocks) {
-        await db
-          .update(portfolioTable)
-          .set({
-            company: stock.company,
-            stock_type: stock.stockType,
-            rating: stock.rating,
-            sector: stock.sector,
-            quantity: stock.quantity.toString(),
-            purchase_price: stock.purchasePrice.toString()
-          })
-          .where(eq(portfolioTable.symbol, stock.symbol));
+      console.log(`🔄 DATABASE UPDATE: Processing ${updates.length} changes in portfolio_${region}`);
+      
+      // Update each row with only the changed fields
+      for (const update of updates) {
+        const { id, ...changes } = update;
+        
+        if (Object.keys(changes).length > 0) {
+          console.log(`Updating row ${id}:`, changes);
+          
+          await db
+            .update(portfolioTable)
+            .set(changes)
+            .where(eq(portfolioTable.id, id));
+        }
       }
-
-      // Get fresh data
-      const updatedStocks = await db.select().from(portfolioTable);
-      return await adaptPortfolioData(updatedStocks, region);
+      
+      console.log(`✅ DATABASE UPDATE: Successfully updated ${updates.length} rows`);
     } catch (error) {
-      console.error(`Rebalance failed:`, error);
+      console.error(`❌ Database update failed:`, error);
       throw error;
     }
   }

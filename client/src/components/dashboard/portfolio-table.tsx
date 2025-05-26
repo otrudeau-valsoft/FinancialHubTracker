@@ -8,7 +8,7 @@ import { useState } from "react";
 import { List, Filter, AlertTriangle, InfoIcon, BarChart4, Repeat } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { RebalanceModal } from "./rebalance-modal";
+import { DatabaseEditorModal } from "./database-editor-modal";
 
 interface CurrentPrice {
   id: number;
