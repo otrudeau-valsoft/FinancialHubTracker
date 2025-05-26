@@ -214,8 +214,13 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
           processedStock.purchasePrice = parseFloat(processedStock.purchasePrice) || null;
         }
         
-        // Set price field to purchase price value for backward compatibility
-        processedStock.price = processedStock.purchasePrice || 0;
+        // CRITICAL FIX: Ensure price field is never null to avoid database constraint error
+        if (processedStock.purchasePrice !== null && processedStock.purchasePrice !== undefined) {
+          processedStock.price = processedStock.purchasePrice;
+        } else {
+          // Default to a reasonable value instead of null
+          processedStock.price = 100; // Default price for stocks without purchase price
+        }
         
         // Special handling for Cash and ETF
         if (processedStock.stockType === 'Cash' || processedStock.stockType === 'ETF' ||
@@ -242,8 +247,8 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
       rating: z.string().min(1, "Rating is required"),
       sector: z.string().optional(),
       quantity: z.number().min(0, "Quantity must be a positive number"),
-      price: z.number().optional().nullable(),
-      pbr: z.number().optional().nullable(),
+      price: z.number().min(0, "Price must be a positive number"), // Make price required and positive
+      purchasePrice: z.number().optional().nullable(),
     });
     
     const schema = z.object({
