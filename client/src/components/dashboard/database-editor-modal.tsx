@@ -157,15 +157,35 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
       console.log('New rows:', newRowsArray);
       console.log('Deletions:', deletionsArray);
 
-      await apiRequest(
-        'POST',
-        `/api/portfolios/${region}/database-update`,
-        { 
-          updates: updatesArray,
-          newRows: newRowsArray,
-          deletions: deletionsArray
-        }
-      );
+      // Process operations using working individual endpoints
+      for (const stockId of deletionsArray) {
+        await apiRequest('DELETE', `/api/portfolios/${region}/stocks/${stockId}`);
+      }
+      
+      for (const newStock of newRowsArray) {
+        await apiRequest('POST', `/api/portfolios/${region}/stocks`, {
+          symbol: newStock.symbol,
+          company: newStock.company,
+          stockType: newStock.stock_type,
+          rating: newStock.rating,
+          quantity: newStock.quantity,
+          purchasePrice: newStock.purchase_price,
+          sector: newStock.sector
+        });
+      }
+      
+      for (const update of updatesArray) {
+        const updateData: any = {};
+        if (update.purchase_price !== undefined) updateData.purchasePrice = update.purchase_price;
+        if (update.stock_type !== undefined) updateData.stockType = update.stock_type;
+        if (update.symbol !== undefined) updateData.symbol = update.symbol;
+        if (update.company !== undefined) updateData.company = update.company;
+        if (update.rating !== undefined) updateData.rating = update.rating;
+        if (update.quantity !== undefined) updateData.quantity = update.quantity;
+        if (update.sector !== undefined) updateData.sector = update.sector;
+        
+        await apiRequest('PATCH', `/api/portfolios/${region}/stocks/${update.id}`, updateData);
+      }
 
       await queryClient.invalidateQueries({ queryKey: ['/api/portfolios', region, 'stocks'] });
       
