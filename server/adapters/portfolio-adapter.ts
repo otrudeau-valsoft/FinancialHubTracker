@@ -178,6 +178,7 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
   return data.map(item => {
     const quantity = Number(item.quantity);
     const bookPrice = Number(item.price);
+    const purchasePrice = item.purchasePrice ? Number(item.purchasePrice) : undefined;
     const currentPriceInfo = priceMap[item.symbol];
     const currentPrice = currentPriceInfo?.regularMarketPrice 
       ? Number(currentPriceInfo.regularMarketPrice) 
@@ -199,8 +200,10 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
       currentPriceInfo?.fiftyTwoWeekLow
     );
     
-    // Calculate profit/loss as a percentage return instead of dollar amount
-    const profitLoss = calculateProfitLossPercentage(bookPrice, currentPrice);
+    // Calculate profit/loss using purchase price if available, otherwise use book price
+    const profitLoss = purchasePrice 
+      ? calculateProfitLossPercentage(purchasePrice, currentPrice)
+      : calculateProfitLossPercentage(bookPrice, currentPrice);
     
     // Get the pre-calculated performance metrics for this stock
     const performanceMetrics = performanceMetricsMap[item.symbol] || {};
@@ -214,7 +217,7 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
       sector: item.sector || 'Technology',
       quantity: quantity,
       price: bookPrice,
-      pbr: item.pbr ? Number(item.pbr) : undefined,
+      purchasePrice: purchasePrice,
       netAssetValue: nav,
       portfolioPercentage: portfolioWeight,
       dailyChangePercent: dailyChange,
