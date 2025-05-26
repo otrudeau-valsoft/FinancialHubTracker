@@ -482,62 +482,38 @@ export class DatabaseAdapter {
         
         for (const stock of stocks) {
           // Prepare stock data with proper field mapping
-          const stockData = {
+          const stockData: any = {
             symbol: stock.symbol,
             company: stock.company || '',
             stock_type: stock.stockType || '',
             rating: stock.rating || '',
             sector: stock.sector || null,
-            quantity: Number(stock.quantity) || 0,
-            purchase_price: stock.purchasePrice !== undefined && stock.purchasePrice !== null 
-              ? Number(stock.purchasePrice) : null
+            quantity: Number(stock.quantity) || 0
           };
           
-          console.log(`=== STOCK DATA PROCESSING FOR ${stock.symbol} ===`);
-          console.log(`Input stockType: ${stock.stockType} (${typeof stock.stockType})`);
-          console.log(`Input purchasePrice: ${stock.purchasePrice} (${typeof stock.purchasePrice})`);
-          console.log(`Mapped stock_type: ${stockData.stock_type} (${typeof stockData.stock_type})`);
-          console.log(`Processed purchase_price: ${stockData.purchase_price} (${typeof stockData.purchase_price})`);
-          
-          // Only preserve existing purchase price if the new value is truly undefined/null AND no explicit change was made
-          // This handles cases where purchase price data is missing, but respects user changes
-          if (stockData.purchase_price === null && existingSymbols.has(stock.symbol)) {
+          // Handle purchase_price separately to ensure it's properly set
+          if (stock.purchasePrice !== undefined && stock.purchasePrice !== null) {
+            stockData.purchase_price = Number(stock.purchasePrice);
+          } else if (existingSymbols.has(stock.symbol)) {
+            // Only preserve existing price if no new value was provided
             const existingStock = existingStocks.find(s => s.symbol === stock.symbol);
             if (existingStock && existingStock.purchase_price !== null) {
-              // Only preserve if the original input was truly undefined (not sent by frontend)
-              if (stock.purchasePrice === undefined) {
-                console.log(`  -> Preserving existing purchase price (no new value provided): ${existingStock.purchase_price}`);
-                stockData.purchase_price = Number(existingStock.purchase_price);
-              } else {
-                console.log(`  -> User explicitly set purchase price to null/0, respecting change`);
-              }
+              stockData.purchase_price = Number(existingStock.purchase_price);
             }
-          } else if (stockData.purchase_price !== null) {
-            console.log(`  -> Using new purchase price: ${stockData.purchase_price}`);
           }
           
-          console.log(`Processing ${stock.symbol}:`);
-          console.log(`  - Company: ${stockData.company}`);
-          console.log(`  - Stock Type: ${stockData.stock_type}`);
-          console.log(`  - Rating: ${stockData.rating}`);
-          console.log(`  - Sector: ${stockData.sector}`);
-          console.log(`  - Quantity: ${stockData.quantity}`);
-          console.log(`  - Purchase Price: ${stockData.purchase_price}`);
+
           
           if (existingSymbols.has(stock.symbol)) {
             // Update existing stock
-            console.log(`  -> UPDATING existing stock`);
-            console.log(`  -> SET data:`, JSON.stringify(stockData, null, 2));
             const [updatedStock] = await tx
               .update(portfolioTable)
               .set(stockData)
               .where(eq(portfolioTable.symbol, stock.symbol))
               .returning();
-            console.log(`  -> UPDATE result:`, JSON.stringify(updatedStock, null, 2));
             updatedStocks.push(updatedStock);
           } else {
             // Insert new stock
-            console.log(`  -> INSERTING new stock`);
             const [insertedStock] = await tx
               .insert(portfolioTable)
               .values(stockData)
