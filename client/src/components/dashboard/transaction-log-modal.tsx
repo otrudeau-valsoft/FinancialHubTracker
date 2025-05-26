@@ -13,6 +13,7 @@ interface Transaction {
   action: 'BUY' | 'SELL';
   quantity: string;
   price: string;
+  company?: string;
   notes?: string;
 }
 
@@ -79,6 +80,7 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
       action: 'BUY',
       quantity: '',
       price: '',
+      company: '',
       notes: ''
     };
     setTransactions(prev => [...prev, newTransaction]);
@@ -109,9 +111,13 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
       errors.push("Quantity must be > 0");
     }
     
-    // For BUY transactions, price is required
-    if (transaction.action === 'BUY' && price <= 0) {
+    if (price <= 0) {
       errors.push("Price must be > 0");
+    }
+    
+    // For BUY transactions, check if company field is needed for new stocks
+    if (transaction.action === 'BUY' && !stock && !transaction.company) {
+      errors.push("Company name required for new stocks");
     }
     
     if (transaction.action === 'SELL') {
@@ -120,7 +126,6 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
       } else if (quantity > stock.quantity) {
         errors.push(`Only ${stock.quantity} shares available`);
       }
-      // For SELL, we'll use current market price automatically
     }
     
     if (transaction.action === 'BUY') {
@@ -136,14 +141,7 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
   const getTotalCashImpact = () => {
     return transactions.reduce((total, transaction) => {
       const quantity = parseInt(transaction.quantity) || 0;
-      let price = parseFloat(transaction.price) || 0;
-      
-      // For SELL transactions, use current market price
-      if (transaction.action === 'SELL') {
-        const stock = stocks.find(s => s.symbol === transaction.symbol);
-        price = stock?.currentPrice || 0;
-      }
-      
+      const price = parseFloat(transaction.price) || 0;
       const amount = quantity * price;
       
       if (transaction.action === 'BUY') {
@@ -186,10 +184,10 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
               purchasePrice: price // Will be weighted averaged on backend
             });
           } else {
-            // Create new position - need to provide company name
+            // Create new position - use provided company name
             await apiRequest('POST', `/api/portfolios/${region}/stocks`, {
               symbol: transaction.symbol,
-              company: transaction.symbol, // Use symbol as company name for now
+              company: transaction.company || transaction.symbol,
               quantity: quantity,
               purchasePrice: price,
               stockType: 'Stock', // Default
@@ -204,9 +202,7 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
           });
           
         } else if (transaction.action === 'SELL' && stock) {
-          // Use current market price for selling
-          const sellPrice = stock.currentPrice || 0;
-          
+          // Use user-specified price for selling
           if (quantity >= stock.quantity) {
             // Sell entire position
             await apiRequest('DELETE', `/api/portfolios/${region}/stocks/${stock.id}`);
@@ -219,7 +215,7 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
           }
           
           // Update cash balance with sell proceeds
-          const sellProceeds = quantity * sellPrice;
+          const sellProceeds = quantity * price;
           await apiRequest('PATCH', `/api/cash/${region}`, {
             amount: cashBalance + sellProceeds
           });
@@ -346,6 +342,7 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
             <thead className="bg-slate-800 sticky top-0">
               <tr className="border-b border-slate-600">
                 <th className="text-left p-3 text-slate-300 font-medium">Symbol</th>
+                <th className="text-left p-3 text-slate-300 font-medium">Company</th>
                 <th className="text-left p-3 text-slate-300 font-medium">Action</th>
                 <th className="text-left p-3 text-slate-300 font-medium">Quantity</th>
                 <th className="text-left p-3 text-slate-300 font-medium">Price</th>

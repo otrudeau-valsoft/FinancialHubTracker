@@ -47,7 +47,7 @@ router.get('/:region', async (req, res) => {
 /**
  * Update portfolio cash balance for a specific region
  */
-router.post('/:region', async (req, res) => {
+router.patch('/:region', async (req, res) => {
   try {
     const { region } = req.params;
     const { amount } = req.body;
