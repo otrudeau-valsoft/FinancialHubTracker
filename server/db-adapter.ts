@@ -68,9 +68,10 @@ export class DatabaseAdapter {
     // Map each stock to legacy format
     return data.map(item => {
       const quantity = Number(item.quantity);
-      const purchasePrice = item.purchasePrice ? Number(item.purchasePrice) : undefined;
+      // Force debug log regardless of caching
+      console.log(`URGENT DEBUG ${item.symbol}: purchasePrice=${item.purchasePrice}, all keys=${Object.keys(item)}`);
       
-      console.log(`Debug ${item.symbol}: raw=${item.purchasePrice}, converted=${purchasePrice}`);
+      const purchasePrice = item.purchasePrice ? Number(item.purchasePrice) : undefined;
       const currentPriceInfo = priceMap[item.symbol];
       const currentPrice = currentPriceInfo?.regularMarketPrice 
         ? Number(currentPriceInfo.regularMarketPrice) 
@@ -139,12 +140,12 @@ export class DatabaseAdapter {
           throw new Error(`Invalid region: ${region}`);
       }
       
-      console.log(`Raw portfolio data sample for ${region}:`, JSON.stringify(portfolioData[0], null, 2));
-      
-      // Debug: Check if purchase price exists
+      // Debug the raw data from database
       if (portfolioData[0]) {
-        console.log(`Purchase price in raw data: ${portfolioData[0].purchasePrice}`);
-        console.log(`All fields in first record:`, Object.keys(portfolioData[0]));
+        console.log(`DEBUG: ${region} raw record for ${portfolioData[0].symbol}:`);
+        console.log(`- purchase_price field: ${portfolioData[0].purchase_price}`);
+        console.log(`- purchasePrice field: ${portfolioData[0].purchasePrice}`);
+        console.log(`- All fields: ${Object.keys(portfolioData[0]).join(', ')}`);
       }
       
       // Transform to legacy format with purchase price support
