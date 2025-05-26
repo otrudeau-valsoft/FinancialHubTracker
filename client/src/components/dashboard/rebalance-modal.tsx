@@ -101,7 +101,7 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
       rating: newRating,
       sector: newSector,
       quantity: newQuantity,
-      pbr: newPbr
+      purchasePrice: newPurchasePrice
     };
 
     setStocks([...stocks, newStock]);
@@ -113,7 +113,7 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
     setNewRating(ratingOptions[0]);
     setNewSector(sectorOptions[0]);
     setNewQuantity(0);
-    setNewPbr(undefined);
+    setNewPurchasePrice(undefined);
     setIsAdding(false);
   };
 
@@ -129,7 +129,7 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
     const updatedStocks = [...stocks];
     
     // Properly handle numeric fields
-    if (field === 'quantity' || field === 'price' || field === 'pbr') {
+    if (field === 'quantity' || field === 'price' || field === 'purchasePrice') {
       updatedStocks[index] = {
         ...updatedStocks[index],
         [field]: value === '' ? undefined : Number(value)
@@ -216,7 +216,7 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
                 <TableHead className="font-mono text-[#7A8999] font-medium whitespace-nowrap">RATING</TableHead>
                 <TableHead className="font-mono text-[#7A8999] font-medium whitespace-nowrap">SECTOR</TableHead>
                 <TableHead className="font-mono text-[#7A8999] font-medium whitespace-nowrap">QUANTITY</TableHead>
-                <TableHead className="font-mono text-[#7A8999] font-medium whitespace-nowrap">PBR</TableHead>
+                <TableHead className="font-mono text-[#7A8999] font-medium whitespace-nowrap">PURCHASE PRICE</TableHead>
                 <TableHead className="font-mono text-[#7A8999] font-medium whitespace-nowrap">ACTIONS</TableHead>
               </TableRow>
             </TableHeader>
@@ -292,10 +292,10 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
                   </TableCell>
                   <TableCell className="p-2">
                     <Input 
-                      type="number"
-                      value={stock.pbr !== undefined ? stock.pbr : ''}
-                      onChange={(e) => handleUpdateStock(index, 'pbr', parseFloat(e.target.value || '0'))}
-                      placeholder="1.2"
+                      type="text"
+                      value={stock.purchasePrice !== undefined ? stock.purchasePrice : ''}
+                      onChange={(e) => handleUpdateStock(index, 'purchasePrice', e.target.value ? parseFloat(e.target.value) : undefined)}
+                      placeholder="150.00"
                       className="h-8 bg-[#0F1A2A] border-[#1A304A] text-[#E2E8F0] font-mono"
                     />
                   </TableCell>
@@ -377,10 +377,10 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
                   </TableCell>
                   <TableCell className="p-2">
                     <Input 
-                      type="number"
-                      value={newPbr !== undefined ? newPbr : ''}
-                      onChange={(e) => setNewPbr(parseFloat(e.target.value || '0'))}
-                      placeholder="1.2"
+                      type="text"
+                      value={newPurchasePrice !== undefined ? newPurchasePrice : ''}
+                      onChange={(e) => setNewPurchasePrice(e.target.value ? parseFloat(e.target.value) : undefined)}
+                      placeholder="150.00"
                       className="h-8 bg-[#0F1A2A] border-[#1A304A] text-[#E2E8F0] font-mono"
                     />
                   </TableCell>
