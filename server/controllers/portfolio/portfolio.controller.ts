@@ -207,7 +207,10 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
           processedStock.quantity = parseFloat(processedStock.quantity) || 0;
         }
         
-        // Handle purchase price field (new field after migration)
+        // Handle purchase price field - CRITICAL FIX
+        console.log(`=== REBALANCE DEBUG ${processedStock.symbol} ===`);
+        console.log(`Original purchasePrice: ${stock.purchasePrice} (${typeof stock.purchasePrice})`);
+        
         if (processedStock.purchasePrice !== undefined && processedStock.purchasePrice !== null) {
           if (typeof processedStock.purchasePrice === 'string') {
             const parsed = parseFloat(processedStock.purchasePrice);
@@ -216,9 +219,9 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
             // Already a number, keep it as is
             processedStock.purchasePrice = processedStock.purchasePrice;
           }
-          console.log(`Purchase price processing for ${processedStock.symbol}: original=${stock.purchasePrice}, processed=${processedStock.purchasePrice}`);
+          console.log(`Processed purchasePrice: ${processedStock.purchasePrice} (${typeof processedStock.purchasePrice})`);
         } else {
-          console.log(`Purchase price for ${processedStock.symbol} is undefined/null: ${processedStock.purchasePrice}`);
+          console.log(`Purchase price is undefined/null: ${processedStock.purchasePrice}`);
         }
         // If purchasePrice is undefined, don't modify it - preserve existing DB value
         
