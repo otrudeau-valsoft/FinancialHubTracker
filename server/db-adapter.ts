@@ -456,8 +456,8 @@ export class DatabaseAdapter {
             stock_type: stock.stockType,
             rating: stock.rating,
             sector: stock.sector,
-            quantity: Number(stock.quantity),
-            purchase_price: Number(stock.purchasePrice)
+            quantity: stock.quantity.toString(),
+            purchase_price: stock.purchasePrice.toString()
           };
           
           console.log(`Updating ${stock.symbol}: purchase_price ${stock.purchasePrice} -> ${updateData.purchase_price}`);
