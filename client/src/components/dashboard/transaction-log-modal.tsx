@@ -109,7 +109,8 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
       errors.push("Quantity must be > 0");
     }
     
-    if (price <= 0) {
+    // For BUY transactions, price is required
+    if (transaction.action === 'BUY' && price <= 0) {
       errors.push("Price must be > 0");
     }
     
@@ -119,6 +120,7 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
       } else if (quantity > stock.quantity) {
         errors.push(`Only ${stock.quantity} shares available`);
       }
+      // For SELL, we'll use current market price automatically
     }
     
     if (transaction.action === 'BUY') {
@@ -134,7 +136,14 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
   const getTotalCashImpact = () => {
     return transactions.reduce((total, transaction) => {
       const quantity = parseInt(transaction.quantity) || 0;
-      const price = parseFloat(transaction.price) || 0;
+      let price = parseFloat(transaction.price) || 0;
+      
+      // For SELL transactions, use current market price
+      if (transaction.action === 'SELL') {
+        const stock = stocks.find(s => s.symbol === transaction.symbol);
+        price = stock?.currentPrice || 0;
+      }
+      
       const amount = quantity * price;
       
       if (transaction.action === 'BUY') {
@@ -177,9 +186,10 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
               purchasePrice: price // Will be weighted averaged on backend
             });
           } else {
-            // Create new position
+            // Create new position - need to provide company name
             await apiRequest('POST', `/api/portfolios/${region}/stocks`, {
               symbol: transaction.symbol,
+              company: transaction.symbol, // Use symbol as company name for now
               quantity: quantity,
               purchasePrice: price,
               stockType: 'Stock', // Default
@@ -194,6 +204,9 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
           });
           
         } else if (transaction.action === 'SELL' && stock) {
+          // Use current market price for selling
+          const sellPrice = stock.currentPrice || 0;
+          
           if (quantity >= stock.quantity) {
             // Sell entire position
             await apiRequest('DELETE', `/api/portfolios/${region}/stocks/${stock.id}`);
@@ -205,9 +218,10 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
             });
           }
           
-          // Update cash balance
+          // Update cash balance with sell proceeds
+          const sellProceeds = quantity * sellPrice;
           await apiRequest('PATCH', `/api/cash/${region}`, {
-            amount: cashBalance + getTotalCashImpact()
+            amount: cashBalance + sellProceeds
           });
         }
       }
@@ -345,7 +359,14 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
               {transactions.map((transaction) => {
                 const errors = getValidationErrors(transaction);
                 const quantity = parseInt(transaction.quantity) || 0;
-                const price = parseFloat(transaction.price) || 0;
+                let price = parseFloat(transaction.price) || 0;
+                
+                // For SELL transactions, use current market price
+                if (transaction.action === 'SELL') {
+                  const stock = stocks.find(s => s.symbol === transaction.symbol);
+                  price = stock?.currentPrice || 0;
+                }
+                
                 const total = quantity * price;
                 
                 return (
@@ -382,14 +403,20 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
                       />
                     </td>
                     <td className="p-3">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={transaction.price}
-                        onChange={(e) => updateTransaction(transaction.id, 'price', e.target.value)}
-                        placeholder="150.00"
-                        className="w-24 h-8 text-xs bg-slate-800 border-slate-600 text-white"
-                      />
+                      {transaction.action === 'SELL' ? (
+                        <div className="w-24 h-8 flex items-center text-xs text-slate-300 bg-slate-700 border border-slate-600 rounded px-2">
+                          ${price.toFixed(2)}
+                        </div>
+                      ) : (
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={transaction.price}
+                          onChange={(e) => updateTransaction(transaction.id, 'price', e.target.value)}
+                          placeholder="150.00"
+                          className="w-24 h-8 text-xs bg-slate-800 border-slate-600 text-white"
+                        />
+                      )}
                     </td>
                     <td className="p-3">
                       <span className={`font-mono ${
