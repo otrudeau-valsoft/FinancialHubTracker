@@ -84,8 +84,8 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
       quantity: '',
       price: '',
       company: '',
-      stockType: 'Stock',
-      rating: 'Hold',
+      stockType: 'Comp',
+      rating: '3',
       notes: ''
     };
     setTransactions(prev => [...prev, newTransaction]);
@@ -217,8 +217,8 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
               company: transaction.company || transaction.symbol,
               quantity: quantity,
               purchasePrice: price,
-              stockType: transaction.stockType || 'Stock',
-              rating: transaction.rating || 'Hold',
+              stockType: transaction.stockType || 'Comp',
+              rating: transaction.rating || '3',
               sector: 'Unknown' // Default
             });
           }
@@ -445,9 +445,11 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Stock">Stock</SelectItem>
-                          <SelectItem value="ETF">ETF</SelectItem>
+                          <SelectItem value="Comp">Comp</SelectItem>
+                          <SelectItem value="Cat">Cat</SelectItem>
+                          <SelectItem value="Cycl">Cycl</SelectItem>
                           <SelectItem value="Cash">Cash</SelectItem>
+                          <SelectItem value="ETF">ETF</SelectItem>
                         </SelectContent>
                       </Select>
                     </td>
@@ -461,7 +463,7 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
                           <SelectItem value="2">2</SelectItem>
                           <SelectItem value="3">3</SelectItem>
                           <SelectItem value="4">4</SelectItem>
-                          <SelectItem value="Hold">Hold</SelectItem>
+                          <SelectItem value="ETF">ETF</SelectItem>
                         </SelectContent>
                       </Select>
                     </td>
