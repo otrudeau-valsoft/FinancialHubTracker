@@ -68,9 +68,9 @@ export class DatabaseAdapter {
     // Map each stock to legacy format
     return data.map(item => {
       const quantity = Number(item.quantity);
-      const purchasePrice = item.purchasePrice ? Number(item.purchasePrice) : undefined;
+      const purchasePrice = item.purchasePrice || item.purchase_price ? Number(item.purchasePrice || item.purchase_price) : undefined;
       
-      console.log(`Debug: ${item.symbol} - purchasePrice from DB: ${item.purchasePrice}, converted: ${purchasePrice}`);
+      console.log(`Debug: ${item.symbol} - purchasePrice from DB: ${item.purchasePrice || item.purchase_price}, converted: ${purchasePrice}`);
       const currentPriceInfo = priceMap[item.symbol];
       const currentPrice = currentPriceInfo?.regularMarketPrice 
         ? Number(currentPriceInfo.regularMarketPrice) 
