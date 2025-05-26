@@ -196,6 +196,10 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
   const region = req.params.region.toUpperCase();
   
   try {
+    console.log(`=== REBALANCE REQUEST RECEIVED ===`);
+    console.log(`Region: ${region}`);
+    console.log(`Request body:`, JSON.stringify(req.body, null, 2));
+    
     // Simple validation
     const stockSchema = z.object({
       symbol: z.string().min(1),
@@ -212,9 +216,12 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
     });
 
     const validData = schema.parse(req.body);
+    console.log(`Validation passed. Processing ${validData.stocks.length} stocks.`);
     
     // Update the portfolio stocks
     const result = await dbAdapter.rebalancePortfolio(validData.stocks, region);
+    console.log(`=== REBALANCE COMPLETED ===`);
+    console.log(`Updated ${result.length} stocks successfully`);
     
     return res.status(200).json({
       message: `Successfully updated ${region} portfolio`,
