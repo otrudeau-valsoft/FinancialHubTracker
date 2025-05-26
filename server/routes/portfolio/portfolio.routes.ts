@@ -45,25 +45,14 @@ router.put('/:region/summary/:id', asyncHandler(updatePortfolioSummary));
 router.post('/:region/rebalance', asyncHandler(rebalancePortfolio));
 
 // POST /api/portfolios/:region/database-update - Update multiple portfolio stocks (database editor)
-router.post('/:region/database-update', async (req, res) => {
-  try {
-    const { region } = req.params;
-    
-    // Handle the data parsing issue by checking multiple sources
-    let updates = [];
-    let newRows = [];
-    let deletions = [];
-    
-    if (req.body && typeof req.body === 'object') {
-      updates = req.body.updates || [];
-      newRows = req.body.newRows || [];
-      deletions = req.body.deletions || [];
-    }
-    
-    console.log(`🔄 DATABASE UPDATE: Processing ${updates.length} updates, ${newRows.length} new rows, ${deletions.length} deletions for ${region}`);
-    
-    const { dbAdapter } = await import('../../db-adapter');
-    let totalProcessed = 0;
+router.post('/:region/database-update', asyncHandler(async (req, res) => {
+  const { region } = req.params;
+  const { updates = [], newRows = [], deletions = [] } = req.body;
+  
+  console.log(`🔄 DATABASE UPDATE: Processing ${updates.length} updates, ${newRows.length} new rows, ${deletions.length} deletions for ${region}`);
+  
+  const { dbAdapter } = await import('../../db-adapter');
+  let totalProcessed = 0;
     
     // Handle updates to existing stocks
     if (updates && Array.isArray(updates)) {
