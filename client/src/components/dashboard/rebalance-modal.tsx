@@ -156,23 +156,11 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
       console.log('Current stocks in modal:', stocks);
       console.log('Original existingStocks:', existingStocks);
       
-      // Process stocks - only preserve prices if they're truly missing, not if user made changes
-      const processedStocks = stocks.map((stock, index) => {
-        const processed = { ...stock };
-        
-        // Only preserve existing purchase price if it's completely undefined AND there was an original value
-        // This prevents overriding user changes while still preserving data for stocks without price changes
-        if (processed.purchasePrice === undefined && 
-            existingStocks && existingStocks[index] && 
-            existingStocks[index].purchasePrice !== undefined) {
-          console.log(`Preserving original purchase price for ${stock.symbol}: ${existingStocks[index].purchasePrice}`);
-          processed.purchasePrice = existingStocks[index].purchasePrice;
-        } else if (processed.purchasePrice !== undefined) {
-          console.log(`Using updated purchase price for ${stock.symbol}: ${processed.purchasePrice}`);
-        }
-        
-        console.log(`Final processed stock ${stock.symbol}:`, processed);
-        return processed;
+      // Send exactly what's in the form - no complex preservation logic
+      // The backend will handle updates properly using the existing rebalance function
+      const processedStocks = stocks.map((stock) => {
+        console.log(`Sending stock ${stock.symbol} with data:`, stock);
+        return { ...stock };
       });
       
       console.log('Final processedStocks being sent:', processedStocks);
