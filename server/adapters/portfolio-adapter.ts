@@ -177,8 +177,8 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
   // Map each stock to legacy format with calculated values
   return data.map(item => {
     const quantity = Number(item.quantity);
-    const bookPrice = Number(item.price);
     const purchasePrice = item.purchasePrice ? Number(item.purchasePrice) : undefined;
+    const bookPrice = purchasePrice || 0; // Use purchase price as book price
     const currentPriceInfo = priceMap[item.symbol];
     const currentPrice = currentPriceInfo?.regularMarketPrice 
       ? Number(currentPriceInfo.regularMarketPrice) 

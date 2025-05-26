@@ -189,7 +189,7 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                       <span className={`inline-block font-mono min-w-[1.5rem] px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-medium ${getRatingClass(stock.rating)}`}>{stock.rating}</span>
                     </td>
                     <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
-                      {stock.purchasePrice !== undefined ? formatCurrency(parseFloat(stock.purchasePrice), currencySymbol) : '--'}
+                      {stock.purchasePrice !== undefined ? formatCurrency(stock.purchasePrice, currencySymbol) : '--'}
                     </td>
                     <td className="px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
                       {marketPrice ? (

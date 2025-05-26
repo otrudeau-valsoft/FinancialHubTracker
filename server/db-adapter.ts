@@ -34,6 +34,80 @@ import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
 export class DatabaseAdapter {
   
   /**
+   * Adapt portfolio data with purchase price support
+   */
+  async adaptPortfolioDataWithPurchasePrice(data: any[], region: string): Promise<LegacyPortfolioItem[]> {
+    if (!data.length) return [];
+    
+    // Get symbols for all stocks
+    const symbols = data.map(item => item.symbol);
+    
+    // Get current prices
+    const prices = await db.select().from(currentPrices)
+      .where(eq(currentPrices.region, region));
+    
+    const priceMap: Record<string, any> = {};
+    prices.forEach(price => {
+      if (symbols.includes(price.symbol)) {
+        priceMap[price.symbol] = price;
+      }
+    });
+    
+    // Calculate total portfolio value
+    let totalPortfolioValue = 0;
+    data.forEach(item => {
+      const quantity = Number(item.quantity);
+      const currentPriceInfo = priceMap[item.symbol];
+      const currentPrice = currentPriceInfo?.regularMarketPrice 
+        ? Number(currentPriceInfo.regularMarketPrice) 
+        : 0;
+      
+      totalPortfolioValue += quantity * currentPrice;
+    });
+    
+    // Map each stock to legacy format
+    return data.map(item => {
+      const quantity = Number(item.quantity);
+      const purchasePrice = item.purchasePrice ? Number(item.purchasePrice) : undefined;
+      const currentPriceInfo = priceMap[item.symbol];
+      const currentPrice = currentPriceInfo?.regularMarketPrice 
+        ? Number(currentPriceInfo.regularMarketPrice) 
+        : 0;
+      
+      const nav = quantity * currentPrice;
+      const portfolioWeight = totalPortfolioValue > 0 
+        ? (nav / totalPortfolioValue) * 100 
+        : 0;
+      
+      const dailyChange = currentPriceInfo?.regularMarketChangePercent 
+        ? Number(currentPriceInfo.regularMarketChangePercent) 
+        : 0;
+      
+      // Calculate profit/loss using purchase price if available
+      const profitLoss = purchasePrice && currentPrice
+        ? ((currentPrice - purchasePrice) / purchasePrice) * 100
+        : 0;
+      
+      return {
+        id: item.id,
+        symbol: item.symbol,
+        company: item.company,
+        stockType: item.stockType,
+        rating: item.rating,
+        sector: item.sector || 'Technology',
+        quantity: quantity,
+        price: purchasePrice || 0,
+        purchasePrice: purchasePrice,
+        netAssetValue: nav,
+        portfolioPercentage: portfolioWeight,
+        dailyChangePercent: dailyChange,
+        profitLoss: profitLoss,
+        nextEarningsDate: undefined,
+      };
+    });
+  }
+  
+  /**
    * Get portfolio stocks for a specific region
    */
   /**
@@ -58,8 +132,8 @@ export class DatabaseAdapter {
           throw new Error(`Invalid region: ${region}`);
       }
       
-      // Transform to legacy format expected by API consumers with calculated values
-      return await adaptPortfolioData(portfolioData, region);
+      // Transform to legacy format with purchase price support
+      return await this.adaptPortfolioDataWithPurchasePrice(portfolioData, region);
     } catch (error) {
       console.error(`Error getting portfolio stocks for ${region}:`, error);
       throw error;
