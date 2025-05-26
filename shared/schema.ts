@@ -536,6 +536,7 @@ export const portfolioINTL = pgTable("portfolio_INTL", {
   rating: text("rating").notNull(),
   sector: text("sector"),
   quantity: numeric("quantity").notNull(),
+  purchasePrice: numeric("purchase_price"),  // Purchase Price
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
