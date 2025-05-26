@@ -566,6 +566,10 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  quantity: z.number().int().positive(),
+  price: z.number().positive(),
+  totalValue: z.number().positive()
 });
 
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
