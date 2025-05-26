@@ -469,11 +469,20 @@ export class DatabaseAdapter {
         const processedStocks = stocks.map(stock => {
           const processed = { ...stock };
           
+          console.log(`Backend processing ${stock.symbol}: received purchasePrice=${processed.purchasePrice}, existing=${existingPurchasePrices.get(stock.symbol)}`);
+          
           // If purchasePrice is not provided or is undefined, use existing value
           if (processed.purchasePrice === undefined && existingPurchasePrices.has(stock.symbol)) {
             processed.purchasePrice = existingPurchasePrices.get(stock.symbol);
+            console.log(`Preserved existing purchase price for ${stock.symbol}: ${processed.purchasePrice}`);
           }
           
+          // Ensure purchasePrice is properly formatted for database
+          if (processed.purchasePrice !== undefined && processed.purchasePrice !== null) {
+            processed.purchasePrice = Number(processed.purchasePrice);
+          }
+          
+          console.log(`Final processed ${stock.symbol}: purchasePrice=${processed.purchasePrice}`);
           return processed;
         });
         
