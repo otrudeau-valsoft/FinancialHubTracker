@@ -68,10 +68,13 @@ export class DatabaseAdapter {
     // Map each stock to legacy format
     return data.map(item => {
       const quantity = Number(item.quantity);
-      // Force debug log regardless of caching
-      console.log(`URGENT DEBUG ${item.symbol}: purchasePrice=${item.purchasePrice}, all keys=${Object.keys(item)}`);
+      // Convert string to number if needed - this fixes the data flow issue
+      const purchasePrice = item.purchasePrice !== null && item.purchasePrice !== undefined
+        ? Number(item.purchasePrice) 
+        : undefined;
       
-      const purchasePrice = item.purchasePrice ? Number(item.purchasePrice) : undefined;
+      // Debug log to verify the conversion worked
+      console.log(`PURCHASE PRICE FIX: ${item.symbol} - raw: ${item.purchasePrice}, converted: ${purchasePrice}`);
       const currentPriceInfo = priceMap[item.symbol];
       const currentPrice = currentPriceInfo?.regularMarketPrice 
         ? Number(currentPriceInfo.regularMarketPrice) 
