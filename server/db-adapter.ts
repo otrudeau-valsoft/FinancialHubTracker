@@ -429,6 +429,8 @@ export class DatabaseAdapter {
    */
   async rebalancePortfolio(stocks: any[], region: string): Promise<LegacyPortfolioItem[]> {
     try {
+      console.log(`🔄 SIMPLE REBALANCE: Updating ${stocks.length} stocks for ${region}`);
+      
       // Get the appropriate portfolio table
       let portfolioTable: any;
       switch (region.toUpperCase()) {
@@ -446,28 +448,35 @@ export class DatabaseAdapter {
       }
       
       return await db.transaction(async (tx) => {
-        // Update each stock individually
+        // Update each stock individually with proper logging
         for (const stock of stocks) {
+          const updateData = {
+            symbol: stock.symbol,
+            company: stock.company,
+            stock_type: stock.stockType,
+            rating: stock.rating,
+            sector: stock.sector,
+            quantity: Number(stock.quantity),
+            purchase_price: Number(stock.purchasePrice)
+          };
+          
+          console.log(`Updating ${stock.symbol}: purchase_price ${stock.purchasePrice} -> ${updateData.purchase_price}`);
+          
           await tx
             .update(portfolioTable)
-            .set({
-              symbol: stock.symbol,
-              company: stock.company,
-              stock_type: stock.stockType,
-              rating: stock.rating,
-              sector: stock.sector,
-              quantity: Number(stock.quantity),
-              purchase_price: Number(stock.purchasePrice)
-            })
+            .set(updateData)
             .where(eq(portfolioTable.symbol, stock.symbol));
         }
         
-        // Return all portfolio stocks
-        const allStocks = await tx.select().from(portfolioTable);
-        return await adaptPortfolioData(allStocks, region);
+        // Get fresh data and check MSFT specifically
+        const updatedStocks = await tx.select().from(portfolioTable);
+        const msftStock = updatedStocks.find(s => s.symbol === 'MSFT');
+        console.log(`✅ Database verified - MSFT purchase_price: ${msftStock?.purchase_price}`);
+        
+        return await adaptPortfolioData(updatedStocks, region);
       });
     } catch (error) {
-      console.error(`Error updating portfolio:`, error);
+      console.error(`❌ Rebalance failed:`, error);
       throw error;
     }
   }
