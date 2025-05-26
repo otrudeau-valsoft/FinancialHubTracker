@@ -210,13 +210,26 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
           </Button>
         </DialogHeader>
         
-        <div className="text-sm text-slate-400 mb-4">
-          Edit cells directly. Changes are tracked and only modified rows will be updated.
-          {changes.size > 0 && (
-            <span className="text-orange-400 ml-2">
-              {changes.size} row(s) modified
-            </span>
-          )}
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-sm text-slate-400">
+            Edit cells directly. Changes are tracked and only modified rows will be updated.
+            {changes.size > 0 && (
+              <span className="text-orange-400 ml-2">
+                {changes.size} row(s) modified
+              </span>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={addNewRow}
+              size="sm"
+              variant="outline"
+              className="h-7 px-3 text-xs bg-green-600 border-green-500 text-white hover:bg-green-700"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Add Row
+            </Button>
+          </div>
         </div>
 
         <div className="overflow-auto flex-1 border border-slate-700 rounded">
@@ -230,6 +243,7 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
                 <th className="text-left p-2 text-slate-300 border-b border-slate-700">sector</th>
                 <th className="text-left p-2 text-slate-300 border-b border-slate-700">quantity</th>
                 <th className="text-left p-2 text-slate-300 border-b border-slate-700">purchase_price</th>
+                <th className="text-center p-2 text-slate-300 border-b border-slate-700 w-12">Delete</th>
               </tr>
             </thead>
             <tbody>
@@ -313,6 +327,16 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
                       onChange={(e) => updateCell(row.id, 'purchase_price', e.target.value)}
                       className="bg-transparent border-0 text-white text-sm p-1 h-auto font-mono text-right"
                     />
+                  </td>
+                  <td className="p-1 text-center">
+                    <Button
+                      onClick={() => deleteRow(row.id)}
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   </td>
                 </tr>
               ))}
