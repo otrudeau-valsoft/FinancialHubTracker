@@ -350,7 +350,7 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
 
         <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-700">
           <div className="text-sm text-slate-400">
-            {databaseRows.length} rows • {changes.size} modified
+            {databaseRows.length} rows • {changes.size} modified • {deletedRows.size} deleted
           </div>
           <div className="flex gap-3">
             <Button
@@ -362,10 +362,10 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
             </Button>
             <Button
               onClick={handleSave}
-              disabled={isLoading || changes.size === 0}
+              disabled={isLoading || (changes.size === 0 && deletedRows.size === 0 && databaseRows.filter(row => row.id < 0).length === 0)}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              {isLoading ? 'Executing...' : `Execute Update (${changes.size})`}
+              {isLoading ? 'Executing...' : `Execute Update (${changes.size + deletedRows.size + databaseRows.filter(row => row.id < 0).length})`}
             </Button>
           </div>
         </div>
