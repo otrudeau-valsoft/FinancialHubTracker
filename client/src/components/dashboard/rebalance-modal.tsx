@@ -69,7 +69,12 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
   // Initialize stocks from existing stocks when the modal opens
   useEffect(() => {
     if (isOpen && existingStocks) {
-      setStocks(existingStocks.map(stock => ({ ...stock })));
+      console.log('Initializing rebalance modal with stocks:', existingStocks);
+      setStocks(existingStocks.map(stock => ({ 
+        ...stock,
+        // Ensure purchase price is properly preserved
+        purchasePrice: stock.purchasePrice !== undefined ? Number(stock.purchasePrice) : undefined
+      })));
     }
   }, [isOpen, existingStocks]);
 
@@ -147,17 +152,25 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
   // Save the rebalanced portfolio
   const savePortfolioMutation = useMutation({
     mutationFn: async () => {
+      console.log('=== REBALANCE SAVE DEBUG ===');
+      console.log('Current stocks in modal:', stocks);
+      console.log('Original existingStocks:', existingStocks);
+      
       // Process stocks to preserve existing purchase prices when not explicitly changed
       const processedStocks = stocks.map((stock, index) => {
         const processed = { ...stock };
         
         // If purchase price is undefined in the form but existed in original data, preserve it
         if (processed.purchasePrice === undefined && existingStocks[index]?.purchasePrice !== undefined) {
+          console.log(`Preserving purchase price for ${stock.symbol}: ${existingStocks[index].purchasePrice}`);
           processed.purchasePrice = existingStocks[index].purchasePrice;
         }
         
+        console.log(`Final processed stock ${stock.symbol}:`, processed);
         return processed;
       });
+      
+      console.log('Final processedStocks being sent:', processedStocks);
       
       // Delete all existing stocks and add new ones
       return await apiRequest(
@@ -293,7 +306,7 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
                       step="0.01"
                       value={stock.purchasePrice !== undefined ? stock.purchasePrice.toString() : ''}
                       onChange={(e) => handleUpdateStock(index, 'purchasePrice', e.target.value ? parseFloat(e.target.value) : undefined)}
-                      placeholder="0.00"
+                      placeholder={stock.purchasePrice !== undefined ? stock.purchasePrice.toString() : "0.00"}
                       className="h-8 bg-[#0F1A2A] border-[#1A304A] text-[#E2E8F0] font-mono"
                     />
                   </TableCell>
