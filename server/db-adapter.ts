@@ -425,26 +425,35 @@ export class DatabaseAdapter {
   }
   
   /**
-   * Rebalance portfolio by replacing all stocks
+   * Rebalance portfolio by smartly updating existing stocks and preserving purchase prices
    */
   async rebalancePortfolio(stocks: any[], region: string): Promise<LegacyPortfolioItem[]> {
     try {
       // Start a transaction
       return await db.transaction(async (tx) => {
-        // Delete all existing stocks in the region
+        // Get existing stocks to preserve purchase prices
+        let existingStocks: any[] = [];
         switch (region.toUpperCase()) {
           case 'USD':
-            await tx.delete(portfolioUSD);
+            existingStocks = await tx.select().from(portfolioUSD);
             break;
           case 'CAD':
-            await tx.delete(portfolioCAD);
+            existingStocks = await tx.select().from(portfolioCAD);
             break;
           case 'INTL':
-            await tx.delete(portfolioINTL);
+            existingStocks = await tx.select().from(portfolioINTL);
             break;
           default:
             throw new Error(`Invalid region: ${region}`);
         }
+        
+        // Create a map of existing purchase prices
+        const existingPurchasePrices = new Map();
+        existingStocks.forEach(stock => {
+          if (stock.purchasePrice !== null) {
+            existingPurchasePrices.set(stock.symbol, stock.purchasePrice);
+          }
+        });
         
         // Process CAD symbols if needed
         if (region.toUpperCase() === 'CAD') {
@@ -456,18 +465,43 @@ export class DatabaseAdapter {
           });
         }
         
-        // Insert new stocks
+        // Preserve existing purchase prices if not provided in the update
+        const processedStocks = stocks.map(stock => {
+          const processed = { ...stock };
+          
+          // If purchasePrice is not provided or is undefined, use existing value
+          if (processed.purchasePrice === undefined && existingPurchasePrices.has(stock.symbol)) {
+            processed.purchasePrice = existingPurchasePrices.get(stock.symbol);
+          }
+          
+          return processed;
+        });
+        
+        // Delete all existing stocks in the region
+        switch (region.toUpperCase()) {
+          case 'USD':
+            await tx.delete(portfolioUSD);
+            break;
+          case 'CAD':
+            await tx.delete(portfolioCAD);
+            break;
+          case 'INTL':
+            await tx.delete(portfolioINTL);
+            break;
+        }
+        
+        // Insert new stocks with preserved purchase prices
         let createdItems: any[] = [];
         
         switch (region.toUpperCase()) {
           case 'USD':
-            createdItems = await tx.insert(portfolioUSD).values(stocks).returning();
+            createdItems = await tx.insert(portfolioUSD).values(processedStocks).returning();
             break;
           case 'CAD':
-            createdItems = await tx.insert(portfolioCAD).values(stocks).returning();
+            createdItems = await tx.insert(portfolioCAD).values(processedStocks).returning();
             break;
           case 'INTL':
-            createdItems = await tx.insert(portfolioINTL).values(stocks).returning();
+            createdItems = await tx.insert(portfolioINTL).values(processedStocks).returning();
             break;
         }
         
