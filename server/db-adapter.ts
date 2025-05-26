@@ -140,18 +140,14 @@ export class DatabaseAdapter {
           throw new Error(`Invalid region: ${region}`);
       }
       
-      // Debug the raw data from database
-      if (portfolioData[0]) {
-        console.log(`DEBUG: ${region} raw record for ${portfolioData[0].symbol}:`);
-        console.log(`- purchase_price field: ${portfolioData[0].purchase_price}`);
-        console.log(`- purchasePrice field: ${portfolioData[0].purchasePrice}`);
-        console.log(`- All fields: ${Object.keys(portfolioData[0]).join(', ')}`);
-      }
+      // Force debug logging for purchase price issue
+      console.log(`PURCHASE PRICE DEBUG: First record from ${region}:`, portfolioData[0]);
       
       // Transform to legacy format with purchase price support
       const result = await this.adaptPortfolioDataWithPurchasePrice(portfolioData, region);
       
-      console.log(`First transformed item:`, JSON.stringify(result[0], null, 2));
+      // Verify purchase price in final result
+      console.log(`FINAL RESULT DEBUG: First transformed item purchase price:`, result[0]?.purchasePrice);
       
       return result;
     } catch (error) {
