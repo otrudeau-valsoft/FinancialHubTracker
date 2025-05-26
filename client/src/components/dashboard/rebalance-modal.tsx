@@ -292,10 +292,11 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
                   </TableCell>
                   <TableCell className="p-2">
                     <Input 
-                      type="text"
+                      type="number"
+                      step="0.01"
                       value={stock.purchasePrice !== undefined ? stock.purchasePrice.toString() : ''}
                       onChange={(e) => handleUpdateStock(index, 'purchasePrice', e.target.value ? parseFloat(e.target.value) : undefined)}
-                      placeholder="Enter purchase price"
+                      placeholder="0.00"
                       className="h-8 bg-[#0F1A2A] border-[#1A304A] text-[#E2E8F0] font-mono"
                     />
                   </TableCell>

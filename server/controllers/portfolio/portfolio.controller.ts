@@ -207,19 +207,15 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
           processedStock.quantity = parseFloat(processedStock.quantity) || 0;
         }
         
-        // Handle price field
-        if (processedStock.price === undefined || processedStock.price === null) {
-          processedStock.price = 0; // Default to 0 instead of undefined
-        } else if (typeof processedStock.price === 'string') {
-          processedStock.price = parseFloat(processedStock.price) || 0;
+        // Handle purchase price field (new field after migration)
+        if (processedStock.purchasePrice === undefined || processedStock.purchasePrice === null) {
+          processedStock.purchasePrice = null; // Allow null for purchase price
+        } else if (typeof processedStock.purchasePrice === 'string') {
+          processedStock.purchasePrice = parseFloat(processedStock.purchasePrice) || null;
         }
         
-        // Handle pbr field
-        if (processedStock.pbr === undefined || processedStock.pbr === null) {
-          processedStock.pbr = null; // Use null to indicate no value
-        } else if (typeof processedStock.pbr === 'string') {
-          processedStock.pbr = parseFloat(processedStock.pbr) || null;
-        }
+        // Set price field to purchase price value for backward compatibility
+        processedStock.price = processedStock.purchasePrice || 0;
         
         // Special handling for Cash and ETF
         if (processedStock.stockType === 'Cash' || processedStock.stockType === 'ETF' ||
