@@ -429,8 +429,6 @@ export class DatabaseAdapter {
    */
   async rebalancePortfolio(stocks: any[], region: string): Promise<LegacyPortfolioItem[]> {
     try {
-      console.log(`🔄 SIMPLE REBALANCE: Updating ${stocks.length} stocks for ${region}`);
-      
       // Get the appropriate portfolio table
       let portfolioTable: any;
       switch (region.toUpperCase()) {
@@ -447,44 +445,26 @@ export class DatabaseAdapter {
           throw new Error(`Invalid region: ${region}`);
       }
       
-      return await db.transaction(async (tx) => {
-        // Update each stock individually with proper logging
-        for (const stock of stocks) {
-          const updateData = {
-            symbol: stock.symbol,
+      // Update each stock individually outside of transaction to avoid issues
+      for (const stock of stocks) {
+        await db
+          .update(portfolioTable)
+          .set({
             company: stock.company,
             stock_type: stock.stockType,
             rating: stock.rating,
             sector: stock.sector,
             quantity: stock.quantity.toString(),
             purchase_price: stock.purchasePrice.toString()
-          };
-          
-          console.log(`Updating ${stock.symbol}: purchase_price ${stock.purchasePrice} -> ${updateData.purchase_price}`);
-          
-          try {
-            const updateResult = await tx
-              .update(portfolioTable)
-              .set(updateData)
-              .where(eq(portfolioTable.symbol, stock.symbol))
-              .returning();
-            
-            console.log(`✅ Update result for ${stock.symbol}:`, updateResult[0]?.purchase_price);
-          } catch (error) {
-            console.error(`❌ Update failed for ${stock.symbol}:`, error);
-            throw error;
-          }
-        }
-        
-        // Get fresh data and check MSFT specifically
-        const updatedStocks = await tx.select().from(portfolioTable);
-        const msftStock = updatedStocks.find(s => s.symbol === 'MSFT');
-        console.log(`✅ Database verified - MSFT purchase_price: ${msftStock?.purchase_price || 'UNDEFINED'}`);
-        
-        return await adaptPortfolioData(updatedStocks, region);
-      });
+          })
+          .where(eq(portfolioTable.symbol, stock.symbol));
+      }
+
+      // Get fresh data
+      const updatedStocks = await db.select().from(portfolioTable);
+      return await adaptPortfolioData(updatedStocks, region);
     } catch (error) {
-      console.error(`❌ Rebalance failed:`, error);
+      console.error(`Rebalance failed:`, error);
       throw error;
     }
   }
