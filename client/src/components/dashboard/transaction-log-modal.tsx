@@ -406,20 +406,14 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
                       />
                     </td>
                     <td className="p-3">
-                      {transaction.action === 'SELL' ? (
-                        <div className="w-24 h-8 flex items-center text-xs text-slate-300 bg-slate-700 border border-slate-600 rounded px-2">
-                          ${price.toFixed(2)}
-                        </div>
-                      ) : (
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={transaction.price}
-                          onChange={(e) => updateTransaction(transaction.id, 'price', e.target.value)}
-                          placeholder="150.00"
-                          className="w-24 h-8 text-xs bg-slate-800 border-slate-600 text-white"
-                        />
-                      )}
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={transaction.price}
+                        onChange={(e) => updateTransaction(transaction.id, 'price', e.target.value)}
+                        placeholder={transaction.action === 'SELL' ? "Sell price" : "Buy price"}
+                        className="w-24 h-8 text-xs bg-slate-800 border-slate-600 text-white"
+                      />
                     </td>
                     <td className="p-3">
                       <span className={`font-mono ${
