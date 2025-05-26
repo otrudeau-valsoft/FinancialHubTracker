@@ -244,3 +244,37 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
     });
   }
 };
+
+// Database Editor - Update multiple portfolio stocks
+export async function updatePortfolioDatabase(req: Request, res: Response): Promise<Response> {
+  try {
+    const { region } = req.params;
+    const { updates } = req.body;
+
+    if (!updates || !Array.isArray(updates)) {
+      return res.status(400).json({ error: 'Invalid updates data' });
+    }
+
+    console.log(`🔄 DATABASE SCRIPT: Updating ${updates.length} rows in portfolio_${region}`);
+    console.log('Updates:', updates);
+
+    // Import the database adapter and update the rows
+    const { dbAdapter } = await import('../../db-adapter');
+    
+    // Process each update
+    for (const update of updates) {
+      await dbAdapter.updatePortfolioStock(update.id, update, region);
+    }
+
+    console.log(`✅ DATABASE SCRIPT: Successfully updated ${updates.length} rows`);
+    
+    return res.status(200).json({ 
+      success: true,
+      message: `Successfully updated ${updates.length} rows in portfolio_${region}`,
+      updatedCount: updates.length
+    });
+  } catch (error) {
+    console.error('Database update error:', error);
+    return res.status(500).json({ error: 'Failed to update database' });
+  }
+};
