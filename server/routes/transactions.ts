@@ -8,7 +8,15 @@ const router = Router();
 // Create a new transaction
 export async function createTransaction(req: Request, res: Response) {
   try {
-    const validatedData = insertTransactionSchema.parse(req.body);
+    // Convert string values to correct types before validation
+    const processedData = {
+      ...req.body,
+      quantity: parseInt(req.body.quantity),
+      price: parseFloat(req.body.price),
+      totalValue: parseFloat(req.body.totalValue)
+    };
+    
+    const validatedData = insertTransactionSchema.parse(processedData);
     
     const [transaction] = await db
       .insert(transactions)
