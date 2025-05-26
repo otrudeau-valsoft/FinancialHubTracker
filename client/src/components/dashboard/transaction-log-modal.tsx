@@ -171,6 +171,9 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
     setIsLoading(true);
     
     try {
+      // Calculate total cash impact first
+      const totalCashImpact = getTotalCashImpact();
+      
       // Process each transaction
       for (const transaction of transactions) {
         const stock = stocks.find(s => s.symbol === transaction.symbol);
@@ -197,11 +200,6 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
             });
           }
           
-          // Update cash balance
-          await apiRequest('PATCH', `/api/cash/${region}`, {
-            amount: cashBalance + getTotalCashImpact()
-          });
-          
         } else if (transaction.action === 'SELL' && stock) {
           // Use user-specified price for selling
           if (quantity >= stock.quantity) {
@@ -214,14 +212,14 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
               // Keep same purchase price for remaining shares
             });
           }
-          
-          // Update cash balance with sell proceeds
-          const sellProceeds = quantity * price;
-          await apiRequest('PATCH', `/api/cash/${region}`, {
-            amount: cashBalance + sellProceeds
-          });
         }
       }
+      
+      // Update cash balance once after all transactions
+      const newCashBalance = cashBalance + totalCashImpact;
+      await apiRequest('POST', `/api/cash/${region}`, {
+        amount: newCashBalance
+      });
       
       // Refresh portfolio data
       queryClient.invalidateQueries({ queryKey: [`/api/portfolios/${region}/stocks`] });
