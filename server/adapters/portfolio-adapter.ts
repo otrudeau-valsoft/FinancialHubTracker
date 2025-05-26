@@ -178,7 +178,9 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
   return data.map(item => {
     const quantity = Number(item.quantity);
     const purchasePrice = item.purchasePrice ? Number(item.purchasePrice) : undefined;
-    const bookPrice = purchasePrice || 0; // Use purchase price as book price
+    const bookPrice = purchasePrice || 0;
+    
+    console.log(`Debug ${item.symbol}: DB purchasePrice=${item.purchasePrice}, converted=${purchasePrice}`);
     const currentPriceInfo = priceMap[item.symbol];
     const currentPrice = currentPriceInfo?.regularMarketPrice 
       ? Number(currentPriceInfo.regularMarketPrice) 

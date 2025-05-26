@@ -55,7 +55,7 @@ interface PortfolioStock {
   profitLoss?: number;
   nextEarningsDate?: string;
   sector?: string;
-  purchasePrice?: string; // Purchase Price
+  purchasePrice?: number; // Purchase Price
 }
 
 interface PortfolioTableProps {
