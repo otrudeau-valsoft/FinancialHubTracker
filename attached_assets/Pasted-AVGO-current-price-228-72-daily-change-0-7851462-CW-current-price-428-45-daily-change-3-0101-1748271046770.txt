@@ -1,0 +1,94 @@
+AVGO current price: 228.72, daily change: -0.7851462%
+CW current price: 428.45, daily change: 3.01013%
+WM current price: 236.81, daily change: 1.4958%
+UBER current price: 87.75, daily change: -0.284091%
+AMZN current price: 200.99, daily change: -1.0388974%
+META current price: 627.06, daily change: -1.4939456%
+GOOG current price: 169.59, daily change: -1.3896961%
+MSFT current price: 450.18, daily change: -1.0288864%
+COST current price: 1008.5, daily change: -0.94585216%
+BIL current price: 91.69, daily change: 0.0436453%
+PEP current price: 129.34, daily change: -0.5994457%
+AAPL current price: 195.27, daily change: -3.0244322%
+Found current prices for 20/20 symbols in USD region
+Debug CW: DB purchasePrice=null, converted=undefined
+Debug PEP: DB purchasePrice=null, converted=undefined
+Debug CAT: DB purchasePrice=null, converted=undefined
+Debug MSFT: DB purchasePrice=null, converted=undefined
+Debug AMZN: DB purchasePrice=null, converted=undefined
+Debug AAPL: DB purchasePrice=null, converted=undefined
+Debug MA: DB purchasePrice=null, converted=undefined
+Debug BIL: DB purchasePrice=null, converted=undefined
+Debug MCO: DB purchasePrice=null, converted=undefined
+Debug JPM: DB purchasePrice=null, converted=undefined
+Debug GS: DB purchasePrice=null, converted=undefined
+Debug PANW: DB purchasePrice=null, converted=undefined
+Debug COST: DB purchasePrice=null, converted=undefined
+Debug PWR: DB purchasePrice=null, converted=undefined
+Debug AVGO: DB purchasePrice=null, converted=undefined
+Debug UBER: DB purchasePrice=null, converted=undefined
+Debug GLD: DB purchasePrice=null, converted=undefined
+Debug GOOG: DB purchasePrice=null, converted=undefined
+Debug WM: DB purchasePrice=null, converted=undefined
+Debug META: DB purchasePrice=null, converted=undefined
+2:50:02 PM [express] POST /api/portfolios/USD/rebalance 200 in 635ms :: {"message":"Successfully reb…
+Fetching portfolio stocks for USD with refreshed metrics...
+Getting portfolio stocks for USD (using portfolio tables)
+DEBUG: Raw DB data for CW: purchasePrice=null
+Getting current prices for 20 symbols in USD region
+GS current price: 598.54, daily change: 0.0518191%
+MA current price: 563.58, daily change: -1.15059%
+MCO current price: 469.65, daily change: -0.447265%
+CAT current price: 343.39, daily change: -0.521448%
+JPM current price: 260.71, daily change: 0.0153366%
+PANW current price: 186.736, daily change: 0.32018536%
+PWR current price: 335.36, daily change: 1.36928%
+GLD current price: 309.75, daily change: 2.19063%
+AVGO current price: 228.72, daily change: -0.7851462%
+CW current price: 428.45, daily change: 3.01013%
+WM current price: 236.81, daily change: 1.4958%
+UBER current price: 87.75, daily change: -0.284091%
+AMZN current price: 200.99, daily change: -1.0388974%
+META current price: 627.06, daily change: -1.4939456%
+GOOG current price: 169.59, daily change: -1.3896961%
+MSFT current price: 450.18, daily change: -1.0288864%
+COST current price: 1008.5, daily change: -0.94585216%
+BIL current price: 91.69, daily change: 0.0436453%
+PEP current price: 129.34, daily change: -0.5994457%
+AAPL current price: 195.27, daily change: -3.0244322%
+Found current prices for 20/20 symbols in USD region
+Debug CW: DB purchasePrice=null, converted=undefined
+Debug PEP: DB purchasePrice=null, converted=undefined
+Debug CAT: DB purchasePrice=null, converted=undefined
+Debug MSFT: DB purchasePrice=null, converted=undefined
+Debug AMZN: DB purchasePrice=null, converted=undefined
+Debug AAPL: DB purchasePrice=null, converted=undefined
+Debug MA: DB purchasePrice=null, converted=undefined
+Debug BIL: DB purchasePrice=null, converted=undefined
+Debug MCO: DB purchasePrice=null, converted=undefined
+Debug JPM: DB purchasePrice=null, converted=undefined
+Debug GS: DB purchasePrice=null, converted=undefined
+Debug PANW: DB purchasePrice=null, converted=undefined
+Debug COST: DB purchasePrice=null, converted=undefined
+Debug PWR: DB purchasePrice=null, converted=undefined
+Debug AVGO: DB purchasePrice=null, converted=undefined
+Debug UBER: DB purchasePrice=null, converted=undefined
+Debug GLD: DB purchasePrice=null, converted=undefined
+Debug GOOG: DB purchasePrice=null, converted=undefined
+Debug WM: DB purchasePrice=null, converted=undefined
+Debug META: DB purchasePrice=null, converted=undefined
+FIXED: CW purchasePrice=undefined
+Successfully fetched 20 portfolio stocks for USD with up-to-date metrics
+2:50:03 PM [express] GET /api/portfolios/USD/stocks 200 in 50ms :: [{"id":28,"symbol":"CW","company"…
+Performance history request: {
+  region: 'USD',
+  timeRange: undefined,
+  startDate: '2024-05-26',
+  endDate: undefined
+}
+Getting performance history for USD from 2024-05-26 to now
+SQL: SELECT * FROM portfolio_performance_usd WHERE date >= $1 ORDER BY date ASC [ '2024-05-26' ]
+2:50:04 PM [express] GET /api/performance-history 304 in 53ms :: {"status":"success","data":[{"date"…
+2:50:04 PM [express] GET /api/current-prices/USD 304 in 20ms :: [{"id":31,"symbol":"GS","region":"US…
+2:50:05 PM [express] GET /api/market-indices/real-time 304 in 514ms :: {"sp500":{"return":-0.68,"pos…
+2:50:35 PM [express] GET /api/current-prices/USD
