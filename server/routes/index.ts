@@ -59,6 +59,9 @@ router.use('/holdings', holdingsRoutes);
 // Cash management routes
 router.use('/cash', cashRoutes);
 
+// Transaction routes
+router.use('/transactions', require('./transactions').default);
+
 // Portfolio history routes for performance charts
 router.use('/portfolio-history', portfolioHistoryRoutes);
 

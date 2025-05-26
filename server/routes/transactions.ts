@@ -1,7 +1,9 @@
-import { Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import { db } from '../db';
 import { transactions, insertTransactionSchema } from '@shared/schema';
 import { eq, desc } from 'drizzle-orm';
+
+const router = Router();
 
 // Create a new transaction
 export async function createTransaction(req: Request, res: Response) {
@@ -86,3 +88,11 @@ export async function getTransactionsBySymbol(req: Request, res: Response) {
     });
   }
 }
+
+// Set up routes
+router.post('/', createTransaction);
+router.get('/region/:region', getTransactionsByRegion);
+router.get('/symbol/:symbol', getTransactionsBySymbol);
+router.get('/', getAllTransactions);
+
+export default router;

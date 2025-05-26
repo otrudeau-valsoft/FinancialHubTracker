@@ -195,7 +195,8 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
         if (transaction.action === 'BUY') {
           if (stock) {
             // Calculate weighted average cost basis
-            const currentValue = stock.quantity * (stock.purchasePrice || stock.price);
+            const currentCostBasis = (stock as any).purchasePrice || 0;
+            const currentValue = stock.quantity * currentCostBasis;
             const newValue = quantity * price;
             const totalShares = stock.quantity + quantity;
             const weightedAvgPrice = (currentValue + newValue) / totalShares;
