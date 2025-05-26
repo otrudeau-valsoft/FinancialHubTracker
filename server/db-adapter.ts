@@ -148,12 +148,13 @@ export class DatabaseAdapter {
         console.log(`DEBUG: Raw DB data for ${portfolioData[0].symbol}: purchasePrice=${portfolioData[0].purchasePrice}`);
       }
       
-      // Transform to legacy format with purchase price support
-      const result = await this.adaptPortfolioDataWithPurchasePrice(portfolioData, region);
+      // IMMEDIATE FIX: Use the correct portfolio adapter that handles purchase prices
+      const { adaptPortfolioData } = await import('./adapters/portfolio-adapter');
+      const result = await adaptPortfolioData(portfolioData, region);
       
-      // Debug: Verify final result
+      // Debug: Verify final result shows actual purchase prices
       if (result[0]) {
-        console.log(`DEBUG: Final API result for ${result[0].symbol}: purchasePrice=${result[0].purchasePrice}`);
+        console.log(`FIXED: ${result[0].symbol} purchasePrice=${result[0].purchasePrice}`);
       }
       
       return result;
