@@ -60,7 +60,8 @@ router.use('/holdings', holdingsRoutes);
 router.use('/cash', cashRoutes);
 
 // Transaction routes
-router.use('/transactions', require('./transactions').default);
+import transactionsRoutes from './transactions';
+router.use('/transactions', transactionsRoutes);
 
 // Portfolio history routes for performance charts
 router.use('/portfolio-history', portfolioHistoryRoutes);
