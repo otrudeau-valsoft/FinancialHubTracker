@@ -48,9 +48,17 @@ router.post('/:region/rebalance', asyncHandler(rebalancePortfolio));
 router.post('/:region/database-update', async (req, res) => {
   try {
     const { region } = req.params;
-    const { updates, newRows, deletions } = req.body;
+    
+    // Handle legacy format (just updates array) or new format (with newRows and deletions)
+    const updates = req.body.updates || req.body || [];
+    const newRows = req.body.newRows || [];
+    const deletions = req.body.deletions || [];
 
     console.log(`🔄 DATABASE UPDATE: Processing ${updates?.length || 0} updates, ${newRows?.length || 0} new rows, ${deletions?.length || 0} deletions for ${region}`);
+    
+    if (newRows?.length > 0) {
+      console.log('New rows to create:', newRows);
+    }
     
     const { dbAdapter } = await import('../../db-adapter');
     let totalProcessed = 0;
