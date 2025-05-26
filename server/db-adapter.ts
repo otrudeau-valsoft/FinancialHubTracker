@@ -144,6 +144,7 @@ export class DatabaseAdapter {
       // Debug: Check if purchase price exists
       if (portfolioData[0]) {
         console.log(`Purchase price in raw data: ${portfolioData[0].purchasePrice}`);
+        console.log(`All fields in first record:`, Object.keys(portfolioData[0]));
       }
       
       // Transform to legacy format with purchase price support
