@@ -49,20 +49,13 @@ router.post('/:region/database-update', async (req, res) => {
   try {
     const { region } = req.params;
     
-    // Handle both legacy format (just updates) and new format (with newRows and deletions)
-    let updates = [];
-    let newRows = [];
-    let deletions = [];
+    // Log the raw request body first
+    console.log('Raw request body:', JSON.stringify(req.body, null, 2));
     
-    if (req.body.updates || req.body.newRows || req.body.deletions) {
-      // New format with separate arrays
-      updates = req.body.updates || [];
-      newRows = req.body.newRows || [];
-      deletions = req.body.deletions || [];
-    } else if (Array.isArray(req.body)) {
-      // Legacy format - just an array of updates
-      updates = req.body;
-    }
+    // Extract data from request body
+    const updates = req.body.updates || [];
+    const newRows = req.body.newRows || [];
+    const deletions = req.body.deletions || [];
     
     console.log('Parsed data - Updates:', updates?.length, 'NewRows:', newRows?.length, 'Deletions:', deletions?.length);
 
