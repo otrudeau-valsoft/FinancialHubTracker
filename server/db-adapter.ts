@@ -468,12 +468,15 @@ export class DatabaseAdapter {
         console.log(`Existing symbols: ${Array.from(existingSymbols).join(', ')}`);
         console.log(`New symbols: ${Array.from(newSymbols).join(', ')}`);
         
-        // Delete stocks that are no longer in the new list
-        const stocksToDelete = existingStocks.filter(stock => !newSymbols.has(stock.symbol));
-        if (stocksToDelete.length > 0) {
-          console.log(`Removing ${stocksToDelete.length} stocks: ${stocksToDelete.map(s => s.symbol).join(', ')}`);
-          for (const stock of stocksToDelete) {
-            await tx.delete(portfolioTable).where(eq(portfolioTable.symbol, stock.symbol));
+        // Only delete stocks if this is a full portfolio rebalance (many stocks)
+        // For single stock updates, don't delete other stocks
+        if (stocks.length > 10) {
+          const stocksToDelete = existingStocks.filter(stock => !newSymbols.has(stock.symbol));
+          if (stocksToDelete.length > 0) {
+            console.log(`Removing ${stocksToDelete.length} stocks: ${stocksToDelete.map(s => s.symbol).join(', ')}`);
+            for (const stock of stocksToDelete) {
+              await tx.delete(portfolioTable).where(eq(portfolioTable.symbol, stock.symbol));
+            }
           }
         }
         
