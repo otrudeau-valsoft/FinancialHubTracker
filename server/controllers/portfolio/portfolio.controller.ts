@@ -196,7 +196,8 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
   const region = req.params.region.toUpperCase();
   
   try {
-    console.log('=== REBALANCE CONTROLLER ENTRY ===');
+    console.log('🚀 REBALANCE CONTROLLER ENTRY 🚀');
+    console.log(`Region: ${region}`);
     console.log('Request body received:', JSON.stringify(req.body, null, 2));
     
     // Preprocess the request to ensure numeric fields

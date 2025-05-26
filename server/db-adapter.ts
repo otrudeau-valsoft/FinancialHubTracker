@@ -494,7 +494,9 @@ export class DatabaseAdapter {
           };
           
           console.log(`=== STOCK DATA PROCESSING FOR ${stock.symbol} ===`);
+          console.log(`Input stockType: ${stock.stockType} (${typeof stock.stockType})`);
           console.log(`Input purchasePrice: ${stock.purchasePrice} (${typeof stock.purchasePrice})`);
+          console.log(`Mapped stock_type: ${stockData.stock_type} (${typeof stockData.stock_type})`);
           console.log(`Processed purchase_price: ${stockData.purchase_price} (${typeof stockData.purchase_price})`);
           
           // Only preserve existing purchase price if the new value is truly undefined/null AND no explicit change was made
