@@ -134,18 +134,17 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                 <th scope="col" className="px-2 sm:px-3 py-0 text-left font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">COMPANY</th>
                 <th scope="col" className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">TYPE</th>
                 <th scope="col" className="px-2 sm:px-3 py-0 text-center font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">RATING</th>
-                <th scope="col" className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">BOOK PRICE</th>
+                <th scope="col" className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">PURCHASE PRICE</th>
                 <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">MKT PRICE</th>
                 <th scope="col" className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">QTY</th>
                 <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">NAV</th>
-                <th scope="col" className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">PURCHASE PRICE</th>
                 <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">WEIGHT %</th>
                 <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">DAILY %</th>
                 <th scope="col" className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">MTD %</th>
                 <th scope="col" className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">YTD %</th>
                 <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">52W %</th>
-                <th scope="col" className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">P&L</th>
                 <th scope="col" className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">NEXT ER</th>
+                <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">P&L</th>
               </tr>
             </thead>
             <tbody className="font-mono text-xs">
@@ -189,7 +188,9 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                     <td className="px-2 sm:px-3 py-0 text-center">
                       <span className={`inline-block font-mono min-w-[1.5rem] px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] font-medium ${getRatingClass(stock.rating)}`}>{stock.rating}</span>
                     </td>
-                    <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">{formatCurrency(stock.price, currencySymbol)}</td>
+                    <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
+                      {stock.purchasePrice !== undefined ? formatCurrency(parseFloat(stock.purchasePrice), currencySymbol) : '--'}
+                    </td>
                     <td className="px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
                       {marketPrice ? (
                         <TooltipProvider>
@@ -202,7 +203,7 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                             <TooltipContent>
                               <p>Market Price: {formatCurrency(marketPrice, currencySymbol)}</p>
                               <p>Daily Change: {formatPercentage(marketChange)}</p>
-                              <p>Vs. Book: {formatPercentage(priceDiff)}</p>
+                              <p>Vs. Purchase: {formatPercentage(realProfitLoss)}</p>
                               <p>Last Updated: {new Date(currentPrice.updatedAt).toLocaleTimeString()}</p>
                             </TooltipContent>
                           </Tooltip>
@@ -216,9 +217,6 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                       {stock.netAssetValue || stock.nav 
                         ? formatCurrency(stock.netAssetValue || stock.nav, currencySymbol)
                         : formatCurrency(stock.price * stock.quantity, currencySymbol)}
-                    </td>
-                    <td className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
-                      {stock.purchasePrice !== undefined ? formatCurrency(parseFloat(stock.purchasePrice), currencySymbol) : '--'}
                     </td>
                     <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
                       {typeof stock.portfolioPercentage === 'number' 
@@ -290,7 +288,8 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                         }
                       </span>
                     </td>
-                    <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
+                    <td className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] text-xs whitespace-nowrap">{stock.nextEarningsDate || '-'}</td>
+                    <td className="px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
                       {realProfitLoss !== null ? (
                         <span className={realProfitLoss > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
                           {formatPercentage(realProfitLoss)}
@@ -299,7 +298,6 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                         <span className="text-[#7A8999]">--</span>
                       )}
                     </td>
-                    <td className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] text-xs whitespace-nowrap">{stock.nextEarningsDate || '-'}</td>
                   </tr>
                 );
               })}
