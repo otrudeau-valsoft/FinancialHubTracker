@@ -124,17 +124,11 @@ router.post('/:region/database-update', async (req, res) => {
       }
     }
 
-    const operationsCount = (updates?.length || 0) + (newRows?.length || 0) + (deletions?.length || 0);
     console.log(`✅ Successfully processed ${totalProcessed} operations in ${region}`);
     res.json({ 
       success: true, 
-      message: `Processed ${totalProcessed} operations`, 
-      count: totalProcessed,
-      operations: {
-        updates: updates?.length || 0,
-        newRows: newRows?.length || 0,
-        deletions: deletions?.length || 0
-      }
+      message: `Updated ${totalProcessed} stocks`, 
+      count: totalProcessed
     });
   } catch (error) {
     console.error('Database update error:', error);
