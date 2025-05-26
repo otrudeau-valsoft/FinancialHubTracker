@@ -160,7 +160,11 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
       await apiRequest(
         'POST',
         `/api/portfolios/${region}/database-update`,
-        { updates: updatesArray }
+        { 
+          updates: updatesArray,
+          newRows: newRowsArray,
+          deletions: deletionsArray
+        }
       );
 
       await queryClient.invalidateQueries({ queryKey: ['/api/portfolios', region, 'stocks'] });
