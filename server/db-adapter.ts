@@ -458,6 +458,7 @@ export class DatabaseAdapter {
             purchase_price: Number(stock.purchasePrice)
           };
           
+          console.log(`Updating ${stock.symbol} with:`, updateData);
           await tx
             .update(portfolioTable)
             .set(updateData)
