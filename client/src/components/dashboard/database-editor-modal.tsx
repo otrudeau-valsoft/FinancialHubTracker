@@ -103,11 +103,11 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
       console.log(`🔄 DATABASE SCRIPT: Updating ${updatesArray.length} rows in portfolio_${region}`);
       console.log('Changes:', updatesArray);
 
-      await apiRequest({
-        endpoint: `/api/portfolios/${region}/database-update`,
-        method: 'POST',
-        body: { updates: updatesArray }
-      });
+      await apiRequest(
+        'POST',
+        `/api/portfolios/${region}/database-update`,
+        { updates: updatesArray }
+      );
 
       await queryClient.invalidateQueries({ queryKey: ['/api/portfolios', region, 'stocks'] });
       
