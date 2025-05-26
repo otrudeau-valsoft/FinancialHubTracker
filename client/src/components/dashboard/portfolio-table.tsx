@@ -8,7 +8,7 @@ import { useState } from "react";
 import { List, Filter, AlertTriangle, InfoIcon, BarChart4, Repeat } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { DatabaseEditorModal } from "./database-editor-modal";
+import { TransactionLogModal } from "./transaction-log-modal";
 
 interface CurrentPrice {
   id: number;
@@ -88,7 +88,7 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
   
   return (
     <>
-      <DatabaseEditorModal 
+      <TransactionLogModal 
         isOpen={isRebalanceModalOpen}
         onClose={() => setIsRebalanceModalOpen(false)}
         region={region}
