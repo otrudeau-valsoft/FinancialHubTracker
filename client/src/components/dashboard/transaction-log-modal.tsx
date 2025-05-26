@@ -46,8 +46,22 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
       const fetchCashBalance = async () => {
         try {
           const response = await apiRequest('GET', `/api/cash/${region}`) as any;
-          setCashBalance(parseFloat(response.amount || '0'));
+          console.log('Cash balance response:', response);
+          
+          // Handle both direct amount and object with amount property
+          let amount = 0;
+          if (typeof response === 'object' && response.amount) {
+            amount = parseFloat(response.amount);
+          } else if (typeof response === 'string') {
+            amount = parseFloat(response);
+          } else if (typeof response === 'number') {
+            amount = response;
+          }
+          
+          setCashBalance(amount);
+          console.log('Set cash balance to:', amount);
         } catch (error) {
+          console.error('Error fetching cash balance:', error);
           setCashBalance(0);
         }
       };
