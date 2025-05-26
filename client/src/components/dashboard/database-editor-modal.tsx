@@ -157,12 +157,35 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
       console.log('New rows:', newRowsArray);
       console.log('Deletions:', deletionsArray);
 
-      // Process operations using working individual endpoints
+      // Get current cash balance for impact calculation
+      let currentCash = 0;
+      let totalCashImpact = 0;
+      
+      try {
+        const cashResponse = await apiRequest('GET', `/api/cash/${region}`) as any;
+        currentCash = parseFloat(cashResponse.amount || '0');
+      } catch (error) {
+        console.log('Could not fetch current cash balance');
+      }
+
+      // Process deletions (selling stocks - adds cash)
       for (const stockId of deletionsArray) {
+        // Find the original stock data
+        const originalStock = stocks.find(s => s.id === stockId);
+        if (originalStock) {
+          const saleValue = originalStock.quantity * originalStock.price;
+          totalCashImpact += saleValue;
+          console.log(`💰 Selling ${originalStock.symbol}: ${originalStock.quantity} shares × $${originalStock.price} = +$${saleValue.toFixed(2)}`);
+        }
         await apiRequest('DELETE', `/api/portfolios/${region}/stocks/${stockId}`);
       }
       
+      // Process new stocks (buying stocks - subtracts cash)
       for (const newStock of newRowsArray) {
+        const purchaseCost = parseFloat(newStock.quantity) * parseFloat(newStock.purchase_price);
+        totalCashImpact -= purchaseCost;
+        console.log(`💸 Buying ${newStock.symbol}: ${newStock.quantity} shares × $${newStock.purchase_price} = -$${purchaseCost.toFixed(2)}`);
+        
         await apiRequest('POST', `/api/portfolios/${region}/stocks`, {
           symbol: newStock.symbol,
           company: newStock.company,
@@ -174,9 +197,25 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
         });
       }
       
+      // Process quantity updates (difference in position value)
       for (const update of updatesArray) {
-        // Only process updates for existing stocks (positive IDs)
         if (update.id > 0) {
+          // Calculate cash impact for quantity changes
+          if (update.quantity !== undefined) {
+            const originalStock = stocks.find(s => s.id === update.id);
+            if (originalStock) {
+              const oldQuantity = originalStock.quantity;
+              const newQuantity = parseFloat(update.quantity);
+              const quantityDiff = newQuantity - oldQuantity;
+              
+              if (quantityDiff !== 0) {
+                const priceImpact = quantityDiff * originalStock.price;
+                totalCashImpact -= priceImpact; // Buying more shares reduces cash
+                console.log(`📊 ${originalStock.symbol} quantity change: ${quantityDiff} shares × $${originalStock.price} = ${priceImpact > 0 ? '-' : '+'}$${Math.abs(priceImpact).toFixed(2)}`);
+              }
+            }
+          }
+          
           const updateData: any = {};
           if (update.purchase_price !== undefined) updateData.purchasePrice = update.purchase_price;
           if (update.stock_type !== undefined) updateData.stockType = update.stock_type;
@@ -190,12 +229,32 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
         }
       }
 
+      // Update cash balance if there's any impact
+      if (Math.abs(totalCashImpact) > 0.01) {
+        try {
+          const newCashBalance = currentCash + totalCashImpact;
+          await apiRequest('POST', `/api/cash/${region}`, { amount: newCashBalance.toString() });
+          console.log(`💰 Cash balance updated: $${currentCash.toFixed(2)} → $${newCashBalance.toFixed(2)} (${totalCashImpact > 0 ? '+' : ''}$${totalCashImpact.toFixed(2)})`);
+        } catch (error) {
+          console.log('Could not update cash balance');
+        }
+      }
+
       await queryClient.invalidateQueries({ queryKey: ['/api/portfolios', region, 'stocks'] });
       await queryClient.invalidateQueries({ queryKey: ['/api/cash'] });
       
+      // Create success message with cash impact
+      const totalOperations = updatesArray.length + newRowsArray.length + deletionsArray.length;
+      let message = `Successfully processed ${totalOperations} operations in ${region} portfolio.`;
+      
+      if (Math.abs(totalCashImpact) > 0.01) {
+        const cashChange = totalCashImpact > 0 ? '+' : '';
+        message += ` Cash balance: ${cashChange}$${totalCashImpact.toFixed(2)}`;
+      }
+      
       toast({
         title: "Portfolio Updated",
-        description: `Successfully processed ${updatesArray.length + newRowsArray.length + deletionsArray.length} operations in ${region} portfolio.`,
+        description: message,
       });
       
       onClose();

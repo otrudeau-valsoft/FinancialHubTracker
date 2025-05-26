@@ -26,6 +26,9 @@ router.post('/:region/stocks', asyncHandler(createPortfolioStock));
 // PUT /api/portfolios/:region/stocks/:id - Update a stock
 router.put('/:region/stocks/:id', asyncHandler(updatePortfolioStock));
 
+// PATCH /api/portfolios/:region/stocks/:id - Update a stock (partial update)
+router.patch('/:region/stocks/:id', asyncHandler(updatePortfolioStock));
+
 // DELETE /api/portfolios/:region/stocks/:id - Delete a stock
 router.delete('/:region/stocks/:id', asyncHandler(deletePortfolioStock));
 
