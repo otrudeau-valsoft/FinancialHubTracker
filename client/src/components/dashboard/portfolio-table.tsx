@@ -94,7 +94,6 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
     stockType: stock.stockType,
     rating: stock.rating,
     quantity: stock.quantity,
-    price: stock.price,
     purchasePrice: stock.purchasePrice,
     sector: stock.sector || 'Technology' // Default sector if not available
   }));
