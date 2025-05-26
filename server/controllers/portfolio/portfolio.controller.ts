@@ -196,6 +196,9 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
   const region = req.params.region.toUpperCase();
   
   try {
+    console.log('=== REBALANCE CONTROLLER ENTRY ===');
+    console.log('Request body received:', JSON.stringify(req.body, null, 2));
+    
     // Preprocess the request to ensure numeric fields
     if (req.body && req.body.stocks && Array.isArray(req.body.stocks)) {
       req.body.stocks = req.body.stocks.map((stock: any) => {

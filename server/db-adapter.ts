@@ -465,24 +465,29 @@ export class DatabaseAdapter {
           });
         }
         
-        // Preserve existing purchase prices if not provided in the update
+        // CRITICAL FIX: Don't fallback to existing prices if frontend sends valid data
         const processedStocks = stocks.map(stock => {
           const processed = { ...stock };
           
-          console.log(`Backend processing ${stock.symbol}: received purchasePrice=${processed.purchasePrice}, existing=${existingPurchasePrices.get(stock.symbol)}`);
+          console.log(`=== PROCESSING ${stock.symbol} ===`);
+          console.log(`Received: ${processed.purchasePrice} (${typeof processed.purchasePrice})`);
+          console.log(`Existing: ${existingPurchasePrices.get(stock.symbol)}`);
           
-          // If purchasePrice is not provided or is undefined, use existing value
-          if (processed.purchasePrice === undefined && existingPurchasePrices.has(stock.symbol)) {
-            processed.purchasePrice = existingPurchasePrices.get(stock.symbol);
-            console.log(`Preserved existing purchase price for ${stock.symbol}: ${processed.purchasePrice}`);
-          }
-          
-          // Ensure purchasePrice is properly formatted for database
+          // FIXED: Use frontend value directly if provided, don't override with existing
           if (processed.purchasePrice !== undefined && processed.purchasePrice !== null) {
+            // Frontend provided a value - use it directly
             processed.purchasePrice = Number(processed.purchasePrice);
+            console.log(`Using frontend value: ${processed.purchasePrice}`);
+          } else if (existingPurchasePrices.has(stock.symbol)) {
+            // Only use existing if frontend didn't provide a value
+            processed.purchasePrice = existingPurchasePrices.get(stock.symbol);
+            console.log(`Using existing value: ${processed.purchasePrice}`);
+          } else {
+            processed.purchasePrice = null;
+            console.log(`No value available, setting to null`);
           }
           
-          console.log(`Final processed ${stock.symbol}: purchasePrice=${processed.purchasePrice}`);
+          console.log(`Final result: ${processed.purchasePrice}`);
           return processed;
         });
         
