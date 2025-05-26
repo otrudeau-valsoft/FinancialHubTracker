@@ -133,7 +133,7 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-hidden bg-slate-900 border-slate-700">
+      <DialogContent className="max-w-[95vw] h-[90vh] flex flex-col bg-slate-900 border-slate-700">
         <DialogHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
             <Database className="h-5 w-5 text-blue-400" />
@@ -160,7 +160,7 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
           )}
         </div>
 
-        <div className="overflow-auto max-h-[65vh] border border-slate-700 rounded">
+        <div className="overflow-auto flex-1 border border-slate-700 rounded">
           <table className="w-full text-sm">
             <thead className="bg-slate-800 sticky top-0">
               <tr>
