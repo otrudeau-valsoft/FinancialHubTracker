@@ -147,15 +147,13 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
   // Save the rebalanced portfolio
   const savePortfolioMutation = useMutation({
     mutationFn: async () => {
-      // Ensure numeric values are properly set for API validation
-      const processedStocks = stocks.map(stock => {
+      // Process stocks to preserve existing purchase prices when not explicitly changed
+      const processedStocks = stocks.map((stock, index) => {
         const processed = { ...stock };
         
-        // For Cash and ETF types, set default values for numeric fields
-        if (stock.stockType === 'Cash' || stock.stockType === 'ETF' || 
-            stock.rating === 'Cash' || stock.rating === 'ETF') {
-          // Cash and ETF entries can have null purchase prices - no default needed
-          // Keep the stock quantity as is
+        // If purchase price is undefined in the form but existed in original data, preserve it
+        if (processed.purchasePrice === undefined && existingStocks[index]?.purchasePrice !== undefined) {
+          processed.purchasePrice = existingStocks[index].purchasePrice;
         }
         
         return processed;
