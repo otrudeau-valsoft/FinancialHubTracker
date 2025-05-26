@@ -129,7 +129,7 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
     const updatedStocks = [...stocks];
     
     // Properly handle numeric fields
-    if (field === 'quantity' || field === 'price' || field === 'purchasePrice') {
+    if (field === 'quantity' || field === 'purchasePrice') {
       updatedStocks[index] = {
         ...updatedStocks[index],
         [field]: value === '' ? undefined : Number(value)
@@ -154,8 +154,7 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
         // For Cash and ETF types, set default values for numeric fields
         if (stock.stockType === 'Cash' || stock.stockType === 'ETF' || 
             stock.rating === 'Cash' || stock.rating === 'ETF') {
-          // Set default values for required numeric fields
-          if (processed.price === undefined) processed.price = 0;
+          // Cash and ETF entries can have null purchase prices - no default needed
           // Keep the stock quantity as is
         }
         
