@@ -45,11 +45,17 @@ router.put('/:region/summary/:id', asyncHandler(updatePortfolioSummary));
 router.post('/:region/rebalance', asyncHandler(rebalancePortfolio));
 
 // POST /api/portfolios/:region/database-update - Update multiple portfolio stocks (database editor)
-router.post('/:region/database-update', asyncHandler(async (req, res) => {
+router.post('/:region/database-update', asyncHandler(async (req: Request, res: Response) => {
   const { region } = req.params;
-  const { updates = [], newRows = [], deletions = [] } = req.body;
+  
+  // Parse request body safely
+  const requestBody = req.body || {};
+  const updates = requestBody.updates || [];
+  const newRows = requestBody.newRows || [];
+  const deletions = requestBody.deletions || [];
   
   console.log(`🔄 DATABASE UPDATE: Processing ${updates.length} updates, ${newRows.length} new rows, ${deletions.length} deletions for ${region}`);
+  console.log('Request body received:', { hasUpdates: updates.length > 0, hasNewRows: newRows.length > 0, hasDeletions: deletions.length > 0 });
   
   const { dbAdapter } = await import('../../db-adapter');
   let totalProcessed = 0;
