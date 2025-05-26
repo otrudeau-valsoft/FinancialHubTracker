@@ -49,16 +49,24 @@ router.post('/:region/database-update', async (req, res) => {
   try {
     const { region } = req.params;
     
-    // Handle legacy format (just updates array) or new format (with newRows and deletions)
-    const updates = req.body.updates || req.body || [];
-    const newRows = req.body.newRows || [];
-    const deletions = req.body.deletions || [];
+    // Handle both legacy format (just updates) and new format (with newRows and deletions)
+    let updates = [];
+    let newRows = [];
+    let deletions = [];
+    
+    if (req.body.updates || req.body.newRows || req.body.deletions) {
+      // New format with separate arrays
+      updates = req.body.updates || [];
+      newRows = req.body.newRows || [];
+      deletions = req.body.deletions || [];
+    } else if (Array.isArray(req.body)) {
+      // Legacy format - just an array of updates
+      updates = req.body;
+    }
+    
+    console.log('Parsed data - Updates:', updates?.length, 'NewRows:', newRows?.length, 'Deletions:', deletions?.length);
 
     console.log(`🔄 DATABASE UPDATE: Processing ${updates?.length || 0} updates, ${newRows?.length || 0} new rows, ${deletions?.length || 0} deletions for ${region}`);
-    
-    if (newRows?.length > 0) {
-      console.log('New rows to create:', newRows);
-    }
     
     const { dbAdapter } = await import('../../db-adapter');
     let totalProcessed = 0;
@@ -116,11 +124,17 @@ router.post('/:region/database-update', async (req, res) => {
       }
     }
 
+    const operationsCount = (updates?.length || 0) + (newRows?.length || 0) + (deletions?.length || 0);
     console.log(`✅ Successfully processed ${totalProcessed} operations in ${region}`);
     res.json({ 
       success: true, 
-      message: `Updated ${totalProcessed} stocks`, 
-      count: totalProcessed 
+      message: `Processed ${totalProcessed} operations`, 
+      count: totalProcessed,
+      operations: {
+        updates: updates?.length || 0,
+        newRows: newRows?.length || 0,
+        deletions: deletions?.length || 0
+      }
     });
   } catch (error) {
     console.error('Database update error:', error);
