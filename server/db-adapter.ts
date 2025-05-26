@@ -507,6 +507,11 @@ export class DatabaseAdapter {
         // Insert new stocks with preserved purchase prices
         let createdItems: any[] = [];
         
+        console.log('=== INSERTING STOCKS WITH PURCHASE PRICES ===');
+        processedStocks.forEach(stock => {
+          console.log(`${stock.symbol}: purchasePrice=${stock.purchasePrice}`);
+        });
+        
         switch (region.toUpperCase()) {
           case 'USD':
             createdItems = await tx.insert(portfolioUSD).values(processedStocks).returning();
@@ -518,6 +523,11 @@ export class DatabaseAdapter {
             createdItems = await tx.insert(portfolioINTL).values(processedStocks).returning();
             break;
         }
+        
+        console.log('=== VERIFICATION AFTER INSERT ===');
+        createdItems.forEach(item => {
+          console.log(`${item.symbol}: saved purchasePrice=${item.purchasePrice}`);
+        });
         
         // Transform to legacy format
         return await adaptPortfolioData(createdItems, region);
