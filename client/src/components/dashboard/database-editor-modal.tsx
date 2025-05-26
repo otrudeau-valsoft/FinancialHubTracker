@@ -157,12 +157,36 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
       console.log('New rows:', newRowsArray);
       console.log('Deletions:', deletionsArray);
 
-      // Process operations using working individual endpoints
+      // Get current cash balance
+      const cashResponse = await apiRequest('GET', `/api/cash/${region}`) as any;
+      let currentCash = parseFloat(cashResponse.amount);
+      let totalCashImpact = 0;
+      
+      // Get original stock data for cash calculations
+      const originalStocks = await apiRequest('GET', `/api/portfolios/${region}/stocks`) as any[];
+      
+      // Process deletions (selling stocks - adds cash)
       for (const stockId of deletionsArray) {
+        const soldStock = originalStocks.find((s: any) => s.id === stockId);
+        if (soldStock) {
+          const saleValue = soldStock.quantity * soldStock.price;
+          totalCashImpact += saleValue;
+          console.log(`💰 Selling ${soldStock.symbol}: ${soldStock.quantity} shares × $${soldStock.price} = +$${saleValue.toFixed(2)}`);
+        }
         await apiRequest('DELETE', `/api/portfolios/${region}/stocks/${stockId}`);
       }
       
+      // Process new stocks (buying stocks - subtracts cash)
       for (const newStock of newRowsArray) {
+        // Get current price for new stock
+        const currentPricesResponse = await apiRequest('GET', `/api/current-prices/${region}`) as any[];
+        const stockPrice = currentPricesResponse.find((p: any) => p.symbol === newStock.symbol);
+        const price = stockPrice ? stockPrice.currentPrice : parseFloat(newStock.purchase_price);
+        
+        const purchaseCost = parseFloat(newStock.quantity) * price;
+        totalCashImpact -= purchaseCost;
+        console.log(`💸 Buying ${newStock.symbol}: ${newStock.quantity} shares × $${price.toFixed(2)} = -$${purchaseCost.toFixed(2)}`);
+        
         await apiRequest('POST', `/api/portfolios/${region}/stocks`, {
           symbol: newStock.symbol,
           company: newStock.company,
@@ -174,9 +198,22 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
         });
       }
       
+      // Process quantity updates (difference in position value)
       for (const update of updatesArray) {
-        // Only process updates for existing stocks (positive IDs)
-        if (update.id > 0) {
+        if (update.id > 0 && update.quantity !== undefined) {
+          const originalStock = originalStocks.find((s: any) => s.id === update.id);
+          if (originalStock) {
+            const oldQuantity = originalStock.quantity;
+            const newQuantity = parseFloat(update.quantity);
+            const quantityDiff = newQuantity - oldQuantity;
+            
+            if (quantityDiff !== 0) {
+              const priceImpact = quantityDiff * originalStock.price;
+              totalCashImpact -= priceImpact; // Buying more shares reduces cash
+              console.log(`📊 ${originalStock.symbol} quantity change: ${quantityDiff} shares × $${originalStock.price} = ${priceImpact > 0 ? '-' : '+'}$${Math.abs(priceImpact).toFixed(2)}`);
+            }
+          }
+          
           const updateData: any = {};
           if (update.purchase_price !== undefined) updateData.purchasePrice = update.purchase_price;
           if (update.stock_type !== undefined) updateData.stockType = update.stock_type;
@@ -189,12 +226,29 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
           await apiRequest('PATCH', `/api/portfolios/${region}/stocks/${update.id}`, updateData);
         }
       }
+      
+      // Update cash balance if there's any impact
+      if (Math.abs(totalCashImpact) > 0.01) {
+        const newCashBalance = currentCash + totalCashImpact;
+        await apiRequest('POST', `/api/cash/${region}`, { amount: newCashBalance.toString() });
+        console.log(`💰 Cash balance updated: $${currentCash.toFixed(2)} → $${newCashBalance.toFixed(2)} (${totalCashImpact > 0 ? '+' : ''}$${totalCashImpact.toFixed(2)})`);
+      }
 
       await queryClient.invalidateQueries({ queryKey: ['/api/portfolios', region, 'stocks'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/cash'] });
+      
+      // Create success message with cash impact
+      const totalOperations = updatesArray.length + newRowsArray.length + deletionsArray.length;
+      let message = `Successfully processed ${totalOperations} operations in ${region} portfolio.`;
+      
+      if (Math.abs(totalCashImpact) > 0.01) {
+        const cashChange = totalCashImpact > 0 ? '+' : '';
+        message += ` Cash balance: ${cashChange}$${totalCashImpact.toFixed(2)}`;
+      }
       
       toast({
-        title: "Database Updated",
-        description: `Successfully updated ${updatesArray.length} rows in portfolio_${region}. Refreshing page...`,
+        title: "Portfolio Updated",
+        description: message,
       });
       
       onClose();
