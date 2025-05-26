@@ -7,15 +7,13 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { X, Database, Plus, Trash2, Minus, Edit } from "lucide-react";
 
-interface DatabaseRow {
+interface TransactionRow {
   id: number;
   symbol: string;
-  company: string;
-  stock_type: string;
-  rating: string;
+  action: 'BUY' | 'SELL';
   quantity: string;
-  purchase_price: string;
-  sector: string;
+  price: string;
+  notes?: string;
 }
 
 interface DatabaseEditorModalProps {
@@ -45,12 +43,9 @@ const SECTORS = [
 ];
 
 export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: DatabaseEditorModalProps) {
-  const [databaseRows, setDatabaseRows] = useState<DatabaseRow[]>([]);
-  const [changes, setChanges] = useState<Map<number, Partial<DatabaseRow>>>(new Map());
-  const [deletedRows, setDeletedRows] = useState<Set<number>>(new Set());
+  const [databaseRows, setDatabaseRows] = useState<TransactionRow[]>([]);
   const [nextNewId, setNextNewId] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
-  const [mode, setMode] = useState<RebalancerMode>('portfolio');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -308,64 +303,26 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
           <div className="flex items-center gap-2">
             <Database className="h-5 w-5 text-green-400" />
             <DialogTitle className="text-white text-xl">
-              Transaction Panel - {region} Portfolio
+              Transaction Log - {region} Portfolio
             </DialogTitle>
           </div>
         </DialogHeader>
         
         <div className="bg-slate-800 p-4 rounded-lg mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            
-            {/* Buy Transaction */}
-            <div className="bg-green-900/20 border border-green-600/30 rounded-lg p-3">
-              <h3 className="text-green-400 font-semibold mb-2 flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                BUY
-              </h3>
-              <div className="space-y-2 text-xs">
-                <div>• Enter symbol + quantity + price</div>
-                <div>• Creates new position or adds to existing</div>
-                <div>• Auto-calculates weighted average cost</div>
-                <div className="text-green-400">• Reduces cash balance</div>
-              </div>
-            </div>
-            
-            {/* Sell Transaction */}
-            <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
-              <h3 className="text-red-400 font-semibold mb-2 flex items-center gap-2">
-                <Minus className="h-4 w-4" />
-                SELL
-              </h3>
-              <div className="space-y-2 text-xs">
-                <div>• Reduce quantity or delete row entirely</div>
-                <div>• Sells at current market price</div>
-                <div>• Keeps same average cost for remaining shares</div>
-                <div className="text-red-400">• Increases cash balance</div>
-              </div>
-            </div>
-            
-            {/* Adjust Transaction */}
-            <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-3">
-              <h3 className="text-blue-400 font-semibold mb-2 flex items-center gap-2">
-                <Edit className="h-4 w-4" />
-                ADJUST
-              </h3>
-              <div className="space-y-2 text-xs">
-                <div>• Edit any field directly</div>
-                <div>• Update ratings, sectors, etc.</div>
-                <div>• Direct average cost edits (no cash impact)</div>
-                <div className="text-blue-400">• Portfolio maintenance</div>
-              </div>
-            </div>
-            
+          <div className="text-center mb-4">
+            <h3 className="text-white font-semibold mb-2">Enter Transactions</h3>
+            <p className="text-sm text-slate-400">
+              Each transaction automatically updates portfolio positions and weighted average costs
+            </p>
           </div>
           
-          <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center justify-between">
             <div className="text-sm text-slate-400">
-              Make transactions below. Changes are automatically detected and processed intelligently.
-              {changes.size > 0 && (
+              BUY: Adds to existing positions or creates new ones with weighted avg cost calculation<br/>
+              SELL: Removes shares at current market price, maintains avg cost for remaining shares
+              {databaseRows.length > 0 && (
                 <span className="text-orange-400 ml-2">
-                  {changes.size} pending transaction(s)
+                  {databaseRows.length} transaction(s) ready
                 </span>
               )}
             </div>
@@ -377,15 +334,15 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
                 className="h-7 px-3 text-xs bg-green-600 border-green-500 text-white hover:bg-green-700"
               >
                 <Plus className="h-3 w-3 mr-1" />
-                New Position
+                Add Transaction
               </Button>
               <Button
                 onClick={handleSave}
-                disabled={changes.size === 0 || isLoading}
+                disabled={databaseRows.length === 0 || isLoading}
                 size="sm"
                 className="h-7 px-3 text-xs bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
               >
-                {isLoading ? "Processing..." : "Execute Transactions"}
+                {isLoading ? "Processing..." : "Execute All Transactions"}
               </Button>
             </div>
           </div>
