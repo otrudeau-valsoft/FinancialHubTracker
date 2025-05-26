@@ -113,7 +113,7 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
       
       toast({
         title: "Database Updated",
-        description: `Successfully updated ${updatesArray.length} rows in portfolio_${region}`,
+        description: `Successfully updated ${updatesArray.length} rows in portfolio_${region}. Please refresh browser to see changes.`,
       });
       
       onClose();
