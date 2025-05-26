@@ -179,13 +179,31 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
         const stock = stocks.find(s => s.symbol === transaction.symbol);
         const quantity = parseInt(transaction.quantity);
         const price = parseFloat(transaction.price);
+        const totalValue = quantity * price;
+        
+        // Record the transaction in the database
+        await apiRequest('POST', '/api/transactions', {
+          symbol: transaction.symbol,
+          company: transaction.company || stock?.company || transaction.symbol,
+          action: transaction.action,
+          quantity: quantity,
+          price: price,
+          region: region,
+          totalValue: totalValue
+        });
         
         if (transaction.action === 'BUY') {
           if (stock) {
-            // Add to existing position
+            // Calculate weighted average cost basis
+            const currentValue = stock.quantity * (stock.purchasePrice || stock.price);
+            const newValue = quantity * price;
+            const totalShares = stock.quantity + quantity;
+            const weightedAvgPrice = (currentValue + newValue) / totalShares;
+            
+            // Add to existing position with weighted average price
             await apiRequest('PATCH', `/api/portfolios/${region}/stocks/${stock.id}`, {
-              quantity: stock.quantity + quantity,
-              purchasePrice: price // Will be weighted averaged on backend
+              quantity: totalShares,
+              purchasePrice: weightedAvgPrice
             });
           } else {
             // Create new position - use provided company name
@@ -201,15 +219,15 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
           }
           
         } else if (transaction.action === 'SELL' && stock) {
-          // Use user-specified price for selling
+          // Use user-specified price for selling (no cost basis change needed)
           if (quantity >= stock.quantity) {
             // Sell entire position
             await apiRequest('DELETE', `/api/portfolios/${region}/stocks/${stock.id}`);
           } else {
-            // Partial sell
+            // Partial sell - keep same weighted average cost basis
             await apiRequest('PATCH', `/api/portfolios/${region}/stocks/${stock.id}`, {
               quantity: stock.quantity - quantity
-              // Keep same purchase price for remaining shares
+              // Keep same purchasePrice (weighted average cost basis)
             });
           }
         }

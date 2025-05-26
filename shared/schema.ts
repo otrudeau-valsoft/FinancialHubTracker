@@ -548,6 +548,29 @@ export const insertPortfolioINTLSchema = createInsertSchema(portfolioINTL).omit(
 export type InsertPortfolioINTL = z.infer<typeof insertPortfolioINTLSchema>;
 export type PortfolioINTL = typeof portfolioINTL.$inferSelect;
 
+// Transactions Table - Track all buy/sell transactions
+export const transactions = pgTable("transactions", {
+  id: serial("id").primaryKey(),
+  symbol: text("symbol").notNull(),
+  company: text("company"),
+  action: text("action").notNull(), // 'BUY' or 'SELL'
+  quantity: integer("quantity").notNull(),
+  price: numeric("price", { precision: 10, scale: 2 }).notNull(),
+  region: text("region").notNull(), // 'USD', 'CAD', 'INTL'
+  totalValue: numeric("total_value", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export const insertTransactionSchema = createInsertSchema(transactions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+export type Transaction = typeof transactions.$inferSelect;
+
 // Market Indices - For tracking SPY, XIC, ACWX
 export const marketIndices = pgTable("market_indices", {
   id: serial("id").primaryKey(),
