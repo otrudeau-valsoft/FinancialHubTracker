@@ -14,6 +14,8 @@ interface Transaction {
   quantity: string;
   price: string;
   company?: string;
+  stockType?: string;
+  rating?: string;
   notes?: string;
 }
 
@@ -82,6 +84,8 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
       quantity: '',
       price: '',
       company: '',
+      stockType: 'Stock',
+      rating: 'Hold',
       notes: ''
     };
     setTransactions(prev => [...prev, newTransaction]);
@@ -207,14 +211,14 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
               purchasePrice: weightedAvgPrice
             });
           } else {
-            // Create new position - use provided company name
+            // Create new position - use provided company name and transaction details
             await apiRequest('POST', `/api/portfolios/${region}/stocks`, {
               symbol: transaction.symbol,
               company: transaction.company || transaction.symbol,
               quantity: quantity,
               purchasePrice: price,
-              stockType: 'Stock', // Default
-              rating: 'Hold', // Default
+              stockType: transaction.stockType || 'Stock',
+              rating: transaction.rating || 'Hold',
               sector: 'Unknown' // Default
             });
           }
@@ -364,9 +368,10 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
                 <th className="text-left p-3 text-slate-300 font-medium">Action</th>
                 <th className="text-left p-3 text-slate-300 font-medium">Quantity</th>
                 <th className="text-left p-3 text-slate-300 font-medium">Price</th>
+                <th className="text-left p-3 text-slate-300 font-medium">Type</th>
+                <th className="text-left p-3 text-slate-300 font-medium">Rating</th>
                 <th className="text-left p-3 text-slate-300 font-medium">Total</th>
                 <th className="text-left p-3 text-slate-300 font-medium">Validation</th>
-                <th className="text-left p-3 text-slate-300 font-medium">Notes</th>
                 <th className="text-center p-3 text-slate-300 font-medium w-16">Actions</th>
               </tr>
             </thead>
@@ -433,6 +438,32 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
                         placeholder={transaction.action === 'SELL' ? "Sell price" : "Buy price"}
                         className="w-24 h-8 text-xs bg-slate-800 border-slate-600 text-white"
                       />
+                    </td>
+                    <td className="p-3">
+                      <Select value={transaction.stockType} onValueChange={(value) => updateTransaction(transaction.id, 'stockType', value)}>
+                        <SelectTrigger className="w-20 h-8 text-xs bg-slate-800 border-slate-600">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Stock">Stock</SelectItem>
+                          <SelectItem value="ETF">ETF</SelectItem>
+                          <SelectItem value="Cash">Cash</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    <td className="p-3">
+                      <Select value={transaction.rating} onValueChange={(value) => updateTransaction(transaction.id, 'rating', value)}>
+                        <SelectTrigger className="w-16 h-8 text-xs bg-slate-800 border-slate-600">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1</SelectItem>
+                          <SelectItem value="2">2</SelectItem>
+                          <SelectItem value="3">3</SelectItem>
+                          <SelectItem value="4">4</SelectItem>
+                          <SelectItem value="Hold">Hold</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </td>
                     <td className="p-3">
                       <span className={`font-mono ${
