@@ -494,6 +494,7 @@ export const portfolioUSD = pgTable("portfolio_USD", {
   rating: text("rating").notNull(),
   sector: text("sector"),
   quantity: numeric("quantity").notNull(),
+  purchasePrice: numeric("purchase_price"),  // Purchase Price
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
@@ -514,6 +515,7 @@ export const portfolioCAD = pgTable("portfolio_CAD", {
   rating: text("rating").notNull(),
   sector: text("sector"),
   quantity: numeric("quantity").notNull(),
+  purchasePrice: numeric("purchase_price"),  // Purchase Price
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
