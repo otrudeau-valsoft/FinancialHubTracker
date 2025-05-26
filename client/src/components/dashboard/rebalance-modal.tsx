@@ -293,9 +293,9 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
                   <TableCell className="p-2">
                     <Input 
                       type="text"
-                      value={stock.purchasePrice !== undefined ? stock.purchasePrice : ''}
+                      value={stock.purchasePrice !== undefined ? stock.purchasePrice.toString() : ''}
                       onChange={(e) => handleUpdateStock(index, 'purchasePrice', e.target.value ? parseFloat(e.target.value) : undefined)}
-                      placeholder="150.00"
+                      placeholder="Enter purchase price"
                       className="h-8 bg-[#0F1A2A] border-[#1A304A] text-[#E2E8F0] font-mono"
                     />
                   </TableCell>
