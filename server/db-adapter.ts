@@ -429,6 +429,7 @@ export class DatabaseAdapter {
    */
   async rebalancePortfolio(stocks: any[], region: string): Promise<LegacyPortfolioItem[]> {
     try {
+      console.log('🚀 NEW REBALANCE FUNCTION CALLED! 🚀');
       console.log('=== REBALANCE REWRITE - UPDATE-BASED APPROACH ===');
       console.log(`Rebalancing ${stocks.length} stocks for ${region} region`);
       
