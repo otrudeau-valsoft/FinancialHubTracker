@@ -58,9 +58,11 @@ async function importUSDPurchasePrices() {
     const symbol = cleanValue(record.SYM);
     const purchasePrice = parseNumber(cleanValue(record.PBR));
     
+    console.log(`Processing: Symbol=${symbol}, PBR=${record.PBR}, ParsedPrice=${purchasePrice}`);
+    
     if (symbol && purchasePrice !== null) {
       try {
-        await db.update(portfolioUSD)
+        const result = await db.update(portfolioUSD)
           .set({ purchasePrice: purchasePrice.toString() })
           .where(eq(portfolioUSD.symbol, symbol));
         
@@ -69,6 +71,8 @@ async function importUSDPurchasePrices() {
       } catch (error) {
         console.error(`Failed to update ${symbol}:`, error);
       }
+    } else {
+      console.log(`Skipped: Symbol=${symbol}, PurchasePrice=${purchasePrice}`);
     }
   }
   

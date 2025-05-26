@@ -19,7 +19,7 @@ interface Stock {
   sector?: string;
   quantity: number;
   price?: number;
-  pbr?: number; // Price-to-Book Ratio
+  purchasePrice?: number; // Purchase Price
 }
 
 interface RebalanceModalProps {
@@ -63,7 +63,7 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
   const [newRating, setNewRating] = useState(ratingOptions[0]);
   const [newSector, setNewSector] = useState(sectorOptions[0]);
   const [newQuantity, setNewQuantity] = useState(0);
-  const [newPbr, setNewPbr] = useState<number | undefined>(undefined);
+  const [newPurchasePrice, setNewPurchasePrice] = useState<number | undefined>(undefined);
   const [isAdding, setIsAdding] = useState(false);
 
   // Initialize stocks from existing stocks when the modal opens
