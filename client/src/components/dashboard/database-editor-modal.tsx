@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { X, Database, Plus, Trash2 } from "lucide-react";
+import { X, Database, Plus, Trash2, Minus, Edit } from "lucide-react";
 
 interface DatabaseRow {
   id: number;
@@ -200,45 +200,48 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
         });
       }
       
-      // Process quantity updates based on mode
+      // Process updates with intelligent transaction detection
       for (const update of updatesArray) {
         if (update.id > 0) {
           const updateData: any = {};
+          const originalStock = stocks.find(s => s.id === update.id);
           
-          if (mode === 'position' && update.quantity !== undefined) {
-            // Position Management Mode: Calculate weighted average cost
-            const originalStock = stocks.find(s => s.id === update.id);
-            if (originalStock) {
-              const oldQuantity = originalStock.quantity;
-              const newQuantity = parseFloat(update.quantity);
-              const quantityDiff = newQuantity - oldQuantity;
-              
-              if (quantityDiff !== 0) {
-                if (quantityDiff > 0) {
-                  // Adding shares: calculate new weighted average
-                  const currentAvgCost = originalStock.purchasePrice;
-                  const newSharePrice = originalStock.price; // Current market price for new shares
-                  const newAvgCost = (oldQuantity * currentAvgCost + quantityDiff * newSharePrice) / newQuantity;
-                  
-                  updateData.purchasePrice = newAvgCost.toFixed(2);
-                  
-                  const addCost = quantityDiff * newSharePrice;
-                  totalCashImpact -= addCost;
-                  console.log(`📈 Adding ${quantityDiff} shares of ${originalStock.symbol} @ $${newSharePrice}: -$${addCost.toFixed(2)}`);
-                  console.log(`💰 New weighted avg cost: $${currentAvgCost} → $${newAvgCost.toFixed(2)}`);
-                } else {
-                  // Trimming shares: keep same avg cost, just sell at market price
-                  const sellValue = Math.abs(quantityDiff) * originalStock.price;
-                  totalCashImpact += sellValue;
-                  console.log(`📉 Trimming ${Math.abs(quantityDiff)} shares of ${originalStock.symbol} @ $${originalStock.price}: +$${sellValue.toFixed(2)}`);
-                  console.log(`💰 Avg cost remains: $${originalStock.purchasePrice}`);
-                }
+          // Detect transaction type based on what changed
+          if (update.quantity !== undefined && originalStock) {
+            const oldQuantity = originalStock.quantity;
+            const newQuantity = parseFloat(update.quantity);
+            const quantityDiff = newQuantity - oldQuantity;
+            
+            if (quantityDiff !== 0) {
+              if (quantityDiff > 0) {
+                // BUY: Adding shares - calculate weighted average cost
+                const currentAvgCost = originalStock.purchasePrice;
+                const newSharePrice = originalStock.price;
+                const newAvgCost = (oldQuantity * currentAvgCost + quantityDiff * newSharePrice) / newQuantity;
+                
+                updateData.purchasePrice = newAvgCost.toFixed(2);
+                
+                const addCost = quantityDiff * newSharePrice;
+                totalCashImpact -= addCost;
+                console.log(`🟢 BUY: +${quantityDiff} ${originalStock.symbol} @ $${newSharePrice} = -$${addCost.toFixed(2)}`);
+                console.log(`💰 New avg cost: $${currentAvgCost.toFixed(2)} → $${newAvgCost.toFixed(2)}`);
+              } else {
+                // SELL: Trimming shares - sell at market price
+                const sellValue = Math.abs(quantityDiff) * originalStock.price;
+                totalCashImpact += sellValue;
+                console.log(`🔴 SELL: ${Math.abs(quantityDiff)} ${originalStock.symbol} @ $${originalStock.price} = +$${sellValue.toFixed(2)}`);
+                console.log(`💰 Avg cost unchanged: $${originalStock.purchasePrice}`);
               }
             }
           }
           
-          // Standard updates
-          if (update.purchase_price !== undefined && mode === 'portfolio') updateData.purchasePrice = update.purchase_price;
+          // ADJUST: Direct field updates (no cash impact)
+          if (update.purchase_price !== undefined && !update.quantity) {
+            console.log(`🔵 ADJUST: ${originalStock?.symbol} avg cost → $${update.purchase_price}`);
+          }
+          
+          // Apply all updates
+          if (update.purchase_price !== undefined) updateData.purchasePrice = update.purchase_price;
           if (update.stock_type !== undefined) updateData.stockType = update.stock_type;
           if (update.symbol !== undefined) updateData.symbol = update.symbol;
           if (update.company !== undefined) updateData.company = update.company;
@@ -264,22 +267,17 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
       await queryClient.invalidateQueries({ queryKey: ['/api/portfolios', region, 'stocks'] });
       await queryClient.invalidateQueries({ queryKey: ['/api/cash'] });
       
-      // Create mode-specific success message
+      // Create success message with transaction summary
       const totalOperations = updatesArray.length + newRowsArray.length + deletionsArray.length;
-      let message = '';
+      let message = `${totalOperations} transactions executed in ${region} portfolio.`;
       
-      if (mode === 'portfolio') {
-        message = `Portfolio Rebalance: ${totalOperations} operations completed in ${region}.`;
-      } else {
-        message = `Position Management: ${totalOperations} transactions completed in ${region}.`;
-        if (Math.abs(totalCashImpact) > 0.01) {
-          const cashChange = totalCashImpact > 0 ? '+' : '';
-          message += ` Cash impact: ${cashChange}$${totalCashImpact.toFixed(2)}`;
-        }
+      if (Math.abs(totalCashImpact) > 0.01) {
+        const cashChange = totalCashImpact > 0 ? '+' : '';
+        message += ` Cash impact: ${cashChange}$${totalCashImpact.toFixed(2)}`;
       }
       
       toast({
-        title: mode === 'portfolio' ? "Portfolio Rebalanced" : "Positions Updated",
+        title: "Transactions Complete",
         description: message,
       });
       
@@ -307,36 +305,12 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[95vw] h-[90vh] flex flex-col bg-slate-900 border-slate-700">
         <DialogHeader className="flex flex-row items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <div className="flex items-center gap-2">
-              <Database className="h-5 w-5 text-blue-400" />
+              <Database className="h-5 w-5 text-green-400" />
               <DialogTitle className="text-white text-xl">
-                Rebalancer: {region} Portfolio
+                Transaction Panel - {region} Portfolio
               </DialogTitle>
-            </div>
-            
-            {/* Mode Toggle */}
-            <div className="flex items-center gap-2 bg-slate-800 rounded-lg p-1">
-              <button
-                onClick={() => setMode('portfolio')}
-                className={`px-3 py-1 text-xs rounded transition-colors ${
-                  mode === 'portfolio' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                Portfolio Rebalance
-              </button>
-              <button
-                onClick={() => setMode('position')}
-                className={`px-3 py-1 text-xs rounded transition-colors ${
-                  mode === 'position' 
-                    ? 'bg-green-600 text-white' 
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                Position Management
-              </button>
             </div>
           </div>
           
@@ -350,29 +324,81 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
           </Button>
         </DialogHeader>
         
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-sm text-slate-400">
-            {mode === 'portfolio' ? (
-              <>Edit cells directly. Purchase price updates change weighted average cost only.</>
-            ) : (
-              <>Position Management: Quantity changes = buy/sell transactions with weighted average calculation.</>
-            )}
-            {changes.size > 0 && (
-              <span className="text-orange-400 ml-2">
-                {changes.size} row(s) modified
-              </span>
-            )}
+        <div className="bg-slate-800 p-4 rounded-lg mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            {/* Buy Transaction */}
+            <div className="bg-green-900/20 border border-green-600/30 rounded-lg p-3">
+              <h3 className="text-green-400 font-semibold mb-2 flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                BUY
+              </h3>
+              <div className="space-y-2 text-xs">
+                <div>• Enter symbol + quantity + price</div>
+                <div>• Creates new position or adds to existing</div>
+                <div>• Auto-calculates weighted average cost</div>
+                <div className="text-green-400">• Reduces cash balance</div>
+              </div>
+            </div>
+            
+            {/* Sell Transaction */}
+            <div className="bg-red-900/20 border border-red-600/30 rounded-lg p-3">
+              <h3 className="text-red-400 font-semibold mb-2 flex items-center gap-2">
+                <Minus className="h-4 w-4" />
+                SELL
+              </h3>
+              <div className="space-y-2 text-xs">
+                <div>• Reduce quantity or delete row entirely</div>
+                <div>• Sells at current market price</div>
+                <div>• Keeps same average cost for remaining shares</div>
+                <div className="text-red-400">• Increases cash balance</div>
+              </div>
+            </div>
+            
+            {/* Adjust Transaction */}
+            <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-3">
+              <h3 className="text-blue-400 font-semibold mb-2 flex items-center gap-2">
+                <Edit className="h-4 w-4" />
+                ADJUST
+              </h3>
+              <div className="space-y-2 text-xs">
+                <div>• Edit any field directly</div>
+                <div>• Update ratings, sectors, etc.</div>
+                <div>• Direct average cost edits (no cash impact)</div>
+                <div className="text-blue-400">• Portfolio maintenance</div>
+              </div>
+            </div>
+            
           </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={addNewRow}
-              size="sm"
-              variant="outline"
-              className="h-7 px-3 text-xs bg-green-600 border-green-500 text-white hover:bg-green-700"
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Add Row
-            </Button>
+          
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-sm text-slate-400">
+              Make transactions below. Changes are automatically detected and processed intelligently.
+              {changes.size > 0 && (
+                <span className="text-orange-400 ml-2">
+                  {changes.size} pending transaction(s)
+                </span>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={addNewRow}
+                size="sm"
+                variant="outline"
+                className="h-7 px-3 text-xs bg-green-600 border-green-500 text-white hover:bg-green-700"
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                New Position
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={changes.size === 0 || isLoading}
+                size="sm"
+                className="h-7 px-3 text-xs bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isLoading ? "Processing..." : "Execute Transactions"}
+              </Button>
+            </div>
           </div>
         </div>
 
