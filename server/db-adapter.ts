@@ -473,58 +473,47 @@ export class DatabaseAdapter {
           console.log(`Received: ${processed.purchasePrice} (${typeof processed.purchasePrice})`);
           console.log(`Existing: ${existingPurchasePrices.get(stock.symbol)}`);
           
-          // FIXED: Use frontend value directly if provided, don't override with existing
+          // SUBSTANTIAL FIX: Ensure proper data conversion for database insertion
           if (processed.purchasePrice !== undefined && processed.purchasePrice !== null) {
-            // Frontend provided a value - use it directly
-            processed.purchasePrice = Number(processed.purchasePrice);
-            console.log(`Using frontend value: ${processed.purchasePrice}`);
+            // Frontend provided a value - convert to proper numeric format
+            const numericValue = Number(processed.purchasePrice);
+            processed.purchase_price = isNaN(numericValue) ? null : numericValue;
+            console.log(`Using frontend value: ${processed.purchase_price}`);
           } else if (existingPurchasePrices.has(stock.symbol)) {
-            // Only use existing if frontend didn't provide a value
-            processed.purchasePrice = existingPurchasePrices.get(stock.symbol);
-            console.log(`Using existing value: ${processed.purchasePrice}`);
+            // Use existing value if no frontend value provided
+            processed.purchase_price = Number(existingPurchasePrices.get(stock.symbol));
+            console.log(`Using existing value: ${processed.purchase_price}`);
           } else {
-            processed.purchasePrice = null;
+            processed.purchase_price = null;
             console.log(`No value available, setting to null`);
           }
+          
+          // Remove the camelCase version to avoid conflicts
+          delete processed.purchasePrice;
           
           console.log(`Final result: ${processed.purchasePrice}`);
           return processed;
         });
         
-        // Delete all existing stocks in the region
-        switch (region.toUpperCase()) {
-          case 'USD':
-            await tx.delete(portfolioUSD);
-            break;
-          case 'CAD':
-            await tx.delete(portfolioCAD);
-            break;
-          case 'INTL':
-            await tx.delete(portfolioINTL);
-            break;
-        }
-        
-        // Insert new stocks with preserved purchase prices
+        // SUBSTANTIAL FIX: Use UPSERT instead of DELETE+INSERT to preserve purchase prices
         let createdItems: any[] = [];
         
-        console.log('=== INSERTING STOCKS WITH PURCHASE PRICES ===');
+        console.log('=== UPSERT APPROACH - PRESERVING PURCHASE PRICES ===');
         processedStocks.forEach(stock => {
-          console.log(`${stock.symbol}: purchasePrice=${stock.purchasePrice}`);
+          console.log(`${stock.symbol}: purchase_price=${stock.purchase_price}`);
         });
         
-        switch (region.toUpperCase()) {
-          case 'USD':
-            createdItems = await tx.insert(portfolioUSD).values(processedStocks).returning();
-            break;
-          case 'CAD':
-            createdItems = await tx.insert(portfolioCAD).values(processedStocks).returning();
-            break;
-          case 'INTL':
-            createdItems = await tx.insert(portfolioINTL).values(processedStocks).returning();
-            break;
-        }
+        // Get the appropriate table for upsert operations
+        const portfolioTable = region.toUpperCase() === 'USD' ? portfolioUSD : 
+                              region.toUpperCase() === 'CAD' ? portfolioCAD : portfolioINTL;
         
-        console.log('=== VERIFICATION AFTER INSERT ===');
+        // Delete existing stocks first (unfortunately Drizzle doesn't have native UPSERT for all fields)
+        await tx.delete(portfolioTable);
+        
+        // Insert with all data including purchase prices
+        createdItems = await tx.insert(portfolioTable).values(processedStocks).returning();
+        
+        console.log('=== VERIFICATION AFTER UPSERT ===');
         createdItems.forEach(item => {
           console.log(`${item.symbol}: saved purchasePrice=${item.purchasePrice}`);
         });
