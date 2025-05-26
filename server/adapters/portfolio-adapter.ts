@@ -216,7 +216,7 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
       rating: item.rating,
       sector: item.sector || 'Technology',
       quantity: quantity,
-      price: bookPrice,
+      price: purchasePrice || 0,
       purchasePrice: purchasePrice,
       netAssetValue: nav,
       portfolioPercentage: portfolioWeight,
