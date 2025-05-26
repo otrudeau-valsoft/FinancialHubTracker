@@ -164,13 +164,22 @@ export function RebalanceModal({ isOpen, onClose, region, existingStocks = [] }:
       });
       
       console.log('Final processedStocks being sent:', processedStocks);
+      console.log(`Making POST request to: /api/portfolios/${region}/rebalance`);
       
-      // Delete all existing stocks and add new ones
-      return await apiRequest(
-        'POST',
-        `/api/portfolios/${region}/rebalance`,
-        { stocks: processedStocks }
-      );
+      try {
+        const result = await apiRequest(
+          'POST',
+          `/api/portfolios/${region}/rebalance`,
+          { stocks: processedStocks }
+        );
+        console.log('=== REBALANCE SUCCESS ===');
+        console.log('Backend response:', result);
+        return result;
+      } catch (error) {
+        console.error('=== REBALANCE ERROR ===');
+        console.error('Error details:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       toast({

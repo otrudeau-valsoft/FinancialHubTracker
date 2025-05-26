@@ -1,0 +1,57 @@
+ount":"10000.00","upda…
+GS current price: 598.54, daily change: 0.0518191%
+MA current price: 563.58, daily change: -1.15059%
+MCO current price: 469.65, daily change: -0.447265%
+CAT current price: 343.39, daily change: -0.521448%
+JPM current price: 260.71, daily change: 0.0153366%
+PANW current price: 186.736, daily change: 0.32018536%
+PWR current price: 335.36, daily change: 1.36928%
+GLD current price: 309.75, daily change: 2.19063%
+AVGO current price: 228.72, daily change: -0.7851462%
+CW current price: 428.45, daily change: 3.01013%
+WM current price: 236.81, daily change: 1.4958%
+UBER current price: 87.75, daily change: -0.284091%
+AMZN current price: 200.99, daily change: -1.0388974%
+META current price: 627.06, daily change: -1.4939456%
+GOOG current price: 169.59, daily change: -1.3896961%
+MSFT current price: 450.18, daily change: -1.0288864%
+COST current price: 1008.5, daily change: -0.94585216%
+BIL current price: 91.69, daily change: 0.0436453%
+PEP current price: 129.34, daily change: -0.5994457%
+AAPL current price: 195.27, daily change: -3.0244322%
+Found current prices for 20/20 symbols in USD region
+Debug MCO: DB purchasePrice=238.21, converted=238.21
+Debug JPM: DB purchasePrice=130.52, converted=130.52
+Debug GS: DB purchasePrice=544.30, converted=544.3
+Debug PANW: DB purchasePrice=149.18, converted=149.18
+Debug COST: DB purchasePrice=543.30, converted=543.3
+Debug PWR: DB purchasePrice=271.35, converted=271.35
+Debug AVGO: DB purchasePrice=146.49, converted=146.49
+Debug UBER: DB purchasePrice=36.58, converted=36.58
+Debug GLD: DB purchasePrice=147.49, converted=147.49
+Debug GOOG: DB purchasePrice=29.06, converted=29.06
+Debug WM: DB purchasePrice=98.37, converted=98.37
+Debug META: DB purchasePrice=416.04, converted=416.04
+Debug MSFT: DB purchasePrice=305.11, converted=305.11
+Debug CW: DB purchasePrice=355.03, converted=355.03
+Debug PEP: DB purchasePrice=154.53, converted=154.53
+Debug CAT: DB purchasePrice=348.46, converted=348.46
+Debug AMZN: DB purchasePrice=175.96, converted=175.96
+Debug AAPL: DB purchasePrice=24.80, converted=24.8
+Debug MA: DB purchasePrice=88.70, converted=88.7
+Debug BIL: DB purchasePrice=91.67, converted=91.67
+FIXED: MCO purchasePrice=238.21
+Successfully fetched 20 portfolio stocks for USD with up-to-date metrics
+3:05:02 PM [express] GET /api/portfolios/USD/stocks 304 in 109ms :: [{"id":19,"symbol":"MCO","compan…
+3:05:02 PM [express] GET /api/market-indices/real-time 304 in 168ms :: {"sp500":{"return":-0.68,"pos…
+Performance history request: {
+  region: 'USD',
+  timeRange: undefined,
+  startDate: '2024-05-26',
+  endDate: undefined
+}
+Getting performance history for USD from 2024-05-26 to now
+SQL: SELECT * FROM portfolio_performance_usd WHERE date >= $1 ORDER BY date ASC [ '2024-05-26' ]
+3:05:02 PM [express] GET /api/performance-history 304 in 40ms :: {"status":"success","data":[{"date"…
+3:05:33 PM [express] GET /api/current-prices/USD 304 in 98ms :: [{"id":31,"symbol":"GS","region":"US…
+3:05:33 PM [express] GET /api/market-indices/real-time 304 in 166ms :: {"sp500":{"return":-0.68,"pos…
