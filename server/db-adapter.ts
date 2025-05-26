@@ -429,31 +429,25 @@ export class DatabaseAdapter {
    */
   async rebalancePortfolio(stocks: any[], region: string): Promise<LegacyPortfolioItem[]> {
     try {
-      // Start a transaction
+      console.log('=== REBALANCE REWRITE - UPDATE-BASED APPROACH ===');
+      console.log(`Rebalancing ${stocks.length} stocks for ${region} region`);
+      
       return await db.transaction(async (tx) => {
-        // Get existing stocks to preserve purchase prices
-        let existingStocks: any[] = [];
+        // Get the appropriate portfolio table
+        let portfolioTable: any;
         switch (region.toUpperCase()) {
           case 'USD':
-            existingStocks = await tx.select().from(portfolioUSD);
+            portfolioTable = portfolioUSD;
             break;
           case 'CAD':
-            existingStocks = await tx.select().from(portfolioCAD);
+            portfolioTable = portfolioCAD;
             break;
           case 'INTL':
-            existingStocks = await tx.select().from(portfolioINTL);
+            portfolioTable = portfolioINTL;
             break;
           default:
             throw new Error(`Invalid region: ${region}`);
         }
-        
-        // Create a map of existing purchase prices
-        const existingPurchasePrices = new Map();
-        existingStocks.forEach(stock => {
-          if (stock.purchasePrice !== null) {
-            existingPurchasePrices.set(stock.symbol, stock.purchasePrice);
-          }
-        });
         
         // Process CAD symbols if needed
         if (region.toUpperCase() === 'CAD') {
@@ -465,61 +459,75 @@ export class DatabaseAdapter {
           });
         }
         
-        // CRITICAL FIX: Don't fallback to existing prices if frontend sends valid data
-        const processedStocks = stocks.map(stock => {
-          const processed = { ...stock };
-          
-          console.log(`=== PROCESSING ${stock.symbol} ===`);
-          console.log(`Received: ${processed.purchasePrice} (${typeof processed.purchasePrice})`);
-          console.log(`Existing: ${existingPurchasePrices.get(stock.symbol)}`);
-          
-          // SUBSTANTIAL FIX: Ensure proper data conversion for database insertion
-          if (processed.purchasePrice !== undefined && processed.purchasePrice !== null) {
-            // Frontend provided a value - convert to proper numeric format
-            const numericValue = Number(processed.purchasePrice);
-            processed.purchase_price = isNaN(numericValue) ? null : numericValue;
-            console.log(`Using frontend value: ${processed.purchase_price}`);
-          } else if (existingPurchasePrices.has(stock.symbol)) {
-            // Use existing value if no frontend value provided
-            processed.purchase_price = Number(existingPurchasePrices.get(stock.symbol));
-            console.log(`Using existing value: ${processed.purchase_price}`);
-          } else {
-            processed.purchase_price = null;
-            console.log(`No value available, setting to null`);
+        // Get existing stocks to understand what needs to be updated vs inserted
+        const existingStocks = await tx.select().from(portfolioTable);
+        const existingSymbols = new Set(existingStocks.map(s => s.symbol));
+        const newSymbols = new Set(stocks.map(s => s.symbol));
+        
+        console.log(`Existing symbols: ${Array.from(existingSymbols).join(', ')}`);
+        console.log(`New symbols: ${Array.from(newSymbols).join(', ')}`);
+        
+        // Delete stocks that are no longer in the new list
+        const stocksToDelete = existingStocks.filter(stock => !newSymbols.has(stock.symbol));
+        if (stocksToDelete.length > 0) {
+          console.log(`Removing ${stocksToDelete.length} stocks: ${stocksToDelete.map(s => s.symbol).join(', ')}`);
+          for (const stock of stocksToDelete) {
+            await tx.delete(portfolioTable).where(eq(portfolioTable.symbol, stock.symbol));
           }
-          
-          // Remove the camelCase version to avoid conflicts
-          delete processed.purchasePrice;
-          
-          console.log(`Final result: ${processed.purchasePrice}`);
-          return processed;
-        });
+        }
         
-        // SUBSTANTIAL FIX: Use UPSERT instead of DELETE+INSERT to preserve purchase prices
-        let createdItems: any[] = [];
+        // Process each stock individually for update or insert
+        const updatedStocks: any[] = [];
         
-        console.log('=== UPSERT APPROACH - PRESERVING PURCHASE PRICES ===');
-        processedStocks.forEach(stock => {
+        for (const stock of stocks) {
+          // Prepare stock data with proper field mapping
+          const stockData = {
+            symbol: stock.symbol,
+            company: stock.company || '',
+            stock_type: stock.stockType || '',
+            rating: stock.rating || '',
+            sector: stock.sector || null,
+            quantity: Number(stock.quantity) || 0,
+            purchase_price: stock.purchasePrice !== undefined && stock.purchasePrice !== null 
+              ? Number(stock.purchasePrice) : null
+          };
+          
+          console.log(`Processing ${stock.symbol}:`);
+          console.log(`  - Company: ${stockData.company}`);
+          console.log(`  - Stock Type: ${stockData.stock_type}`);
+          console.log(`  - Rating: ${stockData.rating}`);
+          console.log(`  - Sector: ${stockData.sector}`);
+          console.log(`  - Quantity: ${stockData.quantity}`);
+          console.log(`  - Purchase Price: ${stockData.purchase_price}`);
+          
+          if (existingSymbols.has(stock.symbol)) {
+            // Update existing stock
+            console.log(`  -> UPDATING existing stock`);
+            const [updatedStock] = await tx
+              .update(portfolioTable)
+              .set(stockData)
+              .where(eq(portfolioTable.symbol, stock.symbol))
+              .returning();
+            updatedStocks.push(updatedStock);
+          } else {
+            // Insert new stock
+            console.log(`  -> INSERTING new stock`);
+            const [insertedStock] = await tx
+              .insert(portfolioTable)
+              .values(stockData)
+              .returning();
+            updatedStocks.push(insertedStock);
+          }
+        }
+        
+        console.log(`=== REBALANCE COMPLETE ===`);
+        console.log(`Successfully processed ${updatedStocks.length} stocks`);
+        updatedStocks.forEach(stock => {
           console.log(`${stock.symbol}: purchase_price=${stock.purchase_price}`);
         });
         
-        // Get the appropriate table for upsert operations
-        const portfolioTable = region.toUpperCase() === 'USD' ? portfolioUSD : 
-                              region.toUpperCase() === 'CAD' ? portfolioCAD : portfolioINTL;
-        
-        // Delete existing stocks first (unfortunately Drizzle doesn't have native UPSERT for all fields)
-        await tx.delete(portfolioTable);
-        
-        // Insert with all data including purchase prices
-        createdItems = await tx.insert(portfolioTable).values(processedStocks).returning();
-        
-        console.log('=== VERIFICATION AFTER UPSERT ===');
-        createdItems.forEach(item => {
-          console.log(`${item.symbol}: saved purchasePrice=${item.purchasePrice}`);
-        });
-        
         // Transform to legacy format
-        return await adaptPortfolioData(createdItems, region);
+        return await adaptPortfolioData(updatedStocks, region);
       });
     } catch (error) {
       console.error(`Error rebalancing portfolio (${region}):`, error);
