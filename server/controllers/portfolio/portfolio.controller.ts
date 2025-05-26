@@ -212,8 +212,13 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
           if (typeof processedStock.purchasePrice === 'string') {
             const parsed = parseFloat(processedStock.purchasePrice);
             processedStock.purchasePrice = isNaN(parsed) ? null : parsed;
+          } else if (typeof processedStock.purchasePrice === 'number') {
+            // Already a number, keep it as is
+            processedStock.purchasePrice = processedStock.purchasePrice;
           }
           console.log(`Purchase price processing for ${processedStock.symbol}: original=${stock.purchasePrice}, processed=${processedStock.purchasePrice}`);
+        } else {
+          console.log(`Purchase price for ${processedStock.symbol} is undefined/null: ${processedStock.purchasePrice}`);
         }
         // If purchasePrice is undefined, don't modify it - preserve existing DB value
         
@@ -228,7 +233,10 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
         }
         
         // Log the processed stock for debugging
+        console.log(`=== CONTROLLER PROCESSING ${processedStock.symbol} ===`);
+        console.log('Original stock:', JSON.stringify(stock));
         console.log('Processed stock:', JSON.stringify(processedStock));
+        console.log('Purchase price value:', processedStock.purchasePrice, typeof processedStock.purchasePrice);
         
         return processedStock;
       });
