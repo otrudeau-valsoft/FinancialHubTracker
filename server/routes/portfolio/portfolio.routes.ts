@@ -49,18 +49,11 @@ router.post('/:region/database-update', async (req, res) => {
   try {
     const { region } = req.params;
     
-    // Log received data for debugging
-    console.log('🔄 DATABASE UPDATE REQUEST:', {
-      region,
-      bodyKeys: Object.keys(req.body || {}),
-      updates: req.body?.updates?.length || 0,
-      newRows: req.body?.newRows?.length || 0, 
-      deletions: req.body?.deletions?.length || 0
-    });
+    const updates = req.body.updates || [];
+    const newRows = req.body.newRows || [];
+    const deletions = req.body.deletions || [];
     
-    const updates = req.body?.updates || [];
-    const newRows = req.body?.newRows || [];
-    const deletions = req.body?.deletions || [];
+    console.log(`🔄 DATABASE UPDATE: Processing ${updates.length} updates, ${newRows.length} new rows, ${deletions.length} deletions for ${region}`);
     
     const { dbAdapter } = await import('../../db-adapter');
     let totalProcessed = 0;
