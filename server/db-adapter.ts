@@ -69,6 +69,8 @@ export class DatabaseAdapter {
     return data.map(item => {
       const quantity = Number(item.quantity);
       const purchasePrice = item.purchasePrice ? Number(item.purchasePrice) : undefined;
+      
+      console.log(`Debug: ${item.symbol} - purchasePrice from DB: ${item.purchasePrice}, converted: ${purchasePrice}`);
       const currentPriceInfo = priceMap[item.symbol];
       const currentPrice = currentPriceInfo?.regularMarketPrice 
         ? Number(currentPriceInfo.regularMarketPrice) 
@@ -131,6 +133,8 @@ export class DatabaseAdapter {
         default:
           throw new Error(`Invalid region: ${region}`);
       }
+      
+      console.log(`Raw portfolio data sample for ${region}:`, JSON.stringify(portfolioData[0], null, 2));
       
       // Transform to legacy format with purchase price support
       return await this.adaptPortfolioDataWithPurchasePrice(portfolioData, region);
