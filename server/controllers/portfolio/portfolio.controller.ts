@@ -263,7 +263,18 @@ export async function updatePortfolioDatabase(req: Request, res: Response): Prom
     
     // Process each update
     for (const update of updates) {
-      await dbAdapter.updatePortfolioStock(update.id, update, region);
+      // Convert snake_case to camelCase for database compatibility
+      const dbUpdate = {
+        ...update,
+        purchasePrice: update.purchase_price,
+        stockType: update.stock_type
+      };
+      
+      // Remove snake_case fields
+      delete dbUpdate.purchase_price;
+      delete dbUpdate.stock_type;
+      
+      await dbAdapter.updatePortfolioStock(update.id, dbUpdate, region);
     }
 
     console.log(`✅ DATABASE SCRIPT: Successfully updated ${updates.length} rows`);
