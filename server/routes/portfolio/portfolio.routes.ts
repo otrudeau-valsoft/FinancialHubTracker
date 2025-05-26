@@ -8,8 +8,7 @@ import {
   importPortfolio,
   getPortfolioSummary,
   updatePortfolioSummary,
-  rebalancePortfolio,
-  updatePortfolioDatabase
+  rebalancePortfolio
 } from '../../controllers/portfolio/portfolio.controller';
 import { asyncHandler } from '../../middleware/error-handler';
 
