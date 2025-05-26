@@ -13,6 +13,7 @@ import schedulerRoutes from './scheduler/scheduler.routes';
 import apiHealthRoutes from './api-health.routes';
 import holdingsRoutes from './holdings';
 import cashRoutes from './cash';
+import transactionsRoutes from './transactions';
 import portfolioHistoryRoutes from './portfolio-history';
 import portfolioPerformanceRoutes from './portfolio-performance';
 import portfolioPerformanceHistoryRoutes from './portfolio-performance-history';
@@ -60,7 +61,6 @@ router.use('/holdings', holdingsRoutes);
 router.use('/cash', cashRoutes);
 
 // Transaction routes
-import transactionsRoutes from './transactions';
 router.use('/transactions', transactionsRoutes);
 
 // Portfolio history routes for performance charts
