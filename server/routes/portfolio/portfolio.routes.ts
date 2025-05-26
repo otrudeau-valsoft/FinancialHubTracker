@@ -45,15 +45,26 @@ router.put('/:region/summary/:id', asyncHandler(updatePortfolioSummary));
 router.post('/:region/rebalance', asyncHandler(rebalancePortfolio));
 
 // POST /api/portfolios/:region/database-update - Update multiple portfolio stocks (database editor)
-router.post('/:region/database-update', async (req, res) => {
+router.post('/:region/database-update', (req, res, next) => {
+  // Ensure express.json() middleware has parsed the body
+  if (!req.body) {
+    return res.status(400).json({ error: 'No request body received' });
+  }
+  next();
+}, async (req, res) => {
   try {
     const { region } = req.params;
     
-    const updates = req.body.updates || [];
-    const newRows = req.body.newRows || [];
-    const deletions = req.body.deletions || [];
+    // Directly extract and process data
+    const requestBody = req.body;
+    const updates = requestBody.updates || [];
+    const newRows = requestBody.newRows || [];  
+    const deletions = requestBody.deletions || [];
     
     console.log(`🔄 DATABASE UPDATE: Processing ${updates.length} updates, ${newRows.length} new rows, ${deletions.length} deletions for ${region}`);
+    
+    if (newRows.length > 0) console.log('Creating stocks:', newRows.map(r => r.symbol));
+    if (deletions.length > 0) console.log('Deleting stock IDs:', deletions);
     
     const { dbAdapter } = await import('../../db-adapter');
     let totalProcessed = 0;
@@ -79,41 +90,37 @@ router.post('/:region/database-update', async (req, res) => {
       }
     }
 
-    // Handle creation of new stocks
-    if (newRows && newRows.length > 0) {
-      console.log(`Creating ${newRows.length} new stocks:`, newRows);
-      for (const newStock of newRows) {
-        try {
-          const dbNewStock = {
-            symbol: newStock.symbol,
-            company: newStock.company,
-            stockType: newStock.stock_type,
-            rating: parseInt(newStock.rating),
-            quantity: parseInt(newStock.quantity),
-            purchasePrice: parseFloat(newStock.purchase_price),
-            sector: newStock.sector
-          };
-          
-          await dbAdapter.createPortfolioStock(dbNewStock, region);
-          console.log(`✅ Created new stock: ${newStock.symbol}`);
-          totalProcessed++;
-        } catch (error) {
-          console.error(`Error creating stock ${newStock.symbol}:`, error);
-        }
+    // Handle deletions first (remove stocks)
+    for (const stockId of deletions) {
+      try {
+        console.log(`Deleting stock ID ${stockId}`);
+        await dbAdapter.deletePortfolioStock(stockId, region);
+        console.log(`✅ Deleted stock ID ${stockId}`);
+        totalProcessed++;
+      } catch (error) {
+        console.error(`Error deleting stock ID ${stockId}:`, error);
       }
     }
 
-    // Handle deletions
-    if (deletions && deletions.length > 0) {
-      console.log(`Deleting ${deletions.length} stocks:`, deletions);
-      for (const stockId of deletions) {
-        try {
-          await dbAdapter.deletePortfolioStock(stockId, region);
-          console.log(`✅ Deleted stock ID ${stockId}`);
-          totalProcessed++;
-        } catch (error) {
-          console.error(`Error deleting stock ID ${stockId}:`, error);
-        }
+    // Handle creation of new stocks
+    for (const newStock of newRows) {
+      try {
+        console.log(`Creating new stock: ${newStock.symbol}`);
+        const dbNewStock = {
+          symbol: newStock.symbol,
+          company: newStock.company,
+          stockType: newStock.stock_type,
+          rating: parseInt(newStock.rating),
+          quantity: parseInt(newStock.quantity),
+          purchasePrice: parseFloat(newStock.purchase_price),
+          sector: newStock.sector
+        };
+        
+        await dbAdapter.createPortfolioStock(dbNewStock, region);
+        console.log(`✅ Created new stock: ${newStock.symbol}`);
+        totalProcessed++;
+      } catch (error) {
+        console.error(`Error creating stock ${newStock.symbol}:`, error);
       }
     }
 
