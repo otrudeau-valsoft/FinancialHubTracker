@@ -113,10 +113,15 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
       
       toast({
         title: "Database Updated",
-        description: `Successfully updated ${updatesArray.length} rows in portfolio_${region}. Please refresh browser to see changes.`,
+        description: `Successfully updated ${updatesArray.length} rows in portfolio_${region}. Refreshing page...`,
       });
       
       onClose();
+      
+      // Auto-refresh the page after a brief delay to show the success message
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (error) {
       console.error('Database update failed:', error);
       toast({
