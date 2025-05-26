@@ -186,10 +186,10 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
           symbol: transaction.symbol,
           company: transaction.company || stock?.company || transaction.symbol,
           action: transaction.action,
-          quantity: quantity,
-          price: price,
+          quantity: quantity.toString(),
+          price: price.toString(),
           region: region,
-          totalValue: totalValue
+          totalValue: totalValue.toString()
         });
         
         if (transaction.action === 'BUY') {
