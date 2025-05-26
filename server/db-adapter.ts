@@ -68,9 +68,9 @@ export class DatabaseAdapter {
     // Map each stock to legacy format
     return data.map(item => {
       const quantity = Number(item.quantity);
-      const purchasePrice = item.purchasePrice || item.purchase_price ? Number(item.purchasePrice || item.purchase_price) : undefined;
+      const purchasePrice = item.purchasePrice ? Number(item.purchasePrice) : undefined;
       
-      console.log(`Debug: ${item.symbol} - purchasePrice from DB: ${item.purchasePrice || item.purchase_price}, converted: ${purchasePrice}`);
+      console.log(`Debug ${item.symbol}: raw=${item.purchasePrice}, converted=${purchasePrice}`);
       const currentPriceInfo = priceMap[item.symbol];
       const currentPrice = currentPriceInfo?.regularMarketPrice 
         ? Number(currentPriceInfo.regularMarketPrice) 
@@ -87,7 +87,7 @@ export class DatabaseAdapter {
       
       // Calculate profit/loss using purchase price if available
       const profitLoss = purchasePrice && currentPrice
-        ? ((currentPrice - purchasePrice) / purchasePrice) * 100
+        ? (currentPrice - purchasePrice) * quantity
         : 0;
       
       return {
