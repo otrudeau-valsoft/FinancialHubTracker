@@ -55,7 +55,7 @@ interface PortfolioStock {
   profitLoss?: number;
   nextEarningsDate?: string;
   sector?: string;
-  pbr?: number; // Price-to-Book Ratio
+  purchasePrice?: string; // Purchase Price
 }
 
 interface PortfolioTableProps {
@@ -95,7 +95,7 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
     rating: stock.rating,
     quantity: stock.quantity,
     price: stock.price,
-    pbr: stock.pbr,
+    purchasePrice: stock.purchasePrice,
     sector: stock.sector || 'Technology' // Default sector if not available
   }));
   
@@ -138,7 +138,7 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                 <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">MKT PRICE</th>
                 <th scope="col" className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">QTY</th>
                 <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">NAV</th>
-                <th scope="col" className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">PBR</th>
+                <th scope="col" className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">PURCHASE PRICE</th>
                 <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">WEIGHT %</th>
                 <th scope="col" className="px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">DAILY %</th>
                 <th scope="col" className="hidden sm:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#7A8999] font-medium tracking-wide whitespace-nowrap">MTD %</th>
@@ -165,6 +165,12 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                 
                 // Calculate difference between book price and market price
                 const priceDiff = marketPrice ? (marketPrice - stock.price) / stock.price * 100 : null;
+                
+                // Calculate P&L based on purchase price vs current market price
+                const purchasePrice = stock.purchasePrice ? parseFloat(stock.purchasePrice) : null;
+                const realProfitLoss = marketPrice && purchasePrice 
+                  ? ((marketPrice - purchasePrice) / purchasePrice) * 100 
+                  : null;
                 
                 return (
                   <tr key={stock.id} className="border-b border-[#0F1A2A] h-8 hover:bg-[#0F2542]">
@@ -212,7 +218,7 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                         : formatCurrency(stock.price * stock.quantity, currencySymbol)}
                     </td>
                     <td className="hidden lg:table-cell px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
-                      {stock.pbr !== undefined ? stock.pbr.toFixed(2) : '--'}
+                      {stock.purchasePrice !== undefined ? formatCurrency(parseFloat(stock.purchasePrice), currencySymbol) : '--'}
                     </td>
                     <td className="px-2 sm:px-3 py-0 text-right font-mono text-[#EFEFEF] text-xs whitespace-nowrap">
                       {typeof stock.portfolioPercentage === 'number' 
@@ -284,13 +290,12 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                         }
                       </span>
                     </td>
-                    <td className="px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
-                      {stock.profitLoss !== undefined && (
-                        <span className={stock.profitLoss > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
-                          {formatPercentage(stock.profitLoss)}
+                    <td className="hidden md:table-cell px-2 sm:px-3 py-0 text-right font-mono text-xs whitespace-nowrap">
+                      {realProfitLoss !== null ? (
+                        <span className={realProfitLoss > 0 ? 'text-[#4CAF50]' : 'text-[#F44336]'}>
+                          {formatPercentage(realProfitLoss)}
                         </span>
-                      )}
-                      {stock.profitLoss === undefined && (
+                      ) : (
                         <span className="text-[#7A8999]">--</span>
                       )}
                     </td>
