@@ -196,69 +196,15 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
   const region = req.params.region.toUpperCase();
   
   try {
-    console.log('🚀 REBALANCE CONTROLLER ENTRY 🚀');
-    console.log(`Region: ${region}`);
-    console.log('Request body received:', JSON.stringify(req.body, null, 2));
-    
-    // Preprocess the request to ensure numeric fields
-    if (req.body && req.body.stocks && Array.isArray(req.body.stocks)) {
-      req.body.stocks = req.body.stocks.map((stock: any) => {
-        // Make sure all numeric fields are properly converted to numbers
-        const processedStock = { ...stock };
-        
-        // Handle quantity field
-        if (typeof processedStock.quantity === 'string') {
-          processedStock.quantity = parseFloat(processedStock.quantity) || 0;
-        }
-        
-        // Handle purchase price field - CRITICAL FIX
-        console.log(`=== REBALANCE DEBUG ${processedStock.symbol} ===`);
-        console.log(`Original purchasePrice: ${stock.purchasePrice} (${typeof stock.purchasePrice})`);
-        
-        if (processedStock.purchasePrice !== undefined && processedStock.purchasePrice !== null) {
-          if (typeof processedStock.purchasePrice === 'string') {
-            const parsed = parseFloat(processedStock.purchasePrice);
-            processedStock.purchasePrice = isNaN(parsed) ? null : parsed;
-          } else if (typeof processedStock.purchasePrice === 'number') {
-            // Already a number, keep it as is
-            processedStock.purchasePrice = processedStock.purchasePrice;
-          }
-          console.log(`Processed purchasePrice: ${processedStock.purchasePrice} (${typeof processedStock.purchasePrice})`);
-        } else {
-          console.log(`Purchase price is undefined/null: ${processedStock.purchasePrice}`);
-        }
-        // If purchasePrice is undefined, don't modify it - preserve existing DB value
-        
-        // CRITICAL: Remove any reference to the old 'price' field - we only use purchasePrice now
-        delete processedStock.price;
-        
-        // Special handling for Cash and ETF - they may not have purchase prices
-        if (processedStock.stockType === 'Cash' || processedStock.stockType === 'ETF' ||
-            processedStock.rating === 'Cash' || processedStock.rating === 'ETF') {
-          // Cash and ETF entries can have null purchase prices
-          // No special handling needed since we removed the price field
-        }
-        
-        // Log the processed stock for debugging
-        console.log(`=== CONTROLLER PROCESSING ${processedStock.symbol} ===`);
-        console.log('Original stock:', JSON.stringify(stock));
-        console.log('Processed stock:', JSON.stringify(processedStock));
-        console.log('Purchase price value:', processedStock.purchasePrice, typeof processedStock.purchasePrice);
-        
-        return processedStock;
-      });
-    }
-  
-    // Validate the incoming stocks array
+    // Simple validation
     const stockSchema = z.object({
-      id: z.number().optional(),
-      symbol: z.string().min(1, "Symbol is required"),
-      company: z.string().min(1, "Company name is required"),
-      stockType: z.string().min(1, "Stock type is required"),
-      rating: z.string().min(1, "Rating is required"),
+      symbol: z.string().min(1),
+      company: z.string().min(1),
+      stockType: z.string().min(1),
+      rating: z.string().min(1),
       sector: z.string().optional(),
-      quantity: z.number().min(0, "Quantity must be a positive number"),
-      purchasePrice: z.number().optional().nullable(),
+      quantity: z.number().min(0),
+      purchasePrice: z.number(),
     });
     
     const schema = z.object({
@@ -267,17 +213,16 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
 
     const validData = schema.parse(req.body);
     
-    // Rebalance the portfolio (this will delete all existing stocks and add new ones)
+    // Update the portfolio stocks
     const result = await dbAdapter.rebalancePortfolio(validData.stocks, region);
     
-    // Return success with the newly created stocks
     return res.status(200).json({
-      message: `Successfully rebalanced ${region} portfolio`,
+      message: `Successfully updated ${region} portfolio`,
       stocks: result,
       count: result.length
     });
   } catch (error) {
-    console.error(`Error rebalancing ${region} portfolio:`, error);
+    console.error(`Error updating ${region} portfolio:`, error);
     
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 
@@ -287,7 +232,7 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
     }
     
     return res.status(500).json({ 
-      message: `Failed to rebalance ${region} portfolio`, 
+      message: `Failed to update ${region} portfolio`, 
       error: error instanceof Error ? error.message : String(error) 
     });
   }

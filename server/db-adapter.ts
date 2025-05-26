@@ -429,113 +429,47 @@ export class DatabaseAdapter {
    */
   async rebalancePortfolio(stocks: any[], region: string): Promise<LegacyPortfolioItem[]> {
     try {
-      console.log('🚀 NEW REBALANCE FUNCTION CALLED! 🚀');
-      console.log('=== REBALANCE REWRITE - UPDATE-BASED APPROACH ===');
-      console.log(`Rebalancing ${stocks.length} stocks for ${region} region`);
+      // Get the appropriate portfolio table
+      let portfolioTable: any;
+      switch (region.toUpperCase()) {
+        case 'USD':
+          portfolioTable = portfolioUSD;
+          break;
+        case 'CAD':
+          portfolioTable = portfolioCAD;
+          break;
+        case 'INTL':
+          portfolioTable = portfolioINTL;
+          break;
+        default:
+          throw new Error(`Invalid region: ${region}`);
+      }
       
       return await db.transaction(async (tx) => {
-        // Get the appropriate portfolio table
-        let portfolioTable: any;
-        switch (region.toUpperCase()) {
-          case 'USD':
-            portfolioTable = portfolioUSD;
-            break;
-          case 'CAD':
-            portfolioTable = portfolioCAD;
-            break;
-          case 'INTL':
-            portfolioTable = portfolioINTL;
-            break;
-          default:
-            throw new Error(`Invalid region: ${region}`);
-        }
-        
-        // Process CAD symbols if needed
-        if (region.toUpperCase() === 'CAD') {
-          stocks = stocks.map(item => {
-            if (item.symbol && !item.symbol.includes('.') && item.stockType !== 'ETF' && item.stockType !== 'Cash') {
-              return { ...item, symbol: `${item.symbol}.TO` };
-            }
-            return item;
-          });
-        }
-        
-        // Get existing stocks to understand what needs to be updated vs inserted
-        const existingStocks = await tx.select().from(portfolioTable);
-        const existingSymbols = new Set(existingStocks.map(s => s.symbol));
-        const newSymbols = new Set(stocks.map(s => s.symbol));
-        
-        console.log(`Existing symbols: ${Array.from(existingSymbols).join(', ')}`);
-        console.log(`New symbols: ${Array.from(newSymbols).join(', ')}`);
-        
-        // Only delete stocks if this is a full portfolio rebalance (many stocks)
-        // For single stock updates, don't delete other stocks
-        if (stocks.length > 10) {
-          const stocksToDelete = existingStocks.filter(stock => !newSymbols.has(stock.symbol));
-          if (stocksToDelete.length > 0) {
-            console.log(`Removing ${stocksToDelete.length} stocks: ${stocksToDelete.map(s => s.symbol).join(', ')}`);
-            for (const stock of stocksToDelete) {
-              await tx.delete(portfolioTable).where(eq(portfolioTable.symbol, stock.symbol));
-            }
-          }
-        }
-        
-        // Process each stock individually for update or insert
-        const updatedStocks: any[] = [];
-        
+        // Simply update each stock that was sent
         for (const stock of stocks) {
-          // Prepare stock data with proper field mapping
-          const stockData: any = {
+          const updateData = {
             symbol: stock.symbol,
-            company: stock.company || '',
-            stock_type: stock.stockType || '',
-            rating: stock.rating || '',
-            sector: stock.sector || null,
-            quantity: Number(stock.quantity) || 0
+            company: stock.company,
+            stock_type: stock.stockType,
+            rating: stock.rating,
+            sector: stock.sector,
+            quantity: Number(stock.quantity),
+            purchase_price: Number(stock.purchasePrice)
           };
           
-          // Handle purchase_price separately to ensure it's properly set
-          if (stock.purchasePrice !== undefined && stock.purchasePrice !== null) {
-            stockData.purchase_price = Number(stock.purchasePrice);
-          } else if (existingSymbols.has(stock.symbol)) {
-            // Only preserve existing price if no new value was provided
-            const existingStock = existingStocks.find(s => s.symbol === stock.symbol);
-            if (existingStock && existingStock.purchase_price !== null) {
-              stockData.purchase_price = Number(existingStock.purchase_price);
-            }
-          }
-          
-
-          
-          if (existingSymbols.has(stock.symbol)) {
-            // Update existing stock
-            const [updatedStock] = await tx
-              .update(portfolioTable)
-              .set(stockData)
-              .where(eq(portfolioTable.symbol, stock.symbol))
-              .returning();
-            updatedStocks.push(updatedStock);
-          } else {
-            // Insert new stock
-            const [insertedStock] = await tx
-              .insert(portfolioTable)
-              .values(stockData)
-              .returning();
-            updatedStocks.push(insertedStock);
-          }
+          await tx
+            .update(portfolioTable)
+            .set(updateData)
+            .where(eq(portfolioTable.symbol, stock.symbol));
         }
         
-        console.log(`=== REBALANCE COMPLETE ===`);
-        console.log(`Successfully processed ${updatedStocks.length} stocks`);
-        updatedStocks.forEach(stock => {
-          console.log(`${stock.symbol}: purchase_price=${stock.purchase_price}`);
-        });
-        
-        // Transform to legacy format
-        return await adaptPortfolioData(updatedStocks, region);
+        // Return all portfolio stocks
+        const allStocks = await tx.select().from(portfolioTable);
+        return await adaptPortfolioData(allStocks, region);
       });
     } catch (error) {
-      console.error(`Error rebalancing portfolio (${region}):`, error);
+      console.error(`Error updating portfolio:`, error);
       throw error;
     }
   }
