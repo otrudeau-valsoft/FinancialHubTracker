@@ -208,11 +208,12 @@ export const rebalancePortfolio = async (req: Request, res: Response) => {
         }
         
         // Handle purchase price field (new field after migration)
-        if (processedStock.purchasePrice === undefined || processedStock.purchasePrice === null) {
-          processedStock.purchasePrice = null; // Allow null for purchase price
-        } else if (typeof processedStock.purchasePrice === 'string') {
-          processedStock.purchasePrice = parseFloat(processedStock.purchasePrice) || null;
+        if (processedStock.purchasePrice !== undefined && processedStock.purchasePrice !== null) {
+          if (typeof processedStock.purchasePrice === 'string') {
+            processedStock.purchasePrice = parseFloat(processedStock.purchasePrice) || null;
+          }
         }
+        // If purchasePrice is undefined, don't modify it - preserve existing DB value
         
         // CRITICAL: Remove any reference to the old 'price' field - we only use purchasePrice now
         delete processedStock.price;
