@@ -493,14 +493,25 @@ export class DatabaseAdapter {
               ? Number(stock.purchasePrice) : null
           };
           
-          // CRITICAL: If purchase_price is null but we're updating an existing stock,
-          // preserve the existing purchase price from the database
+          console.log(`=== STOCK DATA PROCESSING FOR ${stock.symbol} ===`);
+          console.log(`Input purchasePrice: ${stock.purchasePrice} (${typeof stock.purchasePrice})`);
+          console.log(`Processed purchase_price: ${stockData.purchase_price} (${typeof stockData.purchase_price})`);
+          
+          // Only preserve existing purchase price if the new value is truly undefined/null AND no explicit change was made
+          // This handles cases where purchase price data is missing, but respects user changes
           if (stockData.purchase_price === null && existingSymbols.has(stock.symbol)) {
             const existingStock = existingStocks.find(s => s.symbol === stock.symbol);
             if (existingStock && existingStock.purchase_price !== null) {
-              console.log(`  -> Preserving existing purchase price: ${existingStock.purchase_price}`);
-              stockData.purchase_price = Number(existingStock.purchase_price);
+              // Only preserve if the original input was truly undefined (not sent by frontend)
+              if (stock.purchasePrice === undefined) {
+                console.log(`  -> Preserving existing purchase price (no new value provided): ${existingStock.purchase_price}`);
+                stockData.purchase_price = Number(existingStock.purchase_price);
+              } else {
+                console.log(`  -> User explicitly set purchase price to null/0, respecting change`);
+              }
             }
+          } else if (stockData.purchase_price !== null) {
+            console.log(`  -> Using new purchase price: ${stockData.purchase_price}`);
           }
           
           console.log(`Processing ${stock.symbol}:`);
