@@ -45,26 +45,22 @@ router.put('/:region/summary/:id', asyncHandler(updatePortfolioSummary));
 router.post('/:region/rebalance', asyncHandler(rebalancePortfolio));
 
 // POST /api/portfolios/:region/database-update - Update multiple portfolio stocks (database editor)
-router.post('/:region/database-update', (req, res, next) => {
-  // Ensure express.json() middleware has parsed the body
-  if (!req.body) {
-    return res.status(400).json({ error: 'No request body received' });
-  }
-  next();
-}, async (req, res) => {
+router.post('/:region/database-update', async (req, res) => {
   try {
     const { region } = req.params;
     
-    // Directly extract and process data
-    const requestBody = req.body;
-    const updates = requestBody.updates || [];
-    const newRows = requestBody.newRows || [];  
-    const deletions = requestBody.deletions || [];
+    // Handle the data parsing issue by checking multiple sources
+    let updates = [];
+    let newRows = [];
+    let deletions = [];
+    
+    if (req.body && typeof req.body === 'object') {
+      updates = req.body.updates || [];
+      newRows = req.body.newRows || [];
+      deletions = req.body.deletions || [];
+    }
     
     console.log(`🔄 DATABASE UPDATE: Processing ${updates.length} updates, ${newRows.length} new rows, ${deletions.length} deletions for ${region}`);
-    
-    if (newRows.length > 0) console.log('Creating stocks:', newRows.map(r => r.symbol));
-    if (deletions.length > 0) console.log('Deleting stock IDs:', deletions);
     
     const { dbAdapter } = await import('../../db-adapter');
     let totalProcessed = 0;
@@ -90,37 +86,43 @@ router.post('/:region/database-update', (req, res, next) => {
       }
     }
 
-    // Handle deletions first (remove stocks)
-    for (const stockId of deletions) {
-      try {
-        console.log(`Deleting stock ID ${stockId}`);
-        await dbAdapter.deletePortfolioStock(stockId, region);
-        console.log(`✅ Deleted stock ID ${stockId}`);
-        totalProcessed++;
-      } catch (error) {
-        console.error(`Error deleting stock ID ${stockId}:`, error);
+    // Process deletions first (remove stocks)
+    if (deletions.length > 0) {
+      console.log(`Processing ${deletions.length} deletions:`, deletions);
+      for (const stockId of deletions) {
+        try {
+          console.log(`Deleting stock ID ${stockId}`);
+          await dbAdapter.deletePortfolioStock(stockId, region);
+          console.log(`✅ Deleted stock ID ${stockId}`);
+          totalProcessed++;
+        } catch (error) {
+          console.error(`Error deleting stock ID ${stockId}:`, error);
+        }
       }
     }
 
-    // Handle creation of new stocks
-    for (const newStock of newRows) {
-      try {
-        console.log(`Creating new stock: ${newStock.symbol}`);
-        const dbNewStock = {
-          symbol: newStock.symbol,
-          company: newStock.company,
-          stockType: newStock.stock_type,
-          rating: parseInt(newStock.rating),
-          quantity: parseInt(newStock.quantity),
-          purchasePrice: parseFloat(newStock.purchase_price),
-          sector: newStock.sector
-        };
-        
-        await dbAdapter.createPortfolioStock(dbNewStock, region);
-        console.log(`✅ Created new stock: ${newStock.symbol}`);
-        totalProcessed++;
-      } catch (error) {
-        console.error(`Error creating stock ${newStock.symbol}:`, error);
+    // Process new stock creation  
+    if (newRows.length > 0) {
+      console.log(`Processing ${newRows.length} new stocks:`, newRows.map(r => r.symbol));
+      for (const newStock of newRows) {
+        try {
+          console.log(`Creating new stock: ${newStock.symbol}`);
+          const dbNewStock = {
+            symbol: newStock.symbol,
+            company: newStock.company,
+            stockType: newStock.stock_type,
+            rating: parseInt(newStock.rating),
+            quantity: parseInt(newStock.quantity),
+            purchasePrice: parseFloat(newStock.purchase_price),
+            sector: newStock.sector
+          };
+          
+          await dbAdapter.createPortfolioStock(dbNewStock, region);
+          console.log(`✅ Created new stock: ${newStock.symbol}`);
+          totalProcessed++;
+        } catch (error) {
+          console.error(`Error creating stock ${newStock.symbol}:`, error);
+        }
       }
     }
 
