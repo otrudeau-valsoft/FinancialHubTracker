@@ -175,16 +175,19 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
       }
       
       for (const update of updatesArray) {
-        const updateData: any = {};
-        if (update.purchase_price !== undefined) updateData.purchasePrice = update.purchase_price;
-        if (update.stock_type !== undefined) updateData.stockType = update.stock_type;
-        if (update.symbol !== undefined) updateData.symbol = update.symbol;
-        if (update.company !== undefined) updateData.company = update.company;
-        if (update.rating !== undefined) updateData.rating = update.rating;
-        if (update.quantity !== undefined) updateData.quantity = update.quantity;
-        if (update.sector !== undefined) updateData.sector = update.sector;
-        
-        await apiRequest('PATCH', `/api/portfolios/${region}/stocks/${update.id}`, updateData);
+        // Only process updates for existing stocks (positive IDs)
+        if (update.id > 0) {
+          const updateData: any = {};
+          if (update.purchase_price !== undefined) updateData.purchasePrice = update.purchase_price;
+          if (update.stock_type !== undefined) updateData.stockType = update.stock_type;
+          if (update.symbol !== undefined) updateData.symbol = update.symbol;
+          if (update.company !== undefined) updateData.company = update.company;
+          if (update.rating !== undefined) updateData.rating = update.rating;
+          if (update.quantity !== undefined) updateData.quantity = update.quantity;
+          if (update.sector !== undefined) updateData.sector = update.sector;
+          
+          await apiRequest('PATCH', `/api/portfolios/${region}/stocks/${update.id}`, updateData);
+        }
       }
 
       await queryClient.invalidateQueries({ queryKey: ['/api/portfolios', region, 'stocks'] });
