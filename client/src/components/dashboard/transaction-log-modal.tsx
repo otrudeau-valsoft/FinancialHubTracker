@@ -20,6 +20,7 @@ interface Transaction {
 interface Stock {
   id: number;
   symbol: string;
+  company: string;
   quantity: number;
   currentPrice?: number;
 }
@@ -356,14 +357,7 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
               {transactions.map((transaction) => {
                 const errors = getValidationErrors(transaction);
                 const quantity = parseInt(transaction.quantity) || 0;
-                let price = parseFloat(transaction.price) || 0;
-                
-                // For SELL transactions, use current market price
-                if (transaction.action === 'SELL') {
-                  const stock = stocks.find(s => s.symbol === transaction.symbol);
-                  price = stock?.currentPrice || 0;
-                }
-                
+                const price = parseFloat(transaction.price) || 0;
                 const total = quantity * price;
                 
                 return (
@@ -375,6 +369,20 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
                         placeholder="AAPL"
                         className="w-24 h-8 text-xs bg-slate-800 border-slate-600 text-white"
                       />
+                    </td>
+                    <td className="p-3">
+                      {transaction.action === 'BUY' && !stocks.find(s => s.symbol === transaction.symbol) ? (
+                        <Input
+                          value={transaction.company || ''}
+                          onChange={(e) => updateTransaction(transaction.id, 'company', e.target.value)}
+                          placeholder="Apple Inc."
+                          className="w-32 h-8 text-xs bg-slate-800 border-slate-600 text-white"
+                        />
+                      ) : (
+                        <span className="text-slate-400 text-xs">
+                          {stocks.find(s => s.symbol === transaction.symbol)?.company || 'Not required'}
+                        </span>
+                      )}
                     </td>
                     <td className="p-3">
                       <Select 
