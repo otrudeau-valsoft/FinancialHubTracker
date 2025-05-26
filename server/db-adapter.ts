@@ -104,6 +104,11 @@ export class DatabaseAdapter {
         portfolioPercentage: portfolioWeight,
         dailyChangePercent: dailyChange,
         profitLoss: profitLoss,
+        mtdChangePercent: 0, // TODO: Calculate MTD change
+        ytdChangePercent: 0, // TODO: Calculate YTD change  
+        sixMonthChangePercent: 0, // TODO: Calculate 6M change
+        fiftyTwoWeekChangePercent: 0, // TODO: Calculate 52W change
+        dividendYield: currentPriceInfo?.dividendYield ? Number(currentPriceInfo.dividendYield) : undefined,
         nextEarningsDate: undefined,
       };
     });
@@ -136,8 +141,17 @@ export class DatabaseAdapter {
       
       console.log(`Raw portfolio data sample for ${region}:`, JSON.stringify(portfolioData[0], null, 2));
       
+      // Debug: Check if purchase price exists
+      if (portfolioData[0]) {
+        console.log(`Purchase price in raw data: ${portfolioData[0].purchasePrice}`);
+      }
+      
       // Transform to legacy format with purchase price support
-      return await this.adaptPortfolioDataWithPurchasePrice(portfolioData, region);
+      const result = await this.adaptPortfolioDataWithPurchasePrice(portfolioData, region);
+      
+      console.log(`First transformed item:`, JSON.stringify(result[0], null, 2));
+      
+      return result;
     } catch (error) {
       console.error(`Error getting portfolio stocks for ${region}:`, error);
       throw error;
