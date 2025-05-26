@@ -25,6 +25,8 @@ interface DatabaseEditorModalProps {
   region: string;
 }
 
+type RebalancerMode = 'portfolio' | 'position';
+
 const STOCK_TYPES = ['Comp', 'Cat', 'Cycl'];
 const RATINGS = ['1', '2', '3', '4'];
 const SECTORS = [
@@ -48,6 +50,7 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
   const [deletedRows, setDeletedRows] = useState<Set<number>>(new Set());
   const [nextNewId, setNextNewId] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
+  const [mode, setMode] = useState<RebalancerMode>('portfolio');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -197,11 +200,13 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
         });
       }
       
-      // Process quantity updates (difference in position value)
+      // Process quantity updates based on mode
       for (const update of updatesArray) {
         if (update.id > 0) {
-          // Calculate cash impact for quantity changes
-          if (update.quantity !== undefined) {
+          const updateData: any = {};
+          
+          if (mode === 'position' && update.quantity !== undefined) {
+            // Position Management Mode: Calculate weighted average cost
             const originalStock = stocks.find(s => s.id === update.id);
             if (originalStock) {
               const oldQuantity = originalStock.quantity;
@@ -209,15 +214,31 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
               const quantityDiff = newQuantity - oldQuantity;
               
               if (quantityDiff !== 0) {
-                const priceImpact = quantityDiff * originalStock.price;
-                totalCashImpact -= priceImpact; // Buying more shares reduces cash
-                console.log(`📊 ${originalStock.symbol} quantity change: ${quantityDiff} shares × $${originalStock.price} = ${priceImpact > 0 ? '-' : '+'}$${Math.abs(priceImpact).toFixed(2)}`);
+                if (quantityDiff > 0) {
+                  // Adding shares: calculate new weighted average
+                  const currentAvgCost = originalStock.purchasePrice;
+                  const newSharePrice = originalStock.price; // Current market price for new shares
+                  const newAvgCost = (oldQuantity * currentAvgCost + quantityDiff * newSharePrice) / newQuantity;
+                  
+                  updateData.purchasePrice = newAvgCost.toFixed(2);
+                  
+                  const addCost = quantityDiff * newSharePrice;
+                  totalCashImpact -= addCost;
+                  console.log(`📈 Adding ${quantityDiff} shares of ${originalStock.symbol} @ $${newSharePrice}: -$${addCost.toFixed(2)}`);
+                  console.log(`💰 New weighted avg cost: $${currentAvgCost} → $${newAvgCost.toFixed(2)}`);
+                } else {
+                  // Trimming shares: keep same avg cost, just sell at market price
+                  const sellValue = Math.abs(quantityDiff) * originalStock.price;
+                  totalCashImpact += sellValue;
+                  console.log(`📉 Trimming ${Math.abs(quantityDiff)} shares of ${originalStock.symbol} @ $${originalStock.price}: +$${sellValue.toFixed(2)}`);
+                  console.log(`💰 Avg cost remains: $${originalStock.purchasePrice}`);
+                }
               }
             }
           }
           
-          const updateData: any = {};
-          if (update.purchase_price !== undefined) updateData.purchasePrice = update.purchase_price;
+          // Standard updates
+          if (update.purchase_price !== undefined && mode === 'portfolio') updateData.purchasePrice = update.purchase_price;
           if (update.stock_type !== undefined) updateData.stockType = update.stock_type;
           if (update.symbol !== undefined) updateData.symbol = update.symbol;
           if (update.company !== undefined) updateData.company = update.company;
@@ -243,17 +264,22 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
       await queryClient.invalidateQueries({ queryKey: ['/api/portfolios', region, 'stocks'] });
       await queryClient.invalidateQueries({ queryKey: ['/api/cash'] });
       
-      // Create success message with cash impact
+      // Create mode-specific success message
       const totalOperations = updatesArray.length + newRowsArray.length + deletionsArray.length;
-      let message = `Successfully processed ${totalOperations} operations in ${region} portfolio.`;
+      let message = '';
       
-      if (Math.abs(totalCashImpact) > 0.01) {
-        const cashChange = totalCashImpact > 0 ? '+' : '';
-        message += ` Cash balance: ${cashChange}$${totalCashImpact.toFixed(2)}`;
+      if (mode === 'portfolio') {
+        message = `Portfolio Rebalance: ${totalOperations} operations completed in ${region}.`;
+      } else {
+        message = `Position Management: ${totalOperations} transactions completed in ${region}.`;
+        if (Math.abs(totalCashImpact) > 0.01) {
+          const cashChange = totalCashImpact > 0 ? '+' : '';
+          message += ` Cash impact: ${cashChange}$${totalCashImpact.toFixed(2)}`;
+        }
       }
       
       toast({
-        title: "Portfolio Updated",
+        title: mode === 'portfolio' ? "Portfolio Rebalanced" : "Positions Updated",
         description: message,
       });
       
@@ -281,12 +307,39 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[95vw] h-[90vh] flex flex-col bg-slate-900 border-slate-700">
         <DialogHeader className="flex flex-row items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Database className="h-5 w-5 text-blue-400" />
-            <DialogTitle className="text-white text-xl">
-              Database Editor: portfolio_{region}
-            </DialogTitle>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Database className="h-5 w-5 text-blue-400" />
+              <DialogTitle className="text-white text-xl">
+                Rebalancer: {region} Portfolio
+              </DialogTitle>
+            </div>
+            
+            {/* Mode Toggle */}
+            <div className="flex items-center gap-2 bg-slate-800 rounded-lg p-1">
+              <button
+                onClick={() => setMode('portfolio')}
+                className={`px-3 py-1 text-xs rounded transition-colors ${
+                  mode === 'portfolio' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Portfolio Rebalance
+              </button>
+              <button
+                onClick={() => setMode('position')}
+                className={`px-3 py-1 text-xs rounded transition-colors ${
+                  mode === 'position' 
+                    ? 'bg-green-600 text-white' 
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Position Management
+              </button>
+            </div>
           </div>
+          
           <Button
             variant="ghost"
             size="icon"
@@ -299,7 +352,11 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
         
         <div className="flex items-center justify-between mb-4">
           <div className="text-sm text-slate-400">
-            Edit cells directly. Changes are tracked and only modified rows will be updated.
+            {mode === 'portfolio' ? (
+              <>Edit cells directly. Purchase price updates change weighted average cost only.</>
+            ) : (
+              <>Position Management: Quantity changes = buy/sell transactions with weighted average calculation.</>
+            )}
             {changes.size > 0 && (
               <span className="text-orange-400 ml-2">
                 {changes.size} row(s) modified
