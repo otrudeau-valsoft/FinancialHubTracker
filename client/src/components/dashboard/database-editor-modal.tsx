@@ -303,25 +303,14 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] h-[90vh] flex flex-col bg-slate-900 border-slate-700">
-        <DialogHeader className="flex flex-row items-center justify-between">
+      <DialogContent className="max-w-[95vw] max-h-[90vh] flex flex-col bg-slate-900 border-slate-700 overflow-hidden">
+        <DialogHeader>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2">
-              <Database className="h-5 w-5 text-green-400" />
-              <DialogTitle className="text-white text-xl">
-                Transaction Panel - {region} Portfolio
-              </DialogTitle>
-            </div>
+            <Database className="h-5 w-5 text-green-400" />
+            <DialogTitle className="text-white text-xl">
+              Transaction Panel - {region} Portfolio
+            </DialogTitle>
           </div>
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="text-slate-400 hover:text-white"
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </DialogHeader>
         
         <div className="bg-slate-800 p-4 rounded-lg mb-4">
