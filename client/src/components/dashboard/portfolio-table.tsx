@@ -86,25 +86,13 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
   // Use either provided prices or fetched prices
   const prices = currentPrices || fetchedPrices || [];
   
-  // Map portfolio stocks to the format expected by RebalanceModal
-  const rebalanceStocks = stocks.map(stock => ({
-    id: stock.id,
-    symbol: stock.symbol,
-    company: stock.company,
-    stockType: stock.stockType,
-    rating: stock.rating,
-    quantity: stock.quantity,
-    purchasePrice: stock.purchasePrice,
-    sector: stock.sector || 'Technology' // Default sector if not available
-  }));
-  
   return (
     <>
-      <RebalanceModal 
+      <DatabaseEditorModal 
         isOpen={isRebalanceModalOpen}
         onClose={() => setIsRebalanceModalOpen(false)}
         region={region}
-        existingStocks={rebalanceStocks}
+        stocks={stocks}
       />
       
       <Card className="mb-6 border-0 shadow bg-[#0A1929] rounded-none border border-[#1A304A]">
@@ -118,7 +106,7 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                 variant="outline"
                 className="h-6 px-2 text-[10px] font-mono bg-[#0F1A2A] border-[#193049] text-[#EFEFEF] hover:bg-[#162638]"
               >
-                <Repeat size={12} className="mr-1" /> REBALANCE
+                <Repeat size={12} className="mr-1" /> DATABASE EDITOR
               </Button>
             </div>
             <div className="h-1 w-8 bg-[#4CAF50]"></div>
