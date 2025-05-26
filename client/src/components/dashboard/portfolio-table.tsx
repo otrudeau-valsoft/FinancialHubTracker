@@ -106,7 +106,7 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                 variant="outline"
                 className="h-6 px-2 text-[10px] font-mono bg-[#0F1A2A] border-[#193049] text-[#EFEFEF] hover:bg-[#162638]"
               >
-                <Repeat size={12} className="mr-1" /> DATABASE EDITOR
+                <Repeat size={12} className="mr-1" /> REBALANCER
               </Button>
             </div>
             <div className="h-1 w-8 bg-[#4CAF50]"></div>

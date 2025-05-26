@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { X, Database } from "lucide-react";
+import { X, Database, Plus, Trash2 } from "lucide-react";
 
 interface DatabaseRow {
   id: number;
@@ -45,6 +45,8 @@ const SECTORS = [
 export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: DatabaseEditorModalProps) {
   const [databaseRows, setDatabaseRows] = useState<DatabaseRow[]>([]);
   const [changes, setChanges] = useState<Map<number, Partial<DatabaseRow>>>(new Map());
+  const [deletedRows, setDeletedRows] = useState<Set<number>>(new Set());
+  const [nextNewId, setNextNewId] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -63,8 +65,40 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
       }));
       setDatabaseRows(dbRows);
       setChanges(new Map());
+      setDeletedRows(new Set());
+      setNextNewId(-1);
     }
   }, [isOpen, stocks]);
+
+  const addNewRow = () => {
+    const newRow: DatabaseRow = {
+      id: nextNewId,
+      symbol: '',
+      company: '',
+      stock_type: 'Comp',
+      rating: '1',
+      quantity: '0',
+      purchase_price: '0.00',
+      sector: 'Technology'
+    };
+    setDatabaseRows(prev => [...prev, newRow]);
+    setNextNewId(prev => prev - 1);
+  };
+
+  const deleteRow = (id: number) => {
+    if (id > 0) {
+      // Existing row - mark for deletion
+      setDeletedRows(prev => new Set([...prev, id]));
+    }
+    // Remove from display (both new and existing rows)
+    setDatabaseRows(prev => prev.filter(row => row.id !== id));
+    // Remove from changes if it exists
+    setChanges(prev => {
+      const newChanges = new Map(prev);
+      newChanges.delete(id);
+      return newChanges;
+    });
+  };
 
   const updateCell = (id: number, field: keyof DatabaseRow, value: string) => {
     // Update the display data
@@ -83,7 +117,11 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
   };
 
   const handleSave = async () => {
-    if (changes.size === 0) {
+    const hasChanges = changes.size > 0;
+    const hasNewRows = databaseRows.some(row => row.id < 0);
+    const hasDeletedRows = deletedRows.size > 0;
+    
+    if (!hasChanges && !hasNewRows && !hasDeletedRows) {
       toast({
         title: "No Changes",
         description: "No changes detected to save.",
@@ -94,14 +132,30 @@ export function DatabaseEditorModal({ isOpen, onClose, stocks, region }: Databas
     try {
       setIsLoading(true);
       
-      // Prepare only changed rows for update
+      // Prepare updates for existing rows
       const updatesArray = Array.from(changes.entries()).map(([id, changes]) => ({
         id,
         ...changes
       }));
 
-      console.log(`🔄 DATABASE SCRIPT: Updating ${updatesArray.length} rows in portfolio_${region}`);
-      console.log('Changes:', updatesArray);
+      // Prepare new rows for creation
+      const newRowsArray = databaseRows.filter(row => row.id < 0).map(row => ({
+        symbol: row.symbol,
+        company: row.company,
+        stock_type: row.stock_type,
+        rating: row.rating,
+        quantity: row.quantity,
+        purchase_price: row.purchase_price,
+        sector: row.sector
+      }));
+
+      // Prepare deletions
+      const deletionsArray = [...deletedRows];
+
+      console.log(`🔄 DATABASE SCRIPT: Processing ${updatesArray.length} updates, ${newRowsArray.length} new rows, ${deletionsArray.length} deletions for portfolio_${region}`);
+      console.log('Updates:', updatesArray);
+      console.log('New rows:', newRowsArray);
+      console.log('Deletions:', deletionsArray);
 
       await apiRequest(
         'POST',
