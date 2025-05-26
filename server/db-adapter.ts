@@ -527,11 +527,13 @@ export class DatabaseAdapter {
           if (existingSymbols.has(stock.symbol)) {
             // Update existing stock
             console.log(`  -> UPDATING existing stock`);
+            console.log(`  -> SET data:`, JSON.stringify(stockData, null, 2));
             const [updatedStock] = await tx
               .update(portfolioTable)
               .set(stockData)
               .where(eq(portfolioTable.symbol, stock.symbol))
               .returning();
+            console.log(`  -> UPDATE result:`, JSON.stringify(updatedStock, null, 2));
             updatedStocks.push(updatedStock);
           } else {
             // Insert new stock
