@@ -493,6 +493,16 @@ export class DatabaseAdapter {
               ? Number(stock.purchasePrice) : null
           };
           
+          // CRITICAL: If purchase_price is null but we're updating an existing stock,
+          // preserve the existing purchase price from the database
+          if (stockData.purchase_price === null && existingSymbols.has(stock.symbol)) {
+            const existingStock = existingStocks.find(s => s.symbol === stock.symbol);
+            if (existingStock && existingStock.purchase_price !== null) {
+              console.log(`  -> Preserving existing purchase price: ${existingStock.purchase_price}`);
+              stockData.purchase_price = Number(existingStock.purchase_price);
+            }
+          }
+          
           console.log(`Processing ${stock.symbol}:`);
           console.log(`  - Company: ${stockData.company}`);
           console.log(`  - Stock Type: ${stockData.stock_type}`);
