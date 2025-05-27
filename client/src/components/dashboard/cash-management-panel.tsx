@@ -1,13 +1,10 @@
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Save, Wallet } from 'lucide-react';
-import { DollarSign } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { DollarSign } from 'lucide-react';
 
 interface CashPanelProps {
   className?: string;
@@ -20,161 +17,151 @@ interface CashBalance {
   updatedAt: string;
 }
 
-const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
-  const [cashValues, setCashValues] = useState<{[key: string]: string}>({
-    USD: '',
-    CAD: '',
-    INTL: ''
-  });
+export function CashManagementPanel({ className }: CashPanelProps) {
+  const [usdValue, setUsdValue] = React.useState('0');
+  const [cadValue, setCadValue] = React.useState('0');
+  const [intlValue, setIntlValue] = React.useState('0');
+  const [isLoading, setIsLoading] = React.useState(false);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  // Query to fetch cash balances
-  const { data: cashBalances, isLoading } = useQuery({
-    queryKey: ['/api/cash'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/cash');
-      return response as unknown as CashBalance[];
-    }
-  });
-  
-  // Update local state when data is loaded - only on initial load or valid data
+  // Load cash data on mount
   React.useEffect(() => {
-    if (cashBalances && Array.isArray(cashBalances) && cashBalances.length > 0) {
-      // Only update if we have valid data with actual amounts
-      const hasValidData = cashBalances.every(cash => cash.amount && cash.region);
-      if (hasValidData) {
-        const values: {[key: string]: string} = {};
-        cashBalances.forEach(cash => {
-          values[cash.region] = cash.amount;
-        });
-        setCashValues(values);
-      }
-    }
-  }, [cashBalances]);
-
-  // Force data initialization on component mount
-  React.useEffect(() => {
-    const initializeData = async () => {
+    const loadCashData = async () => {
       try {
         const response = await apiRequest('GET', '/api/cash');
-        if (Array.isArray(response) && response.length > 0) {
-          const values: {[key: string]: string} = {};
+        if (Array.isArray(response)) {
           response.forEach((cash: CashBalance) => {
-            values[cash.region] = cash.amount;
+            if (cash.region === 'USD') setUsdValue(cash.amount);
+            if (cash.region === 'CAD') setCadValue(cash.amount);
+            if (cash.region === 'INTL') setIntlValue(cash.amount);
           });
-          setCashValues(values);
         }
       } catch (error) {
-        console.error('Failed to initialize cash data:', error);
+        console.error('Error loading cash data:', error);
       }
     };
-    initializeData();
+    loadCashData();
   }, []);
 
-  // Mutation to update cash balance
-  const updateCashMutation = useMutation({
-    mutationFn: ({ region, amount }: { region: string; amount: string }) => 
-      apiRequest('POST', `/api/cash/${region}`, { amount }),
-    onSuccess: (_, variables) => {
-      // Update the local state immediately to show the new value
-      setCashValues(prev => ({
-        ...prev,
-        [variables.region]: variables.amount
-      }));
-      
+  const handleSave = async (region: string, amount: string) => {
+    if (!amount || isNaN(Number(amount))) {
       toast({
-        title: 'Cash balance updated',
-        description: `${variables.region} cash balance updated to $${Number(variables.amount).toLocaleString()}`
-      });
-      
-      // Immediately refresh the page to ensure all components show the updated values
-      window.location.reload();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: 'Error updating cash balance',
-        description: error.message,
+        title: 'Invalid amount',
+        description: 'Please enter a valid number',
         variant: 'destructive'
       });
+      return;
     }
-  });
 
-  // Handle input change
-  const handleInputChange = (region: string, value: string) => {
-    setCashValues(prev => ({
-      ...prev,
-      [region]: value
-    }));
+    setIsLoading(true);
+    try {
+      await apiRequest('POST', `/api/cash/${region}`, { amount });
+      toast({
+        title: 'Cash balance updated',
+        description: `${region} cash balance updated to $${Number(amount).toLocaleString()}`
+      });
+      // Refresh page to sync all components
+      window.location.reload();
+    } catch (error) {
+      toast({
+        title: 'Error updating cash balance',
+        description: 'Failed to update cash balance',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Handle save button click
-  const handleSave = (region: string) => {
-    const amount = cashValues[region];
-    if (!amount) return;
-    
-    updateCashMutation.mutate({ region, amount });
+  const calculateTotal = () => {
+    const usd = parseFloat(usdValue) || 0;
+    const cad = parseFloat(cadValue) || 0;
+    const intl = parseFloat(intlValue) || 0;
+    return usd + cad + intl;
   };
-
-  // Calculate total cash across all portfolios
-  const totalCash = React.useMemo(() => {
-    if (!cashBalances || !Array.isArray(cashBalances)) return 0;
-    return cashBalances.reduce((sum: number, cash: CashBalance) => 
-      sum + parseFloat(cash.amount || '0'), 0);
-  }, [cashBalances]);
 
   return (
-    <Card className={`bg-[#0A1524] border border-[#1A304A] rounded-none shadow-lg ${className}`}>
-      <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-2 sm:p-3">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-[#EFEFEF] text-base sm:text-lg font-mono flex items-center">
-            <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-[#4CAF50]" />
-            CASH BALANCES
-          </CardTitle>
-          <div className="text-sm text-[#EFEFEF] font-mono">
-            TOTAL: <span className="text-[#4CAF50]">${totalCash.toLocaleString()}</span>
+    <Card className={className}>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-sm font-medium">
+          <DollarSign className="h-4 w-4" />
+          CASH BALANCES
+          <span className="ml-auto text-green-400">
+            TOTAL: ${calculateTotal().toLocaleString()}
+          </span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-xs text-muted-foreground mb-4">
+          Cash values are used in portfolio calculations for NAV and weights
+        </p>
+        
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium min-w-[40px]">USD:</span>
+          <div className="flex items-center gap-2 flex-1">
+            <span className="text-sm">$</span>
+            <Input
+              type="number"
+              value={usdValue}
+              onChange={(e) => setUsdValue(e.target.value)}
+              className="flex-1 h-8"
+              placeholder="0"
+            />
+            <Button
+              size="sm"
+              onClick={() => handleSave('USD', usdValue)}
+              disabled={isLoading}
+              className="h-8 px-3"
+            >
+              Save
+            </Button>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="p-3 sm:p-4 space-y-3">
-        {isLoading ? (
-          <div className="text-center text-[#7A8999] py-3">
-            Loading cash balances...
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium min-w-[40px]">CAD:</span>
+          <div className="flex items-center gap-2 flex-1">
+            <span className="text-sm">$</span>
+            <Input
+              type="number"
+              value={cadValue}
+              onChange={(e) => setCadValue(e.target.value)}
+              className="flex-1 h-8"
+              placeholder="0"
+            />
+            <Button
+              size="sm"
+              onClick={() => handleSave('CAD', cadValue)}
+              disabled={isLoading}
+              className="h-8 px-3"
+            >
+              Save
+            </Button>
           </div>
-        ) : (
-          <>
-            {Array.isArray(cashBalances) && cashBalances.map(cash => (
-              <div key={cash.region} className="flex items-center gap-2">
-                <div className="w-12 font-mono text-xs text-[#EFEFEF]">{cash.region}</div>
-                <div className="relative flex-1">
-                  <DollarSign className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#7A8999]" />
-                  <Input
-                    type="number"
-                    value={cashValues[cash.region] || ''}
-                    onChange={(e) => handleInputChange(cash.region, e.target.value)}
-                    className="bg-[#1C2938] border-[#1A304A] pl-8 text-[#EFEFEF]"
-                    placeholder="Amount"
-                  />
-                </div>
-                <Button 
-                  variant="outline"
-                  size="sm"
-                  className="border-[#1A304A] bg-[#1C2938] hover:bg-[#243447] text-[#4CAF50] h-9"
-                  onClick={() => handleSave(cash.region)}
-                  disabled={updateCashMutation.isPending}
-                >
-                  <Save className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-            <div className="text-xs text-[#7A8999] mt-2 border-t border-[#1A304A] pt-2">
-              Cash values are used in portfolio calculations for NAV and weights
-            </div>
-          </>
-        )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium min-w-[40px]">INTL:</span>
+          <div className="flex items-center gap-2 flex-1">
+            <span className="text-sm">$</span>
+            <Input
+              type="number"
+              value={intlValue}
+              onChange={(e) => setIntlValue(e.target.value)}
+              className="flex-1 h-8"
+              placeholder="0"
+            />
+            <Button
+              size="sm"
+              onClick={() => handleSave('INTL', intlValue)}
+              disabled={isLoading}
+              className="h-8 px-3"
+            >
+              Save
+            </Button>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
-};
-
-export default CashManagementPanel;
+}
