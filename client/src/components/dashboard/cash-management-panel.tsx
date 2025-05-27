@@ -40,53 +40,31 @@ const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
   
   // Update local state when data is loaded
   React.useEffect(() => {
+    console.log('Cash balances updated:', cashBalances);
     if (cashBalances && cashBalances.length > 0) {
       const values: {[key: string]: string} = {};
       cashBalances.forEach(cash => {
         values[cash.region] = cash.amount;
       });
+      console.log('Setting cash values:', values);
       setCashValues(values);
     }
   }, [cashBalances]);
 
-  // Mutation to update cash balance with optimistic updates
+  // Mutation to update cash balance
   const updateCashMutation = useMutation({
     mutationFn: ({ region, amount }: { region: string; amount: string }) => 
       apiRequest('POST', `/api/cash/${region}`, { amount }),
-    onMutate: async ({ region, amount }) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['/api/cash'] });
-      
-      // Snapshot the previous value
-      const previousCashBalances = queryClient.getQueryData(['/api/cash']);
-      
-      // Optimistically update just the local state, not the query cache
-      setCashValues(prev => ({
-        ...prev,
-        [region]: amount
-      }));
-      
-      // Return a context with the previous values
-      return { previousCashBalances, region, amount };
-    },
     onSuccess: (_, variables) => {
       toast({
         title: 'Cash balance updated',
         description: `${variables.region} cash balance updated to $${Number(variables.amount).toLocaleString()}`
       });
-      // Refetch to ensure server and client are in sync
-      queryClient.invalidateQueries({ queryKey: ['/api/cash'] });
+      // Refresh data without clearing the display
+      queryClient.refetchQueries({ queryKey: ['/api/cash'] });
       queryClient.invalidateQueries({ queryKey: ['/api/holdings'] });
     },
-    onError: (error: Error, variables, context) => {
-      // Roll back the local state on error
-      if (context?.previousCashBalances && Array.isArray(context.previousCashBalances)) {
-        const values: {[key: string]: string} = {};
-        context.previousCashBalances.forEach((cash: CashBalance) => {
-          values[cash.region] = cash.amount;
-        });
-        setCashValues(values);
-      }
+    onError: (error: Error) => {
       toast({
         title: 'Error updating cash balance',
         description: error.message,
