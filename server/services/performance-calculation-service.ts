@@ -35,6 +35,8 @@ class PerformanceCalculationService {
       const symbols = stocks.map(s => s.symbol);
       const results: Record<string, { mtdReturn?: number; ytdReturn?: number; sixMonthReturn?: number; fiftyTwoWeekReturn?: number }> = {};
       
+
+      
       // Initialize results
       for (const symbol of symbols) {
         results[symbol] = {
@@ -43,9 +45,6 @@ class PerformanceCalculationService {
           sixMonthReturn: undefined,
           fiftyTwoWeekReturn: undefined
         };
-        
-        console.log(`🔍 ${symbol} DEBUG: Current=${currentPrice}, MTD start=${prices.mtdPrice}, YTD start=${prices.ytdPrice}, 52W high=${prices.fiftyTwoWeekHighPrice}`);
-      }
       
       // Check cache first for each symbol
       const symbolsToFetch: string[] = [];
