@@ -60,17 +60,13 @@ const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
       // Snapshot the previous value
       const previousCashBalances = queryClient.getQueryData(['/api/cash']);
       
-      // Optimistically update the cash balance
-      queryClient.setQueryData(['/api/cash'], (old: CashBalance[] | undefined) => {
-        if (!old) return old;
-        return old.map(cash => 
-          cash.region === region 
-            ? { ...cash, amount: amount }
-            : cash
-        );
-      });
+      // Optimistically update just the local state, not the query cache
+      setCashValues(prev => ({
+        ...prev,
+        [region]: amount
+      }));
       
-      // Return a context with the previous and new values
+      // Return a context with the previous values
       return { previousCashBalances, region, amount };
     },
     onSuccess: (_, variables) => {
@@ -83,9 +79,13 @@ const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
       queryClient.invalidateQueries({ queryKey: ['/api/holdings'] });
     },
     onError: (error: Error, variables, context) => {
-      // Roll back to the previous value on error
-      if (context?.previousCashBalances) {
-        queryClient.setQueryData(['/api/cash'], context.previousCashBalances);
+      // Roll back the local state on error
+      if (context?.previousCashBalances && Array.isArray(context.previousCashBalances)) {
+        const values: {[key: string]: string} = {};
+        context.previousCashBalances.forEach((cash: CashBalance) => {
+          values[cash.region] = cash.amount;
+        });
+        setCashValues(values);
       }
       toast({
         title: 'Error updating cash balance',
