@@ -73,7 +73,9 @@ export async function fixedPortfolioAdapter(data: any[], region: string): Promis
   // Map each stock to legacy format with calculated values
   return data.map(item => {
     const quantity = Number(item.quantity);
-    const purchasePrice = Number(item.purchasePrice || item.purchase_price) || undefined;
+    // Handle both camelCase and snake_case column naming
+    const rawPurchasePrice = item.purchasePrice || item.purchase_price;
+    const purchasePrice = rawPurchasePrice ? Number(rawPurchasePrice) : undefined;
     const bookPrice = purchasePrice || 0;
     
     const currentPriceInfo = priceMap[item.symbol];
@@ -98,7 +100,7 @@ export async function fixedPortfolioAdapter(data: any[], region: string): Promis
       rating: item.rating,
       sector: item.sector || 'Technology',
       quantity: quantity,
-      price: purchasePrice,
+      price: purchasePrice, // This is the purchase/book price
       netAssetValue: nav,
       portfolioPercentage: portfolioWeight,
       dailyChangePercent: dailyChange,
