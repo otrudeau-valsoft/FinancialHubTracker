@@ -154,7 +154,8 @@ class PerformanceCalculationService {
         pricesBySymbol[symbol] = {
           mtdStartPrice: undefined,
           ytdStartPrice: undefined,
-          sixMonthPrice: undefined
+          sixMonthPrice: undefined,
+          fiftyTwoWeekHighPrice: undefined
         };
       }
       
@@ -167,12 +168,12 @@ class PerformanceCalculationService {
         if (isNaN(priceValue) || priceValue === 0) continue;
         
         // First day of month price (for MTD)
-        if (priceDate >= firstDayOfMonth && !pricesBySymbol[symbol].mtdStartPrice) {
+        if (priceDate >= actualFirstDayOfMonth && !pricesBySymbol[symbol].mtdStartPrice) {
           pricesBySymbol[symbol].mtdStartPrice = priceValue;
         }
         
         // First day of year price (for YTD)
-        if (priceDate >= firstDayOfYear && !pricesBySymbol[symbol].ytdStartPrice) {
+        if (priceDate >= actualFirstDayOfYear && !pricesBySymbol[symbol].ytdStartPrice) {
           pricesBySymbol[symbol].ytdStartPrice = priceValue;
         }
         
