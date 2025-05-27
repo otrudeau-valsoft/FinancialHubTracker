@@ -244,9 +244,9 @@ export default function UsdPortfolio() {
               cashShares={1}
             />
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 md:h-[500px]">
               {/* Allocation Chart - 1 col */}
-              <div className="md:col-span-1 flex flex-col">
+              <div className="md:col-span-1 flex flex-col h-full">
                 <AllocationChart 
                   typeAllocation={usdAllocationByType} 
                   ratingAllocation={usdAllocationByRating} 
@@ -254,7 +254,7 @@ export default function UsdPortfolio() {
               </div>
               
               {/* Performance Chart - 1 col */}
-              <div className="md:col-span-1 flex flex-col">
+              <div className="md:col-span-1 flex flex-col h-full">
                 <PerformanceChart 
                   region="USD"
                   timeRanges={["1W", "1M", "YTD", "1Y"]}
@@ -262,8 +262,8 @@ export default function UsdPortfolio() {
                 />
               </div>
               
-              {/* Matrix Rule Alerts - 1 col, stretched taller */}
-              <div className="md:col-span-1 flex flex-col">
+              {/* Matrix Rule Alerts - 1 col */}
+              <div className="md:col-span-1 flex flex-col h-full">
                 <AlertsList 
                   alerts={alerts?.filter(a => 
                     usdStocks?.find(s => s.symbol === a.symbol) && a.isActive
