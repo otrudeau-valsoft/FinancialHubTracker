@@ -244,6 +244,14 @@ class PerformanceCalculationService {
         };
       }
       
+      console.log(`🔥 ${region.toUpperCase()}: PERFORMANCE METRICS CALCULATED: ${Object.keys(results).length} stocks processed`);
+      
+      // Debug: Check what we're actually returning
+      const sampleSymbol = Object.keys(results)[0];
+      if (sampleSymbol) {
+        console.log(`📊 SAMPLE RESULT for ${sampleSymbol}:`, results[sampleSymbol]);
+      }
+      
       return results;
     } catch (error) {
       console.error(`Error calculating batch performance metrics for region ${region}:`, error);
