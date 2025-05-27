@@ -140,16 +140,19 @@ export class DatabaseAdapter {
           throw new Error(`Invalid region: ${region}`);
       }
       
-      // Debug: Log raw data to verify purchase price exists
-      if (portfolioData[0]) {
-        console.log(`DEBUG: Raw DB data for ${portfolioData[0].symbol}: purchasePrice=${portfolioData[0].purchasePrice}`);
-        console.log(`DEBUG: Full raw data structure for ${region}:`, JSON.stringify(portfolioData[0], null, 2));
-      }
+      // CRITICAL FIX: Normalize column names immediately after DB fetch
+      // CAD/INTL tables use snake_case (purchase_price), USD uses camelCase (purchasePrice)
+      const normalizedData = portfolioData.map(item => ({
+        ...item,
+        purchasePrice: item.purchase_price || item.purchasePrice,
+        stockType: item.stock_type || item.stockType
+      }));
       
-      // FIXED APPROACH: Use the working universal adapter for ALL regions
-      const { universalPortfolioAdapter } = await import('./adapters/universal-adapter');
-      console.log(`Using working universal adapter for ${region} with ${portfolioData.length} items`);
-      const result = await universalPortfolioAdapter(portfolioData, region);
+      console.log(`NORMALIZED: ${normalizedData[0]?.symbol} purchasePrice=${normalizedData[0]?.purchasePrice}`);
+      
+      // Use proven USD adapter with normalized data
+      const { adaptUSDPortfolioData } = await import('./adapters/portfolio-adapter');
+      const result = await adaptUSDPortfolioData(normalizedData, region);
       
       // Debug: Verify final result shows actual purchase prices
       if (result[0]) {
