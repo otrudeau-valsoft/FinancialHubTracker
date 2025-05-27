@@ -48,6 +48,29 @@ export async function getTransactionsByRegion(req: Request, res: Response) {
   }
 }
 
+// Get latest transaction for a region
+export async function getLatestTransactionByRegion(req: Request, res: Response) {
+  try {
+    const { region } = req.params;
+    
+    const latestTransaction = await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.region, region))
+      .orderBy(desc(transactions.createdAt))
+      .limit(1);
+    
+    res.json(latestTransaction);
+  } catch (error) {
+    console.error('Error fetching latest transaction:', error);
+    res.status(500).json({ 
+      status: 'error', 
+      message: 'Failed to fetch latest transaction',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+}
+
 // Get all transactions
 export async function getAllTransactions(req: Request, res: Response) {
   try {
@@ -92,6 +115,7 @@ export async function getTransactionsBySymbol(req: Request, res: Response) {
 // Set up routes
 router.post('/', createTransaction);
 router.get('/region/:region', getTransactionsByRegion);
+router.get('/latest/:region', getLatestTransactionByRegion);
 router.get('/symbol/:symbol', getTransactionsBySymbol);
 router.get('/', getAllTransactions);
 

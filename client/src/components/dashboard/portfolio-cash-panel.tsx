@@ -31,6 +31,12 @@ export function PortfolioCashPanel({ className, region = 'USD' }: PortfolioCashP
     select: (data: CashBalance[]) => data,
   });
 
+  // Query latest transaction for the region to get last affected timestamp
+  const { data: latestTransaction } = useQuery({
+    queryKey: ['/api/transactions/latest', region],
+    select: (data: any[]) => data && data.length > 0 ? data[0] : null,
+  });
+
   // Format currency based on region
   const formatCurrency = (amount: string, region: string) => {
     const value = parseFloat(amount);
@@ -175,7 +181,7 @@ export function PortfolioCashPanel({ className, region = 'USD' }: PortfolioCashP
                 {currentCashBalance ? formatCurrency(currentCashBalance.amount, region) : 'N/A'}
               </div>
               <div className="text-xs text-[#7A8999] font-mono">
-                Last updated: {currentCashBalance ? new Date(currentCashBalance.updatedAt).toLocaleString() : 'N/A'}
+                Last affected: {latestTransaction ? new Date(latestTransaction.createdAt).toLocaleString() : 'No transactions'}
               </div>
             </div>
           )}
