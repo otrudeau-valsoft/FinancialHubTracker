@@ -547,7 +547,7 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
               
               {transactions.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-400">
+                  <td colSpan={10} className="p-8 text-center text-slate-400">
                     No transactions added yet. Click "Add Transaction" to start.
                   </td>
                 </tr>
