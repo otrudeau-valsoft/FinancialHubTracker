@@ -169,8 +169,9 @@ export async function adaptUSDPortfolioData(data: any[], region: string = 'USD')
   });
   
   // Calculate performance metrics for all stocks in a single batch operation
+  const symbolsForPerformance = stocksWithCurrentPrices.map(stock => stock.symbol);
   const performanceMetricsMap = await performanceService.calculateBatchPerformanceMetrics(
-    stocksWithCurrentPrices,
+    symbolsForPerformance,
     region
   );
   
@@ -270,8 +271,9 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
   });
   
   // Calculate performance metrics for all stocks in a single batch operation
+  const symbolsForPerformance = stocksWithCurrentPrices.map(stock => stock.symbol);
   const performanceMetricsMap = await performanceService.calculateBatchPerformanceMetrics(
-    stocksWithCurrentPrices,
+    symbolsForPerformance,
     'CAD'
   );
   
@@ -371,8 +373,9 @@ export async function adaptINTLPortfolioData(data: PortfolioINTL[]): Promise<Leg
   });
   
   // Calculate performance metrics for all stocks in a single batch operation
+  const symbolsForPerformance = stocksWithCurrentPrices.map(stock => stock.symbol);
   const performanceMetricsMap = await performanceService.calculateBatchPerformanceMetrics(
-    stocksWithCurrentPrices,
+    symbolsForPerformance,
     'INTL'
   );
   
