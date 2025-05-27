@@ -38,47 +38,62 @@ const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
     }
   });
   
-  // Update local state when data is loaded
+  // Update local state when data is loaded - only on initial load or valid data
   React.useEffect(() => {
-    console.log('Cash balances updated:', cashBalances);
     if (cashBalances && Array.isArray(cashBalances) && cashBalances.length > 0) {
-      const values: {[key: string]: string} = {};
-      cashBalances.forEach(cash => {
-        values[cash.region] = cash.amount;
-      });
-      console.log('Setting cash values:', values);
-      setCashValues(values);
+      // Only update if we have valid data with actual amounts
+      const hasValidData = cashBalances.every(cash => cash.amount && cash.region);
+      if (hasValidData) {
+        const values: {[key: string]: string} = {};
+        cashBalances.forEach(cash => {
+          values[cash.region] = cash.amount;
+        });
+        setCashValues(values);
+      }
     }
   }, [cashBalances]);
+
+  // Initialize data on component mount if not already loaded
+  React.useEffect(() => {
+    const initializeData = async () => {
+      if (Object.keys(cashValues).length === 0 && !isLoading) {
+        try {
+          const response = await apiRequest('GET', '/api/cash');
+          if (Array.isArray(response) && response.length > 0) {
+            const values: {[key: string]: string} = {};
+            response.forEach((cash: CashBalance) => {
+              values[cash.region] = cash.amount;
+            });
+            setCashValues(values);
+          }
+        } catch (error) {
+          console.error('Failed to initialize cash data:', error);
+        }
+      }
+    };
+    initializeData();
+  }, []);
 
   // Mutation to update cash balance
   const updateCashMutation = useMutation({
     mutationFn: ({ region, amount }: { region: string; amount: string }) => 
       apiRequest('POST', `/api/cash/${region}`, { amount }),
-    onMutate: async ({ region, amount }) => {
-      // Cancel any outgoing refetches to prevent race conditions
-      await queryClient.cancelQueries({ queryKey: ['/api/cash'] });
-      
-      // Update the local display immediately
+    onSuccess: (_, variables) => {
+      // Update the local state immediately to show the new value
       setCashValues(prev => ({
         ...prev,
-        [region]: amount
+        [variables.region]: variables.amount
       }));
       
-      return { region, amount };
-    },
-    onSuccess: (_, variables) => {
       toast({
         title: 'Cash balance updated',
         description: `${variables.region} cash balance updated to $${Number(variables.amount).toLocaleString()}`
       });
-      // Refresh data in background without affecting display
-      queryClient.refetchQueries({ queryKey: ['/api/cash'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/holdings'] });
+      
+      // Don't invalidate queries to prevent cache corruption
+      // The local state update above shows the new value immediately
     },
-    onError: (error: Error, variables) => {
-      // Revert the display if there was an error
-      queryClient.refetchQueries({ queryKey: ['/api/cash'] });
+    onError: (error: Error) => {
       toast({
         title: 'Error updating cash balance',
         description: error.message,
