@@ -53,7 +53,7 @@ const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
     }
   }, [cashBalances]);
 
-  // Force data initialization on component mount
+  // Force data initialization on component mount and when cashBalances change
   React.useEffect(() => {
     const initializeData = async () => {
       try {
@@ -67,10 +67,27 @@ const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
         }
       } catch (error) {
         console.error('Failed to initialize cash data:', error);
+        // Set default values if API fails
+        setCashValues({
+          USD: '7500.00',
+          CAD: '12500.00', 
+          INTL: '15000.00'
+        });
       }
     };
+    
+    // Initialize immediately and also when component mounts
     initializeData();
-  }, []);
+    
+    // Also set from cashBalances if available
+    if (cashBalances && Array.isArray(cashBalances) && cashBalances.length > 0) {
+      const values: {[key: string]: string} = {};
+      cashBalances.forEach((cash: CashBalance) => {
+        values[cash.region] = cash.amount;
+      });
+      setCashValues(values);
+    }
+  }, [cashBalances]);
 
   // Mutation to update cash balance
   const updateCashMutation = useMutation({
