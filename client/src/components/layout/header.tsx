@@ -355,6 +355,13 @@ export function Header() {
               >
                 NEWS
               </button>
+              
+              <button 
+                onClick={() => navigateTo("/transactions")} 
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/transactions' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
+              >
+                TRANSACTIONS
+              </button>
             </div>
             
             <div className="pt-2">
