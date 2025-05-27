@@ -385,6 +385,8 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
                 <th className="text-left p-3 text-slate-300 font-medium">Price</th>
                 <th className="text-left p-3 text-slate-300 font-medium">Type</th>
                 <th className="text-left p-3 text-slate-300 font-medium">Rating</th>
+                <th className="text-left p-3 text-slate-300 font-medium">P&L $</th>
+                <th className="text-left p-3 text-slate-300 font-medium">P&L %</th>
                 <th className="text-left p-3 text-slate-300 font-medium">Total</th>
                 <th className="text-left p-3 text-slate-300 font-medium">Validation</th>
                 <th className="text-center p-3 text-slate-300 font-medium w-16">Actions</th>
