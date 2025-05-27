@@ -562,10 +562,14 @@ export const transactions = pgTable("transactions", {
   updatedAt: timestamp("updated_at").defaultNow()
 });
 
-export const insertTransactionSchema = createInsertSchema(transactions).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+export const insertTransactionSchema = z.object({
+  symbol: z.string(),
+  company: z.string().optional(),
+  action: z.string(),
+  quantity: z.number().int(),
+  price: z.number(),
+  region: z.string(),
+  totalValue: z.number(),
 });
 
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
