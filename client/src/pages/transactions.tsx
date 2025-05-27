@@ -215,7 +215,7 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
+      <Tabs defaultValue="history" className="space-y-4">
         <TabsList className="bg-[#0B1728] border border-[#1A304A] h-8">
           <TabsTrigger value="overview" className="text-[#7A8999] font-mono text-xs data-[state=active]:text-[#EFEFEF] data-[state=active]:bg-[#1A304A]">OVERVIEW</TabsTrigger>
           <TabsTrigger value="analytics" className="text-[#7A8999] font-mono text-xs data-[state=active]:text-[#EFEFEF] data-[state=active]:bg-[#1A304A]">ANALYTICS</TabsTrigger>
