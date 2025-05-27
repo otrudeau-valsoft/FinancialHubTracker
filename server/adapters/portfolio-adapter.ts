@@ -170,6 +170,8 @@ export async function adaptUSDPortfolioData(data: any[], region: string = 'USD')
   
   // Calculate performance metrics for all stocks in a single batch operation
   const symbolsForPerformance = stocksWithCurrentPrices.map(stock => stock.symbol);
+  console.log(`🔥 PORTFOLIO-ADAPTER ${region}: CALLING BATCH PERFORMANCE CALCULATION FOR ${symbolsForPerformance.length} STOCKS 🔥`);
+  console.log(`🔍 PORTFOLIO-ADAPTER: Symbols being passed:`, symbolsForPerformance.slice(0, 3));
   const performanceMetricsMap = await performanceService.calculateBatchPerformanceMetrics(
     symbolsForPerformance,
     region

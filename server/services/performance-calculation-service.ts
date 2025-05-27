@@ -77,6 +77,7 @@ export class PerformanceCalculationService {
 
     console.log(`🔥 ${region.toUpperCase()}: CALLING BATCH PERFORMANCE CALCULATION FOR ${symbolsToFetch.length} STOCKS 🔥`);
     console.log(`🔍 DEBUG: First few symbols received:`, symbolsToFetch.slice(0, 3));
+    console.log(`🔍 DEBUG: Types of first few symbols:`, symbolsToFetch.slice(0, 3).map(s => typeof s));
     
     // CRITICAL FIX: Ensure we have actual string symbols, not objects
     const actualSymbols = symbolsToFetch.map(symbol => {

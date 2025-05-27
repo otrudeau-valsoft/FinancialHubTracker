@@ -82,7 +82,8 @@ export async function fixedPortfolioAdapter(data: any[], region: string): Promis
   });
   
   // Calculate performance metrics for all stocks in a single batch operation
-  console.log(`🔥 ${region}: CALLING BATCH PERFORMANCE CALCULATION FOR ${symbols.length} STOCKS 🔥`);
+  console.log(`🔥 FIXED-ADAPTER ${region}: CALLING BATCH PERFORMANCE CALCULATION FOR ${symbols.length} STOCKS 🔥`);
+  console.log(`🔍 FIXED-ADAPTER: Symbols being passed:`, symbols.slice(0, 3));
   const performanceMetricsMap = await performanceService.calculateBatchPerformanceMetrics(
     symbols,
     region
