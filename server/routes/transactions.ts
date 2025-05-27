@@ -8,6 +8,8 @@ const router = Router();
 // Create a new transaction
 export async function createTransaction(req: Request, res: Response) {
   try {
+    console.log('Raw request body:', req.body);
+    
     // Convert string values to correct types before validation
     const processedData = {
       ...req.body,
@@ -16,7 +18,11 @@ export async function createTransaction(req: Request, res: Response) {
       totalValue: parseFloat(req.body.totalValue)
     };
     
+    console.log('Processed data before validation:', processedData);
+    
     const validatedData = insertTransactionSchema.parse(processedData);
+    
+    console.log('Successfully validated data:', validatedData);
     
     const [transaction] = await db
       .insert(transactions)
@@ -26,6 +32,7 @@ export async function createTransaction(req: Request, res: Response) {
     res.status(201).json(transaction);
   } catch (error) {
     console.error('Error creating transaction:', error);
+    console.error('Full error details:', JSON.stringify(error, null, 2));
     res.status(500).json({ 
       status: 'error', 
       message: 'Failed to create transaction',
