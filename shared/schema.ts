@@ -567,9 +567,9 @@ export const insertTransactionSchema = z.object({
   company: z.string().optional(),
   action: z.string(),
   quantity: z.number().int(),
-  price: z.number(),
+  price: z.string(),
   region: z.string(),
-  totalValue: z.number(),
+  totalValue: z.string(),
 });
 
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
