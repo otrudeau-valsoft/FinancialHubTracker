@@ -38,18 +38,14 @@ const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
     }
   });
   
-  // Update local state when data is loaded - only on initial load or valid data
+  // Update local state when data is loaded - sync with database values
   React.useEffect(() => {
     if (cashBalances && Array.isArray(cashBalances) && cashBalances.length > 0) {
-      // Only update if we have valid data with actual amounts
-      const hasValidData = cashBalances.every(cash => cash.amount && cash.region);
-      if (hasValidData) {
-        const values: {[key: string]: string} = {};
-        cashBalances.forEach(cash => {
-          values[cash.region] = cash.amount;
-        });
-        setCashValues(values);
-      }
+      const values: {[key: string]: string} = {};
+      cashBalances.forEach(cash => {
+        values[cash.region] = cash.amount;
+      });
+      setCashValues(values);
     }
   }, [cashBalances]);
 
