@@ -1,0 +1,113 @@
+
+DOMException {line: 2, column: 218742, sourceURL: "https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/__replco/static/devt…"}
+column: 218742
+line: 2
+sourceURL: "https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js"
+stack: "WebSocket@[native code]↵t@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:218742↵setupWebSocket@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@vite/client:536:32↵fallback@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@vite/client:509:30↵@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@vite/client:555:25↵@https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@vite/client:552:46"
+[[Prototype]]: DOMException
+ABORT_ERR: 20
+DATA_CLONE_ERR: 25
+DOMSTRING_SIZE_ERR: 2
+HIERARCHY_REQUEST_ERR: 3
+INDEX_SIZE_ERR: 1
+INUSE_ATTRIBUTE_ERR: 10
+INVALID_ACCESS_ERR: 15
+INVALID_CHARACTER_ERR: 5
+INVALID_MODIFICATION_ERR: 13
+INVALID_NODE_TYPE_ERR: 24
+INVALID_STATE_ERR: 11
+NAMESPACE_ERR: 14
+NETWORK_ERR: 19
+NOT_FOUND_ERR: 8
+NOT_SUPPORTED_ERR: 9
+NO_DATA_ALLOWED_ERR: 6
+NO_MODIFICATION_ALLOWED_ERR: 7
+QUOTA_EXCEEDED_ERR: 22
+SECURITY_ERR: 18
+SYNTAX_ERR: 12
+TIMEOUT_ERR: 23
+TYPE_MISMATCH_ERR: 17
+URL_MISMATCH_ERR: 21
+VALIDATION_ERR: 16
+WRONG_DOCUMENT_ERR: 4
+code: 12
+get code: ƒ code()
+length: 0
+name: "get code"
+[[Prototype]]: ƒ ()
+apply: ƒ apply()
+arguments: "'arguments', 'callee', and 'caller' cannot be accessed in this context."
+get arguments: ƒ arguments()
+set arguments: ƒ arguments()
+bind: ƒ bind()
+call: ƒ call()
+caller: "'arguments', 'callee', and 'caller' cannot be accessed in this context."
+get caller: ƒ caller()
+set caller: ƒ caller()
+constructor: ƒ Function()
+length: 0
+name: "get code"
+toString: ƒ toString()
+Symbol(Symbol.hasInstance): undefined
+[[Prototype]]: Object
+message: "The string did not match the expected pattern."
+get message: ƒ message()
+length: 0
+name: "get message"
+[[Prototype]]: ƒ ()
+apply: ƒ apply()
+arguments: "'arguments', 'callee', and 'caller' cannot be accessed in this context."
+get arguments: ƒ arguments()
+set arguments: ƒ arguments()
+bind: ƒ bind()
+call: ƒ call()
+caller: "'arguments', 'callee', and 'caller' cannot be accessed in this context."
+get caller: ƒ caller()
+set caller: ƒ caller()
+constructor: ƒ Function()
+length: 0
+name: "get code"
+toString: ƒ toString()
+Symbol(Symbol.hasInstance): undefined
+[[Prototype]]: Object
+name: "SyntaxError"
+get name: ƒ name()
+constructor: ƒ DOMException()
+Symbol(Symbol.toStringTag): undefined
+[[Prototype]]: Object
+
+Performance history response: 200
+Performance data is empty. Check server or database configuration.
+Cash API response: 
+Response {type: "basic", url: "https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/api/cash", redirected: false, status: 200, ok: true, …}
+arrayBuffer: ƒ arrayBuffer()
+length: 0
+name: "arrayBuffer"
+[[Prototype]]: ƒ ()
+blob: ƒ blob()
+body: ReadableStream
+get body: ƒ body()
+bodyUsed: false
+get bodyUsed: ƒ bodyUsed()
+bytes: ƒ bytes()
+clone: ƒ clone()
+formData: ƒ formData()
+headers: Headers
+get headers: ƒ headers()
+json: ƒ json()
+ok: true
+get ok: ƒ ok()
+redirected: false
+get redirected: ƒ redirected()
+status: 200
+get status: ƒ status()
+statusText: "OK"
+get statusText: ƒ statusText()
+text: ƒ text()
+type: "basic"
+get type: ƒ type()
+url: "https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/api/cash"
+get url: ƒ url()
+constructor: ƒ Response()
+Symbol(Symbol.toStringTag): undefined
+[[Prototype]]: Object
