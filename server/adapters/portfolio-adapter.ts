@@ -139,7 +139,7 @@ function calculate52WeekChange(currentPrice: number, fiftyTwoWeekHigh: string | 
 /**
  * Adapt USD portfolio data to legacy format with calculated values
  */
-export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<LegacyPortfolioItem[]> {
+export async function adaptUSDPortfolioData(data: any[], region: string = 'USD'): Promise<LegacyPortfolioItem[]> {
   if (!data.length) return [];
   
   // Get symbols for all stocks
@@ -171,7 +171,7 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
   // Calculate performance metrics for all stocks in a single batch operation
   const performanceMetricsMap = await performanceService.calculateBatchPerformanceMetrics(
     stocksWithCurrentPrices,
-    'USD'
+    region
   );
   
   // Map each stock to legacy format with calculated values
