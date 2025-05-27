@@ -90,8 +90,10 @@ const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
         description: `${variables.region} cash balance updated to $${Number(variables.amount).toLocaleString()}`
       });
       
-      // Don't invalidate queries to prevent cache corruption
-      // The local state update above shows the new value immediately
+      // Refresh the page to ensure all components show the updated values
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     },
     onError: (error: Error) => {
       toast({
