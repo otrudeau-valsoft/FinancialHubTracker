@@ -255,7 +255,7 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
     const currentPriceInfo = priceMap[item.symbol];
     const currentPrice = currentPriceInfo?.regularMarketPrice 
       ? Number(currentPriceInfo.regularMarketPrice) 
-      : Number(item.price || 0);
+      : Number(item.purchasePrice || 0);
     
     totalPortfolioValue += calculateNAV(quantity, currentPrice);
     
@@ -353,7 +353,7 @@ export async function adaptINTLPortfolioData(data: PortfolioINTL[]): Promise<Leg
     const currentPriceInfo = priceMap[item.symbol];
     const currentPrice = currentPriceInfo?.regularMarketPrice 
       ? Number(currentPriceInfo.regularMarketPrice) 
-      : 0;
+      : Number(item.purchasePrice || 0);
     
     totalPortfolioValue += calculateNAV(quantity, currentPrice);
     
