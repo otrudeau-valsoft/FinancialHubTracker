@@ -146,9 +146,9 @@ export class DatabaseAdapter {
         console.log(`DEBUG: Full raw data structure for ${region}:`, JSON.stringify(portfolioData[0], null, 2));
       }
       
-      // UNIFIED FIX: Use identical adapter logic for all regions with correct region parameter
+      // UNIVERSAL APPROACH: Use the working USD adapter for ALL regions
       const { adaptUSDPortfolioData } = await import('./adapters/portfolio-adapter');
-      console.log(`DEBUG: Using unified adapter logic for ${region} with ${portfolioData.length} items`);
+      console.log(`Using proven USD adapter logic for ${region} with ${portfolioData.length} items`);
       const result = await adaptUSDPortfolioData(portfolioData, region);
       
       // Debug: Verify final result shows actual purchase prices
