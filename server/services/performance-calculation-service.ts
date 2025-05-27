@@ -70,10 +70,12 @@ class PerformanceCalculationService {
       const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
       const sixMonthsAgo = new Date(now);
       sixMonthsAgo.setMonth(now.getMonth() - 6);
+      const fiftyTwoWeeksAgo = new Date(now.getTime() - (52 * 7 * 24 * 60 * 60 * 1000));
       
       const formattedFirstDayOfMonth = firstDayOfMonth.toISOString().split('T')[0];
       const formattedFirstDayOfYear = firstDayOfYear.toISOString().split('T')[0];
       const formattedSixMonthsAgo = sixMonthsAgo.toISOString().split('T')[0];
+      const formattedFiftyTwoWeeksAgo = fiftyTwoWeeksAgo.toISOString().split('T')[0];
       
       // Build a separate query for each type of date to simplify and make it more reliable
       
@@ -113,15 +115,28 @@ class PerformanceCalculationService {
           )
         )
         .orderBy(asc(historicalPrices.symbol), desc(historicalPrices.date));
+      
+      // Fifty-two weeks ago prices (for 52-week return)
+      const fiftyTwoWeekPriceData = await db.select()
+        .from(historicalPrices)
+        .where(
+          and(
+            inArray(historicalPrices.symbol, symbolsToFetch),
+            eq(historicalPrices.region, region),
+            sql`${historicalPrices.date} <= ${formattedFiftyTwoWeeksAgo}`
+          )
+        )
+        .orderBy(asc(historicalPrices.symbol), desc(historicalPrices.date));
         
       // Combine all price data for processing
-      const priceData = [...mtdPriceData, ...ytdPriceData, ...sixMonthPriceData];
+      const priceData = [...mtdPriceData, ...ytdPriceData, ...sixMonthPriceData, ...fiftyTwoWeekPriceData];
       
       // Organize price data by symbol and date
       const pricesBySymbol: Record<string, {
         mtdStartPrice?: number;
         ytdStartPrice?: number;
         sixMonthPrice?: number;
+        fiftyTwoWeekPrice?: number;
       }> = {};
       
       // Initialize price objects for each symbol
@@ -158,6 +173,14 @@ class PerformanceCalculationService {
             pricesBySymbol[symbol].sixMonthPrice = priceValue;
           }
         }
+        
+        // Closest price to 52 weeks ago (for 52-week return)
+        if (priceDate <= fiftyTwoWeeksAgo) {
+          // If we don't have a price yet, or this one is closer to fiftyTwoWeeksAgo
+          if (!pricesBySymbol[symbol].fiftyTwoWeekPrice) {
+            pricesBySymbol[symbol].fiftyTwoWeekPrice = priceValue;
+          }
+        }
       }
       
       // Calculate returns for each symbol
@@ -181,6 +204,11 @@ class PerformanceCalculationService {
         // Calculate 6-month return
         if (prices.sixMonthPrice) {
           results[symbol].sixMonthReturn = ((currentPrice - prices.sixMonthPrice) / prices.sixMonthPrice) * 100;
+        }
+        
+        // Calculate 52-week return
+        if (prices.fiftyTwoWeekPrice) {
+          results[symbol].fiftyTwoWeekReturn = ((currentPrice - prices.fiftyTwoWeekPrice) / prices.fiftyTwoWeekPrice) * 100;
         }
         
         // Update cache
