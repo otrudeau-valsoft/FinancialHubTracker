@@ -394,8 +394,6 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
                 <th className="text-left p-3 text-slate-300 font-medium">Price</th>
                 <th className="text-left p-3 text-slate-300 font-medium">Type</th>
                 <th className="text-left p-3 text-slate-300 font-medium">Rating</th>
-                <th className="text-left p-3 text-slate-300 font-medium">P&L $</th>
-                <th className="text-left p-3 text-slate-300 font-medium">P&L %</th>
                 <th className="text-left p-3 text-slate-300 font-medium">Total</th>
                 <th className="text-left p-3 text-slate-300 font-medium">Validation</th>
                 <th className="text-center p-3 text-slate-300 font-medium w-16">Actions</th>
@@ -502,20 +500,6 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
                       </Select>
                     </td>
                     <td className="p-3">
-                      <span className={`font-mono text-xs ${
-                        pnlDollar >= 0 ? 'text-green-400' : 'text-red-400'
-                      }`}>
-                        {pnlDollar >= 0 ? '+' : ''}${pnlDollar.toFixed(2)}
-                      </span>
-                    </td>
-                    <td className="p-3">
-                      <span className={`font-mono text-xs ${
-                        pnlPercent >= 0 ? 'text-green-400' : 'text-red-400'
-                      }`}>
-                        {pnlPercent >= 0 ? '+' : ''}{pnlPercent.toFixed(2)}%
-                      </span>
-                    </td>
-                    <td className="p-3">
                       <span className={`font-mono ${
                         transaction.action === 'BUY' ? 'text-red-400' : 'text-green-400'
                       }`}>
@@ -556,7 +540,7 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
               
               {transactions.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="p-8 text-center text-slate-400">
+                  <td colSpan={8} className="p-8 text-center text-slate-400">
                     No transactions added yet. Click "Add Transaction" to start.
                   </td>
                 </tr>

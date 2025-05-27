@@ -17,6 +17,7 @@ import StockDetails from "@/pages/stock-details";
 import NewsPage from "@/pages/news";
 import EconomicCalendarPage from "@/pages/economic-calendar";
 import DiagnosticsPage from "@/pages/diagnostics";
+import TransactionsPage from "@/pages/transactions";
 import { Header } from "@/components/layout/header";
 
 function Router() {
@@ -37,6 +38,7 @@ function Router() {
             <Route path="/earnings" component={EarningsPage} />
             <Route path="/news" component={NewsPage} />
             <Route path="/economic-calendar" component={EconomicCalendarPage} />
+            <Route path="/transactions" component={TransactionsPage} />
             <Route path="/diagnostics" component={DiagnosticsPage} />
             <Route path="/stock-details/:symbol/:region" component={StockDetails} />
             <Route path="/stock/:symbol" component={StockDetails} />
