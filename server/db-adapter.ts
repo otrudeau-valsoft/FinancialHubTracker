@@ -146,10 +146,18 @@ export class DatabaseAdapter {
         console.log(`DEBUG: Full raw data structure for ${region}:`, JSON.stringify(portfolioData[0], null, 2));
       }
       
-      // CRITICAL FIX: Use USD adapter for all regions since it works correctly with purchase prices
+      // IMMEDIATE FIX: Transform data to ensure consistent purchase price handling
+      const transformedData = portfolioData.map(item => ({
+        ...item,
+        // Ensure purchasePrice is properly converted from database numeric type
+        purchasePrice: (item.purchasePrice !== null && item.purchasePrice !== undefined && item.purchasePrice !== "") 
+          ? String(item.purchasePrice) 
+          : null
+      }));
+      
       const { adaptUSDPortfolioData } = await import('./adapters/portfolio-adapter');
-      console.log(`DEBUG: Using USD adapter for ${region} with ${portfolioData.length} items`);
-      const result = await adaptUSDPortfolioData(portfolioData);
+      console.log(`DEBUG: Using USD adapter for ${region} with ${transformedData.length} items`);
+      const result = await adaptUSDPortfolioData(transformedData);
       
       // Debug: Verify final result shows actual purchase prices
       if (result[0]) {
