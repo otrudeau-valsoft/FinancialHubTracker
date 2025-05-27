@@ -1,11 +1,13 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Save, Wallet } from 'lucide-react';
 import { DollarSign } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 interface CashPanelProps {
   className?: string;
@@ -18,40 +20,66 @@ interface CashBalance {
   updatedAt: string;
 }
 
-export function CashManagementPanel({ className }: CashPanelProps) {
-  const [cashValues, setCashValues] = React.useState<{[key: string]: string}>({
-    USD: '0',
-    CAD: '0', 
-    INTL: '0'
+const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
+  const [cashValues, setCashValues] = useState<{[key: string]: string}>({
+    USD: '',
+    CAD: '',
+    INTL: ''
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Load data on mount
+  // Query to fetch cash balances
+  const { data: cashBalances, isLoading } = useQuery({
+    queryKey: ['/api/cash'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/cash');
+      return response as unknown as CashBalance[];
+    }
+  });
+  
+  // Update local state when data is loaded - only on initial load or valid data
   React.useEffect(() => {
-    const fetchCashData = async () => {
-      try {
-        const response = await apiRequest('GET', '/api/cash');
-        if (Array.isArray(response)) {
-          const newValues: {[key: string]: string} = { USD: '0', CAD: '0', INTL: '0' };
-          response.forEach((cash: CashBalance) => {
-            newValues[cash.region] = cash.amount;
-          });
-          setCashValues(newValues);
-        }
-      } catch (error) {
-        console.error('Error loading cash data:', error);
+    if (cashBalances && Array.isArray(cashBalances) && cashBalances.length > 0) {
+      // Only update if we have valid data with actual amounts
+      const hasValidData = cashBalances.every(cash => cash.amount && cash.region);
+      if (hasValidData) {
+        const values: {[key: string]: string} = {};
+        cashBalances.forEach(cash => {
+          values[cash.region] = cash.amount;
+        });
+        setCashValues(values);
       }
-    };
-    
-    fetchCashData();
-  }, []);
+    }
+  }, [cashBalances]);
+
+  // Fallback initialization if React Query data doesn't load properly
+  React.useEffect(() => {
+    if (Object.keys(cashValues).length === 0 && !isLoading) {
+      const initializeData = async () => {
+        try {
+          const response = await apiRequest('GET', '/api/cash');
+          if (Array.isArray(response) && response.length > 0) {
+            const values: {[key: string]: string} = {};
+            response.forEach((cash: CashBalance) => {
+              values[cash.region] = cash.amount;
+            });
+            setCashValues(values);
+          }
+        } catch (error) {
+          console.error('Failed to initialize cash data:', error);
+        }
+      };
+      initializeData();
+    }
+  }, [isLoading]);
 
   // Mutation to update cash balance
   const updateCashMutation = useMutation({
     mutationFn: ({ region, amount }: { region: string; amount: string }) => 
       apiRequest('POST', `/api/cash/${region}`, { amount }),
     onSuccess: (_, variables) => {
+      // Update the local state immediately to show the new value
       setCashValues(prev => ({
         ...prev,
         [variables.region]: variables.amount
@@ -61,6 +89,9 @@ export function CashManagementPanel({ className }: CashPanelProps) {
         title: 'Cash balance updated',
         description: `${variables.region} cash balance updated to $${Number(variables.amount).toLocaleString()}`
       });
+      
+      // Don't invalidate queries to prevent cache corruption
+      // The local state update above shows the new value immediately
     },
     onError: (error: Error) => {
       toast({
@@ -71,6 +102,7 @@ export function CashManagementPanel({ className }: CashPanelProps) {
     }
   });
 
+  // Handle input change
   const handleInputChange = (region: string, value: string) => {
     setCashValues(prev => ({
       ...prev,
@@ -78,64 +110,73 @@ export function CashManagementPanel({ className }: CashPanelProps) {
     }));
   };
 
+  // Handle save button click
   const handleSave = (region: string) => {
     const amount = cashValues[region];
-    if (amount && !isNaN(Number(amount))) {
-      updateCashMutation.mutate({ region, amount });
-    }
+    if (!amount) return;
+    
+    updateCashMutation.mutate({ region, amount });
   };
 
-  const calculateTotal = () => {
-    return Object.values(cashValues).reduce((sum, value) => {
-      const num = parseFloat(value) || 0;
-      return sum + num;
-    }, 0);
-  };
-
-  const regions = ['USD', 'CAD', 'INTL'];
+  // Calculate total cash across all portfolios
+  const totalCash = React.useMemo(() => {
+    if (!cashBalances || !Array.isArray(cashBalances)) return 0;
+    return cashBalances.reduce((sum: number, cash: CashBalance) => 
+      sum + parseFloat(cash.amount || '0'), 0);
+  }, [cashBalances]);
 
   return (
-    <Card className={className}>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-sm font-medium">
-          <DollarSign className="h-4 w-4" />
-          CASH BALANCES
-          <span className="ml-auto text-green-400">
-            TOTAL: ${calculateTotal().toLocaleString()}
-          </span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <p className="text-xs text-muted-foreground mb-4">
-          Cash values are used in portfolio calculations for NAV and weights
-        </p>
-        
-        {regions.map((region) => (
-          <div key={region} className="flex items-center gap-2">
-            <span className="text-sm font-medium min-w-[40px]">
-              {region}:
-            </span>
-            <div className="flex items-center gap-2 flex-1">
-              <span className="text-sm">$</span>
-              <Input
-                type="number"
-                value={cashValues[region] || '0'}
-                onChange={(e) => handleInputChange(region, e.target.value)}
-                className="flex-1 h-8"
-                placeholder="0"
-              />
-              <Button
-                size="sm"
-                onClick={() => handleSave(region)}
-                disabled={updateCashMutation.isPending}
-                className="h-8 px-3"
-              >
-                Save
-              </Button>
-            </div>
+    <Card className={`bg-[#0A1524] border border-[#1A304A] rounded-none shadow-lg ${className}`}>
+      <CardHeader className="bg-[#0D1C30] border-b border-[#1A304A] p-2 sm:p-3">
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-[#EFEFEF] text-base sm:text-lg font-mono flex items-center">
+            <Wallet className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-[#4CAF50]" />
+            CASH BALANCES
+          </CardTitle>
+          <div className="text-sm text-[#EFEFEF] font-mono">
+            TOTAL: <span className="text-[#4CAF50]">${totalCash.toLocaleString()}</span>
           </div>
-        ))}
+        </div>
+      </CardHeader>
+      <CardContent className="p-3 sm:p-4 space-y-3">
+        {isLoading ? (
+          <div className="text-center text-[#7A8999] py-3">
+            Loading cash balances...
+          </div>
+        ) : (
+          <>
+            {Array.isArray(cashBalances) && cashBalances.map(cash => (
+              <div key={cash.region} className="flex items-center gap-2">
+                <div className="w-12 font-mono text-xs text-[#EFEFEF]">{cash.region}</div>
+                <div className="relative flex-1">
+                  <DollarSign className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#7A8999]" />
+                  <Input
+                    type="number"
+                    value={cashValues[cash.region] || ''}
+                    onChange={(e) => handleInputChange(cash.region, e.target.value)}
+                    className="bg-[#1C2938] border-[#1A304A] pl-8 text-[#EFEFEF]"
+                    placeholder="Amount"
+                  />
+                </div>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className="border-[#1A304A] bg-[#1C2938] hover:bg-[#243447] text-[#4CAF50] h-9"
+                  onClick={() => handleSave(cash.region)}
+                  disabled={updateCashMutation.isPending}
+                >
+                  <Save className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            <div className="text-xs text-[#7A8999] mt-2 border-t border-[#1A304A] pt-2">
+              Cash values are used in portfolio calculations for NAV and weights
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );
-}
+};
+
+export default CashManagementPanel;
