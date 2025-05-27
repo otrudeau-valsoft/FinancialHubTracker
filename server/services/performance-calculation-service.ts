@@ -15,6 +15,7 @@ const metricsCache: Record<string, {
   mtdReturn?: number;
   ytdReturn?: number;
   sixMonthReturn?: number;
+  fiftyTwoWeekReturn?: number;
   timestamp: number;
 }> = {};
 
@@ -77,6 +78,7 @@ class PerformanceCalculationService {
       const actualFirstDayOfYear = new Date(now.getFullYear(), 0, 1); // First day of current year (Jan 1, 2025)
       
       console.log(`🔍 DATE DEBUG: Current=${now.toISOString()}, MTD=${actualFirstDayOfMonth.toISOString()}, YTD=${actualFirstDayOfYear.toISOString()}`);
+      console.log(`🔍 DATE FORMATTED: MTD=${formattedFirstDayOfMonth}, YTD=${formattedFirstDayOfYear}`);
       const sixMonthsAgo = new Date(now);
       sixMonthsAgo.setMonth(now.getMonth() - 6);
       const fiftyTwoWeeksAgo = new Date(now.getTime() - (52 * 7 * 24 * 60 * 60 * 1000));
