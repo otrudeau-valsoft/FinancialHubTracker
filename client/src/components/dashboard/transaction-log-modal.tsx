@@ -296,16 +296,27 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
           
           toast({
             title: "Data Updated",
-            description: `Portfolio transactions completed and market data refreshed. Cash impact: ${getTotalCashImpact() > 0 ? '+' : ''}$${getTotalCashImpact().toLocaleString()}`,
+            description: `Portfolio transactions completed and market data refreshed. Refreshing page...`,
             variant: "default"
           });
+          
+          // Refresh the entire page to ensure all components are updated
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500); // Give time for the toast notification to be seen
+          
         }).catch((updateError) => {
           console.warn('Data update error after transactions:', updateError);
           toast({
             title: "Transactions Completed",
-            description: `${transactions.length} transaction(s) processed successfully. Manual data refresh may be needed.`,
+            description: `${transactions.length} transaction(s) processed successfully. Refreshing page...`,
             variant: "default"
           });
+          
+          // Still refresh page even if data updates failed
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
         });
         
       } catch (error) {
