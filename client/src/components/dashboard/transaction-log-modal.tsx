@@ -200,6 +200,13 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
         const price = parseFloat(transaction.price);
         const totalValue = quantity * price;
         
+        // Calculate P&L for database storage
+        const currentPrice = stock?.currentPrice || 0;
+        const pnlDollar = transaction.action === 'BUY' ? 
+          (currentPrice - price) * quantity : 
+          (price - currentPrice) * quantity;
+        const pnlPercent = price > 0 ? (pnlDollar / (price * quantity)) * 100 : 0;
+
         // Record the transaction in the database
         await apiRequest('POST', '/api/transactions', {
           symbol: transaction.symbol,
@@ -208,7 +215,9 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
           quantity: quantity,
           price: price.toString(),
           region: region,
-          totalValue: totalValue.toString()
+          totalValue: totalValue.toString(),
+          pnlDollar: pnlDollar.toString(),
+          pnlPercent: pnlPercent.toString()
         });
         
         if (transaction.action === 'BUY') {

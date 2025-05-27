@@ -558,6 +558,8 @@ export const transactions = pgTable("transactions", {
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   region: text("region").notNull(), // 'USD', 'CAD', 'INTL'
   totalValue: numeric("total_value", { precision: 10, scale: 2 }).notNull(),
+  pnlDollar: numeric("pnl_dollar", { precision: 10, scale: 2 }),
+  pnlPercent: numeric("pnl_percent", { precision: 10, scale: 4 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
@@ -570,6 +572,8 @@ export const insertTransactionSchema = z.object({
   price: z.string(),
   region: z.string(),
   totalValue: z.string(),
+  pnlDollar: z.string().optional(),
+  pnlPercent: z.string().optional(),
 });
 
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
