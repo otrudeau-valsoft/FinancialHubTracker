@@ -187,6 +187,14 @@ class PerformanceCalculationService {
         }
       }
       
+      // Process 52-week high data
+      for (const highData of fiftyTwoWeekHighData) {
+        const symbol = highData.symbol;
+        if (pricesBySymbol[symbol]) {
+          pricesBySymbol[symbol].fiftyTwoWeekHighPrice = Number(highData.maxPrice);
+        }
+      }
+      
       // Calculate returns for each symbol
       for (const stock of stocks) {
         const { symbol, currentPrice } = stock;
@@ -210,9 +218,9 @@ class PerformanceCalculationService {
           results[symbol].sixMonthReturn = ((currentPrice - prices.sixMonthPrice) / prices.sixMonthPrice) * 100;
         }
         
-        // Calculate 52-week return
-        if (prices.fiftyTwoWeekPrice) {
-          results[symbol].fiftyTwoWeekReturn = ((currentPrice - prices.fiftyTwoWeekPrice) / prices.fiftyTwoWeekPrice) * 100;
+        // Calculate percentage from 52-week high
+        if (prices.fiftyTwoWeekHighPrice) {
+          results[symbol].fiftyTwoWeekReturn = ((currentPrice - prices.fiftyTwoWeekHighPrice) / prices.fiftyTwoWeekHighPrice) * 100;
         }
         
         // Update cache
