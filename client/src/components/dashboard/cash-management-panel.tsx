@@ -22,9 +22,9 @@ interface CashBalance {
 
 const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
   const [cashValues, setCashValues] = useState<{[key: string]: string}>({
-    USD: '',
-    CAD: '',
-    INTL: ''
+    USD: '7500.00',
+    CAD: '12500.00',
+    INTL: '15000.00'
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
