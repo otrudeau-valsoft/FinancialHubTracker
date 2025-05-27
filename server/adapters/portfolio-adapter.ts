@@ -255,7 +255,7 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
     const currentPriceInfo = priceMap[item.symbol];
     const currentPrice = currentPriceInfo?.regularMarketPrice 
       ? Number(currentPriceInfo.regularMarketPrice) 
-      : Number(item.price);
+      : Number(item.price || 0);
     
     totalPortfolioValue += calculateNAV(quantity, currentPrice);
     
@@ -276,7 +276,7 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
   return data.map(item => {
     const quantity = Number(item.quantity);
     const purchasePrice = item.purchasePrice ? Number(item.purchasePrice) : undefined;
-    const bookPrice = purchasePrice || Number(item.price);
+    const bookPrice = purchasePrice || 0;
     
     console.log(`Debug ${item.symbol}: DB purchasePrice=${item.purchasePrice}, converted=${purchasePrice}`);
     const currentPriceInfo = priceMap[item.symbol];
@@ -316,19 +316,18 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
       rating: item.rating,
       sector: item.sector || 'Technology',
       quantity: quantity,
-      price: purchasePrice || bookPrice,
+      price: purchasePrice || 0,
       purchasePrice: purchasePrice,
-      pbr: item.pbr ? Number(item.pbr) : undefined,
       netAssetValue: nav,
       portfolioPercentage: portfolioWeight,
       dailyChangePercent: dailyChange,
       mtdChangePercent: performanceMetrics.mtdReturn !== undefined ? performanceMetrics.mtdReturn : undefined,
       ytdChangePercent: performanceMetrics.ytdReturn !== undefined ? performanceMetrics.ytdReturn : undefined,
       sixMonthChangePercent: performanceMetrics.sixMonthReturn !== undefined ? performanceMetrics.sixMonthReturn : undefined,
-      fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent ? Number(item.fiftyTwoWeekChangePercent) : fiftyTwoWeekChange,
+      fiftyTwoWeekChangePercent: fiftyTwoWeekChange,
       dividendYield: currentPriceInfo?.dividendYield ? Number(currentPriceInfo.dividendYield) : undefined,
       profitLoss: profitLoss,
-      nextEarningsDate: item.nextEarningsDate,
+      nextEarningsDate: undefined,
     };
   });
 }
@@ -354,7 +353,7 @@ export async function adaptINTLPortfolioData(data: PortfolioINTL[]): Promise<Leg
     const currentPriceInfo = priceMap[item.symbol];
     const currentPrice = currentPriceInfo?.regularMarketPrice 
       ? Number(currentPriceInfo.regularMarketPrice) 
-      : Number(item.price);
+      : 0;
     
     totalPortfolioValue += calculateNAV(quantity, currentPrice);
     
@@ -375,7 +374,7 @@ export async function adaptINTLPortfolioData(data: PortfolioINTL[]): Promise<Leg
   return data.map(item => {
     const quantity = Number(item.quantity);
     const purchasePrice = item.purchasePrice ? Number(item.purchasePrice) : undefined;
-    const bookPrice = purchasePrice || Number(item.price);
+    const bookPrice = purchasePrice || 0;
     
     console.log(`Debug ${item.symbol}: DB purchasePrice=${item.purchasePrice}, converted=${purchasePrice}`);
     const currentPriceInfo = priceMap[item.symbol];
@@ -415,19 +414,18 @@ export async function adaptINTLPortfolioData(data: PortfolioINTL[]): Promise<Leg
       rating: item.rating,
       sector: item.sector || 'Technology',
       quantity: quantity,
-      price: purchasePrice || bookPrice,
+      price: purchasePrice || 0,
       purchasePrice: purchasePrice,
-      pbr: item.pbr ? Number(item.pbr) : undefined,
       netAssetValue: nav,
       portfolioPercentage: portfolioWeight,
       dailyChangePercent: dailyChange,
       mtdChangePercent: performanceMetrics.mtdReturn !== undefined ? performanceMetrics.mtdReturn : undefined,
       ytdChangePercent: performanceMetrics.ytdReturn !== undefined ? performanceMetrics.ytdReturn : undefined,
       sixMonthChangePercent: performanceMetrics.sixMonthReturn !== undefined ? performanceMetrics.sixMonthReturn : undefined,
-      fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent ? Number(item.fiftyTwoWeekChangePercent) : fiftyTwoWeekChange,
+      fiftyTwoWeekChangePercent: fiftyTwoWeekChange,
       dividendYield: currentPriceInfo?.dividendYield ? Number(currentPriceInfo.dividendYield) : undefined,
       profitLoss: profitLoss,
-      nextEarningsDate: item.nextEarningsDate,
+      nextEarningsDate: undefined,
     };
   });
 }
