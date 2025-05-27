@@ -10,7 +10,7 @@ interface CashPanelProps {
   className?: string;
 }
 
-export function CashManagementPanel({ className }: CashPanelProps) {
+export default function CashManagementPanel({ className }: CashPanelProps) {
   const [usd, setUsd] = useState('0');
   const [cad, setCad] = useState('0');
   const [intl, setIntl] = useState('0');
