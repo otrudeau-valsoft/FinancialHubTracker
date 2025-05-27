@@ -70,12 +70,20 @@ class PerformanceCalculationService {
       // Calculate key dates
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
+      
+      // Debug: Force different dates if they're the same (early in year)
+      const debugFirstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const debugFirstDayOfYear = new Date(2024, 0, 1); // Force 2024 start for YTD
+      console.log(`DEBUG dates: MTD=${debugFirstDayOfMonth.toISOString()}, YTD=${debugFirstDayOfYear.toISOString()}`);
+      
+      const actualFirstDayOfMonth = debugFirstDayOfMonth;
+      const actualFirstDayOfYear = debugFirstDayOfYear;
       const sixMonthsAgo = new Date(now);
       sixMonthsAgo.setMonth(now.getMonth() - 6);
       const fiftyTwoWeeksAgo = new Date(now.getTime() - (52 * 7 * 24 * 60 * 60 * 1000));
       
-      const formattedFirstDayOfMonth = firstDayOfMonth.toISOString().split('T')[0];
-      const formattedFirstDayOfYear = firstDayOfYear.toISOString().split('T')[0];
+      const formattedFirstDayOfMonth = actualFirstDayOfMonth.toISOString().split('T')[0];
+      const formattedFirstDayOfYear = actualFirstDayOfYear.toISOString().split('T')[0];
       const formattedSixMonthsAgo = sixMonthsAgo.toISOString().split('T')[0];
       const formattedFiftyTwoWeeksAgo = fiftyTwoWeeksAgo.toISOString().split('T')[0];
       

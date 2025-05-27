@@ -1,0 +1,224 @@
+🔥 USD: CALLING BATCH PERFORMANCE CALCULATION FOR 20 STOCKS 🔥
+🔥 USD: PERFORMANCE METRICS CALCULATED: 20 stocks processed
+Successfully fetched 20 portfolio stocks for USD with up-to-date metrics
+3:47:23 AM [express] GET /api/portfolios/USD/stocks 304 in 100ms :: [{"id":45,"symbol":"PANW","compa…
+3:47:23 AM [express] GET /api/etfs/SPY/holdings/top/10 304 in 17ms :: [{"id":2152,"ticker":"AAPL","n…
+3:47:23 AM [express] GET /api/market-indices/real-time 304 in 157ms :: {"sp500":{"return":-0.68,"pos…
+3:47:24 AM [express] GET /api/matrix-rules/Decrease 304 in 1ms :: [{"id":7,"ruleId":"price-90day","r…
+3:47:24 AM [express] GET /api/matrix-rules/Increase 304 in 0ms :: [{"id":1,"ruleId":"price-52wk","ru…
+Performance history request: {
+  region: 'USD',
+  timeRange: undefined,
+  startDate: '2024-05-27',
+  endDate: undefined
+}
+Getting performance history for USD from 2024-05-27 to now
+SQL: SELECT * FROM portfolio_performance_usd WHERE date >= $1 ORDER BY date ASC [ '2024-05-27' ]
+3:47:24 AM [express] GET /api/transactions/latest 404 in 0ms :: {"status":"error","message":"Route n…
+3:47:24 AM [express] GET /api/performance-history 304 in 40ms :: {"status":"success","data":[{"date"…
+3:47:54 AM [express] GET /api/current-prices/USD 304 in 86ms :: [{"id":41,"symbol":"BIL","region":"U…
+3:47:54 AM [express] GET /api/market-indices/real-time 304 in 164ms :: {"sp500":{"return":-0.68,"pos…
+3:48:07 AM [express] GET /api/scheduler/config 404 in 0ms :: {"status":"error","message":"Task with …
+3:48:07 AM [express] GET /api/data-updates/logs 304 in 93ms :: []
+Manually updating performance history for all regions...
+Updating performance history for all regions...
+Processing USD...
+Updating performance history for USD using real-time data...
+Using date range: 2020-04-21 to 2025-05-27
+Error updating performance history for USD: error: relation "portfolio_usd" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async PortfolioPerformanceService.updatePerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:135:41)
+    at async PortfolioPerformanceService.updateAllPerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:358:29)
+    at async file:///home/runner/workspace/server/routes/performance-history.js:128:16 {
+  length: 112,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '69',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error updating USD performance history: error: relation "portfolio_usd" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async PortfolioPerformanceService.updatePerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:135:41)
+    at async PortfolioPerformanceService.updateAllPerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:358:29)
+    at async file:///home/runner/workspace/server/routes/performance-history.js:128:16 {
+  length: 112,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '69',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Processing CAD...
+Updating performance history for CAD using real-time data...
+Using date range: 2020-04-21 to 2025-05-27
+Error updating performance history for CAD: error: relation "portfolio_cad" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async PortfolioPerformanceService.updatePerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:135:41)
+    at async PortfolioPerformanceService.updateAllPerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:358:29)
+    at async file:///home/runner/workspace/server/routes/performance-history.js:128:16 {
+  length: 112,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '69',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error updating CAD performance history: error: relation "portfolio_cad" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async PortfolioPerformanceService.updatePerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:135:41)
+    at async PortfolioPerformanceService.updateAllPerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:358:29)
+    at async file:///home/runner/workspace/server/routes/performance-history.js:128:16 {
+  length: 112,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '69',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Processing INTL...
+Updating performance history for INTL using real-time data...
+Using date range: 2020-04-21 to 2025-05-27
+Error updating performance history for INTL: error: relation "portfolio_intl" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async PortfolioPerformanceService.updatePerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:135:41)
+    at async PortfolioPerformanceService.updateAllPerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:358:29)
+    at async file:///home/runner/workspace/server/routes/performance-history.js:128:16 {
+  length: 113,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '69',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error updating INTL performance history: error: relation "portfolio_intl" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async PortfolioPerformanceService.updatePerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:135:41)
+    at async PortfolioPerformanceService.updateAllPerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:358:29)
+    at async file:///home/runner/workspace/server/routes/performance-history.js:128:16 {
+  length: 113,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '69',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+3:48:09 AM [express] POST /api/performance-history/update 200 in 422ms :: {"status":"success","messa…
+3:48:09 AM [express] GET /api/data-updates/logs 304 in 66ms :: []
+3:48:12 AM [express] GET /api/data-updates/logs 304 in 15ms :: []
+3:48:15 AM [express] GET /api/data-updates/logs 304 in 16ms :: []
+3:48:19 AM [express] GET /api/data-updates/logs 304 in 15ms :: []
+3:48:22 AM [express] GET /api/data-updates/logs 304 in 16ms :: []
+3:48:25 AM [express] GET /api/data-updates/logs 304 in 16ms :: []
+3:48:25 AM [express] GET /api/market-indices/real-time 304 in 150ms :: {"sp500":{"return":-0.68,"pos…
+3:48:28 AM [express] GET /api/data-updates/logs 304 in 15ms :: []
+3:48:31 AM [express] GET /api/data-updates/logs 304 in 17ms :: []
+3:48:34 AM [express] GET /api/data-updates/logs 304 in 17ms :: []
+3:48:37 AM [express] GET /api/data-updates/logs 304 in 15ms :: []
+3:48:40 AM [express] GET /api/data-updates/logs 304 in 17ms :: []
+Fetching portfolio stocks for USD with refreshed metrics...
+Getting portfolio stocks for USD (using portfolio tables)
+3:48:41 AM [express] GET /api/alerts 200 in 0ms :: [{"id":1,"symbol":"MSFT","message":"RSI below thr…
+🔥 USD: CALLING BATCH PERFORMANCE CALCULATION FOR 20 STOCKS 🔥
+🔥 USD: PERFORMANCE METRICS CALCULATED: 20 stocks processed
+Successfully fetched 20 portfolio stocks for USD with up-to-date metrics
+3:48:41 AM [express] GET /api/portfolios/USD/stocks 304 in 44ms :: [{"id":45,"symbol":"PANW","compan…
+3:48:41 AM [express] GET /api/matrix-rules/Increase 304 in 0ms :: [{"id":1,"ruleId":"price-52wk","ru…
+3:48:41 AM [express] GET /api/matrix-rules/Decrease 304 in 1ms :: [{"id":7,"ruleId":"price-90day","r…
+3:48:41 AM [express] GET /api/current-prices/USD 304 in 83ms :: [{"id":41,"symbol":"BIL","region":"U…
+3:48:41 AM [express] GET /api/cash 304 in 92ms :: [{"id":2,"region":"CAD","amount":"12500.00","updat…
+3:48:41 AM [express] GET /api/etfs/SPY/holdings/top/10 304 in 82ms :: [{"id":2152,"ticker":"AAPL","n…
+3:48:41 AM [express] GET /api/data-updates/logs 304 in 95ms :: []
+Performance history request: {
+  region: 'USD',
+  timeRange: undefined,
+  startDate: '2024-05-27',
+  endDate: undefined
+}
+Getting performance history for USD from 2024-05-27 to now
+SQL: SELECT * FROM portfolio_performance_usd WHERE date >= $1 ORDER BY date ASC [ '2024-05-27' ]
+3:48:41 AM [express] GET /api/market-indices/real-time 304 in 114ms :: {"sp500":{"return":-0.68,"pos…
+3:48:41 AM [express] GET /api/transactions/latest 404 in 0ms :: {"status":"error","message":"Route n…
+3:48:41 AM [express] GET /api/performance-history 304 in 32ms :: {"status":"success","data":[{"date"…
+3:48:43 AM [express] GET /api/scheduler/config 404 in 1ms :: {"status":"error","message":"Task with …
+3:48:43 AM [express] GET /api/cash 304 in 16ms :: [{"id":2,"region":"CAD","amount":"12500.00","updat…
+3:48:43 AM [express] GET /api/data-updates/logs 304 in 19ms :: []
+3:48:43 AM [express] GET /api/market-indices/real-time 304 in 53ms :: {"sp500":{"return":-0.68,"posi…
+3:48:46 AM [express] GET /api/data-updates/logs 304 in 19ms :: []
+3:48:49 AM [express] GET /api/data-updates/logs 304 in 16ms :: []
+3:48:52 AM [express] GET /api/data-updates/logs 304 in 77ms :: []
+3:48:55 AM [express] GET /api/data-updates/logs 304 in 17ms :: []
+3:48:58 AM [express] GET /api/data-updates/logs 304 in 17ms :: []
+3:49:02 AM [express] GET /api/data-updates/logs 304 in 17ms :: []
