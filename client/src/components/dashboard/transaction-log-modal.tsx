@@ -97,9 +97,24 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
   };
 
   const updateTransaction = (id: number, field: keyof Transaction, value: string) => {
-    setTransactions(prev => prev.map(t => 
-      t.id === id ? { ...t, [field]: value } : t
-    ));
+    setTransactions(prev => prev.map(t => {
+      if (t.id === id) {
+        const updatedTransaction = { ...t, [field]: value };
+        
+        // Auto-populate company, stockType, and rating when symbol changes
+        if (field === 'symbol' && value) {
+          const existingStock = stocks.find(s => s.symbol === value);
+          if (existingStock) {
+            updatedTransaction.company = existingStock.company;
+            updatedTransaction.stockType = existingStock.stockType;
+            updatedTransaction.rating = existingStock.rating;
+          }
+        }
+        
+        return updatedTransaction;
+      }
+      return t;
+    }));
   };
 
   const getValidationErrors = (transaction: Transaction) => {
