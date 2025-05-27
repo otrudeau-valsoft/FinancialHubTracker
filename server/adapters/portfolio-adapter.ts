@@ -240,6 +240,9 @@ export async function adaptUSDPortfolioData(data: PortfolioUSD[]): Promise<Legac
 export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<LegacyPortfolioItem[]> {
   if (!data.length) return [];
   
+  // Debug: Log the actual data structure we receive
+  console.log(`CAD ADAPTER DEBUG: Received ${data.length} items. First item structure:`, JSON.stringify(data[0], null, 2));
+  
   // Get symbols for all stocks
   const symbols = data.map(item => item.symbol);
   
@@ -337,6 +340,9 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
  */
 export async function adaptINTLPortfolioData(data: PortfolioINTL[]): Promise<LegacyPortfolioItem[]> {
   if (!data.length) return [];
+  
+  // Debug: Log the actual data structure we receive
+  console.log(`INTL ADAPTER DEBUG: Received ${data.length} items. First item structure:`, JSON.stringify(data[0], null, 2));
   
   // Get symbols for all stocks
   const symbols = data.map(item => item.symbol);
