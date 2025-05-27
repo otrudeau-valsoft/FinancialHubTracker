@@ -53,26 +53,24 @@ const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
     }
   }, [cashBalances]);
 
-  // Fallback initialization if React Query data doesn't load properly
+  // Force data initialization on component mount
   React.useEffect(() => {
-    if (Object.keys(cashValues).length === 0 && !isLoading) {
-      const initializeData = async () => {
-        try {
-          const response = await apiRequest('GET', '/api/cash');
-          if (Array.isArray(response) && response.length > 0) {
-            const values: {[key: string]: string} = {};
-            response.forEach((cash: CashBalance) => {
-              values[cash.region] = cash.amount;
-            });
-            setCashValues(values);
-          }
-        } catch (error) {
-          console.error('Failed to initialize cash data:', error);
+    const initializeData = async () => {
+      try {
+        const response = await apiRequest('GET', '/api/cash');
+        if (Array.isArray(response) && response.length > 0) {
+          const values: {[key: string]: string} = {};
+          response.forEach((cash: CashBalance) => {
+            values[cash.region] = cash.amount;
+          });
+          setCashValues(values);
         }
-      };
-      initializeData();
-    }
-  }, [isLoading]);
+      } catch (error) {
+        console.error('Failed to initialize cash data:', error);
+      }
+    };
+    initializeData();
+  }, []);
 
   // Mutation to update cash balance
   const updateCashMutation = useMutation({
