@@ -121,9 +121,6 @@ export class DatabaseAdapter {
   /**
    * Get portfolio stocks for a specific region
    */
-  /**
-   * Get portfolio stocks for a specific region
-   */
   async getPortfolioStocks(region: string): Promise<LegacyPortfolioItem[]> {
     try {
       console.log(`Getting portfolio stocks for ${region} (using portfolio tables)`);
