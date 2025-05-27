@@ -22,266 +22,242 @@ const metricsCache: Record<string, {
 // Cache timeout in milliseconds (5 minutes)
 const CACHE_TIMEOUT = 5 * 60 * 1000;
 
-class PerformanceCalculationService {
+export interface PerformanceMetrics {
+  mtdReturn?: number;
+  ytdReturn?: number;
+  sixMonthReturn?: number;
+  fiftyTwoWeekReturn?: number;
+}
+
+export class PerformanceCalculationService {
   /**
-   * Calculate performance metrics for multiple stocks in a single batch operation
-   * This is much more efficient than calculating metrics one by one
+   * Calculate performance metrics for multiple symbols in batch
    */
   async calculateBatchPerformanceMetrics(
-    stocks: Array<{ symbol: string, currentPrice: number }>,
+    symbols: string[], 
     region: string
-  ): Promise<Record<string, { mtdReturn?: number; ytdReturn?: number; sixMonthReturn?: number; fiftyTwoWeekReturn?: number }>> {
-    try {
-      const now = new Date();
-      const symbols = stocks.map(s => s.symbol);
-      const results: Record<string, { mtdReturn?: number; ytdReturn?: number; sixMonthReturn?: number; fiftyTwoWeekReturn?: number }> = {};
-      
+  ): Promise<Record<string, PerformanceMetrics>> {
+    if (!symbols || symbols.length === 0) {
+      return {};
+    }
 
-      
-      // Initialize results
-      for (const symbol of symbols) {
+    const results: Record<string, PerformanceMetrics> = {};
+    const now = new Date();
+
+    // Initialize results for all symbols
+    for (const symbol of symbols) {
+      results[symbol] = {
+        mtdReturn: undefined,
+        ytdReturn: undefined,
+        sixMonthReturn: undefined,
+        fiftyTwoWeekReturn: undefined
+      };
+    }
+
+    // Check cache first
+    const symbolsToFetch: string[] = [];
+    for (const symbol of symbols) {
+      const cacheKey = `${symbol}_${region}`;
+      if (metricsCache[cacheKey] && (now.getTime() - metricsCache[cacheKey].timestamp) < CACHE_TIMEOUT) {
         results[symbol] = {
-          mtdReturn: undefined,
-          ytdReturn: undefined,
-          sixMonthReturn: undefined,
-          fiftyTwoWeekReturn: undefined
+          mtdReturn: metricsCache[cacheKey].mtdReturn,
+          ytdReturn: metricsCache[cacheKey].ytdReturn,
+          sixMonthReturn: metricsCache[cacheKey].sixMonthReturn,
+          fiftyTwoWeekReturn: metricsCache[cacheKey].fiftyTwoWeekReturn
         };
-      
-      // Check cache first for each symbol
-      const symbolsToFetch: string[] = [];
-      for (const symbol of symbols) {
-        const cacheKey = `${symbol}_${region}`;
-        if (metricsCache[cacheKey] && (now.getTime() - metricsCache[cacheKey].timestamp) < CACHE_TIMEOUT) {
-          // Use cached metrics if available and not expired
-          results[symbol] = {
-            mtdReturn: metricsCache[cacheKey].mtdReturn,
-            ytdReturn: metricsCache[cacheKey].ytdReturn,
-            sixMonthReturn: metricsCache[cacheKey].sixMonthReturn,
-            fiftyTwoWeekReturn: metricsCache[cacheKey].fiftyTwoWeekReturn
-          };
-        } else {
-          symbolsToFetch.push(symbol);
-        }
+      } else {
+        symbolsToFetch.push(symbol);
       }
+    }
+
+    // If all data is cached, return immediately
+    if (symbolsToFetch.length === 0) {
+      return results;
+    }
+
+    console.log(`🔥 ${region.toUpperCase()}: CALLING BATCH PERFORMANCE CALCULATION FOR ${symbolsToFetch.length} STOCKS 🔥`);
+
+    try {
+      // Calculate key dates - ensure MTD and YTD are DIFFERENT
+      const currentMonth = now.getMonth(); // 0-based (May = 4)
+      const currentYear = now.getFullYear(); // 2025
       
-      // If all data is cached, return immediately
-      if (symbolsToFetch.length === 0) {
-        return results;
-      }
+      // First day of current month (May 1, 2025)
+      const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
       
-      console.log(`🔥 ${region.toUpperCase()}: CALLING BATCH PERFORMANCE CALCULATION FOR ${symbolsToFetch.length} STOCKS 🔥`);
+      // First day of current year (January 1, 2025)
+      const firstDayOfYear = new Date(currentYear, 0, 1);
       
-      // Calculate key dates - MTD and YTD should NEVER be the same!
-      const actualFirstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1); // First day of current month (May 1, 2025)
-      const actualFirstDayOfYear = new Date(now.getFullYear(), 0, 1); // First day of current year (Jan 1, 2025)
-      
+      // Six months ago
       const sixMonthsAgo = new Date(now);
-      sixMonthsAgo.setMonth(now.getMonth() - 6);
-      const fiftyTwoWeeksAgo = new Date(now.getTime() - (52 * 7 * 24 * 60 * 60 * 1000));
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
       
-      const formattedFirstDayOfMonth = actualFirstDayOfMonth.toISOString().split('T')[0];
-      const formattedFirstDayOfYear = actualFirstDayOfYear.toISOString().split('T')[0];
-      const formattedSixMonthsAgo = sixMonthsAgo.toISOString().split('T')[0];
-      const formattedFiftyTwoWeeksAgo = fiftyTwoWeeksAgo.toISOString().split('T')[0];
+      // 52 weeks ago
+      const fiftyTwoWeeksAgo = new Date(now);
+      fiftyTwoWeeksAgo.setDate(fiftyTwoWeeksAgo.getDate() - 365);
+
+      // Format dates for SQL queries
+      const formatDate = (date: Date) => date.toISOString().split('T')[0];
       
-      // Build a separate query for each type of date to simplify and make it more reliable
-      
-      // First day of month prices (for MTD)
-      const mtdPriceData = await db.select()
+      const mtdStartDate = formatDate(firstDayOfMonth);
+      const ytdStartDate = formatDate(firstDayOfYear);
+      const sixMonthStartDate = formatDate(sixMonthsAgo);
+      const fiftyTwoWeekStartDate = formatDate(fiftyTwoWeeksAgo);
+
+      // Get current prices for all symbols
+      const currentPricesQuery = await db
+        .select()
         .from(historicalPrices)
         .where(
           and(
             inArray(historicalPrices.symbol, symbolsToFetch),
-            eq(historicalPrices.region, region),
-            sql`${historicalPrices.date} >= ${formattedFirstDayOfMonth}`
+            eq(historicalPrices.region, region)
           )
         )
-        .orderBy(asc(historicalPrices.symbol), asc(historicalPrices.date));
-      
-      // First day of year prices (for YTD)
-      const ytdPriceData = await db.select()
-        .from(historicalPrices)
-        .where(
-          and(
-            inArray(historicalPrices.symbol, symbolsToFetch),
-            eq(historicalPrices.region, region),
-            sql`${historicalPrices.date} >= ${formattedFirstDayOfYear}`,
-            sql`${historicalPrices.date} < ${formattedFirstDayOfMonth}`
-          )
-        )
-        .orderBy(asc(historicalPrices.symbol), asc(historicalPrices.date));
-      
-      // Six month ago prices (for 6-month return)
-      const sixMonthPriceData = await db.select()
-        .from(historicalPrices)
-        .where(
-          and(
-            inArray(historicalPrices.symbol, symbolsToFetch),
-            eq(historicalPrices.region, region),
-            sql`${historicalPrices.date} <= ${formattedSixMonthsAgo}`
-          )
-        )
-        .orderBy(asc(historicalPrices.symbol), desc(historicalPrices.date));
-      
-      // 52-week high prices (for percentage from 52-week high)
-      const fiftyTwoWeekHighData = await db.select({
-        symbol: historicalPrices.symbol,
-        maxPrice: sql<number>`MAX(${historicalPrices.close})`.as('maxPrice')
-      })
-        .from(historicalPrices)
-        .where(
-          and(
-            inArray(historicalPrices.symbol, symbolsToFetch),
-            eq(historicalPrices.region, region),
-            sql`${historicalPrices.date} >= ${formattedFiftyTwoWeeksAgo}`
-          )
-        )
-        .groupBy(historicalPrices.symbol);
-        
-      // Combine all price data for processing
-      const priceData = [...mtdPriceData, ...ytdPriceData, ...sixMonthPriceData];
-      
-      // Organize price data by symbol and date
-      const pricesBySymbol: Record<string, {
-        mtdStartPrice?: number;
-        ytdStartPrice?: number;
-        sixMonthPrice?: number;
-        fiftyTwoWeekHighPrice?: number;
-      }> = {};
-      
-      // Initialize price objects for each symbol
+        .orderBy(desc(historicalPrices.date))
+        .limit(symbolsToFetch.length * 5); // Get recent prices
+
+      // Group current prices by symbol
+      const currentPricesBySymbol: Record<string, number> = {};
+      for (const price of currentPricesQuery) {
+        if (!currentPricesBySymbol[price.symbol]) {
+          currentPricesBySymbol[price.symbol] = Number(price.close);
+        }
+      }
+
+      // Calculate metrics for each symbol
       for (const symbol of symbolsToFetch) {
-        pricesBySymbol[symbol] = {
-          mtdStartPrice: undefined,
-          ytdStartPrice: undefined,
-          sixMonthPrice: undefined,
-          fiftyTwoWeekHighPrice: undefined
-        };
-      }
-      
-      // Find the appropriate price points for each symbol
-      for (const price of priceData) {
-        const symbol = price.symbol;
-        const priceDate = new Date(price.date);
-        const priceValue = Number(price.adjustedClose);
+        const currentPrice = currentPricesBySymbol[symbol];
         
-        if (isNaN(priceValue) || priceValue === 0) continue;
-        
-        // First day of month price (for MTD)
-        if (priceDate >= actualFirstDayOfMonth && !pricesBySymbol[symbol].mtdStartPrice) {
-          pricesBySymbol[symbol].mtdStartPrice = priceValue;
+        if (!currentPrice) {
+          console.log(`No current price found for ${symbol}`);
+          continue;
         }
-        
-        // First day of year price (for YTD)
-        if (priceDate >= actualFirstDayOfYear && !pricesBySymbol[symbol].ytdStartPrice) {
-          pricesBySymbol[symbol].ytdStartPrice = priceValue;
-        }
-        
-        // Closest price to six months ago (for 6-month return)
-        if (priceDate <= sixMonthsAgo) {
-          // If we don't have a price yet, or this one is closer to sixMonthsAgo
-          if (!pricesBySymbol[symbol].sixMonthPrice) {
-            pricesBySymbol[symbol].sixMonthPrice = priceValue;
+
+        try {
+          // Get historical prices for each time period
+          const [mtdPrice, ytdPrice, sixMonthPrice, fiftyTwoWeekPrice] = await Promise.all([
+            this.getClosestHistoricalPrice(symbol, region, mtdStartDate),
+            this.getClosestHistoricalPrice(symbol, region, ytdStartDate),
+            this.getClosestHistoricalPrice(symbol, region, sixMonthStartDate),
+            this.getClosestHistoricalPrice(symbol, region, fiftyTwoWeekStartDate)
+          ]);
+
+          // Calculate returns
+          if (mtdPrice) {
+            results[symbol].mtdReturn = ((currentPrice - mtdPrice) / mtdPrice) * 100;
           }
-        }
-        
-        // This section is no longer needed since we're using MAX query for 52-week high
-      }
-      
-      // Process 52-week high data
-      for (const highData of fiftyTwoWeekHighData) {
-        const symbol = highData.symbol;
-        if (pricesBySymbol[symbol]) {
-          pricesBySymbol[symbol].fiftyTwoWeekHighPrice = Number(highData.maxPrice);
-        }
-      }
-      
-      // Calculate returns for each symbol
-      for (const stock of stocks) {
-        const { symbol, currentPrice } = stock;
-        if (!symbolsToFetch.includes(symbol)) continue;
-        
-        const cacheKey = `${symbol}_${region}`;
-        const prices = pricesBySymbol[symbol];
-        
-        // Initialize results object for this symbol
-        if (!results[symbol]) {
-          results[symbol] = {
-            mtdReturn: undefined,
-            ytdReturn: undefined,
-            sixMonthReturn: undefined,
-            fiftyTwoWeekReturn: undefined
+          
+          if (ytdPrice) {
+            results[symbol].ytdReturn = ((currentPrice - ytdPrice) / ytdPrice) * 100;
+          }
+          
+          if (sixMonthPrice) {
+            results[symbol].sixMonthReturn = ((currentPrice - sixMonthPrice) / sixMonthPrice) * 100;
+          }
+          
+          if (fiftyTwoWeekPrice) {
+            results[symbol].fiftyTwoWeekReturn = ((currentPrice - fiftyTwoWeekPrice) / fiftyTwoWeekPrice) * 100;
+          }
+
+          // Cache the results
+          const cacheKey = `${symbol}_${region}`;
+          metricsCache[cacheKey] = {
+            mtdReturn: results[symbol].mtdReturn,
+            ytdReturn: results[symbol].ytdReturn,
+            sixMonthReturn: results[symbol].sixMonthReturn,
+            fiftyTwoWeekReturn: results[symbol].fiftyTwoWeekReturn,
+            timestamp: now.getTime()
           };
+
+        } catch (error) {
+          console.error(`Error calculating metrics for ${symbol}:`, error);
         }
-        
-        // Calculate MTD return
-        if (prices && prices.mtdStartPrice) {
-          results[symbol].mtdReturn = ((currentPrice - prices.mtdStartPrice) / prices.mtdStartPrice) * 100;
-        }
-        
-        // Calculate YTD return
-        if (prices && prices.ytdStartPrice) {
-          results[symbol].ytdReturn = ((currentPrice - prices.ytdStartPrice) / prices.ytdStartPrice) * 100;
-        }
-        
-        // Calculate 6-month return
-        if (prices && prices.sixMonthPrice) {
-          results[symbol].sixMonthReturn = ((currentPrice - prices.sixMonthPrice) / prices.sixMonthPrice) * 100;
-        }
-        
-        // Calculate percentage from 52-week high
-        if (prices && prices.fiftyTwoWeekHighPrice) {
-          results[symbol].fiftyTwoWeekReturn = ((currentPrice - prices.fiftyTwoWeekHighPrice) / prices.fiftyTwoWeekHighPrice) * 100;
-        }
-        
-        // Update cache with all metrics including 52W%
-        metricsCache[cacheKey] = {
-          mtdReturn: results[symbol].mtdReturn,
-          ytdReturn: results[symbol].ytdReturn,
-          sixMonthReturn: results[symbol].sixMonthReturn,
-          fiftyTwoWeekReturn: results[symbol].fiftyTwoWeekReturn,
-          timestamp: now.getTime()
-        };
       }
-      
+
       console.log(`🔥 ${region.toUpperCase()}: PERFORMANCE METRICS CALCULATED: ${Object.keys(results).length} stocks processed`);
       
-      // Debug: Check what we're actually returning
+      // Debug: Show sample result
       const sampleSymbol = Object.keys(results)[0];
       if (sampleSymbol) {
         console.log(`📊 SAMPLE RESULT for ${sampleSymbol}:`, results[sampleSymbol]);
       }
-      
+
       return results;
+
     } catch (error) {
       console.error(`Error calculating batch performance metrics for region ${region}:`, error);
-      return {};
+      return results; // Return partially calculated results
     }
   }
 
   /**
-   * Calculate all performance metrics for a stock
-   * This method now uses the optimized batch processing under the hood
+   * Get the closest historical price for a given date
    */
-  async calculateAllPerformanceMetrics(symbol: string, region: string, currentPrice: number): Promise<{
-    mtdReturn?: number;
-    ytdReturn?: number;
-    sixMonthReturn?: number;
-    fiftyTwoWeekReturn?: number;
-  }> {
+  private async getClosestHistoricalPrice(
+    symbol: string, 
+    region: string, 
+    targetDate: string
+  ): Promise<number | null> {
     try {
-      // Use batch calculation method even for a single stock
-      const results = await this.calculateBatchPerformanceMetrics(
-        [{ symbol, currentPrice }],
-        region
-      );
-      
-      return results[symbol] || {};
+      const prices = await db
+        .select()
+        .from(historicalPrices)
+        .where(
+          and(
+            eq(historicalPrices.symbol, symbol),
+            eq(historicalPrices.region, region),
+            sql`${historicalPrices.date} >= ${targetDate}`
+          )
+        )
+        .orderBy(asc(historicalPrices.date))
+        .limit(1);
+
+      if (prices.length > 0) {
+        return Number(prices[0].close);
+      }
+
+      // If no price found on or after target date, get the closest before
+      const fallbackPrices = await db
+        .select()
+        .from(historicalPrices)
+        .where(
+          and(
+            eq(historicalPrices.symbol, symbol),
+            eq(historicalPrices.region, region),
+            sql`${historicalPrices.date} < ${targetDate}`
+          )
+        )
+        .orderBy(desc(historicalPrices.date))
+        .limit(1);
+
+      if (fallbackPrices.length > 0) {
+        return Number(fallbackPrices[0].close);
+      }
+
+      return null;
     } catch (error) {
-      console.error(`Error calculating performance metrics for ${symbol} (${region}):`, error);
-      return {};
+      console.error(`Error getting historical price for ${symbol} on ${targetDate}:`, error);
+      return null;
     }
+  }
+
+  /**
+   * Calculate performance metrics for a single symbol
+   */
+  async calculatePerformanceMetrics(
+    symbol: string, 
+    region: string
+  ): Promise<PerformanceMetrics> {
+    const result = await this.calculateBatchPerformanceMetrics([symbol], region);
+    return result[symbol] || {
+      mtdReturn: undefined,
+      ytdReturn: undefined,
+      sixMonthReturn: undefined,
+      fiftyTwoWeekReturn: undefined
+    };
   }
 }
 
+// Export singleton instance
 export const performanceService = new PerformanceCalculationService();
