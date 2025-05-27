@@ -203,23 +203,33 @@ class PerformanceCalculationService {
         const cacheKey = `${symbol}_${region}`;
         const prices = pricesBySymbol[symbol];
         
+        // Initialize results object for this symbol
+        if (!results[symbol]) {
+          results[symbol] = {
+            mtdReturn: undefined,
+            ytdReturn: undefined,
+            sixMonthReturn: undefined,
+            fiftyTwoWeekReturn: undefined
+          };
+        }
+        
         // Calculate MTD return
-        if (prices.mtdStartPrice) {
+        if (prices && prices.mtdStartPrice) {
           results[symbol].mtdReturn = ((currentPrice - prices.mtdStartPrice) / prices.mtdStartPrice) * 100;
         }
         
         // Calculate YTD return
-        if (prices.ytdStartPrice) {
+        if (prices && prices.ytdStartPrice) {
           results[symbol].ytdReturn = ((currentPrice - prices.ytdStartPrice) / prices.ytdStartPrice) * 100;
         }
         
         // Calculate 6-month return
-        if (prices.sixMonthPrice) {
+        if (prices && prices.sixMonthPrice) {
           results[symbol].sixMonthReturn = ((currentPrice - prices.sixMonthPrice) / prices.sixMonthPrice) * 100;
         }
         
         // Calculate percentage from 52-week high
-        if (prices.fiftyTwoWeekHighPrice) {
+        if (prices && prices.fiftyTwoWeekHighPrice) {
           results[symbol].fiftyTwoWeekReturn = ((currentPrice - prices.fiftyTwoWeekHighPrice) / prices.fiftyTwoWeekHighPrice) * 100;
         }
         
