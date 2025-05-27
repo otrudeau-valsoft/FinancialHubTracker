@@ -43,6 +43,8 @@ class PerformanceCalculationService {
           sixMonthReturn: undefined,
           fiftyTwoWeekReturn: undefined
         };
+        
+        console.log(`🔍 ${symbol} DEBUG: Current=${currentPrice}, MTD start=${prices.mtdPrice}, YTD start=${prices.ytdPrice}, 52W high=${prices.fiftyTwoWeekHighPrice}`);
       }
       
       // Check cache first for each symbol
@@ -71,13 +73,11 @@ class PerformanceCalculationService {
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
       
-      // Debug: Force different dates if they're the same (early in year)
-      const debugFirstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const debugFirstDayOfYear = new Date(2024, 0, 1); // Force 2024 start for YTD
-      console.log(`DEBUG dates: MTD=${debugFirstDayOfMonth.toISOString()}, YTD=${debugFirstDayOfYear.toISOString()}`);
+      // Proper MTD and YTD calculations - they should NEVER be the same!
+      const actualFirstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1); // First day of current month (May 1, 2025)
+      const actualFirstDayOfYear = new Date(now.getFullYear(), 0, 1); // First day of current year (Jan 1, 2025)
       
-      const actualFirstDayOfMonth = debugFirstDayOfMonth;
-      const actualFirstDayOfYear = debugFirstDayOfYear;
+      console.log(`🔍 DATE DEBUG: Current=${now.toISOString()}, MTD=${actualFirstDayOfMonth.toISOString()}, YTD=${actualFirstDayOfYear.toISOString()}`);
       const sixMonthsAgo = new Date(now);
       sixMonthsAgo.setMonth(now.getMonth() - 6);
       const fiftyTwoWeeksAgo = new Date(now.getTime() - (52 * 7 * 24 * 60 * 60 * 1000));
