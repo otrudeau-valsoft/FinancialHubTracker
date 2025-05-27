@@ -49,19 +49,44 @@ const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
     }
   }, [cashBalances]);
 
-  // Mutation to update cash balance
+  // Mutation to update cash balance with optimistic updates
   const updateCashMutation = useMutation({
     mutationFn: ({ region, amount }: { region: string; amount: string }) => 
       apiRequest('POST', `/api/cash/${region}`, { amount }),
+    onMutate: async ({ region, amount }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['/api/cash'] });
+      
+      // Snapshot the previous value
+      const previousCashBalances = queryClient.getQueryData(['/api/cash']);
+      
+      // Optimistically update the cash balance
+      queryClient.setQueryData(['/api/cash'], (old: CashBalance[] | undefined) => {
+        if (!old) return old;
+        return old.map(cash => 
+          cash.region === region 
+            ? { ...cash, amount: amount }
+            : cash
+        );
+      });
+      
+      // Return a context with the previous and new values
+      return { previousCashBalances, region, amount };
+    },
     onSuccess: (_, variables) => {
       toast({
         title: 'Cash balance updated',
         description: `${variables.region} cash balance updated to $${Number(variables.amount).toLocaleString()}`
       });
+      // Refetch to ensure server and client are in sync
       queryClient.invalidateQueries({ queryKey: ['/api/cash'] });
       queryClient.invalidateQueries({ queryKey: ['/api/holdings'] });
     },
-    onError: (error: Error) => {
+    onError: (error: Error, variables, context) => {
+      // Roll back to the previous value on error
+      if (context?.previousCashBalances) {
+        queryClient.setQueryData(['/api/cash'], context.previousCashBalances);
+      }
       toast({
         title: 'Error updating cash balance',
         description: error.message,
