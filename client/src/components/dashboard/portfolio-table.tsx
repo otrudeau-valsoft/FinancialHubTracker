@@ -183,7 +183,15 @@ export const PortfolioTable = ({ stocks, region, currentPrices }: PortfolioTable
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span className={priceDiff ? getProfitLossClass(priceDiff) : "text-[#EFEFEF]"}>
+                              <span className={
+                                stock.purchasePrice !== undefined 
+                                  ? marketPrice > stock.purchasePrice 
+                                    ? 'text-[#4CAF50]' // Green when market price > purchase price
+                                    : marketPrice < stock.purchasePrice 
+                                      ? 'text-[#F44336]' // Red when market price < purchase price
+                                      : 'text-[#EFEFEF]' // Neutral when equal
+                                  : 'text-[#EFEFEF]' // Neutral when no purchase price
+                              }>
                                 {formatCurrency(marketPrice, currencySymbol)}
                               </span>
                             </TooltipTrigger>
