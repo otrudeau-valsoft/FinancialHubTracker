@@ -181,33 +181,7 @@ export function PortfolioCashPanel({ className, region = 'USD' }: PortfolioCashP
           )}
         </div>
       </div>
-      <div className="p-4 border-t border-[#1A304A]">
-        {isEditing ? (
-          <div className="flex justify-end gap-2">
-            <Button 
-              variant="outline" 
-              onClick={handleCancel}
-              className="border-[#1A304A] bg-[#0B1728] text-[#EFEFEF] hover:bg-[#162639] hover:text-white"
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleEditToggle} 
-              disabled={updateCashMutation.isPending}
-              className="bg-[#4CAF50] text-white hover:bg-[#388E3C]"
-            >
-              {updateCashMutation.isPending ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </div>
-        ) : (
-          <Button 
-            onClick={handleEditToggle}
-            className="w-full border-[#1A304A] bg-[#0B1728] text-[#EFEFEF] hover:bg-[#162639] hover:text-white font-mono text-xs"
-          >
-            EDIT CASH BALANCE
-          </Button>
-        )}
-      </div>
+
     </div>
   );
-}
+};
