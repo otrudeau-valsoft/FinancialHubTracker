@@ -272,11 +272,45 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
       queryClient.invalidateQueries({ queryKey: [`/api/portfolios/${region}/stocks`] });
       queryClient.invalidateQueries({ queryKey: [`/api/cash/${region}`] });
       
-      toast({
-        title: "Transactions Executed",
-        description: `Successfully processed ${transactions.length} transaction(s). Cash impact: ${getTotalCashImpact() > 0 ? '+' : ''}$${getTotalCashImpact().toLocaleString()}`,
-        variant: "default"
-      });
+      // Automatically trigger data management updates after successful transactions
+      try {
+        toast({
+          title: "Transactions Executed",
+          description: `Successfully processed ${transactions.length} transaction(s). Updating market data...`,
+          variant: "default"
+        });
+        
+        // Trigger automatic data updates in the background
+        Promise.all([
+          // Update current prices for all portfolios
+          apiRequest('POST', '/api/current-prices/fetch/all', {}),
+          // Update historical data for all portfolios  
+          apiRequest('POST', '/api/historical-prices/fetch/all', {}),
+          // Recalculate performance metrics
+          apiRequest('POST', '/api/historical-prices/update-performance-history', {})
+        ]).then(() => {
+          // Refresh all portfolio data after updates complete
+          queryClient.invalidateQueries({ queryKey: [`/api/portfolios`] });
+          queryClient.invalidateQueries({ queryKey: [`/api/current-prices`] });
+          queryClient.invalidateQueries({ queryKey: [`/api/performance-history`] });
+          
+          toast({
+            title: "Data Updated",
+            description: `Portfolio transactions completed and market data refreshed. Cash impact: ${getTotalCashImpact() > 0 ? '+' : ''}$${getTotalCashImpact().toLocaleString()}`,
+            variant: "default"
+          });
+        }).catch((updateError) => {
+          console.warn('Data update error after transactions:', updateError);
+          toast({
+            title: "Transactions Completed",
+            description: `${transactions.length} transaction(s) processed successfully. Manual data refresh may be needed.`,
+            variant: "default"
+          });
+        });
+        
+      } catch (error) {
+        console.warn('Background update trigger failed:', error);
+      }
       
       setTransactions([]);
       onClose();
