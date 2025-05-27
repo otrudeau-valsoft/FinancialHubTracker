@@ -106,8 +106,8 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
           const existingStock = stocks.find(s => s.symbol === value);
           if (existingStock) {
             updatedTransaction.company = existingStock.company;
-            updatedTransaction.stockType = existingStock.stockType;
-            updatedTransaction.rating = existingStock.rating;
+            updatedTransaction.stockType = (existingStock as any).stockType || 'Comp';
+            updatedTransaction.rating = (existingStock as any).rating || '3';
           }
         }
         
@@ -399,6 +399,14 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
                 const price = parseFloat(transaction.price) || 0;
                 const total = quantity * price;
                 
+                // Calculate P&L based on current market price
+                const stock = stocks.find(s => s.symbol === transaction.symbol);
+                const currentPrice = stock?.currentPrice || 0;
+                const pnlDollar = transaction.action === 'BUY' ? 
+                  (currentPrice - price) * quantity : 
+                  (price - currentPrice) * quantity;
+                const pnlPercent = price > 0 ? (pnlDollar / (price * quantity)) * 100 : 0;
+                
                 return (
                   <tr key={transaction.id} className="border-b border-slate-700 hover:bg-slate-800/50">
                     <td className="p-3">
@@ -483,6 +491,20 @@ export function TransactionLogModal({ isOpen, onClose, stocks, region }: Transac
                           <SelectItem value="ETF">ETF</SelectItem>
                         </SelectContent>
                       </Select>
+                    </td>
+                    <td className="p-3">
+                      <span className={`font-mono text-xs ${
+                        pnlDollar >= 0 ? 'text-green-400' : 'text-red-400'
+                      }`}>
+                        {pnlDollar >= 0 ? '+' : ''}${pnlDollar.toFixed(2)}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      <span className={`font-mono text-xs ${
+                        pnlPercent >= 0 ? 'text-green-400' : 'text-red-400'
+                      }`}>
+                        {pnlPercent >= 0 ? '+' : ''}{pnlPercent.toFixed(2)}%
+                      </span>
                     </td>
                     <td className="p-3">
                       <span className={`font-mono ${
