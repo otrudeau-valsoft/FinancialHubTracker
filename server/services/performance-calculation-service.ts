@@ -75,9 +75,6 @@ class PerformanceCalculationService {
       const actualFirstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1); // First day of current month (May 1, 2025)
       const actualFirstDayOfYear = new Date(now.getFullYear(), 0, 1); // First day of current year (Jan 1, 2025)
       
-      console.log(`🔍 MTD vs YTD DEBUG: MTD=${actualFirstDayOfMonth.toISOString()} vs YTD=${actualFirstDayOfYear.toISOString()}`);
-      console.log(`🔍 CURRENT DATE: ${now.toISOString()}`);
-      
       const sixMonthsAgo = new Date(now);
       sixMonthsAgo.setMonth(now.getMonth() - 6);
       const fiftyTwoWeeksAgo = new Date(now.getTime() - (52 * 7 * 24 * 60 * 60 * 1000));
