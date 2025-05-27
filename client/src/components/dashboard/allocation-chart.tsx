@@ -34,15 +34,20 @@ export const AllocationChart = ({ typeAllocation, ratingAllocation }: Allocation
   };
   
   return (
-    <Card className="mb-6 border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden">
-      <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
-        <div className="w-full flex items-center justify-between">
-          <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">ALLOCATION</h3>
-          <div className="h-1 w-8 bg-[#FFD700]"></div>
+    <div className="bg-[#0A1524] border border-[#1A304A] overflow-hidden h-full flex flex-col">
+      <div className="p-3 border-b border-[#1A304A]">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-mono text-[#EFEFEF] text-sm tracking-wide">ALLOCATION</h3>
+            <div className="flex items-center mt-1">
+              <div className="h-0.5 w-6 bg-[#FFD700]"></div>
+            </div>
+          </div>
         </div>
-      </CardHeader>
-      <CardContent className="p-3 sm:p-4 bg-[#0A1929]">
-        <div className="flex flex-col h-full justify-center space-y-4">
+      </div>
+      
+      <div className="flex-1 p-4 overflow-hidden">
+        <div className="flex flex-col h-full justify-center space-y-6">
           <div className="grid grid-cols-3 gap-2 w-full">
             <div className="flex flex-col items-center">
               <div className="flex items-center mb-1">
@@ -84,29 +89,29 @@ export const AllocationChart = ({ typeAllocation, ratingAllocation }: Allocation
             </div>
           </div>
           
-          <div className="flex flex-col space-y-1 border-t border-[#1A304A] pt-3">
-            <div className="text-[10px] sm:text-xs font-mono text-[#7A8999] mb-1">RATING DISTRIBUTION</div>
-            <div className="grid grid-cols-4 gap-2 text-[10px] sm:text-xs font-mono">
+          <div className="flex flex-col space-y-4 border-t border-[#1A304A] pt-6">
+            <div className="text-xs font-mono text-[#7A8999] mb-2 uppercase tracking-wide">RATING DISTRIBUTION</div>
+            <div className="grid grid-cols-4 gap-3 text-xs font-mono">
               <div className="text-center">
-                <div className="text-[#7A8999] mb-1">RATING 1</div>
-                <span className="font-medium text-[#00C853]">{ratingAllocation["1"] || 0}%</span>
+                <div className="text-[#7A8999] mb-2">RATING 1</div>
+                <span className="font-medium text-[#00C853] text-lg">{ratingAllocation["1"] || 0}%</span>
               </div>
               <div className="text-center">
-                <div className="text-[#7A8999] mb-1">RATING 2</div>
-                <span className="font-medium text-[#66BB6A]">{ratingAllocation["2"] || 0}%</span>
+                <div className="text-[#7A8999] mb-2">RATING 2</div>
+                <span className="font-medium text-[#66BB6A] text-lg">{ratingAllocation["2"] || 0}%</span>
               </div>
               <div className="text-center">
-                <div className="text-[#7A8999] mb-1">RATING 3</div>
-                <span className="font-medium text-[#FFC107]">{ratingAllocation["3"] || 0}%</span>
+                <div className="text-[#7A8999] mb-2">RATING 3</div>
+                <span className="font-medium text-[#FFC107] text-lg">{ratingAllocation["3"] || 0}%</span>
               </div>
               <div className="text-center">
-                <div className="text-[#7A8999] mb-1">RATING 4</div>
-                <span className="font-medium text-[#FF3D00]">{ratingAllocation["4"] || 0}%</span>
+                <div className="text-[#7A8999] mb-2">RATING 4</div>
+                <span className="font-medium text-[#FF3D00] text-lg">{ratingAllocation["4"] || 0}%</span>
               </div>
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
