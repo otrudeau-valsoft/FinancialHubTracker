@@ -88,10 +88,15 @@ const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
         description: `${variables.region} cash balance updated to $${Number(variables.amount).toLocaleString()}`
       });
       
+      // Invalidate all cash-related queries to force refresh
+      queryClient.invalidateQueries({ queryKey: ['/api/cash'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/portfolios'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/holdings'] });
+      
       // Refresh the page to ensure all components show the updated values
       setTimeout(() => {
         window.location.reload();
-      }, 1000);
+      }, 500);
     },
     onError: (error: Error) => {
       toast({
