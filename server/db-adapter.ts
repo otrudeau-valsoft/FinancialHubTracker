@@ -149,14 +149,89 @@ export class DatabaseAdapter {
       
 
       
-      // Use the fixed adapter that handles column naming correctly
-      const { fixedPortfolioAdapter } = await import('./adapters/fixed-adapter');
-      const result = await fixedPortfolioAdapter(normalizedData, region);
+      // Use a clean integrated approach instead of multiple adapters
+      const { performanceService } = await import('./services/performance-calculation-service');
       
-      // Debug: Verify final result shows actual purchase prices
-      if (result[0]) {
-
-      }
+      // Get symbols for performance calculation
+      const symbols = normalizedData.map(item => item.symbol);
+      
+      // Get current prices
+      const currentPricesQuery = await db
+        .select()
+        .from(currentPrices)
+        .where(eq(currentPrices.region, region));
+      
+      const priceMap: Record<string, any> = {};
+      currentPricesQuery.forEach(price => {
+        priceMap[price.symbol] = {
+          regularMarketPrice: price.regularMarketPrice,
+          regularMarketChangePercent: price.regularMarketChangePercent,
+          dividendYield: price.dividendYield
+        };
+      });
+      
+      // Calculate performance metrics for all stocks in a single batch
+      console.log(`🔥 DB-ADAPTER ${region}: CALLING BATCH PERFORMANCE CALCULATION FOR ${symbols.length} STOCKS 🔥`);
+      console.log(`🔍 DB-ADAPTER: Symbols being passed:`, symbols.slice(0, 3));
+      const performanceMetricsMap = await performanceService.calculateBatchPerformanceMetrics(
+        symbols,
+        region
+      );
+      
+      // Calculate total portfolio value
+      let totalPortfolioValue = 0;
+      normalizedData.forEach(item => {
+        const quantity = Number(item.quantity);
+        const currentPrice = priceMap[item.symbol]?.regularMarketPrice 
+          ? Number(priceMap[item.symbol].regularMarketPrice) 
+          : (Number(item.purchasePrice) || 0);
+        totalPortfolioValue += (quantity * currentPrice);
+      });
+      
+      // Transform to legacy format with performance metrics
+      const result = normalizedData.map(item => {
+        const quantity = Number(item.quantity);
+        const purchasePrice = Number(item.purchasePrice) || undefined;
+        const currentPriceInfo = priceMap[item.symbol];
+        const currentPrice = currentPriceInfo?.regularMarketPrice 
+          ? Number(currentPriceInfo.regularMarketPrice) 
+          : (purchasePrice || 0);
+        
+        const nav = quantity * currentPrice;
+        const portfolioWeight = totalPortfolioValue > 0 ? (nav / totalPortfolioValue) * 100 : 0;
+        const dailyChange = currentPriceInfo?.regularMarketChangePercent 
+          ? Number(currentPriceInfo.regularMarketChangePercent) 
+          : undefined;
+        
+        const performanceMetrics = performanceMetricsMap[item.symbol] || {
+          mtdReturn: undefined,
+          ytdReturn: undefined,
+          sixMonthReturn: undefined,
+          fiftyTwoWeekReturn: undefined
+        };
+        
+        return {
+          id: item.id,
+          symbol: item.symbol,
+          company: item.company,
+          stockType: item.stockType || item.stock_type,
+          rating: item.rating,
+          sector: item.sector || 'Technology',
+          quantity: quantity,
+          price: currentPrice,
+          purchasePrice: purchasePrice,
+          netAssetValue: nav,
+          portfolioPercentage: portfolioWeight,
+          dailyChangePercent: dailyChange,
+          mtdChangePercent: performanceMetrics.mtdReturn,
+          ytdChangePercent: performanceMetrics.ytdReturn,
+          sixMonthChangePercent: performanceMetrics.sixMonthReturn,
+          fiftyTwoWeekChangePercent: performanceMetrics.fiftyTwoWeekReturn,
+          dividendYield: currentPriceInfo?.dividendYield ? Number(currentPriceInfo.dividendYield) : undefined,
+          profitLoss: 0,
+          nextEarningsDate: undefined,
+        };
+      });
       
       return result;
     } catch (error) {
