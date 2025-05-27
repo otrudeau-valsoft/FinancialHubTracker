@@ -69,13 +69,14 @@ class PerformanceCalculationService {
         return results;
       }
       
-      // Calculate key dates
-      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const firstDayOfYear = new Date(now.getFullYear(), 0, 1);
+      console.log(`🔥 ${region.toUpperCase()}: CALLING BATCH PERFORMANCE CALCULATION FOR ${symbolsToFetch.length} STOCKS 🔥`);
       
-      // Proper MTD and YTD calculations - they should NEVER be the same!
+      // Calculate key dates - MTD and YTD should NEVER be the same!
       const actualFirstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1); // First day of current month (May 1, 2025)
       const actualFirstDayOfYear = new Date(now.getFullYear(), 0, 1); // First day of current year (Jan 1, 2025)
+      
+      console.log(`🔍 MTD vs YTD DEBUG: MTD=${actualFirstDayOfMonth.toISOString()} vs YTD=${actualFirstDayOfYear.toISOString()}`);
+      console.log(`🔍 CURRENT DATE: ${now.toISOString()}`);
       
       const sixMonthsAgo = new Date(now);
       sixMonthsAgo.setMonth(now.getMonth() - 6);
