@@ -29,18 +29,19 @@ class PerformanceCalculationService {
   async calculateBatchPerformanceMetrics(
     stocks: Array<{ symbol: string, currentPrice: number }>,
     region: string
-  ): Promise<Record<string, { mtdReturn?: number; ytdReturn?: number; sixMonthReturn?: number }>> {
+  ): Promise<Record<string, { mtdReturn?: number; ytdReturn?: number; sixMonthReturn?: number; fiftyTwoWeekReturn?: number }>> {
     try {
       const now = new Date();
       const symbols = stocks.map(s => s.symbol);
-      const results: Record<string, { mtdReturn?: number; ytdReturn?: number; sixMonthReturn?: number }> = {};
+      const results: Record<string, { mtdReturn?: number; ytdReturn?: number; sixMonthReturn?: number; fiftyTwoWeekReturn?: number }> = {};
       
       // Initialize results
       for (const symbol of symbols) {
         results[symbol] = {
           mtdReturn: undefined,
           ytdReturn: undefined,
-          sixMonthReturn: undefined
+          sixMonthReturn: undefined,
+          fiftyTwoWeekReturn: undefined
         };
       }
       
