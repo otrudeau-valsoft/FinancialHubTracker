@@ -117,27 +117,30 @@ class PerformanceCalculationService {
         )
         .orderBy(asc(historicalPrices.symbol), desc(historicalPrices.date));
       
-      // Fifty-two weeks ago prices (for 52-week return)
-      const fiftyTwoWeekPriceData = await db.select()
+      // 52-week high prices (for percentage from 52-week high)
+      const fiftyTwoWeekHighData = await db.select({
+        symbol: historicalPrices.symbol,
+        maxPrice: sql<number>`MAX(${historicalPrices.close})`.as('maxPrice')
+      })
         .from(historicalPrices)
         .where(
           and(
             inArray(historicalPrices.symbol, symbolsToFetch),
             eq(historicalPrices.region, region),
-            sql`${historicalPrices.date} <= ${formattedFiftyTwoWeeksAgo}`
+            sql`${historicalPrices.date} >= ${formattedFiftyTwoWeeksAgo}`
           )
         )
-        .orderBy(asc(historicalPrices.symbol), desc(historicalPrices.date));
+        .groupBy(historicalPrices.symbol);
         
       // Combine all price data for processing
-      const priceData = [...mtdPriceData, ...ytdPriceData, ...sixMonthPriceData, ...fiftyTwoWeekPriceData];
+      const priceData = [...mtdPriceData, ...ytdPriceData, ...sixMonthPriceData];
       
       // Organize price data by symbol and date
       const pricesBySymbol: Record<string, {
         mtdStartPrice?: number;
         ytdStartPrice?: number;
         sixMonthPrice?: number;
-        fiftyTwoWeekPrice?: number;
+        fiftyTwoWeekHighPrice?: number;
       }> = {};
       
       // Initialize price objects for each symbol
