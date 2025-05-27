@@ -1,0 +1,329 @@
+FIXED ADAPTER DEBUG: CAT - purchasePrice=350.00, purchase_price=undefined, final=350
+FIXED ADAPTER DEBUG: AAPL - purchasePrice=24.80, purchase_price=undefined, final=24.8
+FIXED ADAPTER DEBUG: UBER - purchasePrice=36.58, purchase_price=undefined, final=36.58
+FIXED ADAPTER DEBUG: CW - purchasePrice=355.03, purchase_price=undefined, final=355.03
+FIXED ADAPTER DEBUG: AMZN - purchasePrice=175.96, purchase_price=undefined, final=175.96
+FIXED ADAPTER DEBUG: WM - purchasePrice=98.37, purchase_price=undefined, final=98.37
+FIXED ADAPTER DEBUG: GS - purchasePrice=544.30, purchase_price=undefined, final=544.3
+FIXED ADAPTER DEBUG: JPM - purchasePrice=130.52, purchase_price=undefined, final=130.52
+FIXED ADAPTER DEBUG: MA - purchasePrice=88.70, purchase_price=undefined, final=88.7
+FIXED ADAPTER DEBUG: COST - purchasePrice=543.30, purchase_price=undefined, final=543.3
+FIXED: PANW purchasePrice=149.18
+DEBUG: Final result structure for USD: {
+  "id": 45,
+  "symbol": "PANW",
+  "company": "PALO ALTO NETWORKS INC",
+  "stockType": "Comp",
+  "rating": "2",
+  "sector": "Technology",
+  "quantity": 24,
+  "purchasePrice": 149.18,
+  "netAssetValue": 4481.664,
+  "portfolioPercentage": 4.524832988129934,
+  "dailyChangePercent": 0.32018536,
+  "mtdChangePercent": 0,
+  "ytdChangePercent": 0,
+  "sixMonthChangePercent": 0,
+  "dividendYield": 0,
+  "profitLoss": 0
+}
+Successfully fetched 20 portfolio stocks for USD with up-to-date metrics
+3:35:38 AM [express] GET /api/portfolios/USD/stocks 304 in 56ms :: [{"id":45,"symbol":"PANW","compan…
+3:35:38 AM [express] GET /api/cash 304 in 80ms :: [{"id":2,"region":"CAD","amount":"12500.00","updat…
+3:35:38 AM [express] GET /api/market-indices/real-time 304 in 95ms :: {"sp500":{"return":-0.68,"posi…
+Performance history request: {
+  region: 'USD',
+  timeRange: undefined,
+  startDate: '2024-05-27',
+  endDate: undefined
+}
+Getting performance history for USD from 2024-05-27 to now
+SQL: SELECT * FROM portfolio_performance_usd WHERE date >= $1 ORDER BY date ASC [ '2024-05-27' ]
+3:35:38 AM [express] GET /api/transactions/latest 404 in 0ms :: {"status":"error","message":"Route n…
+3:35:38 AM [express] GET /api/etfs/SPY/holdings/top/10 304 in 140ms :: [{"id":2152,"ticker":"AAPL","…
+3:35:38 AM [express] GET /api/performance-history 304 in 40ms :: {"status":"success","data":[{"date"…
+Fetching portfolio stocks for USD with refreshed metrics...
+Getting portfolio stocks for USD (using portfolio tables)
+3:35:40 AM [express] GET /api/alerts 200 in 0ms :: [{"id":1,"symbol":"MSFT","message":"RSI below thr…
+3:35:40 AM [express] GET /api/cash 304 in 18ms :: [{"id":2,"region":"CAD","amount":"12500.00","updat…
+3:35:40 AM [express] GET /api/data-updates/logs 304 in 24ms :: []
+NORMALIZED: PANW purchasePrice=149.18
+3:35:40 AM [express] GET /api/current-prices/USD 304 in 23ms :: [{"id":41,"symbol":"BIL","region":"U…
+FIXED ADAPTER DEBUG: PANW - purchasePrice=149.18, purchase_price=undefined, final=149.18
+FIXED ADAPTER DEBUG: AVGO - purchasePrice=146.49, purchase_price=undefined, final=146.49
+FIXED ADAPTER DEBUG: PWR - purchasePrice=271.35, purchase_price=undefined, final=271.35
+FIXED ADAPTER DEBUG: MCO - purchasePrice=238.21, purchase_price=undefined, final=238.21
+FIXED ADAPTER DEBUG: PEP - purchasePrice=154.53, purchase_price=undefined, final=154.53
+FIXED ADAPTER DEBUG: GOOGL - purchasePrice=29.06, purchase_price=undefined, final=29.06
+FIXED ADAPTER DEBUG: MSFT - purchasePrice=305.11, purchase_price=undefined, final=305.11
+FIXED ADAPTER DEBUG: META - purchasePrice=416.04, purchase_price=undefined, final=416.04
+FIXED ADAPTER DEBUG: GLD - purchasePrice=147.49, purchase_price=undefined, final=147.49
+FIXED ADAPTER DEBUG: BIL - purchasePrice=91.67, purchase_price=undefined, final=91.67
+FIXED ADAPTER DEBUG: CAT - purchasePrice=350.00, purchase_price=undefined, final=350
+FIXED ADAPTER DEBUG: AAPL - purchasePrice=24.80, purchase_price=undefined, final=24.8
+FIXED ADAPTER DEBUG: UBER - purchasePrice=36.58, purchase_price=undefined, final=36.58
+FIXED ADAPTER DEBUG: CW - purchasePrice=355.03, purchase_price=undefined, final=355.03
+FIXED ADAPTER DEBUG: AMZN - purchasePrice=175.96, purchase_price=undefined, final=175.96
+FIXED ADAPTER DEBUG: WM - purchasePrice=98.37, purchase_price=undefined, final=98.37
+FIXED ADAPTER DEBUG: GS - purchasePrice=544.30, purchase_price=undefined, final=544.3
+FIXED ADAPTER DEBUG: JPM - purchasePrice=130.52, purchase_price=undefined, final=130.52
+FIXED ADAPTER DEBUG: MA - purchasePrice=88.70, purchase_price=undefined, final=88.7
+FIXED ADAPTER DEBUG: COST - purchasePrice=543.30, purchase_price=undefined, final=543.3
+FIXED: PANW purchasePrice=149.18
+DEBUG: Final result structure for USD: {
+  "id": 45,
+  "symbol": "PANW",
+  "company": "PALO ALTO NETWORKS INC",
+  "stockType": "Comp",
+  "rating": "2",
+  "sector": "Technology",
+  "quantity": 24,
+  "purchasePrice": 149.18,
+  "netAssetValue": 4481.664,
+  "portfolioPercentage": 4.524832988129934,
+  "dailyChangePercent": 0.32018536,
+  "mtdChangePercent": 0,
+  "ytdChangePercent": 0,
+  "sixMonthChangePercent": 0,
+  "dividendYield": 0,
+  "profitLoss": 0
+}
+Successfully fetched 20 portfolio stocks for USD with up-to-date metrics
+3:35:40 AM [express] GET /api/portfolios/USD/stocks 304 in 55ms :: [{"id":45,"symbol":"PANW","compan…
+3:35:40 AM [express] GET /api/market-indices/real-time 304 in 66ms :: {"sp500":{"return":-0.68,"posi…
+3:35:40 AM [express] GET /api/matrix-rules/Increase 304 in 0ms :: [{"id":1,"ruleId":"price-52wk","ru…
+3:35:40 AM [express] GET /api/matrix-rules/Decrease 304 in 1ms :: [{"id":7,"ruleId":"price-90day","r…
+3:35:40 AM [express] GET /api/etfs/SPY/holdings/top/10 304 in 21ms :: [{"id":2152,"ticker":"AAPL","n…
+Performance history request: {
+  region: 'USD',
+  timeRange: undefined,
+  startDate: '2024-05-27',
+  endDate: undefined
+}
+Getting performance history for USD from 2024-05-27 to now
+SQL: SELECT * FROM portfolio_performance_usd WHERE date >= $1 ORDER BY date ASC [ '2024-05-27' ]
+3:35:40 AM [express] GET /api/transactions/latest 404 in 0ms :: {"status":"error","message":"Route n…
+3:35:40 AM [express] GET /api/performance-history 304 in 37ms :: {"status":"success","data":[{"date"…
+Fetching portfolio stocks for USD with refreshed metrics...
+Getting portfolio stocks for USD (using portfolio tables)
+3:36:03 AM [express] GET /api/alerts 200 in 1ms :: [{"id":1,"symbol":"MSFT","message":"RSI below thr…
+3:36:03 AM [express] GET /api/cash 304 in 93ms :: [{"id":2,"region":"CAD","amount":"12500.00","updat…
+NORMALIZED: PANW purchasePrice=149.18
+3:36:03 AM [express] GET /api/data-updates/logs 304 in 101ms :: []
+3:36:03 AM [express] GET /api/current-prices/USD 304 in 93ms :: [{"id":41,"symbol":"BIL","region":"U…
+3:36:03 AM [express] GET /api/matrix-rules/Increase 304 in 1ms :: [{"id":1,"ruleId":"price-52wk","ru…
+FIXED ADAPTER DEBUG: PANW - purchasePrice=149.18, purchase_price=undefined, final=149.18
+FIXED ADAPTER DEBUG: AVGO - purchasePrice=146.49, purchase_price=undefined, final=146.49
+FIXED ADAPTER DEBUG: PWR - purchasePrice=271.35, purchase_price=undefined, final=271.35
+FIXED ADAPTER DEBUG: MCO - purchasePrice=238.21, purchase_price=undefined, final=238.21
+FIXED ADAPTER DEBUG: PEP - purchasePrice=154.53, purchase_price=undefined, final=154.53
+FIXED ADAPTER DEBUG: GOOGL - purchasePrice=29.06, purchase_price=undefined, final=29.06
+FIXED ADAPTER DEBUG: MSFT - purchasePrice=305.11, purchase_price=undefined, final=305.11
+FIXED ADAPTER DEBUG: META - purchasePrice=416.04, purchase_price=undefined, final=416.04
+FIXED ADAPTER DEBUG: GLD - purchasePrice=147.49, purchase_price=undefined, final=147.49
+FIXED ADAPTER DEBUG: BIL - purchasePrice=91.67, purchase_price=undefined, final=91.67
+FIXED ADAPTER DEBUG: CAT - purchasePrice=350.00, purchase_price=undefined, final=350
+FIXED ADAPTER DEBUG: AAPL - purchasePrice=24.80, purchase_price=undefined, final=24.8
+FIXED ADAPTER DEBUG: UBER - purchasePrice=36.58, purchase_price=undefined, final=36.58
+FIXED ADAPTER DEBUG: CW - purchasePrice=355.03, purchase_price=undefined, final=355.03
+FIXED ADAPTER DEBUG: AMZN - purchasePrice=175.96, purchase_price=undefined, final=175.96
+FIXED ADAPTER DEBUG: WM - purchasePrice=98.37, purchase_price=undefined, final=98.37
+FIXED ADAPTER DEBUG: GS - purchasePrice=544.30, purchase_price=undefined, final=544.3
+FIXED ADAPTER DEBUG: JPM - purchasePrice=130.52, purchase_price=undefined, final=130.52
+FIXED ADAPTER DEBUG: MA - purchasePrice=88.70, purchase_price=undefined, final=88.7
+FIXED ADAPTER DEBUG: COST - purchasePrice=543.30, purchase_price=undefined, final=543.3
+FIXED: PANW purchasePrice=149.18
+DEBUG: Final result structure for USD: {
+  "id": 45,
+  "symbol": "PANW",
+  "company": "PALO ALTO NETWORKS INC",
+  "stockType": "Comp",
+  "rating": "2",
+  "sector": "Technology",
+  "quantity": 24,
+  "purchasePrice": 149.18,
+  "netAssetValue": 4481.664,
+  "portfolioPercentage": 4.524832988129934,
+  "dailyChangePercent": 0.32018536,
+  "mtdChangePercent": 0,
+  "ytdChangePercent": 0,
+  "sixMonthChangePercent": 0,
+  "dividendYield": 0,
+  "profitLoss": 0
+}
+Successfully fetched 20 portfolio stocks for USD with up-to-date metrics
+3:36:03 AM [express] GET /api/portfolios/USD/stocks 304 in 112ms :: [{"id":45,"symbol":"PANW","compa…
+3:36:03 AM [express] GET /api/market-indices/real-time 304 in 177ms :: {"sp500":{"return":-0.68,"pos…
+3:36:03 AM [express] GET /api/matrix-rules/Decrease 304 in 1ms :: [{"id":7,"ruleId":"price-90day","r…
+3:36:03 AM [express] GET /api/etfs/SPY/holdings/top/10 304 in 20ms :: [{"id":2152,"ticker":"AAPL","n…
+Performance history request: {
+  region: 'USD',
+  timeRange: undefined,
+  startDate: '2024-05-27',
+  endDate: undefined
+}
+Getting performance history for USD from 2024-05-27 to now
+SQL: SELECT * FROM portfolio_performance_usd WHERE date >= $1 ORDER BY date ASC [ '2024-05-27' ]
+3:36:03 AM [express] GET /api/transactions/latest 404 in 0ms :: {"status":"error","message":"Route n…
+3:36:03 AM [express] GET /api/performance-history 304 in 38ms :: {"status":"success","data":[{"date"…
+3:36:22 AM [express] GET /api/scheduler/config 404 in 0ms :: {"status":"error","message":"Task with …
+3:36:22 AM [express] GET /api/data-updates/logs 304 in 95ms :: []
+Manually updating performance history for all regions...
+Updating performance history for all regions...
+Processing USD...
+Updating performance history for USD using real-time data...
+Using date range: 2020-04-21 to 2025-05-27
+Error updating performance history for USD: error: relation "portfolio_usd" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async PortfolioPerformanceService.updatePerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:135:41)
+    at async PortfolioPerformanceService.updateAllPerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:358:29)
+    at async file:///home/runner/workspace/server/routes/performance-history.js:128:16 {
+  length: 112,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '69',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error updating USD performance history: error: relation "portfolio_usd" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async PortfolioPerformanceService.updatePerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:135:41)
+    at async PortfolioPerformanceService.updateAllPerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:358:29)
+    at async file:///home/runner/workspace/server/routes/performance-history.js:128:16 {
+  length: 112,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '69',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Processing CAD...
+Updating performance history for CAD using real-time data...
+Using date range: 2020-04-21 to 2025-05-27
+Error updating performance history for CAD: error: relation "portfolio_cad" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async PortfolioPerformanceService.updatePerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:135:41)
+    at async PortfolioPerformanceService.updateAllPerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:358:29)
+    at async file:///home/runner/workspace/server/routes/performance-history.js:128:16 {
+  length: 112,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '69',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error updating CAD performance history: error: relation "portfolio_cad" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async PortfolioPerformanceService.updatePerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:135:41)
+    at async PortfolioPerformanceService.updateAllPerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:358:29)
+    at async file:///home/runner/workspace/server/routes/performance-history.js:128:16 {
+  length: 112,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '69',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Processing INTL...
+Updating performance history for INTL using real-time data...
+Using date range: 2020-04-21 to 2025-05-27
+Error updating performance history for INTL: error: relation "portfolio_intl" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async PortfolioPerformanceService.updatePerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:135:41)
+    at async PortfolioPerformanceService.updateAllPerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:358:29)
+    at async file:///home/runner/workspace/server/routes/performance-history.js:128:16 {
+  length: 113,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '69',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+Error updating INTL performance history: error: relation "portfolio_intl" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async PortfolioPerformanceService.updatePerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:135:41)
+    at async PortfolioPerformanceService.updateAllPerformanceHistory (file:///home/runner/workspace/server/services/portfolio-performance-service.js:358:29)
+    at async file:///home/runner/workspace/server/routes/performance-history.js:128:16 {
+  length: 113,
+  severity: 'ERROR',
+  code: '42P01',
+  detail: undefined,
+  hint: undefined,
+  position: '69',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '1449',
+  routine: 'parserOpenTable'
+}
+3:36:24 AM [express] POST /api/performance-history/update 200 in 460ms :: {"status":"success","messa…
+3:36:24 AM [express] GET /api/data-updates/logs 304 in 70ms :: []
+3:36:27 AM [express] GET /api/data-updates/logs 304 in 17ms :: []
+3:36:30 AM [express] GET /api/data-updates/logs 304 in 16ms :: []
