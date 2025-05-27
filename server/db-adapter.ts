@@ -146,12 +146,10 @@ export class DatabaseAdapter {
         console.log(`DEBUG: Full raw data structure for ${region}:`, JSON.stringify(portfolioData[0], null, 2));
       }
       
-      // UNIVERSAL APPROACH: Use the working USD adapter for ALL regions
-      const { adaptUSDPortfolioData } = await import('./adapters/portfolio-adapter');
-      console.log(`Using proven USD adapter logic for ${region} with ${portfolioData.length} items`);
-      console.log(`MANUAL TEST: First item for ${region}:`, JSON.stringify(portfolioData[0], null, 2));
-      const result = await adaptUSDPortfolioData(portfolioData, region);
-      console.log(`MANUAL TEST: Result for ${region} first item:`, JSON.stringify(result[0], null, 2));
+      // FIXED APPROACH: Use the working universal adapter for ALL regions
+      const { universalPortfolioAdapter } = await import('./adapters/universal-adapter');
+      console.log(`Using working universal adapter for ${region} with ${portfolioData.length} items`);
+      const result = await universalPortfolioAdapter(portfolioData, region);
       
       // Debug: Verify final result shows actual purchase prices
       if (result[0]) {
