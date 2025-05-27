@@ -25,11 +25,14 @@ export default function CashManagementPanel({ className }: CashPanelProps) {
   const loadCashData = async () => {
     try {
       const response = await apiRequest('GET', '/api/cash');
+      console.log('Cash API response:', response);
       if (Array.isArray(response)) {
         response.forEach((cash: any) => {
-          if (cash.region === 'USD') setUsd(cash.amount);
-          if (cash.region === 'CAD') setCad(cash.amount);
-          if (cash.region === 'INTL') setIntl(cash.amount);
+          const amount = String(cash.amount || '0');
+          console.log(`Setting ${cash.region} to ${amount}`);
+          if (cash.region === 'USD') setUsd(amount);
+          if (cash.region === 'CAD') setCad(amount);
+          if (cash.region === 'INTL') setIntl(amount);
         });
       }
     } catch (error) {
