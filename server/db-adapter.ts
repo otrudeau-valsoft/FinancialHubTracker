@@ -150,10 +150,13 @@ export class DatabaseAdapter {
 
       
       // Use a clean integrated approach instead of multiple adapters
+      console.log(`🚀 DB-ADAPTER: Starting integrated approach for ${region}`);
       const { performanceService } = await import('./services/performance-calculation-service');
+      console.log(`✅ DB-ADAPTER: Performance service imported successfully`);
       
       // Get symbols for performance calculation
       const symbols = normalizedData.map(item => item.symbol);
+      console.log(`📋 DB-ADAPTER: Extracted ${symbols.length} symbols:`, symbols.slice(0, 3));
       
       // Get current prices
       const currentPricesQuery = await db
