@@ -77,8 +77,6 @@ class PerformanceCalculationService {
       const actualFirstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1); // First day of current month (May 1, 2025)
       const actualFirstDayOfYear = new Date(now.getFullYear(), 0, 1); // First day of current year (Jan 1, 2025)
       
-      console.log(`🔍 DATE DEBUG: Current=${now.toISOString()}, MTD=${actualFirstDayOfMonth.toISOString()}, YTD=${actualFirstDayOfYear.toISOString()}`);
-      console.log(`🔍 DATE FORMATTED: MTD=${formattedFirstDayOfMonth}, YTD=${formattedFirstDayOfYear}`);
       const sixMonthsAgo = new Date(now);
       sixMonthsAgo.setMonth(now.getMonth() - 6);
       const fiftyTwoWeeksAgo = new Date(now.getTime() - (52 * 7 * 24 * 60 * 60 * 1000));
@@ -227,7 +225,7 @@ class PerformanceCalculationService {
           results[symbol].fiftyTwoWeekReturn = ((currentPrice - prices.fiftyTwoWeekHighPrice) / prices.fiftyTwoWeekHighPrice) * 100;
         }
         
-        // Update cache
+        // Update cache with all metrics including 52W%
         metricsCache[cacheKey] = {
           mtdReturn: results[symbol].mtdReturn,
           ytdReturn: results[symbol].ytdReturn,
@@ -252,6 +250,7 @@ class PerformanceCalculationService {
     mtdReturn?: number;
     ytdReturn?: number;
     sixMonthReturn?: number;
+    fiftyTwoWeekReturn?: number;
   }> {
     try {
       // Use batch calculation method even for a single stock
