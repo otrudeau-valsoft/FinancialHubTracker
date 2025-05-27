@@ -100,7 +100,17 @@ class PortfolioPerformanceService {
     
     const regionUpper = region.toUpperCase();
     const tableName = `portfolio_performance_${region.toLowerCase()}`;
-    const portfolioTableName = regionUpper === 'INTL' ? 'portfolio_INTL' : `portfolio_${regionUpper}`;
+    // Handle the correct table names for each region
+    let portfolioTableName;
+    if (regionUpper === 'USD') {
+      portfolioTableName = 'portfolio_USD';
+    } else if (regionUpper === 'CAD') {
+      portfolioTableName = 'portfolio_CAD';
+    } else if (regionUpper === 'INTL') {
+      portfolioTableName = 'portfolio_INTL';
+    } else {
+      throw new Error(`Unknown region: ${regionUpper}`);
+    }
     
     try {
       console.log(`Updating performance history for ${regionUpper} using real-time data...`);

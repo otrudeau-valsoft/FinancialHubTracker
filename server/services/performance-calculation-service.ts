@@ -54,7 +54,8 @@ class PerformanceCalculationService {
           results[symbol] = {
             mtdReturn: metricsCache[cacheKey].mtdReturn,
             ytdReturn: metricsCache[cacheKey].ytdReturn,
-            sixMonthReturn: metricsCache[cacheKey].sixMonthReturn
+            sixMonthReturn: metricsCache[cacheKey].sixMonthReturn,
+            fiftyTwoWeekReturn: metricsCache[cacheKey].fiftyTwoWeekReturn
           };
         } else {
           symbolsToFetch.push(symbol);
@@ -219,7 +220,10 @@ class PerformanceCalculationService {
         
         // Update cache
         metricsCache[cacheKey] = {
-          ...results[symbol],
+          mtdReturn: results[symbol].mtdReturn,
+          ytdReturn: results[symbol].ytdReturn,
+          sixMonthReturn: results[symbol].sixMonthReturn,
+          fiftyTwoWeekReturn: results[symbol].fiftyTwoWeekReturn,
           timestamp: now.getTime()
         };
       }
