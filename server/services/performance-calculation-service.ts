@@ -76,6 +76,20 @@ export class PerformanceCalculationService {
     }
 
     console.log(`🔥 ${region.toUpperCase()}: CALLING BATCH PERFORMANCE CALCULATION FOR ${symbolsToFetch.length} STOCKS 🔥`);
+    console.log(`🔍 DEBUG: First few symbols received:`, symbolsToFetch.slice(0, 3));
+    
+    // CRITICAL FIX: Ensure we have actual string symbols, not objects
+    const actualSymbols = symbolsToFetch.map(symbol => {
+      if (typeof symbol === 'string') {
+        return symbol;
+      } else if (symbol && typeof symbol === 'object' && symbol.symbol) {
+        console.log(`⚠️ FIXING: Received object instead of string, extracting symbol: ${symbol.symbol}`);
+        return symbol.symbol;
+      } else {
+        console.error(`❌ INVALID SYMBOL TYPE:`, typeof symbol, symbol);
+        return null;
+      }
+    }).filter(symbol => symbol !== null);
 
     try {
       // Calculate key dates - ensure MTD and YTD are DIFFERENT
@@ -104,18 +118,20 @@ export class PerformanceCalculationService {
       const sixMonthStartDate = formatDate(sixMonthsAgo);
       const fiftyTwoWeekStartDate = formatDate(fiftyTwoWeeksAgo);
 
+      console.log(`🔧 Using ${actualSymbols.length} corrected symbols for calculation`);
+
       // Get current prices for all symbols
       const currentPricesQuery = await db
         .select()
         .from(historicalPrices)
         .where(
           and(
-            inArray(historicalPrices.symbol, symbolsToFetch),
+            inArray(historicalPrices.symbol, actualSymbols),
             eq(historicalPrices.region, region)
           )
         )
         .orderBy(desc(historicalPrices.date))
-        .limit(symbolsToFetch.length * 5); // Get recent prices
+        .limit(actualSymbols.length * 5); // Get recent prices
 
       // Group current prices by symbol
       const currentPricesBySymbol: Record<string, number> = {};
@@ -126,7 +142,7 @@ export class PerformanceCalculationService {
       }
 
       // Calculate metrics for each symbol
-      for (const symbol of symbolsToFetch) {
+      for (const symbol of actualSymbols) {
         const currentPrice = currentPricesBySymbol[symbol];
         
         if (!currentPrice) {
