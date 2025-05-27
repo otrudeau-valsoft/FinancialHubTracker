@@ -181,14 +181,19 @@ export const PerformanceChart = ({
   }, [performanceData, selectedRange]);
   
   return (
-    <Card className="mb-6 border border-[#1A304A] bg-gradient-to-b from-[#0B1728] to-[#061220] shadow-md overflow-hidden">
-      <CardHeader className="card-header p-2 bg-[#111E2E] border-b border-[#193049] h-9">
-        <div className="w-full flex items-center justify-between">
-          <h3 className="font-mono text-[#B8C4D9] text-[10px] sm:text-xs tracking-wide">RELATIVE P&L</h3>
-          <div className="h-1 w-8 bg-[#2196F3]"></div>
+    <div className="bg-[#0A1524] border border-[#1A304A] overflow-hidden h-full flex flex-col">
+      <div className="p-3 border-b border-[#1A304A]">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-mono text-[#EFEFEF] text-sm tracking-wide">RELATIVE P&L</h3>
+            <div className="flex items-center mt-1">
+              <div className="h-0.5 w-6 bg-[#2196F3]"></div>
+            </div>
+          </div>
         </div>
-      </CardHeader>
-      <div className="px-3 py-2 flex gap-1">
+      </div>
+      
+      <div className="px-3 py-2 flex gap-1 border-b border-[#1A304A]">
         {timeRanges.map(range => (
           <button
             key={range}
@@ -204,8 +209,9 @@ export const PerformanceChart = ({
           </button>
         ))}
       </div>
-      <CardContent className="p-4 bg-[#0A1929]">
-        <div className="h-[200px]">
+      
+      <div className="flex-1 p-3 overflow-hidden">
+        <div className="h-full">
           {isLoading ? (
             <div className="h-full w-full flex items-center justify-center">
               <div className="text-[#7A8999] text-sm flex flex-col items-center">
@@ -314,7 +320,7 @@ export const PerformanceChart = ({
             </ResponsiveContainer>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
