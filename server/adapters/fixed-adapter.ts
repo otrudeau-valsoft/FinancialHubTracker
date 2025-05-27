@@ -9,6 +9,7 @@
 import { db } from '../db';
 import { currentPrices } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+import { performanceService } from '../services/performance-calculation-service';
 
 export interface LegacyPortfolioItem {
   id: number;
@@ -59,16 +60,32 @@ export async function fixedPortfolioAdapter(data: any[], region: string): Promis
   // Get current prices
   const priceMap = await getCurrentPrices(symbols, region);
   
-  // Calculate total portfolio value for percentage calculations
-  const totalPortfolioValue = data.reduce((total, item) => {
+  // Calculate total portfolio value for percentage calculations and prepare data for batch performance calculation
+  let totalPortfolioValue = 0;
+  const stocksWithCurrentPrices: Array<{symbol: string, currentPrice: number}> = [];
+  
+  data.forEach(item => {
     const quantity = Number(item.quantity);
     const purchasePrice = Number(item.purchasePrice || item.purchase_price) || undefined;
     const bookPrice = purchasePrice || 0;
     const currentPrice = priceMap[item.symbol]?.regularMarketPrice 
       ? Number(priceMap[item.symbol].regularMarketPrice) 
       : bookPrice;
-    return total + (quantity * currentPrice);
-  }, 0);
+    
+    totalPortfolioValue += (quantity * currentPrice);
+    
+    // Build array for batch performance calculation
+    stocksWithCurrentPrices.push({
+      symbol: item.symbol,
+      currentPrice: currentPrice
+    });
+  });
+  
+  // Calculate performance metrics for all stocks in a single batch operation
+  const performanceMetricsMap = await performanceService.calculateBatchPerformanceMetrics(
+    stocksWithCurrentPrices,
+    region
+  );
   
   // Map each stock to legacy format with calculated values
   return data.map(item => {
@@ -77,8 +94,6 @@ export async function fixedPortfolioAdapter(data: any[], region: string): Promis
     const rawPurchasePrice = item.purchasePrice || item.purchase_price;
     const purchasePrice = rawPurchasePrice ? Number(rawPurchasePrice) : undefined;
     const bookPrice = purchasePrice || 0;
-    
-
     
     const currentPriceInfo = priceMap[item.symbol];
     const currentPrice = currentPriceInfo?.regularMarketPrice 
@@ -94,6 +109,9 @@ export async function fixedPortfolioAdapter(data: any[], region: string): Promis
       ? Number(currentPriceInfo.regularMarketChangePercent) 
       : 0;
     
+    // Get the real-time calculated performance metrics for this stock
+    const performanceMetrics = performanceMetricsMap[item.symbol] || {};
+    
     return {
       id: item.id,
       symbol: item.symbol,
@@ -106,10 +124,10 @@ export async function fixedPortfolioAdapter(data: any[], region: string): Promis
       netAssetValue: nav,
       portfolioPercentage: portfolioWeight,
       dailyChangePercent: dailyChange,
-      mtdChangePercent: item.mtdChangePercent || 0,
-      ytdChangePercent: item.ytdChangePercent || 0,
-      sixMonthChangePercent: item.sixMonthChangePercent || 0,
-      fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent || 0,
+      mtdChangePercent: performanceMetrics.mtdReturn !== undefined ? performanceMetrics.mtdReturn : undefined,
+      ytdChangePercent: performanceMetrics.ytdReturn !== undefined ? performanceMetrics.ytdReturn : undefined,
+      sixMonthChangePercent: performanceMetrics.sixMonthReturn !== undefined ? performanceMetrics.sixMonthReturn : undefined,
+      fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent || undefined,
       dividendYield: currentPriceInfo?.dividendYield ? Number(currentPriceInfo.dividendYield) : undefined,
       profitLoss: 0,
       nextEarningsDate: undefined,

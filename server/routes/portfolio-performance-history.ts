@@ -132,14 +132,9 @@ router.post('/update', async (req: Request, res: Response) => {
     const result = await updatePortfolioPerformanceHistory();
     
     if (result) {
-      // Also update individual stock percentage metrics
-      console.log('Updating individual stock performance metrics...');
-      const { updatePortfolioMetrics } = await import('../services/portfolio-metrics-updater');
-      await updatePortfolioMetrics();
-      
       return res.json({
         status: 'success',
-        message: 'Successfully updated portfolio performance history and stock metrics'
+        message: 'Successfully updated portfolio performance history'
       });
     } else {
       return res.status(500).json({
