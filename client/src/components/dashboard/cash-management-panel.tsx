@@ -41,7 +41,7 @@ const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
   // Update local state when data is loaded
   React.useEffect(() => {
     console.log('Cash balances updated:', cashBalances);
-    if (cashBalances && cashBalances.length > 0) {
+    if (cashBalances && Array.isArray(cashBalances) && cashBalances.length > 0) {
       const values: {[key: string]: string} = {};
       cashBalances.forEach(cash => {
         values[cash.region] = cash.amount;
@@ -55,16 +55,30 @@ const CashManagementPanel: React.FC<CashPanelProps> = ({ className }) => {
   const updateCashMutation = useMutation({
     mutationFn: ({ region, amount }: { region: string; amount: string }) => 
       apiRequest('POST', `/api/cash/${region}`, { amount }),
+    onMutate: async ({ region, amount }) => {
+      // Cancel any outgoing refetches to prevent race conditions
+      await queryClient.cancelQueries({ queryKey: ['/api/cash'] });
+      
+      // Update the local display immediately
+      setCashValues(prev => ({
+        ...prev,
+        [region]: amount
+      }));
+      
+      return { region, amount };
+    },
     onSuccess: (_, variables) => {
       toast({
         title: 'Cash balance updated',
         description: `${variables.region} cash balance updated to $${Number(variables.amount).toLocaleString()}`
       });
-      // Refresh data without clearing the display
+      // Refresh data in background without affecting display
       queryClient.refetchQueries({ queryKey: ['/api/cash'] });
       queryClient.invalidateQueries({ queryKey: ['/api/holdings'] });
     },
-    onError: (error: Error) => {
+    onError: (error: Error, variables) => {
+      // Revert the display if there was an error
+      queryClient.refetchQueries({ queryKey: ['/api/cash'] });
       toast({
         title: 'Error updating cash balance',
         description: error.message,
