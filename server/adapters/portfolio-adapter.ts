@@ -142,14 +142,8 @@ function calculate52WeekChange(currentPrice: number, fiftyTwoWeekHigh: string | 
 export async function adaptUSDPortfolioData(data: any[], region: string = 'USD'): Promise<LegacyPortfolioItem[]> {
   if (!data.length) return [];
   
-  // CRITICAL FIX: Normalize data to handle database column naming inconsistencies
-  const normalizedData = data.map(item => ({
-    ...item,
-    purchasePrice: item.purchasePrice || item.purchase_price || item['purchase_price']
-  }));
-  
   // Get symbols for all stocks
-  const symbols = normalizedData.map(item => item.symbol);
+  const symbols = data.map(item => item.symbol);
   
   // Get current prices
   const priceMap = await getCurrentPrices(symbols, 'USD');
