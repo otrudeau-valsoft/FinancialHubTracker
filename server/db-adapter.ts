@@ -146,15 +146,18 @@ export class DatabaseAdapter {
       // Debug: Log raw data to verify purchase price exists
       if (portfolioData[0]) {
         console.log(`DEBUG: Raw DB data for ${portfolioData[0].symbol}: purchasePrice=${portfolioData[0].purchasePrice}`);
+        console.log(`DEBUG: Full raw data structure for ${region}:`, JSON.stringify(portfolioData[0], null, 2));
       }
       
       // IMMEDIATE FIX: Use the correct portfolio adapter that handles purchase prices
       const { adaptPortfolioData } = await import('./adapters/portfolio-adapter');
+      console.log(`DEBUG: About to call ${region} adapter with ${portfolioData.length} items`);
       const result = await adaptPortfolioData(portfolioData, region);
       
       // Debug: Verify final result shows actual purchase prices
       if (result[0]) {
         console.log(`FIXED: ${result[0].symbol} purchasePrice=${result[0].purchasePrice}`);
+        console.log(`DEBUG: Final result structure for ${region}:`, JSON.stringify(result[0], null, 2));
       }
       
       return result;
