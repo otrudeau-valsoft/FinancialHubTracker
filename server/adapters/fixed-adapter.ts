@@ -78,8 +78,7 @@ export async function fixedPortfolioAdapter(data: any[], region: string): Promis
     const purchasePrice = rawPurchasePrice ? Number(rawPurchasePrice) : undefined;
     const bookPrice = purchasePrice || 0;
     
-    // Debug: Check what data we're receiving
-    console.log(`FIXED ADAPTER DEBUG: ${item.symbol} - purchasePrice=${item.purchasePrice}, purchase_price=${item.purchase_price}, final=${purchasePrice}`);
+
     
     const currentPriceInfo = priceMap[item.symbol];
     const currentPrice = currentPriceInfo?.regularMarketPrice 

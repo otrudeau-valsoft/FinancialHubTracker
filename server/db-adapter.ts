@@ -73,8 +73,7 @@ export class DatabaseAdapter {
         ? Number(item.purchasePrice) 
         : undefined;
       
-      // Debug log to verify the conversion worked
-      console.log(`PURCHASE PRICE FIX: ${item.symbol} - raw: ${item.purchasePrice}, converted: ${purchasePrice}`);
+
       const currentPriceInfo = priceMap[item.symbol];
       const currentPrice = currentPriceInfo?.regularMarketPrice 
         ? Number(currentPriceInfo.regularMarketPrice) 
@@ -148,7 +147,7 @@ export class DatabaseAdapter {
         stockType: item.stock_type || item.stockType
       }));
       
-      console.log(`NORMALIZED: ${normalizedData[0]?.symbol} purchasePrice=${normalizedData[0]?.purchasePrice}`);
+
       
       // Use the fixed adapter that handles column naming correctly
       const { fixedPortfolioAdapter } = await import('./adapters/fixed-adapter');
@@ -156,8 +155,7 @@ export class DatabaseAdapter {
       
       // Debug: Verify final result shows actual purchase prices
       if (result[0]) {
-        console.log(`FIXED: ${result[0].symbol} purchasePrice=${result[0].purchasePrice}`);
-        console.log(`DEBUG: Final result structure for ${region}:`, JSON.stringify(result[0], null, 2));
+
       }
       
       return result;
