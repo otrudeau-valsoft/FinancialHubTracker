@@ -150,9 +150,9 @@ export class DatabaseAdapter {
       
       console.log(`NORMALIZED: ${normalizedData[0]?.symbol} purchasePrice=${normalizedData[0]?.purchasePrice}`);
       
-      // Use proven USD adapter with normalized data
-      const { adaptUSDPortfolioData } = await import('./adapters/portfolio-adapter');
-      const result = await adaptUSDPortfolioData(normalizedData, region);
+      // Use the fixed adapter that handles column naming correctly
+      const { fixedPortfolioAdapter } = await import('./adapters/fixed-adapter');
+      const result = await fixedPortfolioAdapter(normalizedData, region);
       
       // Debug: Verify final result shows actual purchase prices
       if (result[0]) {

@@ -6,8 +6,49 @@
  * - CAD/INTL tables use purchase_price (snake_case)
  */
 
-import { getCurrentPrices } from './portfolio-adapter';
-import { LegacyPortfolioItem } from './portfolio-adapter';
+import { db } from '../db';
+import { currentPrices } from '@shared/schema';
+import { eq } from 'drizzle-orm';
+
+export interface LegacyPortfolioItem {
+  id: number;
+  symbol: string;
+  company: string;
+  stockType: string;
+  rating: string;
+  sector?: string;
+  quantity: number;
+  price?: number;
+  netAssetValue?: number;
+  portfolioPercentage?: number;
+  dailyChangePercent?: number;
+  mtdChangePercent?: number;
+  ytdChangePercent?: number;
+  sixMonthChangePercent?: number;
+  fiftyTwoWeekChangePercent?: number;
+  dividendYield?: number;
+  profitLoss?: number;
+  nextEarningsDate?: string;
+  [key: string]: any;
+}
+
+async function getCurrentPrices(symbols: string[], region: string): Promise<Record<string, any>> {
+  const prices = await db
+    .select()
+    .from(currentPrices)
+    .where(eq(currentPrices.region, region));
+  
+  const priceMap: Record<string, any> = {};
+  prices.forEach(price => {
+    priceMap[price.symbol] = {
+      regularMarketPrice: price.regularMarketPrice,
+      regularMarketChangePercent: price.regularMarketChangePercent,
+      dividendYield: price.dividendYield
+    };
+  });
+  
+  return priceMap;
+}
 
 export async function fixedPortfolioAdapter(data: any[], region: string): Promise<LegacyPortfolioItem[]> {
   if (!data.length) return [];
