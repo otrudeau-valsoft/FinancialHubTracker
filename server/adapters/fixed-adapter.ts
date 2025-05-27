@@ -129,7 +129,7 @@ export async function fixedPortfolioAdapter(data: any[], region: string): Promis
       mtdChangePercent: performanceMetrics.mtdReturn !== undefined ? performanceMetrics.mtdReturn : undefined,
       ytdChangePercent: performanceMetrics.ytdReturn !== undefined ? performanceMetrics.ytdReturn : undefined,
       sixMonthChangePercent: performanceMetrics.sixMonthReturn !== undefined ? performanceMetrics.sixMonthReturn : undefined,
-      fiftyTwoWeekChangePercent: item.fiftyTwoWeekChangePercent || undefined,
+      fiftyTwoWeekChangePercent: performanceMetrics.fiftyTwoWeekReturn !== undefined ? performanceMetrics.fiftyTwoWeekReturn : undefined,
       dividendYield: currentPriceInfo?.dividendYield ? Number(currentPriceInfo.dividendYield) : undefined,
       profitLoss: 0,
       nextEarningsDate: undefined,

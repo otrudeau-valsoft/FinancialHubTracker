@@ -100,7 +100,7 @@ class PortfolioPerformanceService {
     
     const regionUpper = region.toUpperCase();
     const tableName = `portfolio_performance_${region.toLowerCase()}`;
-    const portfolioTableName = `portfolio_${regionUpper}`;
+    const portfolioTableName = regionUpper === 'INTL' ? 'portfolio_INTL' : `portfolio_${regionUpper}`;
     
     try {
       console.log(`Updating performance history for ${regionUpper} using real-time data...`);

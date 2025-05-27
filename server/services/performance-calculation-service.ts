@@ -178,13 +178,7 @@ class PerformanceCalculationService {
           }
         }
         
-        // Closest price to 52 weeks ago (for 52-week return)
-        if (priceDate <= fiftyTwoWeeksAgo) {
-          // If we don't have a price yet, or this one is closer to fiftyTwoWeeksAgo
-          if (!pricesBySymbol[symbol].fiftyTwoWeekPrice) {
-            pricesBySymbol[symbol].fiftyTwoWeekPrice = priceValue;
-          }
-        }
+        // This section is no longer needed since we're using MAX query for 52-week high
       }
       
       // Process 52-week high data
