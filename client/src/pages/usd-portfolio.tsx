@@ -262,7 +262,7 @@ export default function UsdPortfolio() {
                 />
               </div>
               
-              {/* Matrix Rule Alerts - 1 col */}
+              {/* Matrix Rule Alerts - 1 col, stretched taller */}
               <div className="md:col-span-1 flex flex-col">
                 <AlertsList 
                   alerts={alerts?.filter(a => 
