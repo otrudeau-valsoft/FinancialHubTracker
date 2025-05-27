@@ -275,7 +275,10 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
   // Map each stock to legacy format with calculated values
   return data.map(item => {
     const quantity = Number(item.quantity);
-    const bookPrice = Number(item.price);
+    const purchasePrice = item.purchasePrice ? Number(item.purchasePrice) : undefined;
+    const bookPrice = purchasePrice || Number(item.price);
+    
+    console.log(`Debug ${item.symbol}: DB purchasePrice=${item.purchasePrice}, converted=${purchasePrice}`);
     const currentPriceInfo = priceMap[item.symbol];
     const currentPrice = currentPriceInfo?.regularMarketPrice 
       ? Number(currentPriceInfo.regularMarketPrice) 
@@ -297,8 +300,10 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
       currentPriceInfo?.fiftyTwoWeekLow
     );
     
-    // Calculate profit/loss as a percentage return instead of dollar amount
-    const profitLoss = calculateProfitLossPercentage(bookPrice, currentPrice);
+    // Calculate profit/loss using purchase price if available, otherwise use book price
+    const profitLoss = purchasePrice 
+      ? calculateProfitLossPercentage(purchasePrice, currentPrice)
+      : calculateProfitLossPercentage(bookPrice, currentPrice);
     
     // Get the pre-calculated performance metrics for this stock
     const performanceMetrics = performanceMetricsMap[item.symbol] || {};
@@ -311,7 +316,8 @@ export async function adaptCADPortfolioData(data: PortfolioCAD[]): Promise<Legac
       rating: item.rating,
       sector: item.sector || 'Technology',
       quantity: quantity,
-      price: bookPrice,
+      price: purchasePrice || bookPrice,
+      purchasePrice: purchasePrice,
       pbr: item.pbr ? Number(item.pbr) : undefined,
       netAssetValue: nav,
       portfolioPercentage: portfolioWeight,
