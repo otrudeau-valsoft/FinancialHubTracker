@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 
-  const { region } = req.params;
+export const updateDatabaseHandler = async (req: Request, res: Response) => {
+  try {
+    const { region } = req.params;
   
   // Parse request body safely
   const { updates = [], newRows = [], deletions = [] } = req.body;
@@ -77,4 +79,12 @@ import { Request, Response } from 'express';
     message: `Updated ${totalProcessed} stocks`, 
     count: totalProcessed
   });
-});
+  } catch (error: any) {
+    console.error(`❌ Database update error for ${req.params.region}:`, error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update portfolio data',
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+};

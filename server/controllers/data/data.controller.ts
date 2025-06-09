@@ -30,7 +30,7 @@ export async function clearLogs(req: Request, res: Response) {
     res.json({ message: 'Logs cleared successfully' });
   } catch (error) {
     console.error('Error clearing logs:', error);
-    res.status(500).json({ error: 'Failed to clear logs', 500);
+    res.status(500).json({ error: 'Failed to clear logs' });
   }
 }
 
@@ -56,7 +56,7 @@ export async function getSchedulerConfig(req: Request, res: Response) {
     res.json(config);
   } catch (error) {
     console.error('Error getting scheduler config:', error);
-    res.status(500).json({ error: 'Failed to get scheduler configuration', 500);
+    res.status(500).json({ error: 'Failed to get scheduler configuration' });
   }
 }
 
@@ -69,7 +69,7 @@ export async function updateSchedulerConfig(req: Request, res: Response) {
     const config = req.body;
     
     if (type !== 'current_prices' && type !== 'historical_prices') {
-      res.status(500).json({ error: `Invalid scheduler type: ${type}`, 400);
+      return res.status(400).json({ error: `Invalid scheduler type: ${type}` });
     }
     
     // For now, just echo back the received configuration
@@ -94,6 +94,6 @@ export async function updateSchedulerConfig(req: Request, res: Response) {
     if (error instanceof Error) {
       throw error;
     }
-    res.status(500).json({ error: 'Failed to update scheduler configuration', 500);
+    res.status(500).json({ error: 'Failed to update scheduler configuration' });
   }
 }

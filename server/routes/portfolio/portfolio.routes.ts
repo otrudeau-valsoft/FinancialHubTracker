@@ -36,7 +36,7 @@ const router = Router();
 // POST /api/portfolios/:region/rebalance - Rebalance portfolio (replace all stocks)
 
 // POST /api/portfolios/:region/database-update - Update multiple portfolio stocks (database editor)
-import { databaseUpdate } from './database-update';
-router.post('/:region/database-update', databaseUpdate);
+import { updateDatabaseHandler } from './database-update';
+router.post('/:region/database-update', updateDatabaseHandler);
 
 export default router;
