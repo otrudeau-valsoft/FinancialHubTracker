@@ -76,7 +76,7 @@ router.use('/portfolio-performance-history', performanceHistoryRoutes);
 router.use('/performance-history', performanceHistoryRouter);
 
 // Earnings routes
-router.use('/', earningsRoutes);
+router.use('/earnings', earningsRoutes);
 
 // Market indices routes
 router.use('/market-indices', marketIndicesRoutes);
@@ -116,6 +116,15 @@ router.get('/test/historical-prices', (req, res) => {
 // News routes
 router.get('/news/symbol', getNewsBySymbol);
 router.get('/news/portfolio', getNewsForPortfolio);
+
+// Heatmap route - temporary implementation
+router.get('/heatmap', (req, res) => {
+  res.json({
+    status: 'success',
+    data: [],
+    message: 'Heatmap data endpoint - implementation needed'
+  });
+});
 
 // Economic calendar routes
 router.use('/economic-calendar', economicCalendarRoutes);

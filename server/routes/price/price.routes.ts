@@ -25,6 +25,11 @@ historicalRouter.use((req, res, next) => {
 });
 
 // Routes for historical prices
+historicalRouter.get('/', getHistoricalPrices);
+historicalRouter.get('/:region', getHistoricalPricesByRegion);
+historicalRouter.post('/fetch/:symbol', fetchHistoricalPrices);
+historicalRouter.post('/fetch/region/:region', fetchRegionHistoricalPrices);
+historicalRouter.post('/fetch/all', fetchAllHistoricalPrices);
 
 // Current prices router - explicitly set service type
 currentRouter.use((req, res, next) => {
@@ -33,6 +38,11 @@ currentRouter.use((req, res, next) => {
 });
 
 // Routes for current prices
+currentRouter.get('/', getCurrentPrices);
+currentRouter.get('/:region', getCurrentPrice);
+currentRouter.post('/fetch/:symbol', fetchCurrentPrice);
+currentRouter.post('/fetch/region/:region', fetchRegionCurrentPrices);
+currentRouter.post('/fetch/all', fetchAllCurrentPrices);
 
 // Export all routers
 export { 
