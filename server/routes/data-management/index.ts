@@ -5,7 +5,7 @@ import { db, pool } from '../../db';
 import { sql } from 'drizzle-orm';
 
 // Simple async handler middleware to avoid try/catch blocks in route handlers
-const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
+const asyncHandler = (fn: Function) => (req: any, res: any, next: any) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
 
@@ -16,7 +16,6 @@ router.use('/populate-data', populateDataRoutes);
 router.use('/update-holdings', updateHoldingsRoutes);
 
 // Get database status
-router.get('/status', asyncHandler(async (req: Request, res: Response) => {
   try {
     // Check if database is accessible using raw pool query
     const result = await pool.query('SELECT current_timestamp');
@@ -37,7 +36,6 @@ router.get('/status', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 // Get available tables
-router.get('/tables', asyncHandler(async (req: Request, res: Response) => {
   try {
     // Query to get all tables in the public schema
     const result = await pool.query(`
@@ -62,7 +60,6 @@ router.get('/tables', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 // Clear data from a specific table
-router.delete('/clear/:table', asyncHandler(async (req: Request, res: Response) => {
   const { table } = req.params;
   
   try {
@@ -99,7 +96,6 @@ router.delete('/clear/:table', asyncHandler(async (req: Request, res: Response) 
 }));
 
 // Get database schema information
-router.get('/schema', asyncHandler(async (req: Request, res: Response) => {
   try {
     // Query column information for all tables
     const result = await pool.query(`
@@ -146,7 +142,6 @@ router.get('/schema', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 // Get table schema and sample data
-router.get('/table/:table', asyncHandler(async (req: Request, res: Response) => {
   const { table } = req.params;
   
   try {

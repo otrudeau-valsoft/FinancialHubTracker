@@ -1,7 +1,5 @@
 import { Request, Response } from 'express';
-import { asyncHandler } from '../../middleware/async-handler';
 
-export const databaseUpdate = asyncHandler(async (req: Request, res: Response) => {
   const { region } = req.params;
   
   // Parse request body safely

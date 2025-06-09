@@ -1,7 +1,6 @@
 import { Express, Request, Response, NextFunction } from 'express';
 import { createServer, Server } from 'http';
 import apiRoutes from './routes/index';
-import { errorHandler } from './middleware/error-handler';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server

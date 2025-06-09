@@ -3,7 +3,6 @@ import { db } from '../../db';
 import { earningsQuarterly } from '../../../shared/schema';
 import { updateEarningsData, beatStatus, revenueStatus } from '../../services/updateEarnings';
 import { eq, desc, and, sql } from 'drizzle-orm';
-import { asyncHandler } from '../../middleware/error-handler';
 
 const router = Router();
 
@@ -11,7 +10,6 @@ const router = Router();
  * POST /api/admin/update-earnings
  * Updates earnings data for all portfolio stocks
  */
-router.post('/admin/update-earnings', asyncHandler(async (req, res) => {
   try {
     const result = await updateEarningsData();
     res.json({ ok: true, ...result });
@@ -29,7 +27,6 @@ router.post('/admin/update-earnings', asyncHandler(async (req, res) => {
  * GET /api/earnings
  * Returns earnings data for requested tickers
  */
-router.get('/earnings', asyncHandler(async (req, res) => {
   try {
     const { tickers } = req.query;
     
@@ -91,7 +88,6 @@ router.get('/earnings', asyncHandler(async (req, res) => {
  * GET /api/heatmap
  * Returns aggregated heatmap data for the last four quarters
  */
-router.get('/heatmap', asyncHandler(async (req, res) => {
   try {
     // Get the latest four quarters
     console.log('DEBUG - Fetching heatmap data');

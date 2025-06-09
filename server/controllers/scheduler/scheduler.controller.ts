@@ -6,7 +6,6 @@ import {
   startTask,
   setTaskEnabled
 } from '../../services/scheduler.service';
-import { AppError } from '../../middleware/error-handler';
 
 /**
  * Get all scheduled tasks
