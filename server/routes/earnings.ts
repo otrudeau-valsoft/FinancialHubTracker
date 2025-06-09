@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db';
-import { earningsQuarterly, stockPrices } from '@shared/schema';
+import { earningsQuarterly, historicalPrices } from '@shared/schema';
 import { eq, and, gte, lte, sql, desc } from 'drizzle-orm';
 
 const router = Router();
