@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { AppError } from '../../middleware/error-handler';
 import { db } from '../../db';
 import { dataUpdateLogs } from '@shared/schema';
 import { desc } from 'drizzle-orm';

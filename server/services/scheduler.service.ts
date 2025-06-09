@@ -1,6 +1,5 @@
 import { db } from '../db';
 import { storage } from '../db-storage';
-import { AppError } from '../middleware/error-handler';
 import { Express } from 'express';
 
 // Task interface for all scheduled tasks

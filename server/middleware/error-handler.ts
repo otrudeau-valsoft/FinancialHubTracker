@@ -1,81 +1,54 @@
 import { Request, Response, NextFunction } from 'express';
 
-// Async handler middleware to avoid try/catch blocks in route handlers
-export const asyncHandler = (fn: Function) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
-};
+export interface AppError extends Error {
+  statusCode?: number;
+  isOperational?: boolean;
+}
 
-// Custom AppError class for standardized error handling
-export class AppError extends Error {
+export class APIError extends Error implements AppError {
   statusCode: number;
-  status: string;
   isOperational: boolean;
-  
-  constructor(message: string, statusCode: number) {
+
+  constructor(message: string, statusCode: number = 500, isOperational: boolean = true) {
     super(message);
     this.statusCode = statusCode;
-    this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
-    this.isOperational = true;
+    this.isOperational = isOperational;
     
     Error.captureStackTrace(this, this.constructor);
   }
 }
 
-// Error handler middleware for dev environment
-const sendErrorDev = (err: AppError, req: Request, res: Response) => {
-  // API error response
-  if (req.originalUrl.startsWith('/api')) {
-    return res.status(err.statusCode).json({
-      status: err.status,
-      error: err,
-      message: err.message,
-      stack: err.stack
-    });
-  }
+// Global error handler middleware
+export const errorHandler = (err: AppError, req: Request, res: Response, next: NextFunction) => {
+  const { statusCode = 500, message, stack } = err;
   
-  // For non-API errors, we can send a simple error page
-  console.error('ERROR 💥', err);
-  return res.status(err.statusCode).json({
-    title: 'Something went wrong!',
-    message: err.message
+  // Log error details
+  console.error(`[ERROR] ${req.method} ${req.path}`, {
+    statusCode,
+    message,
+    stack: process.env.NODE_ENV === 'development' ? stack : undefined,
+    userAgent: req.get('User-Agent'),
+    ip: req.ip,
+    timestamp: new Date().toISOString()
   });
-};
 
-// Error handler middleware for production environment
-const sendErrorProd = (err: AppError, req: Request, res: Response) => {
-  // Operational, trusted error: send message to client
-  if (err.isOperational) {
-    return res.status(err.statusCode).json({
-      status: err.status,
-      message: err.message
-    });
-  }
-  
-  // Programming or other unknown error: don't leak error details
-  console.error('ERROR 💥', err);
-  return res.status(500).json({
+  // Send error response
+  res.status(statusCode).json({
     status: 'error',
-    message: 'Something went wrong'
+    message: statusCode === 500 ? 'Internal server error' : message,
+    ...(process.env.NODE_ENV === 'development' && { stack })
   });
 };
 
-// Main error handling middleware
-export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
-  err.statusCode = err.statusCode || 500;
-  err.status = err.status || 'error';
-  
-  if (process.env.NODE_ENV === 'development') {
-    sendErrorDev(err, req, res);
-  } else {
-    // Create a hard copy of the error to avoid modifying the original
-    let error = Object.create(err);
-    error.message = err.message;
-    
-    // Handle specific error types here (e.g., database validation errors)
-    // For example, handling Postgres unique constraint errors
-    
-    sendErrorProd(error, req, res);
-  }
+// Async error wrapper
+export const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
+// 404 handler
+export const notFoundHandler = (req: Request, res: Response) => {
+  res.status(404).json({
+    status: 'error',
+    message: `Route ${req.method} ${req.path} not found`
+  });
 };

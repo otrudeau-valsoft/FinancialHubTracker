@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Wallet, DollarSign } from 'lucide-react';
 
@@ -57,7 +57,12 @@ export default function CashManagementPanel({ className }: CashPanelProps) {
         title: 'Cash balance updated',
         description: `${region} updated to $${Number(amount).toLocaleString()}`
       });
-      window.location.reload();
+      
+      // Invalidate cash data to refresh the UI
+      queryClient.invalidateQueries({ queryKey: ['/api/cash'] });
+      
+      // Reload fresh cash data
+      await loadCashData();
     } catch (error) {
       toast({
         title: 'Error',
