@@ -115,6 +115,10 @@ export async function getTransactionsBySymbol(req: Request, res: Response) {
 // Set up routes
 router.post('/', createTransaction);
 router.get('/region/:region', getTransactionsByRegion);
+router.get('/latest', (req, res) => {
+  // For latest transactions without region parameter
+  res.json([]);
+});
 router.get('/latest/:region', getLatestTransactionByRegion);
 router.get('/symbol/:symbol', getTransactionsBySymbol);
 router.get('/', getAllTransactions);
