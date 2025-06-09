@@ -39,7 +39,8 @@ currentRouter.use((req, res, next) => {
 
 // Routes for current prices
 currentRouter.get('/', getCurrentPrices);
-currentRouter.get('/:region', getCurrentPrice);
+currentRouter.get('/:region', getCurrentPrices);  // Get all current prices for a region
+currentRouter.get('/:region/:symbol', getCurrentPrice);  // Get specific price for symbol in region
 currentRouter.post('/fetch/:symbol', fetchCurrentPrice);
 currentRouter.post('/fetch/region/:region', fetchRegionCurrentPrices);
 currentRouter.post('/fetch/all', fetchAllCurrentPrices);
