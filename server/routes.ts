@@ -69,7 +69,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Global error handler
-  app.use(errorHandler);
+  app.use((err: any, req: any, res: any, next: any) => {
+    console.error('Server error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  });
   
   return httpServer;
 }
