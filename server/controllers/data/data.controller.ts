@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { AppError } from '../../middleware/error-handler';
 import { db } from '../../db';
 import { dataUpdateLogs } from '@shared/schema';
 import { desc } from 'drizzle-orm';
@@ -16,7 +17,7 @@ export async function getLogs(req: Request, res: Response) {
     res.json(logs);
   } catch (error) {
     console.error('Error getting logs:', error);
-    res.status(500).json({ error: 'Failed to get logs' });
+    throw new AppError('Failed to get logs', 500);
   }
 }
 
@@ -30,7 +31,7 @@ export async function clearLogs(req: Request, res: Response) {
     res.json({ message: 'Logs cleared successfully' });
   } catch (error) {
     console.error('Error clearing logs:', error);
-    res.status(500).json({ error: 'Failed to clear logs' });
+    throw new AppError('Failed to clear logs', 500);
   }
 }
 
@@ -56,7 +57,7 @@ export async function getSchedulerConfig(req: Request, res: Response) {
     res.json(config);
   } catch (error) {
     console.error('Error getting scheduler config:', error);
-    res.status(500).json({ error: 'Failed to get scheduler configuration' });
+    throw new AppError('Failed to get scheduler configuration', 500);
   }
 }
 
@@ -69,7 +70,7 @@ export async function updateSchedulerConfig(req: Request, res: Response) {
     const config = req.body;
     
     if (type !== 'current_prices' && type !== 'historical_prices') {
-      return res.status(400).json({ error: `Invalid scheduler type: ${type}` });
+      throw new AppError(`Invalid scheduler type: ${type}`, 400);
     }
     
     // For now, just echo back the received configuration
@@ -91,9 +92,9 @@ export async function updateSchedulerConfig(req: Request, res: Response) {
     res.json(mockResponse);
   } catch (error) {
     console.error('Error updating scheduler config:', error);
-    if (error instanceof Error) {
+    if (error instanceof AppError) {
       throw error;
     }
-    res.status(500).json({ error: 'Failed to update scheduler configuration' });
+    throw new AppError('Failed to update scheduler configuration', 500);
   }
 }

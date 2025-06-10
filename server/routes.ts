@@ -2,6 +2,7 @@ import { Express, Request, Response, NextFunction } from 'express';
 import { createServer, Server } from 'http';
 import { WebSocketServer } from 'ws';
 import apiRoutes from './routes/index';
+import { errorHandler } from './middleware/error-handler';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
@@ -69,10 +70,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Global error handler
-  app.use((err: any, req: any, res: any, next: any) => {
-    console.error('Server error:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  });
+  app.use(errorHandler);
   
   return httpServer;
 }

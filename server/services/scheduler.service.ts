@@ -1,5 +1,6 @@
 import { db } from '../db';
 import { storage } from '../db-storage';
+import { AppError } from '../middleware/error-handler';
 import { Express } from 'express';
 
 // Task interface for all scheduled tasks
@@ -95,11 +96,11 @@ export const startTask = async (taskId: string): Promise<any> => {
   const task = getTaskById(taskId);
   
   if (!task) {
-    throw new Error(`Task with ID ${taskId} not found`);
+    throw new AppError(`Task with ID ${taskId} not found`, 404);
   }
   
   if (task.isRunning) {
-    throw new Error(`Task ${task.name} is already running`);
+    throw new AppError(`Task ${task.name} is already running`, 400);
   }
   
   try {
@@ -135,7 +136,7 @@ export const startTask = async (taskId: string): Promise<any> => {
       result: error
     });
     
-    throw new Error(`Task execution failed: ${error instanceof Error ? error.message : String(error)}`);
+    throw new AppError(`Task execution failed: ${error instanceof Error ? error.message : String(error)}`, 500);
   } finally {
     task.isRunning = false;
   }
@@ -146,7 +147,7 @@ export const setTaskEnabled = (taskId: string, enabled: boolean): void => {
   const task = getTaskById(taskId);
   
   if (!task) {
-    throw new Error(`Task with ID ${taskId} not found`);
+    throw new AppError(`Task with ID ${taskId} not found`, 404);
   }
   
   task.enabled = enabled;

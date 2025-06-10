@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
+import { asyncHandler } from '../../middleware/async-handler';
 
-export const updateDatabaseHandler = async (req: Request, res: Response) => {
-  try {
-    const { region } = req.params;
+export const databaseUpdate = asyncHandler(async (req: Request, res: Response) => {
+  const { region } = req.params;
   
   // Parse request body safely
   const { updates = [], newRows = [], deletions = [] } = req.body;
@@ -79,12 +79,4 @@ export const updateDatabaseHandler = async (req: Request, res: Response) => {
     message: `Updated ${totalProcessed} stocks`, 
     count: totalProcessed
   });
-  } catch (error: any) {
-    console.error(`❌ Database update error for ${req.params.region}:`, error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update portfolio data',
-      error: error instanceof Error ? error.message : String(error)
-    });
-  }
-};
+});

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { Request, Response } from 'express';
+import { asyncHandler } from '../../middleware/error-handler';
 import { populateData } from '../../scripts/populate-data';
 
 const router = Router();
@@ -12,6 +13,7 @@ const router = Router();
  * 
  * @route POST /api/data-management/populate-data
  */
+router.post('/', asyncHandler(async (req: Request, res: Response) => {
   const result = await populateData();
   
   if (result.success) {

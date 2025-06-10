@@ -5,19 +5,20 @@ import {
   createEtfHolding,
   bulkImportEtfHoldings
 } from '../../controllers/etf/etf.controller';
+import { asyncHandler } from '../../middleware/error-handler';
 
 const router = Router();
 
 // GET /api/etfs/:symbol/holdings - Get all holdings for an ETF
-router.get('/:symbol/holdings', getEtfHoldings);
+router.get('/:symbol/holdings', asyncHandler(getEtfHoldings));
 
 // GET /api/etfs/:symbol/holdings/top/:limit - Get top N holdings for an ETF
-router.get('/:symbol/holdings/top/:limit', getTopEtfHoldings);
+router.get('/:symbol/holdings/top/:limit', asyncHandler(getTopEtfHoldings));
 
 // POST /api/etfs/:symbol/holdings - Create a new ETF holding
-router.post('/:symbol/holdings', createEtfHolding);
+router.post('/:symbol/holdings', asyncHandler(createEtfHolding));
 
 // POST /api/etfs/:symbol/holdings/bulk - Bulk import ETF holdings
-router.post('/:symbol/holdings/bulk', bulkImportEtfHoldings);
+router.post('/:symbol/holdings/bulk', asyncHandler(bulkImportEtfHoldings));
 
 export default router;
