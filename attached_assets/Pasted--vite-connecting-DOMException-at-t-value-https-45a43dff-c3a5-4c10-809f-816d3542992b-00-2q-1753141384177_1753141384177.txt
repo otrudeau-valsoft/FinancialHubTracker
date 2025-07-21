@@ -1,0 +1,48 @@
+[vite] connecting...
+DOMException {}
+
+at t.value (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Performance history response: 200
+Performance data is empty. Check server or database configuration.
+Objects are not valid as a React child (found: object with keys {rss, heapTotal, heapUsed, external, arrayBuffers}). If you meant to render a collection of children, use an array instead.
+Objects are not valid as a React child (found: object with keys {rss, heapTotal, heapUsed, external, arrayBuffers}). If you meant to render a collection of children, use an array instead.
+at throwOnInvalidObjectType (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=ca07cb53:9934:17)
+at createChild (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=ca07cb53:10110:15)
+at reconcileChildrenArray (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=ca07cb53:10282:33)
+at reconcileChildFibers2 (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=ca07cb53:10559:24)
+at reconcileChildren (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=ca07cb53:14290:37)
+at updateHostComponent (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=ca07cb53:14807:11)
+at beginWork (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=ca07cb53:15935:22)
+at HTMLUnknownElement.callCallback2 (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=ca07cb53:3674:22)
+at Object.invokeGuardedCallbackDev (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=ca07cb53:3699:24)
+at invokeGuardedCallback (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=ca07cb53:3733:39)
+The above error occurred in the <span> component:
+
+    at span
+    at div
+    at div
+    at div
+    at _c9 (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/src/components/ui/card.tsx:20:11)
+    at div
+    at div
+    at TestingMonitoringPage (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/src/pages/testing-monitoring.tsx:44:41)
+    at Route (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ca07cb53:323:16)
+    at Switch (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ca07cb53:379:17)
+    at main
+    at div
+    at div
+    at Router
+    at Provider (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ca07cb53:38:15)
+    at TooltipProvider (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=ca07cb53:63:5)
+    at QueryClientProvider (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=ca07cb53:2805:3)
+    at App
+    at V (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=ca07cb53:44:25)
+    at J (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=ca07cb53:42:18)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.

@@ -324,11 +324,15 @@ export default function TestingMonitoringPage() {
               <div className="mt-2 space-y-1">
                 <div className="flex justify-between text-xs">
                   <span className="text-[#7A8999]">CPU</span>
-                  <span className="text-[#EFEFEF]">{systemMetrics.metrics.cpu}%</span>
+                  <span className="text-[#EFEFEF]">{systemMetrics.metrics.cpu || 0}%</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-[#7A8999]">Memory</span>
-                  <span className="text-[#EFEFEF]">{systemMetrics.metrics.memory}%</span>
+                  <span className="text-[#EFEFEF]">
+                    {systemMetrics.metrics.memory && typeof systemMetrics.metrics.memory === 'object' 
+                      ? Math.round((systemMetrics.metrics.memory.heapUsed / systemMetrics.metrics.memory.heapTotal) * 100)
+                      : systemMetrics.metrics.memory}%
+                  </span>
                 </div>
               </div>
             )}
@@ -459,11 +463,11 @@ export default function TestingMonitoringPage() {
                       <div className="flex justify-between mb-1">
                         <span className="text-sm text-[#7A8999]">CPU Usage</span>
                         <span className="text-sm font-mono text-[#EFEFEF]">
-                          {systemMetrics.metrics.cpu}%
+                          {systemMetrics.metrics.cpu || 0}%
                         </span>
                       </div>
                       <Progress
-                        value={systemMetrics.metrics.cpu}
+                        value={systemMetrics.metrics.cpu || 0}
                         className="h-2"
                       />
                     </div>
@@ -471,11 +475,15 @@ export default function TestingMonitoringPage() {
                       <div className="flex justify-between mb-1">
                         <span className="text-sm text-[#7A8999]">Memory Usage</span>
                         <span className="text-sm font-mono text-[#EFEFEF]">
-                          {systemMetrics.metrics.memory}%
+                          {systemMetrics.metrics.memory && typeof systemMetrics.metrics.memory === 'object' 
+                            ? Math.round((systemMetrics.metrics.memory.heapUsed / systemMetrics.metrics.memory.heapTotal) * 100)
+                            : systemMetrics.metrics.memory}%
                         </span>
                       </div>
                       <Progress
-                        value={systemMetrics.metrics.memory}
+                        value={systemMetrics.metrics.memory && typeof systemMetrics.metrics.memory === 'object' 
+                          ? Math.round((systemMetrics.metrics.memory.heapUsed / systemMetrics.metrics.memory.heapTotal) * 100)
+                          : systemMetrics.metrics.memory}
                         className="h-2"
                       />
                     </div>
