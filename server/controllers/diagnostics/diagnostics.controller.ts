@@ -226,8 +226,9 @@ export const testPortfolioConsistency = async (req: Request, res: Response) => {
     const region = (req.query.region || 'USD') as string;
     
     // Get portfolio data
+    const portfolioTable = `portfolio_${region}`;
     const portfolioResult = await db.execute(sql`
-      SELECT * FROM "portfolio_${region}" ORDER BY symbol
+      SELECT * FROM ${sql.identifier(portfolioTable)} ORDER BY symbol
     `);
     
     // Get current prices
@@ -236,8 +237,9 @@ export const testPortfolioConsistency = async (req: Request, res: Response) => {
     `);
     
     // Get holdings data
+    const holdingsTable = `holdings_${region}`;
     const holdingsResult = await db.execute(sql`
-      SELECT * FROM "holdings_${region}" ORDER BY symbol
+      SELECT * FROM ${sql.identifier(holdingsTable)} ORDER BY symbol
     `);
     
     // Analyze consistency
