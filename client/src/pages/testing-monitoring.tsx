@@ -595,29 +595,20 @@ export default function TestingMonitoringPage() {
               <CardTitle className="text-[#EFEFEF] font-mono">Data Quality Analysis</CardTitle>
             </CardHeader>
             <CardContent>
-              {dataQuality?.checks && (
+              {dataQuality?.checks && Array.isArray(dataQuality.checks) && (
                 <div className="space-y-3">
-                  {Object.entries(dataQuality.checks).map(([category, checks]: [string, any]) => (
-                    <div key={category} className="border border-[#1A304A] rounded-md p-3">
-                      <h3 className="font-mono text-sm text-[#EFEFEF] mb-2 capitalize">
-                        {category.replace(/_/g, ' ')}
-                      </h3>
-                      <div className="space-y-2">
-                        {checks.map((check: any, index: number) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between p-2 bg-[#061220] rounded"
-                          >
-                            <div className="flex items-center gap-2">
-                              {getStatusIcon(check.status)}
-                              <span className="text-xs text-[#7A8999]">{check.name}</span>
-                            </div>
-                            <span className="text-xs font-mono text-[#EFEFEF]">
-                              {check.details}
-                            </span>
-                          </div>
-                        ))}
+                  {dataQuality.checks.map((check: any, index: number) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-2 bg-[#061220] rounded"
+                    >
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon(check.status)}
+                        <span className="text-sm text-[#7A8999]">{check.name}</span>
                       </div>
+                      <span className="text-xs font-mono text-[#EFEFEF]">
+                        {check.details}
+                      </span>
                     </div>
                   ))}
                 </div>

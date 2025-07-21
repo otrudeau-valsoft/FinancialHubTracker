@@ -1,0 +1,29 @@
+The above error occurred in the <TestingMonitoringPage> component:
+
+    at TestingMonitoringPage (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/src/pages/testing-monitoring.tsx?t=1753141512124:44:41)
+    at Route (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ca07cb53:323:16)
+    at Switch (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ca07cb53:379:17)
+    at main
+    at div
+    at div
+    at Router
+    at Provider (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=ca07cb53:38:15)
+    at TooltipProvider (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=ca07cb53:63:5)
+    at QueryClientProvider (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=ca07cb53:2805:3)
+    at App
+    at V (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=ca07cb53:44:25)
+    at J (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=ca07cb53:42:18)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+checks.map is not a function
+at https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/src/pages/testing-monitoring.tsx?t=1753141512124:1132:190
+at Array.map (<anonymous>)
+at TestingMonitoringPage (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/src/pages/testing-monitoring.tsx?t=1753141512124:1125:397)
+at renderWithHooks (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=ca07cb53:11548:26)
+at updateFunctionComponent (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=ca07cb53:14582:28)
+at beginWork (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=ca07cb53:15924:22)
+at beginWork$1 (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=ca07cb53:19753:22)
+at performUnitOfWork (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=ca07cb53:19198:20)
+at workLoopSync (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=ca07cb53:19137:13)
+at renderRootSync (https://45a43dff-c3a5-4c10-809f-816d3542992b-00-2qp2r4js640se.spock.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=ca07cb53:19116:15)
