@@ -451,10 +451,8 @@ export function adaptAssetsUSToPortfolioUSD(data: AssetsUS): Partial<PortfolioUS
     stockType: data.stockType || 'Comp',
     rating: data.stockRating || '1',
     sector: data.sector,
-    quantity: data.quantity,
-    price: 0, // Default price, will be updated with current price
-    pbr: data.pbr,
-    nextEarningsDate: data.nextEarningsDate,
+    quantity: data.quantity || undefined,
+    purchasePrice: '0', // Default price, will be updated with current price
     // Other fields will be calculated or populated later
   };
 }
@@ -469,10 +467,8 @@ export function adaptAssetsCADToPortfolioCAD(data: AssetsCAD): Partial<Portfolio
     stockType: data.stockType || 'Comp',
     rating: data.stockRating || '1',
     sector: data.sector,
-    quantity: data.quantity,
-    price: 0, // Default price, will be updated with current price
-    pbr: data.pbr,
-    nextEarningsDate: data.nextEarningsDate,
+    quantity: data.quantity || undefined,
+    purchasePrice: '0', // Default price, will be updated with current price
     // Other fields will be calculated or populated later
   };
 }
@@ -487,10 +483,8 @@ export function adaptAssetsINTLToPortfolioINTL(data: AssetsINTL): Partial<Portfo
     stockType: data.stockType || 'Comp',
     rating: data.stockRating || '1',
     sector: data.sector,
-    quantity: data.quantity,
-    price: 0, // Default price, will be updated with current price
-    pbr: data.pbr,
-    nextEarningsDate: data.nextEarningsDate,
+    quantity: data.quantity || undefined,
+    purchasePrice: '0', // Default price, will be updated with current price
     // Other fields will be calculated or populated later
   };
 }

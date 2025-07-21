@@ -648,22 +648,23 @@ export class DatabaseAdapter {
    */
   async getHistoricalPrices(symbol: string, region: string, startDate?: Date, endDate?: Date) {
     try {
-      let query = db.select()
-        .from(historicalPrices)
-        .where(and(
-          eq(historicalPrices.symbol, symbol),
-          eq(historicalPrices.region, region.toUpperCase())
-        ));
+      const conditions = [
+        eq(historicalPrices.symbol, symbol),
+        eq(historicalPrices.region, region.toUpperCase())
+      ];
       
       if (startDate) {
-        query = query.where(gte(historicalPrices.date, startDate));
+        conditions.push(gte(historicalPrices.date, startDate.toISOString().split('T')[0]));
       }
       
       if (endDate) {
-        query = query.where(lte(historicalPrices.date, endDate));
+        conditions.push(lte(historicalPrices.date, endDate.toISOString().split('T')[0]));
       }
       
-      return await query.orderBy(historicalPrices.date);
+      return await db.select()
+        .from(historicalPrices)
+        .where(and(...conditions))
+        .orderBy(historicalPrices.date);
     } catch (error) {
       console.error(`Error getting historical prices for ${symbol} (${region}):`, error);
       throw error;
@@ -675,13 +676,16 @@ export class DatabaseAdapter {
    */
   async getAlerts(activeOnly?: boolean) {
     try {
-      let query = db.select().from(alerts);
-      
       if (activeOnly) {
-        query = query.where(eq(alerts.isActive, true));
+        return await db.select()
+          .from(alerts)
+          .where(eq(alerts.isActive, true))
+          .orderBy(desc(alerts.createdAt));
       }
       
-      return await query.orderBy(desc(alerts.createdAt));
+      return await db.select()
+        .from(alerts)
+        .orderBy(desc(alerts.createdAt));
     } catch (error) {
       console.error('Error getting alerts:', error);
       throw error;
@@ -708,19 +712,21 @@ export class DatabaseAdapter {
    */
   async getEarningsData(region: string, startDate?: Date, endDate?: Date, limit: number = 50) {
     try {
-      let query = db.select()
-        .from(earnings)
-        .where(eq(earnings.region, region.toUpperCase()));
+      const conditions = [eq(earnings.region, region.toUpperCase())];
       
       if (startDate) {
-        query = query.where(gte(earnings.reportDate, startDate));
+        conditions.push(gte(earnings.reportDate, startDate.toISOString().split('T')[0]));
       }
       
       if (endDate) {
-        query = query.where(lte(earnings.reportDate, endDate));
+        conditions.push(lte(earnings.reportDate, endDate.toISOString().split('T')[0]));
       }
       
-      return await query.orderBy(desc(earnings.reportDate)).limit(limit);
+      return await db.select()
+        .from(earnings)
+        .where(and(...conditions))
+        .orderBy(desc(earnings.reportDate))
+        .limit(limit);
     } catch (error) {
       console.error(`Error getting earnings data for ${region}:`, error);
       throw error;
@@ -732,21 +738,30 @@ export class DatabaseAdapter {
    */
   async getEarningsCalendar(startDate?: Date, endDate?: Date, region?: string) {
     try {
-      let query = db.select().from(earningsCalendar);
+      const conditions = [];
       
       if (region) {
-        query = query.where(eq(earningsCalendar.region, region.toUpperCase()));
+        conditions.push(eq(earningsCalendar.region, region.toUpperCase()));
       }
       
       if (startDate) {
-        query = query.where(gte(earningsCalendar.earningsDate, startDate));
+        conditions.push(gte(earningsCalendar.earningsDate, startDate.toISOString().split('T')[0]));
       }
       
       if (endDate) {
-        query = query.where(lte(earningsCalendar.earningsDate, endDate));
+        conditions.push(lte(earningsCalendar.earningsDate, endDate.toISOString().split('T')[0]));
       }
       
-      return await query.orderBy(earningsCalendar.earningsDate);
+      if (conditions.length > 0) {
+        return await db.select()
+          .from(earningsCalendar)
+          .where(and(...conditions))
+          .orderBy(earningsCalendar.earningsDate);
+      }
+      
+      return await db.select()
+        .from(earningsCalendar)
+        .orderBy(earningsCalendar.earningsDate);
     } catch (error) {
       console.error('Error getting earnings calendar:', error);
       throw error;
@@ -758,13 +773,13 @@ export class DatabaseAdapter {
    */
   async getMarketIndices(region?: string) {
     try {
-      let query = db.select().from(marketIndices);
-      
       if (region) {
-        query = query.where(eq(marketIndices.region, region.toUpperCase()));
+        return await db.select()
+          .from(marketIndices)
+          .where(eq(marketIndices.region, region.toUpperCase()));
       }
       
-      return await query;
+      return await db.select().from(marketIndices);
     } catch (error) {
       console.error('Error getting market indices:', error);
       throw error;
@@ -803,6 +818,41 @@ export class DatabaseAdapter {
       return log;
     } catch (error) {
       console.error('Error logging data update:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Rebalance portfolio by replacing all stocks
+   */
+  async rebalancePortfolio(stocks: any[], region: string) {
+    const regionUpper = region.toUpperCase();
+    const portfolioTable = regionUpper === 'USD' ? portfolioUSD 
+      : regionUpper === 'CAD' ? portfolioCAD 
+      : portfolioINTL;
+
+    try {
+      // Begin transaction by deleting all existing stocks
+      await db.delete(portfolioTable);
+      
+      // Insert new stocks
+      const newStocks = stocks.map(stock => ({
+        symbol: stock.symbol,
+        company: stock.company,
+        stockType: stock.stockType,
+        rating: stock.rating,
+        sector: stock.sector || null,
+        quantity: stock.quantity,
+        purchasePrice: stock.purchasePrice,
+      }));
+
+      const inserted = await db.insert(portfolioTable)
+        .values(newStocks)
+        .returning();
+      
+      return inserted;
+    } catch (error) {
+      console.error(`Error rebalancing ${region} portfolio:`, error);
       throw error;
     }
   }

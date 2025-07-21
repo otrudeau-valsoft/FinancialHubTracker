@@ -197,6 +197,73 @@ export class DatabaseStorage {
   }
   
   /**
+   * Create a single ETF holding
+   */
+  async createEtfHolding(data: any) {
+    try {
+      const symbol = data.etf_symbol?.toUpperCase() || 'SPY';
+      
+      if (symbol === 'SPY') {
+        const [result] = await db.insert(etfHoldingsSPY).values(data).returning();
+        return result;
+      } else if (symbol === 'XIC') {
+        const [result] = await db.insert(etfHoldingsXIC).values(data).returning();
+        return result;
+      } else if (symbol === 'ACWX') {
+        const [result] = await db.insert(etfHoldingsACWX).values(data).returning();
+        return result;
+      } else {
+        throw new Error(`Unknown ETF symbol: ${symbol}`);
+      }
+    } catch (error) {
+      console.error('Error creating ETF holding:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Bulk create ETF holdings
+   */
+  async bulkCreateEtfHoldings(data: any[]) {
+    try {
+      if (!data || data.length === 0) {
+        return [];
+      }
+      
+      // Group by ETF symbol
+      const groupedData = data.reduce((acc, item) => {
+        const symbol = item.etf_symbol?.toUpperCase() || 'SPY';
+        if (!acc[symbol]) {
+          acc[symbol] = [];
+        }
+        acc[symbol].push(item);
+        return acc;
+      }, {} as Record<string, any[]>);
+      
+      const results = [];
+      
+      // Insert into appropriate tables
+      for (const [symbol, holdings] of Object.entries(groupedData)) {
+        if (symbol === 'SPY') {
+          const inserted = await db.insert(etfHoldingsSPY).values(holdings).returning();
+          results.push(...inserted);
+        } else if (symbol === 'XIC') {
+          const inserted = await db.insert(etfHoldingsXIC).values(holdings).returning();
+          results.push(...inserted);
+        } else if (symbol === 'ACWX') {
+          const inserted = await db.insert(etfHoldingsACWX).values(holdings).returning();
+          results.push(...inserted);
+        }
+      }
+      
+      return results;
+    } catch (error) {
+      console.error('Error bulk creating ETF holdings:', error);
+      throw error;
+    }
+  }
+  
+  /**
    * Get ETF holdings for a specific symbol
    */
   async getEtfHoldings(symbol: string, limit?: number) {

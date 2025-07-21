@@ -17,7 +17,7 @@ import transactionsRoutes from './transactions';
 import portfolioHistoryRoutes from './portfolio-history';
 import portfolioPerformanceRoutes from './portfolio-performance';
 import portfolioPerformanceHistoryRoutes from './portfolio-performance-history';
-import performanceHistoryRouter from './performance-history.js';
+import performanceHistoryRouter from './performance-history';
 import earningsRoutes from './earnings';
 import marketIndicesRoutes from './market-indices';
 import diagnosticsRoutes from './diagnostics/diagnostics.routes';

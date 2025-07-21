@@ -68,3 +68,6 @@ app.use((req, res, next) => {
     process.exit(1);
   }
 })();
+
+// Export app for testing
+export { app };
