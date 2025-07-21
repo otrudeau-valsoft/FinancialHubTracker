@@ -203,6 +203,12 @@ export function Header() {
               >
                 DIAGNOSTICS
               </DropdownMenuItem>
+              <DropdownMenuItem 
+                className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 font-mono text-xs ${location === '/monitoring' ? 'bg-blue-900/30' : ''}`}
+                onClick={() => navigateTo("/monitoring")}
+              >
+                MONITORING
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

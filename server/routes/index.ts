@@ -24,6 +24,7 @@ import diagnosticsRoutes from './diagnostics/diagnostics.routes';
 import { getNewsBySymbol, getNewsForPortfolio } from './news';
 import economicCalendarRoutes from './economic-calendar/economic-calendar.routes';
 import movingAverageRoutes from './moving-average';
+import monitoringRoutes from './monitoring';
 
 const router = Router();
 
@@ -86,6 +87,9 @@ router.use('/moving-average', movingAverageRoutes);
 
 // Diagnostics routes
 router.use('/diagnostics', diagnosticsRoutes);
+
+// Monitoring routes for testing and system health
+router.use('/monitoring', monitoringRoutes);
 
 // Data management routes (for development and administration)
 router.use('/data-management', dataManagementRoutes);
