@@ -75,7 +75,7 @@ export async function updatePortfolioPerformanceHistory() {
       }
       
       // Group prices by date
-      const pricesByDate = {};
+      const pricesByDate: Record<string, Record<string, number>> = {};
       
       priceData.forEach(row => {
         // Make sure we have a valid PostgreSQL date format (YYYY-MM-DD)
@@ -151,9 +151,9 @@ export async function updatePortfolioPerformanceHistory() {
           }
         }
         
-        // Calculate cumulative returns
-        const portfolioCumulativeReturn = (portfolioValue / basePortfolioValue) - 1;
-        const benchmarkCumulativeReturn = (benchmarkValue / baseBenchmarkValue) - 1;
+        // Calculate cumulative returns (basePortfolioValue and baseBenchmarkValue are guaranteed to be non-null here)
+        const portfolioCumulativeReturn = (portfolioValue / basePortfolioValue!) - 1;
+        const benchmarkCumulativeReturn = (benchmarkValue / baseBenchmarkValue!) - 1;
         
         // Calculate relative performance (alpha)
         const relativePerformance = portfolioCumulativeReturn - benchmarkCumulativeReturn;
@@ -292,8 +292,17 @@ export const getHistoricalPricesByRegion = async (req: Request, res: Response) =
     endDate = new Date(endDateStr);
   }
   
-  const prices = await storage.getHistoricalPricesByRegion(region.toUpperCase(), startDate, endDate);
-  return res.json(prices);
+  // Get all symbols for the region
+  const stocks = await storage.getPortfolioStocks(region.toUpperCase());
+  
+  // Fetch historical prices for all symbols
+  const allPrices = [];
+  for (const stock of stocks) {
+    const prices = await storage.getHistoricalPrices(stock.symbol, region.toUpperCase(), startDate, endDate);
+    allPrices.push(...prices);
+  }
+  
+  return res.json(allPrices);
 };
 
 /**
@@ -332,8 +341,32 @@ export const fetchRegionHistoricalPrices = async (req: Request, res: Response) =
     const upperRegion = region.toUpperCase();
     const period = (req.query.period || req.body.period || '5y') as string;
     
-    // Step 1: Update historical prices for this region
-    const results = await historicalPriceService.fetchHistoricalPrices(upperRegion, period);
+    // Step 1: Get all stocks for this region
+    const stocks = await storage.getPortfolioStocks(upperRegion);
+    
+    // Step 2: Update historical prices for each stock in the region
+    const results = {
+      successCount: 0,
+      failedCount: 0,
+      updatedSymbols: [] as string[],
+      failedSymbols: [] as string[]
+    };
+    
+    for (const stock of stocks) {
+      try {
+        await historicalPriceService.fetchAndStoreHistoricalPrices(
+          stock.symbol,
+          upperRegion,
+          period
+        );
+        results.successCount++;
+        results.updatedSymbols.push(stock.symbol);
+      } catch (error) {
+        console.error(`Failed to update historical prices for ${stock.symbol}:`, error);
+        results.failedCount++;
+        results.failedSymbols.push(stock.symbol);
+      }
+    }
     
     // Step 2: Automatically update portfolio holdings for this region
     console.log(`Automatically updating ${upperRegion} portfolio holdings after historical price update...`);
@@ -365,38 +398,33 @@ export const fetchRegionHistoricalPrices = async (req: Request, res: Response) =
       const { portfolioPerformanceService } = require('../../services/portfolio-performance-service');
       await portfolioPerformanceService.updatePerformanceHistory(upperRegion);
       
-      // Get success metrics from original results
-      const successCount = results.filter(r => r.success).length;
-      const totalCount = results.length;
-      
       return res.json({
         results,
-        message: `Successfully updated historical prices for ${successCount}/${totalCount} symbols and recalculated ${upperRegion} portfolio metrics`,
+        message: `Successfully updated historical prices for ${results.successCount}/${results.successCount + results.failedCount} symbols and recalculated ${upperRegion} portfolio metrics`,
         holdingsUpdated: true,
-        successCount,
-        totalCount
+        successCount: results.successCount,
+        totalCount: results.successCount + results.failedCount
       });
     } catch (holdingsError) {
       console.error(`Error updating ${upperRegion} holdings after historical price update:`, holdingsError);
+      const errorMessage = holdingsError instanceof Error ? holdingsError.message : String(holdingsError);
       
       // Still return success for historical price update, but indicate holdings update failed
-      const successCount = results.filter(r => r.success).length;
-      const totalCount = results.length;
-      
       return res.json({
         results,
-        message: `Successfully updated historical prices for ${successCount}/${totalCount} symbols, but failed to recalculate portfolio metrics`,
+        message: `Successfully updated historical prices for ${results.successCount}/${results.successCount + results.failedCount} symbols, but failed to recalculate portfolio metrics`,
         holdingsUpdated: false,
-        holdingsError: holdingsError.message,
-        successCount,
-        totalCount
+        holdingsError: errorMessage,
+        successCount: results.successCount,
+        totalCount: results.successCount + results.failedCount
       });
     }
   } catch (error) {
     console.error('Error updating historical prices:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return res.status(500).json({ 
       error: 'Failed to update historical prices', 
-      message: error.message 
+      message: errorMessage 
     });
   }
 };
@@ -449,6 +477,7 @@ export const fetchAllHistoricalPrices = async (req: Request, res: Response) => {
       });
     } catch (holdingsError) {
       console.error('Error updating holdings after historical price update:', holdingsError);
+      const errorMessage = holdingsError instanceof Error ? holdingsError.message : String(holdingsError);
       
       // Still return success for historical price update, but indicate holdings update failed
       return res.json({
@@ -457,14 +486,15 @@ export const fetchAllHistoricalPrices = async (req: Request, res: Response) => {
         holdingsUpdated: false,
         rsiCalculated: true,
         macdCalculated: true,
-        holdingsError: holdingsError.message
+        holdingsError: errorMessage
       });
     }
   } catch (error) {
     console.error('Error updating historical prices:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return res.status(500).json({ 
       error: 'Failed to update historical prices', 
-      message: error.message 
+      message: errorMessage 
     });
   }
 };
@@ -550,20 +580,22 @@ export const fetchRegionCurrentPrices = async (req: Request, res: Response) => {
       });
     } catch (holdingsError) {
       console.error(`Error updating ${upperRegion} holdings after price update:`, holdingsError);
+      const errorMessage = holdingsError instanceof Error ? holdingsError.message : String(holdingsError);
       
       // Still return success for price update, but indicate holdings update failed
       return res.json({
         results,
         message: `Successfully updated ${results.length} prices, but failed to recalculate ${upperRegion} portfolio metrics`,
         holdingsUpdated: false,
-        holdingsError: holdingsError.message
+        holdingsError: errorMessage
       });
     }
   } catch (error) {
     console.error('Error updating current prices:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return res.status(500).json({ 
       error: 'Failed to update current prices', 
-      message: error.message 
+      message: errorMessage 
     });
   }
 };
@@ -581,11 +613,14 @@ export const fetchAllCurrentPrices = async (req: Request, res: Response) => {
     let totalSuccessCount = 0;
     let totalSymbols = 0;
     
+    // Type the results as a record with region keys
+    const typedResults = results as Record<string, { successCount: number; totalSymbols: number }>;
+    
     // Iterate through each region's results
-    Object.keys(results).forEach(region => {
-      if (results[region] && results[region].successCount !== undefined) {
-        totalSuccessCount += results[region].successCount;
-        totalSymbols += results[region].totalSymbols;
+    Object.keys(typedResults).forEach(region => {
+      if (typedResults[region] && typedResults[region].successCount !== undefined) {
+        totalSuccessCount += typedResults[region].successCount;
+        totalSymbols += typedResults[region].totalSymbols;
       }
     });
     
@@ -615,6 +650,7 @@ export const fetchAllCurrentPrices = async (req: Request, res: Response) => {
       });
     } catch (holdingsError) {
       console.error('Error updating holdings after price update:', holdingsError);
+      const errorMessage = holdingsError instanceof Error ? holdingsError.message : String(holdingsError);
       
       // Still return success for price update, but indicate holdings update failed
       return res.json({
@@ -623,14 +659,15 @@ export const fetchAllCurrentPrices = async (req: Request, res: Response) => {
         totalSymbols,
         results,
         holdingsUpdated: false,
-        holdingsError: holdingsError.message
+        holdingsError: errorMessage
       });
     }
   } catch (error) {
     console.error('Error updating current prices:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return res.status(500).json({ 
       error: 'Failed to update current prices', 
-      message: error.message 
+      message: errorMessage 
     });
   }
 };
