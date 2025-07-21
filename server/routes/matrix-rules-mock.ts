@@ -1,6 +1,6 @@
 import { Router } from 'express';
 // Import directly from matrix-thresholds.ts to fix module resolution
-import { MATRIX_THRESHOLDS } from './matrix-thresholds.js';
+import { MATRIX_THRESHOLDS } from './matrix-thresholds';
 
 const router = Router();
 

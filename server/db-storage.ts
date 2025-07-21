@@ -11,7 +11,10 @@ import {
   historicalPrices,
   rsiData,
   macdData,
-  movingAverageData
+  movingAverageData,
+  type InsertEtfHoldingsSPY,
+  type InsertEtfHoldingsXIC,
+  type InsertEtfHoldingsACWX
 } from '../shared/schema';
 
 /**
@@ -199,9 +202,9 @@ export class DatabaseStorage {
   /**
    * Create a single ETF holding
    */
-  async createEtfHolding(data: any) {
+  async createEtfHolding(data: any, etfSymbol: string = 'SPY') {
     try {
-      const symbol = data.etf_symbol?.toUpperCase() || 'SPY';
+      const symbol = etfSymbol.toUpperCase();
       
       if (symbol === 'SPY') {
         const [result] = await db.insert(etfHoldingsSPY).values(data).returning();
@@ -224,36 +227,30 @@ export class DatabaseStorage {
   /**
    * Bulk create ETF holdings
    */
-  async bulkCreateEtfHoldings(data: any[]) {
+  async bulkCreateEtfHoldings(etfSymbol: string, data: Array<InsertEtfHoldingsSPY | InsertEtfHoldingsXIC | InsertEtfHoldingsACWX>) {
     try {
       if (!data || data.length === 0) {
         return [];
       }
       
-      // Group by ETF symbol
-      const groupedData = data.reduce((acc, item) => {
-        const symbol = item.etf_symbol?.toUpperCase() || 'SPY';
-        if (!acc[symbol]) {
-          acc[symbol] = [];
-        }
-        acc[symbol].push(item);
-        return acc;
-      }, {} as Record<string, any[]>);
-      
+      const symbol = etfSymbol.toUpperCase();
       const results = [];
       
-      // Insert into appropriate tables
-      for (const [symbol, holdings] of Object.entries(groupedData)) {
-        if (symbol === 'SPY') {
-          const inserted = await db.insert(etfHoldingsSPY).values(holdings).returning();
-          results.push(...inserted);
-        } else if (symbol === 'XIC') {
-          const inserted = await db.insert(etfHoldingsXIC).values(holdings).returning();
-          results.push(...inserted);
-        } else if (symbol === 'ACWX') {
-          const inserted = await db.insert(etfHoldingsACWX).values(holdings).returning();
-          results.push(...inserted);
-        }
+      // Insert into appropriate table based on ETF symbol
+      if (symbol === 'SPY') {
+        const typedHoldings = data as InsertEtfHoldingsSPY[];
+        const inserted = await db.insert(etfHoldingsSPY).values(typedHoldings).returning();
+        results.push(...inserted);
+      } else if (symbol === 'XIC') {
+        const typedHoldings = data as InsertEtfHoldingsXIC[];
+        const inserted = await db.insert(etfHoldingsXIC).values(typedHoldings).returning();
+        results.push(...inserted);
+      } else if (symbol === 'ACWX') {
+        const typedHoldings = data as InsertEtfHoldingsACWX[];
+        const inserted = await db.insert(etfHoldingsACWX).values(typedHoldings).returning();
+        results.push(...inserted);
+      } else {
+        throw new Error(`Unknown ETF symbol: ${symbol}`);
       }
       
       return results;
@@ -416,24 +413,25 @@ export class DatabaseStorage {
    */
   async getHistoricalPrices(symbol: string, region: string, startDate?: Date, endDate?: Date) {
     try {
-      // Build the query with the base conditions
-      let query = db.select().from(historicalPrices)
-        .where(and(
-          eq(historicalPrices.symbol, symbol),
-          eq(historicalPrices.region, region)
-        ));
+      // Build conditions array
+      const conditions = [
+        eq(historicalPrices.symbol, symbol),
+        eq(historicalPrices.region, region)
+      ];
       
       // Add date range filter if provided
       if (startDate) {
-        query = query.where(sql`${historicalPrices.date} >= ${startDate}`);
+        conditions.push(sql`${historicalPrices.date} >= ${startDate.toISOString().split('T')[0]}`);
       }
       
       if (endDate) {
-        query = query.where(sql`${historicalPrices.date} <= ${endDate}`);
+        conditions.push(sql`${historicalPrices.date} <= ${endDate.toISOString().split('T')[0]}`);
       }
       
-      // Order by date for consistent results
-      const prices = await query.orderBy(asc(historicalPrices.date));
+      // Execute query with all conditions
+      const prices = await db.select().from(historicalPrices)
+        .where(and(...conditions))
+        .orderBy(asc(historicalPrices.date));
       
       if (!prices || prices.length === 0) {
         return [];
@@ -454,12 +452,10 @@ export class DatabaseStorage {
       const rsiDataByDate = new Map();
       if (rsiDataArray && rsiDataArray.length > 0) {
         rsiDataArray.forEach(rsiItem => {
-          // Handle date as either string or Date object
+          // Handle date as string (historical_prices table stores dates as strings)
           const dateStr = typeof rsiItem.date === 'string' 
             ? rsiItem.date.split('T')[0]  // Handle ISO string
-            : rsiItem.date instanceof Date 
-              ? rsiItem.date.toISOString().split('T')[0]  // Handle Date object
-              : String(rsiItem.date);  // Fallback for any other format
+            : String(rsiItem.date);  // Convert to string if not already
           rsiDataByDate.set(dateStr, rsiItem);
         });
       }
@@ -479,19 +475,26 @@ export class DatabaseStorage {
       const macdDataByDate = new Map();
       if (macdDataArray && macdDataArray.length > 0) {
         macdDataArray.forEach(macdItem => {
-          // Handle date as either string or Date object
+          // Handle date as string (historical_prices table stores dates as strings)
           const dateStr = typeof macdItem.date === 'string' 
             ? macdItem.date.split('T')[0]  // Handle ISO string
-            : macdItem.date instanceof Date 
-              ? macdItem.date.toISOString().split('T')[0]  // Handle Date object
-              : String(macdItem.date);  // Fallback for any other format
+            : String(macdItem.date);  // Convert to string if not already
           macdDataByDate.set(dateStr, macdItem);
         });
       }
       
       // Merge RSI and MACD data into historical prices
       const pricesWithIndicators = prices.map(price => {
-        const enrichedPrice = {...price};
+        // Create a new object with all the price data plus indicators
+        const enrichedPrice: any = {
+          ...price,
+          rsi9: null,
+          rsi14: null,
+          rsi21: null,
+          macd: null,
+          signal: null,
+          histogram: null
+        };
         let dateStr = '';
         
         // Try to get RSI data by historical price ID first
@@ -503,12 +506,9 @@ export class DatabaseStorage {
             // Handle different date formats
             if (typeof price.date === 'string') {
               dateStr = price.date.split('T')[0];
-            } else if (price.date instanceof Date) {
-              dateStr = price.date.toISOString().split('T')[0];
             } else {
-              // Try to convert to date
-              const dateObj = new Date(price.date);
-              dateStr = dateObj.toISOString().split('T')[0];
+              // Try to convert to string
+              dateStr = String(price.date).split('T')[0];
             }
             rsiItem = rsiDataByDate.get(dateStr);
           } catch (err) {
@@ -616,23 +616,25 @@ export class DatabaseStorage {
    */
   async getRsiData(symbol: string, region: string, startDate?: Date, endDate?: Date) {
     try {
-      let query = db.select().from(rsiData)
-        .where(and(
-          eq(rsiData.symbol, symbol),
-          eq(rsiData.region, region)
-        ));
+      // Build conditions array
+      const conditions = [
+        eq(rsiData.symbol, symbol),
+        eq(rsiData.region, region)
+      ];
       
       // Add date range filters if provided
       if (startDate) {
-        query = query.where(sql`${rsiData.date} >= ${startDate}`);
+        conditions.push(sql`${rsiData.date} >= ${startDate.toISOString().split('T')[0]}`);
       }
       
       if (endDate) {
-        query = query.where(sql`${rsiData.date} <= ${endDate}`);
+        conditions.push(sql`${rsiData.date} <= ${endDate.toISOString().split('T')[0]}`);
       }
       
-      // Execute the query
-      const results = await query.orderBy(asc(rsiData.date));
+      // Execute the query with all conditions
+      const results = await db.select().from(rsiData)
+        .where(and(...conditions))
+        .orderBy(asc(rsiData.date));
       return results;
     } catch (error) {
       console.error(`Error fetching RSI data for ${symbol} (${region}):`, error);
@@ -790,24 +792,25 @@ export class DatabaseStorage {
    */
   async getMacdData(symbol: string, region: string, startDate?: Date, endDate?: Date) {
     try {
-      // Build the base query with symbol and region filters
-      let query = db.select().from(macdData)
-        .where(and(
-          eq(macdData.symbol, symbol),
-          eq(macdData.region, region)
-        ));
+      // Build conditions array
+      const conditions = [
+        eq(macdData.symbol, symbol),
+        eq(macdData.region, region)
+      ];
       
       // Add date filters if provided
       if (startDate) {
-        query = query.where(sql`${macdData.date} >= ${startDate}`);
+        conditions.push(sql`${macdData.date} >= ${startDate.toISOString().split('T')[0]}`);
       }
       
       if (endDate) {
-        query = query.where(sql`${macdData.date} <= ${endDate}`);
+        conditions.push(sql`${macdData.date} <= ${endDate.toISOString().split('T')[0]}`);
       }
       
-      // Execute the query
-      const results = await query.orderBy(asc(macdData.date));
+      // Execute the query with all conditions
+      const results = await db.select().from(macdData)
+        .where(and(...conditions))
+        .orderBy(asc(macdData.date));
       return results;
     } catch (error) {
       console.error(`Error getting MACD data for ${symbol} (${region}):`, error);
@@ -965,23 +968,25 @@ export class DatabaseStorage {
    */
   async getMovingAverageData(symbol: string, region: string, startDate?: Date, endDate?: Date) {
     try {
-      let query = db.select()
-        .from(movingAverageData)
-        .where(and(
-          eq(movingAverageData.symbol, symbol),
-          eq(movingAverageData.region, region)
-        ));
+      // Build conditions array
+      const conditions = [
+        eq(movingAverageData.symbol, symbol),
+        eq(movingAverageData.region, region)
+      ];
       
       // Add date range filters if provided
       if (startDate) {
-        query = query.where(gte(movingAverageData.date, startDate.toISOString().split('T')[0]));
+        conditions.push(gte(movingAverageData.date, startDate.toISOString().split('T')[0]));
       }
       
       if (endDate) {
-        query = query.where(lte(movingAverageData.date, endDate.toISOString().split('T')[0]));
+        conditions.push(lte(movingAverageData.date, endDate.toISOString().split('T')[0]));
       }
       
-      return await query.orderBy(desc(movingAverageData.date));
+      return await db.select()
+        .from(movingAverageData)
+        .where(and(...conditions))
+        .orderBy(desc(movingAverageData.date));
     } catch (error) {
       console.error(`Error getting Moving Average data for ${symbol} (${region}):`, error);
       throw error;

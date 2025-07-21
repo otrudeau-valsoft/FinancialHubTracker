@@ -198,16 +198,10 @@ export function Header() {
                 DATA MANAGEMENT
               </DropdownMenuItem>
               <DropdownMenuItem 
-                className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 font-mono text-xs ${location === '/diagnostics' ? 'bg-blue-900/30' : ''}`}
-                onClick={() => navigateTo("/diagnostics")}
+                className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 font-mono text-xs ${location === '/system' || location === '/diagnostics' || location === '/monitoring' ? 'bg-blue-900/30' : ''}`}
+                onClick={() => navigateTo("/system")}
               >
-                DIAGNOSTICS
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 font-mono text-xs ${location === '/monitoring' ? 'bg-blue-900/30' : ''}`}
-                onClick={() => navigateTo("/monitoring")}
-              >
-                MONITORING
+                TESTING & MONITORING
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -384,10 +378,10 @@ export function Header() {
               </button>
               
               <button 
-                onClick={() => navigateTo("/diagnostics")} 
-                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/diagnostics' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
+                onClick={() => navigateTo("/system")} 
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/system' || location === '/diagnostics' || location === '/monitoring' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
               >
-                DIAGNOSTICS
+                TESTING & MONITORING
               </button>
             </div>
           </div>

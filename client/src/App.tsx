@@ -16,9 +16,8 @@ import EarningsPage from "@/pages/earnings-page";
 import StockDetails from "@/pages/stock-details";
 import NewsPage from "@/pages/news";
 import EconomicCalendarPage from "@/pages/economic-calendar";
-import DiagnosticsPage from "@/pages/diagnostics";
 import TransactionsPage from "@/pages/transactions";
-import MonitoringPage from "@/pages/monitoring";
+import TestingMonitoringPage from "@/pages/testing-monitoring";
 import { Header } from "@/components/layout/header";
 
 function Router() {
@@ -40,8 +39,9 @@ function Router() {
             <Route path="/news" component={NewsPage} />
             <Route path="/economic-calendar" component={EconomicCalendarPage} />
             <Route path="/transactions" component={TransactionsPage} />
-            <Route path="/diagnostics" component={DiagnosticsPage} />
-            <Route path="/monitoring" component={MonitoringPage} />
+            <Route path="/system" component={TestingMonitoringPage} />
+            <Route path="/diagnostics" component={TestingMonitoringPage} />
+            <Route path="/monitoring" component={TestingMonitoringPage} />
             <Route path="/stock-details/:symbol/:region" component={StockDetails} />
             <Route path="/stock/:symbol" component={StockDetails} />
             <Route component={NotFound} />

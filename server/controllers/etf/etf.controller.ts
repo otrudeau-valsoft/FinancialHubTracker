@@ -48,10 +48,7 @@ export const createEtfHolding = async (req: Request, res: Response) => {
     
     const validData = schema.parse(req.body);
     
-    const holding = await storage.createEtfHolding({
-      ...validData,
-      etfSymbol: symbol.toUpperCase()
-    });
+    const holding = await storage.createEtfHolding(validData, symbol.toUpperCase());
     
     return res.status(201).json(holding);
   } catch (error) {
@@ -80,14 +77,8 @@ export const bulkImportEtfHoldings = async (req: Request, res: Response) => {
       skipEmptyLines: true
     }).data;
     
-    // Add the ETF symbol to each item
-    const holdingsData = parsedData.map((item: any) => ({
-      ...item,
-      etfSymbol: symbol.toUpperCase()
-    }));
-    
     // Use storage to bulk import
-    const result = await storage.bulkCreateEtfHoldings(holdingsData);
+    const result = await storage.bulkCreateEtfHoldings(symbol.toUpperCase(), parsedData);
     
     return res.json({
       message: "ETF holdings imported successfully",

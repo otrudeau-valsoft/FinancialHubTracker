@@ -646,12 +646,16 @@ function generateAlertDetails(rule: MatrixRule, stock: StockData): string {
       break;
       
     case 'price-90day':
-      details = `90-day price change: ${(stock.priceChange90d! * 100).toFixed(1)}%, Threshold: ${(parseThreshold(rule.thresholds[normalizeStockType(stock.stockType)][stock.rating as Rating]!) * 100).toFixed(1)}%`;
+      const threshold90d = rule.thresholds[normalizeStockType(stock.stockType)]?.[stock.rating as Rating];
+      const parsed90d = threshold90d ? parseThreshold(threshold90d) : null;
+      details = `90-day price change: ${(stock.priceChange90d! * 100).toFixed(1)}%, Threshold: ${parsed90d !== null ? (parsed90d * 100).toFixed(1) : 'N/A'}%`;
       break;
       
     case 'max-weight':
     case 'max-weight-intl':
-      details = `Current weight: ${(stock.percentOfPortfolio! * 100).toFixed(1)}%, Threshold: ${(parseThreshold(rule.thresholds[normalizeStockType(stock.stockType)][stock.rating as Rating]!) * 100).toFixed(1)}%`;
+      const thresholdWeight = rule.thresholds[normalizeStockType(stock.stockType)]?.[stock.rating as Rating];
+      const parsedWeight = thresholdWeight ? parseThreshold(thresholdWeight) : null;
+      details = `Current weight: ${(stock.percentOfPortfolio! * 100).toFixed(1)}%, Threshold: ${parsedWeight !== null ? (parsedWeight * 100).toFixed(1) : 'N/A'}%`;
       break;
       
     case 'at-200ma':
