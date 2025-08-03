@@ -21,7 +21,11 @@ import {
   TrendingUp,
   Shield,
   Clock,
-  FileText
+  FileText,
+  Calendar,
+  ToggleLeft,
+  ToggleRight,
+  PlayCircle
 } from 'lucide-react';
 import { queryClient } from '@/lib/queryClient';
 import { formatDistanceToNow } from 'date-fns';
@@ -43,10 +47,21 @@ interface HealthMetric {
   label: string;
 }
 
+interface SchedulerJob {
+  id: string;
+  name: string;
+  schedule: string;
+  enabled: boolean;
+  running: boolean;
+  nextRun: string | null;
+}
+
 export default function TestingMonitoringPage() {
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [isRunningTests, setIsRunningTests] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [togglingJob, setTogglingJob] = useState<string | null>(null);
+  const [runningJob, setRunningJob] = useState<string | null>(null);
 
   // Fetch diagnostics data
   const { data: diagnosticsHealth } = useQuery({
@@ -71,6 +86,51 @@ export default function TestingMonitoringPage() {
     queryKey: ['/api/monitoring/alerts'],
     refetchInterval: 10000
   });
+
+  // Fetch scheduler status
+  const { data: schedulerStatus, refetch: refetchScheduler } = useQuery({
+    queryKey: ['/api/scheduler/status'],
+    refetchInterval: 5000
+  });
+
+  // Toggle scheduler job
+  const toggleSchedulerJob = async (jobId: string, enabled: boolean) => {
+    setTogglingJob(jobId);
+    try {
+      const response = await fetch(`/api/scheduler/jobs/${jobId}/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled })
+      });
+      
+      if (!response.ok) throw new Error('Failed to toggle job');
+      
+      await refetchScheduler();
+    } catch (error) {
+      console.error('Error toggling job:', error);
+    } finally {
+      setTogglingJob(null);
+    }
+  };
+
+  // Run scheduler job manually
+  const runSchedulerJob = async (jobId: string) => {
+    setRunningJob(jobId);
+    try {
+      const response = await fetch(`/api/scheduler/jobs/${jobId}/run`, {
+        method: 'POST'
+      });
+      
+      if (!response.ok) throw new Error('Failed to run job');
+      
+      // Refresh scheduler status after a short delay
+      setTimeout(() => refetchScheduler(), 2000);
+    } catch (error) {
+      console.error('Error running job:', error);
+    } finally {
+      setRunningJob(null);
+    }
+  };
 
   // Run all tests
   const runAllTests = async () => {
@@ -228,6 +288,95 @@ export default function TestingMonitoringPage() {
           </Button>
         </div>
       </div>
+
+      {/* Scheduler Controls Section */}
+      <Card className="bg-[#0B1728] border-[#1A304A] mb-6">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-[#EFEFEF] font-mono flex items-center">
+              <Calendar className="h-5 w-5 mr-2" />
+              Auto-Scheduler Controls
+            </CardTitle>
+            <Badge variant="outline" className="bg-[#4CAF50]/20 text-[#4CAF50] border-[#4CAF50]/30">
+              {schedulerStatus?.jobs?.filter((job: SchedulerJob) => job.enabled).length || 0} / {schedulerStatus?.jobs?.length || 0} Active
+            </Badge>
+          </div>
+          <CardDescription className="text-[#7A8999] text-sm">
+            Configure automatic data updates on a schedule
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {schedulerStatus?.jobs?.map((job: SchedulerJob) => (
+              <div key={job.id} className="p-4 bg-[#0F1A2A] border border-[#1A304A] rounded-md">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <h4 className="font-mono text-sm text-[#EFEFEF] mb-1">{job.name}</h4>
+                    <p className="text-xs text-[#7A8999] font-mono mb-2">{job.schedule}</p>
+                    {job.nextRun && (
+                      <p className="text-xs text-[#7A8999]">
+                        Next run: {formatDistanceToNow(new Date(job.nextRun), { addSuffix: true })}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => toggleSchedulerJob(job.id, !job.enabled)}
+                      disabled={togglingJob === job.id}
+                      className="p-1"
+                    >
+                      {togglingJob === job.id ? (
+                        <RefreshCw className="h-4 w-4 animate-spin text-[#7A8999]" />
+                      ) : job.enabled ? (
+                        <ToggleRight className="h-5 w-5 text-[#4CAF50]" />
+                      ) : (
+                        <ToggleLeft className="h-5 w-5 text-[#7A8999]" />
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => runSchedulerJob(job.id)}
+                      disabled={runningJob === job.id || job.running}
+                      className="p-1"
+                      title="Run Now"
+                    >
+                      {runningJob === job.id || job.running ? (
+                        <RefreshCw className="h-4 w-4 animate-spin text-[#2196F3]" />
+                      ) : (
+                        <PlayCircle className="h-4 w-4 text-[#2196F3]" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {job.enabled ? (
+                    <Badge variant="outline" className="bg-[#4CAF50]/20 text-[#4CAF50] border-[#4CAF50]/30 text-xs">
+                      ENABLED
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-[#7A8999]/20 text-[#7A8999] border-[#7A8999]/30 text-xs">
+                      DISABLED
+                    </Badge>
+                  )}
+                  {job.running && (
+                    <Badge variant="outline" className="bg-[#2196F3]/20 text-[#2196F3] border-[#2196F3]/30 text-xs">
+                      RUNNING
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          {!schedulerStatus?.jobs && (
+            <div className="text-center py-8">
+              <p className="text-[#7A8999]">Loading scheduler status...</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
