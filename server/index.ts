@@ -41,8 +41,15 @@ app.use((req, res, next) => {
 // Application startup
 (async () => {
   try {
-    // Initialize scheduler service (disabled during refactoring)
-    console.log('Scheduler service initialization skipped during refactoring');
+    // Initialize auto-scheduler service
+    try {
+      const { autoSchedulerService } = await import('./services/auto-scheduler-service');
+      await autoSchedulerService.initialize();
+      console.log('Auto-scheduler service initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize auto-scheduler:', error);
+      // Continue without scheduler - it's not critical for server startup
+    }
     
     // Register API routes and create HTTP server with WebSocket support
     const server = await registerRoutes(app);

@@ -9,7 +9,7 @@ import { historicalPriceRoutes, currentPriceRoutes, performanceHistoryRoutes } f
 import dataRoutes from './data/data.routes';
 import upgradeDowngradeRoutes from './upgrade-downgrade/upgrade-downgrade.routes';
 import dataManagementRoutes from './data-management';
-import schedulerRoutes from './scheduler/scheduler.routes';
+import schedulerRoutes from './scheduler.routes';
 import apiHealthRoutes from './api-health.routes';
 import holdingsRoutes from './holdings';
 import cashRoutes from './cash';
