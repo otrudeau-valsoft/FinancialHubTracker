@@ -125,4 +125,15 @@ Preferred communication style: Simple, everyday language.
 - **Test Suites**: 4 comprehensive test suites covering data validation, performance metrics, data integrity, and API endpoints
 - **Testing Status**: Data validation and performance metrics tests fully passing; Data integrity test identified 7 real data quality issues in historical prices
 
+## Recent Updates (August 3, 2025)
+
+### Fixed Current Price Updates
+- Resolved ES module import errors by converting require() to dynamic imports
+- Fixed PostgreSQL case sensitivity issues with quoted table names
+- Corrected SQL column references (price → purchase_price)
+- Removed weekend market closure restrictions for manual updates
+- Fixed Express route ordering (specific routes before wildcards)
+- Temporarily disabled slow performance history updates to improve response times
+- All three regional portfolios (USD, CAD, INTL) now updating correctly with fresh Yahoo Finance data
+
 The system is designed for scalability and maintainability, with clear separation of concerns between data fetching, business logic, and presentation layers. The modular architecture allows for easy extension of new features and markets while maintaining data consistency across all portfolio regions.
