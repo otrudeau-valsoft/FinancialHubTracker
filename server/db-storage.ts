@@ -1116,6 +1116,39 @@ export class DatabaseStorage {
       throw error;
     }
   }
+  
+  /**
+   * Get upgrade/downgrade history by region
+   * @param region Portfolio region (USD, CAD, INTL)
+   * @param limit Number of results to return
+   */
+  async getUpgradeDowngradeHistoryByRegion(region: string, limit: number = 100): Promise<any[]> {
+    try {
+      // For now, return empty array as upgrade/downgrade feature hasn't been implemented
+      console.log(`Getting upgrade/downgrade history for region ${region} (limit: ${limit})`);
+      return [];
+    } catch (error) {
+      console.error(`Error getting upgrade/downgrade history by region:`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Get upgrade/downgrade history by symbol
+   * @param symbol Stock symbol
+   * @param region Portfolio region (USD, CAD, INTL)
+   * @param limit Number of results to return
+   */
+  async getUpgradeDowngradeHistoryBySymbol(symbol: string, region: string, limit: number = 100): Promise<any[]> {
+    try {
+      // For now, return empty array as upgrade/downgrade feature hasn't been implemented
+      console.log(`Getting upgrade/downgrade history for ${symbol} in ${region} (limit: ${limit})`);
+      return [];
+    } catch (error) {
+      console.error(`Error getting upgrade/downgrade history by symbol:`, error);
+      throw error;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

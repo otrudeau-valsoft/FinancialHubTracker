@@ -30,7 +30,7 @@ export const PortfolioRegionEnum = z.enum(["USD", "CAD", "INTL"]);
 export type PortfolioRegion = z.infer<typeof PortfolioRegionEnum>;
 
 // US Assets Schema
-export const assetsUS = pgTable("assets_us", {
+export const assetsUS = pgTable("portfolio_USD", {
   id: serial("id").primaryKey(),
   symbol: text("symbol").notNull(),
   company: text("company").notNull(),
@@ -52,7 +52,7 @@ export type InsertAssetsUS = z.infer<typeof insertAssetsUSSchema>;
 export type AssetsUS = typeof assetsUS.$inferSelect;
 
 // Canadian Assets Schema
-export const assetsCAD = pgTable("assets_cad", {
+export const assetsCAD = pgTable("portfolio_CAD", {
   id: serial("id").primaryKey(),
   symbol: text("symbol").notNull(),
   company: text("company").notNull(),
@@ -74,7 +74,7 @@ export type InsertAssetsCAD = z.infer<typeof insertAssetsCADSchema>;
 export type AssetsCAD = typeof assetsCAD.$inferSelect;
 
 // International Assets Schema
-export const assetsINTL = pgTable("assets_intl", {
+export const assetsINTL = pgTable("portfolio_INTL", {
   id: serial("id").primaryKey(),
   symbol: text("symbol").notNull(),
   company: text("company").notNull(),

@@ -69,6 +69,10 @@ export interface IStorage {
   updateCurrentPrice(id: number, price: Partial<InsertCurrentPrice>): Promise<CurrentPrice | undefined>;
   deleteCurrentPrice(id: number): Promise<boolean>;
   bulkCreateCurrentPrices(prices: InsertCurrentPrice[]): Promise<CurrentPrice[]>;
+  
+  // Upgrade/Downgrade methods
+  getUpgradeDowngradeHistoryByRegion(region: string, limit?: number): Promise<any[]>;
+  getUpgradeDowngradeHistoryBySymbol(symbol: string, region: string, limit?: number): Promise<any[]>;
 }
 
 // Import and export the database storage implementation

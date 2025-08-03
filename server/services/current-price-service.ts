@@ -169,7 +169,7 @@ class CurrentPriceService {
             marketCap: safeNumericString(quoteResult.marketCap),
             trailingPE: safeNumericString(quoteResult.trailingPE),
             forwardPE: safeNumericString(quoteResult.forwardPE),
-            dividendYield: safeNumericString(quoteResult.dividendYield),
+            dividendYield: safeNumericString((quoteResult as any).dividendYield),
             fiftyTwoWeekHigh: safeNumericString(quoteResult.fiftyTwoWeekHigh),
             fiftyTwoWeekLow: safeNumericString(quoteResult.fiftyTwoWeekLow)
           };
@@ -177,7 +177,8 @@ class CurrentPriceService {
           console.log(`Invalid quote response format for ${yahooSymbol}`);
         }
       } catch (quoteError) {
-        console.warn(`Warning: Yahoo Finance quote error for ${yahooSymbol}:`, quoteError.message);
+        const errorMessage = quoteError instanceof Error ? quoteError.message : String(quoteError);
+        console.warn(`Warning: Yahoo Finance quote error for ${yahooSymbol}:`, errorMessage);
         console.log('Falling back to quoteSummary method...');
       }
       
@@ -195,8 +196,8 @@ class CurrentPriceService {
         console.log(`Yahoo Finance quoteSummary success for ${yahooSymbol}`);
         
         // Debug values
-        if (result?.price?.regularMarketPrice?.raw !== undefined) {
-          console.log(`Retrieved price: ${result.price.regularMarketPrice.raw} for ${yahooSymbol}`);
+        if (result?.price?.regularMarketPrice !== undefined) {
+          console.log(`Retrieved price: ${result.price.regularMarketPrice} for ${yahooSymbol}`);
           
           // Extract price data safely
           const price = result.price || {};
@@ -206,18 +207,18 @@ class CurrentPriceService {
           const priceData = {
             symbol,
             region,
-            regularMarketPrice: safeNumericString(price.regularMarketPrice?.raw),
-            regularMarketChange: safeNumericString(price.regularMarketChange?.raw),
-            regularMarketChangePercent: safeNumericString(price.regularMarketChangePercent?.raw),
-            regularMarketVolume: safeNumericString(price.regularMarketVolume?.raw),
-            regularMarketDayHigh: safeNumericString(price.regularMarketDayHigh?.raw),
-            regularMarketDayLow: safeNumericString(price.regularMarketDayLow?.raw),
-            marketCap: safeNumericString(price.marketCap?.raw),
-            trailingPE: safeNumericString(summaryDetail.trailingPE?.raw),
-            forwardPE: safeNumericString(summaryDetail.forwardPE?.raw),
-            dividendYield: safeNumericString(summaryDetail.dividendYield?.raw),
-            fiftyTwoWeekHigh: safeNumericString(summaryDetail.fiftyTwoWeekHigh?.raw),
-            fiftyTwoWeekLow: safeNumericString(summaryDetail.fiftyTwoWeekLow?.raw)
+            regularMarketPrice: safeNumericString(price.regularMarketPrice),
+            regularMarketChange: safeNumericString(price.regularMarketChange),
+            regularMarketChangePercent: safeNumericString(price.regularMarketChangePercent),
+            regularMarketVolume: safeNumericString(price.regularMarketVolume),
+            regularMarketDayHigh: safeNumericString(price.regularMarketDayHigh),
+            regularMarketDayLow: safeNumericString(price.regularMarketDayLow),
+            marketCap: safeNumericString(price.marketCap),
+            trailingPE: safeNumericString((summaryDetail as any).trailingPE),
+            forwardPE: safeNumericString((summaryDetail as any).forwardPE),
+            dividendYield: safeNumericString((summaryDetail as any).dividendYield),
+            fiftyTwoWeekHigh: safeNumericString((summaryDetail as any).fiftyTwoWeekHigh),
+            fiftyTwoWeekLow: safeNumericString((summaryDetail as any).fiftyTwoWeekLow)
           };
           
           return priceData;
@@ -244,7 +245,8 @@ class CurrentPriceService {
         }
       } catch (yahooError) {
         // Handle Yahoo Finance API errors gracefully
-        console.warn(`Warning: Yahoo Finance quoteSummary error for ${yahooSymbol}:`, yahooError.message);
+        const errorMessage = yahooError instanceof Error ? yahooError.message : String(yahooError);
+        console.warn(`Warning: Yahoo Finance quoteSummary error for ${yahooSymbol}:`, errorMessage);
         
         // Create a minimal data structure with default values
         return {
@@ -358,7 +360,8 @@ class CurrentPriceService {
               resolve({ symbol, success: true, result });
             } catch (error) {
               console.error(`Error updating current price for ${symbol} (${region}):`, error);
-              resolve({ symbol, success: false, error: error.message });
+              const errorMessage = error instanceof Error ? error.message : String(error);
+              resolve({ symbol, success: false, error: errorMessage });
             }
           });
         });
@@ -387,18 +390,19 @@ class CurrentPriceService {
   async updateAllCurrentPrices() {
     try {
       const regions = ['USD', 'CAD', 'INTL'];
-      const results = {};
+      const results: Record<string, any> = {};
       
       for (const region of regions) {
         try {
           const regionResults = await this.updatePortfolioCurrentPrices(region);
           results[region] = {
-            successCount: regionResults.filter(r => r.success).length,
+            successCount: regionResults.filter((r: any) => r.success).length,
             totalSymbols: regionResults.length
           };
         } catch (error) {
           console.error(`Error updating current prices for ${region}:`, error);
-          results[region] = { error: error.message };
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          results[region] = { error: errorMessage };
         }
       }
       
