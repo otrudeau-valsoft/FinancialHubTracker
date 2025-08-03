@@ -143,8 +143,8 @@ class PortfolioPerformanceService {
       
       // 2. Get portfolio stocks with positions
       const { rows: portfolioStocks } = await pool.query(
-        `SELECT symbol, quantity, price, portfolio_percentage 
-         FROM ${portfolioTableName}`,
+        `SELECT symbol, quantity, purchase_price as price
+         FROM "${portfolioTableName}"`,
         []
       );
       

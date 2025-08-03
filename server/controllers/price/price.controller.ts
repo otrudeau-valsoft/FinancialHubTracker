@@ -395,7 +395,7 @@ export const fetchRegionHistoricalPrices = async (req: Request, res: Response) =
       
       // Update portfolio performance history with new data using the new performance service
       console.log(`Updating ${upperRegion} portfolio performance history with new historical price data...`);
-      const { portfolioPerformanceService } = require('../../services/portfolio-performance-service');
+      const { portfolioPerformanceService } = await import('../../services/portfolio-performance-service');
       await portfolioPerformanceService.updatePerformanceHistory(upperRegion);
       
       return res.json({
@@ -463,7 +463,7 @@ export const fetchAllHistoricalPrices = async (req: Request, res: Response) => {
       
       // Update portfolio performance history with new data using the new performance service
       console.log('Updating portfolio performance history with new historical price data...');
-      const { portfolioPerformanceService } = require('../../services/portfolio-performance-service');
+      const { portfolioPerformanceService } = await import('../../services/portfolio-performance-service');
       await portfolioPerformanceService.updateAllPerformanceHistory();
       
       console.log('Successfully updated all portfolio holdings and performance with new historical data');
@@ -569,9 +569,10 @@ export const fetchRegionCurrentPrices = async (req: Request, res: Response) => {
       console.log(`Successfully updated ${upperRegion} portfolio holdings with new prices`);
       
       // Update portfolio performance history with new data using the new performance service
-      console.log(`Updating ${upperRegion} portfolio performance history with new price data...`);
-      const { portfolioPerformanceService } = require('../../services/portfolio-performance-service');
-      await portfolioPerformanceService.updatePerformanceHistory(upperRegion);
+      // TODO: Temporarily disabled - performance history update is too slow when processing years of data
+      // console.log(`Updating ${upperRegion} portfolio performance history with new price data...`);
+      // const { portfolioPerformanceService } = await import('../../services/portfolio-performance-service');
+      // await portfolioPerformanceService.updatePerformanceHistory(upperRegion);
       
       return res.json({
         results,
@@ -636,7 +637,7 @@ export const fetchAllCurrentPrices = async (req: Request, res: Response) => {
       
       // Update portfolio performance history with new data using the new performance service
       console.log('Updating portfolio performance history with new price data...');
-      const { portfolioPerformanceService } = require('../../services/portfolio-performance-service');
+      const { portfolioPerformanceService } = await import('../../services/portfolio-performance-service');
       await portfolioPerformanceService.updateAllPerformanceHistory();
       
       console.log('Successfully updated all portfolio holdings and performance with new prices');

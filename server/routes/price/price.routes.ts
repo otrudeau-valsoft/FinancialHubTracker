@@ -42,9 +42,10 @@ currentRouter.use((req, res, next) => {
 // Routes for current prices
 currentRouter.get('/:region', asyncHandler(getCurrentPrices));
 currentRouter.get('/:region/:symbol', asyncHandler(getCurrentPrice));
-currentRouter.post('/fetch/:symbol/:region', asyncHandler(fetchCurrentPrice));
+// More specific routes must come before general wildcard routes
 currentRouter.post('/fetch/portfolio/:region', asyncHandler(fetchRegionCurrentPrices));
 currentRouter.post('/fetch/all', asyncHandler(fetchAllCurrentPrices));
+currentRouter.post('/fetch/:symbol/:region', asyncHandler(fetchCurrentPrice));
 
 // Export all routers
 export { 

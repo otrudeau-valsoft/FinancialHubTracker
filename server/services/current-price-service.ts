@@ -108,10 +108,11 @@ class CurrentPriceService {
   async fetchCurrentPrice(symbol: string, region: string) {
     try {
       // Skip on weekends to reduce unnecessary API calls
-      if (isWeekend(new Date())) {
-        console.log(`Skipping price fetch for ${symbol} (${region}) on weekend`);
-        return null;
-      }
+      // NOTE: Temporarily disabled weekend check to allow manual updates
+      // if (isWeekend(new Date())) {
+      //   console.log(`Skipping price fetch for ${symbol} (${region}) on weekend`);
+      //   return null;
+      // }
 
       let yahooSymbol = symbol;
       
