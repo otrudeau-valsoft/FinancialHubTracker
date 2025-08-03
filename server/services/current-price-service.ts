@@ -4,6 +4,7 @@ import { and, eq } from 'drizzle-orm';
 import { portfolioUSD, portfolioCAD, portfolioINTL, currentPrices, InsertCurrentPrice } from '@shared/schema';
 import yahooFinance from 'yahoo-finance2';
 import { isWeekend } from '../util';
+import { dataUpdateLogger } from './data-update-logger';
 
 // Rate limiting configuration for Yahoo Finance API
 const RATE_LIMIT = {
@@ -123,6 +124,9 @@ class CurrentPriceService {
       
       console.log(`Fetching current price for ${yahooSymbol}`);
       
+      // Log the start of price fetch
+      await dataUpdateLogger.logStockPriceUpdate(symbol, region, 'In Progress');
+      
       // Helper function to safely handle potentially empty or invalid numeric values
       const safeNumericString = (value: any): string => {
         // Return '0' for empty values, null/undefined, Infinity, or NaN to avoid database errors
@@ -156,6 +160,12 @@ class CurrentPriceService {
           
           console.log(`Successfully retrieved price data for ${yahooSymbol}:`);
           console.log(`Price: ${regularMarketPrice}, Change: ${regularMarketChange}, Change%: ${regularMarketChangePercent}`);
+          
+          // Log successful price fetch
+          await dataUpdateLogger.logStockPriceUpdate(symbol, region, 'Success', {
+            currentPrice: regularMarketPrice,
+            changePercent: regularMarketChangePercent
+          });
           
           // Return the basic data we need
           return {
@@ -287,6 +297,11 @@ class CurrentPriceService {
     } catch (error) {
       console.error(`Error fetching current price for ${symbol} (${region}):`, error);
       
+      // Log error
+      await dataUpdateLogger.logStockPriceUpdate(symbol, region, 'Error', {
+        error: error instanceof Error ? error.message : String(error)
+      });
+      
       // Return default data instead of throwing error to ensure the process continues
       return {
         symbol,
@@ -344,14 +359,22 @@ class CurrentPriceService {
       
       console.log(`Updating current prices for ${symbols.length} symbols in ${region} portfolio`);
       
+      // Log the start of the update
+      await dataUpdateLogger.logUpdateStart('current_prices', region, symbols.length);
+      
       // Process symbols in batches to improve throughput while still respecting rate limits
       const results = [];
       const batchSize = 5; // Process this many symbols concurrently
+      const totalBatches = Math.ceil(symbols.length / batchSize);
       
       // Process in batches
       for (let i = 0; i < symbols.length; i += batchSize) {
         const batch = symbols.slice(i, i + batchSize);
-        console.log(`Processing batch ${i/batchSize + 1} of ${Math.ceil(symbols.length/batchSize)} (${batch.join(', ')})`);
+        const batchNumber = i/batchSize + 1;
+        console.log(`Processing batch ${batchNumber} of ${totalBatches} (${batch.join(', ')})`);
+        
+        // Log batch progress
+        await dataUpdateLogger.logBatchProgress('current_prices', batchNumber, totalBatches, batch, region);
         
         // Process batch concurrently
         const batchPromises = batch.map(symbol => {
@@ -378,9 +401,24 @@ class CurrentPriceService {
         }
       }
       
+      // Count successes and failures
+      const successCount = results.filter((r: any) => r.success).length;
+      const failureCount = results.length - successCount;
+      
+      // Log completion
+      await dataUpdateLogger.logUpdateComplete('current_prices', region, symbols.length, successCount, failureCount);
+      
       return results;
     } catch (error) {
       console.error(`Error updating portfolio current prices for ${region}:`, error);
+      
+      // Log error
+      await dataUpdateLogger.log('current_prices', 'Error', {
+        region,
+        error: error instanceof Error ? error.message : String(error),
+        message: `Failed to update current prices for ${region} portfolio`
+      });
+      
       throw error;
     }
   }

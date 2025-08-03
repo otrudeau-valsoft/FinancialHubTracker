@@ -9,6 +9,7 @@
 import { db } from '../db';
 import { historicalPrices } from '@shared/schema';
 import { and, eq, sql, asc, desc, inArray } from 'drizzle-orm';
+import { dataUpdateLogger } from './data-update-logger';
 
 // Cache for performance metrics to improve response times
 const metricsCache: Record<string, {
@@ -78,6 +79,9 @@ export class PerformanceCalculationService {
     console.log(`🔥 ${region.toUpperCase()}: CALLING BATCH PERFORMANCE CALCULATION FOR ${symbolsToFetch.length} STOCKS 🔥`);
     console.log(`🔍 DEBUG: First few symbols received:`, symbolsToFetch.slice(0, 3));
     console.log(`🔍 DEBUG: Types of first few symbols:`, symbolsToFetch.slice(0, 3).map(s => typeof s));
+    
+    // Log start of performance calculation
+    await dataUpdateLogger.logUpdateStart('performance_metrics', region, symbolsToFetch.length);
     
     // CRITICAL FIX: Ensure we have actual string symbols, not objects
     const actualSymbols = symbolsToFetch.map((symbol: any) => {
@@ -150,6 +154,8 @@ export class PerformanceCalculationService {
           console.log(`No current price found for ${symbol}`);
           continue;
         }
+        
+        // Log progress for each stock (skip logging here to avoid too many logs)
 
         try {
           // Get historical prices for each time period
@@ -199,6 +205,10 @@ export class PerformanceCalculationService {
       if (sampleSymbol) {
         console.log(`📊 SAMPLE RESULT for ${sampleSymbol}:`, results[sampleSymbol]);
       }
+      
+      // Log completion of performance calculation
+      const successCount = Object.values(results).filter(r => r.mtdReturn !== undefined || r.ytdReturn !== undefined).length;
+      await dataUpdateLogger.logUpdateComplete('performance_metrics', region, actualSymbols.length, successCount, actualSymbols.length - successCount);
 
       return results;
 

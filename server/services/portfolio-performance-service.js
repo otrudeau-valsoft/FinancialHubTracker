@@ -9,6 +9,7 @@
 import { db, pool } from '../db.js';
 import { holdingsService } from './holdings-service.js';
 import { DateTime } from 'luxon';
+import { dataUpdateLogger } from './data-update-logger.js';
 
 /**
  * Main service class for portfolio performance calculations

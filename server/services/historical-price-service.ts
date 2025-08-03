@@ -7,6 +7,7 @@ import { and, eq, desc, asc, sql } from 'drizzle-orm';
 import { calculateMultipleRSI, calculateMACD } from '../utils/technical-indicators';
 // Import the moving average service dynamically to avoid circular dependencies
 import { calculateAndStoreMovingAverages } from './moving-average-service';
+import { dataUpdateLogger } from './data-update-logger';
 
 // Rate limiting configuration for Yahoo Finance API - match the same settings as current-price-service
 const RATE_LIMIT = {
@@ -240,6 +241,14 @@ class HistoricalPriceService {
         console.log(`Fetching historical prices for ${symbol} from ${startDateObj.toISOString().split('T')[0]} to ${endDateObj.toISOString().split('T')[0]}`);
       }
       
+      // Log the start of historical price fetch
+      await dataUpdateLogger.log('historical_prices', 'In Progress', {
+        symbol,
+        region,
+        message: `Fetching historical prices for ${symbol} (${daysDiff} days)`,
+        progress: '0%'
+      });
+      
       // Fetch historical prices from Yahoo Finance
       const historicalData = await this.fetchHistoricalPrices(symbol, region, startDateObj, endDateObj);
       
@@ -311,6 +320,14 @@ class HistoricalPriceService {
       // Calculate MACD values
       console.log(`Calculating MACD values for ${symbol} (${region})`);
       const macdResults = calculateMACD(closingPrices);
+      
+      // Log technical indicators calculation
+      await dataUpdateLogger.log('historical_prices', 'In Progress', {
+        symbol,
+        region,
+        message: `Calculated RSI and MACD indicators for ${symbol}`,
+        progress: '50%'
+      });
       
       // Prepare arrays to store both new and updated prices
       const newPrices: any[] = sanitizedData.map(item => ({...item} as any));
@@ -395,6 +412,9 @@ class HistoricalPriceService {
       }
       
       console.log(`Stored ${results.length} historical prices with RSI data for ${symbol} (${region})`);
+      
+      // Log successful completion
+      await dataUpdateLogger.logHistoricalPriceUpdate(symbol, region, results.length, 'Success');
       
       return results;
     } catch (error) {
