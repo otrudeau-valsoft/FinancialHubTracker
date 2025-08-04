@@ -173,6 +173,74 @@ export default function TestingMonitoringPage() {
     }
   };
 
+  // Convert cron expression to human-readable description
+  const getCronDescription = (cron: string): string => {
+    const parts = cron.split(' ');
+    if (parts.length !== 5) return 'Invalid schedule';
+
+    const [minute, hour, day, month, weekday] = parts;
+    
+    // Common patterns
+    if (cron === '*/15 9-16 * * 1-5') return 'Every 15 minutes from 9 AM to 4 PM on weekdays';
+    if (cron === '0 17 * * 1-5') return 'Daily at 5 PM on weekdays';
+    if (cron === '30 9 * * 1-5') return 'Daily at 9:30 AM on weekdays';
+    if (cron === '0 18 * * 0') return 'Weekly on Sundays at 6 PM';
+    if (cron === '0 16 * * *') return 'Daily at 4 PM';
+    if (cron === '0 9 * * 1-5') return 'Daily at 9 AM on weekdays';
+    
+    // Parse generic patterns
+    let description = '';
+    
+    // Time part
+    if (minute.includes('*/')) {
+      const interval = minute.replace('*/', '');
+      description += `Every ${interval} minutes`;
+    } else if (minute === '*') {
+      description += 'Every minute';
+    } else {
+      const min = minute === '0' ? '' : `:${minute.padStart(2, '0')}`;
+      if (hour === '*') {
+        description += `At ${minute} minutes past every hour`;
+      } else if (hour.includes('-')) {
+        const [start, end] = hour.split('-');
+        const startHour = parseInt(start);
+        const endHour = parseInt(end);
+        description += `At ${minute} minutes past each hour from ${startHour % 12 || 12} ${startHour < 12 ? 'AM' : 'PM'} to ${endHour % 12 || 12} ${endHour < 12 ? 'AM' : 'PM'}`;
+      } else {
+        const h = parseInt(hour);
+        description += `At ${h % 12 || 12}${min} ${h < 12 ? 'AM' : 'PM'}`;
+      }
+    }
+    
+    // Hour range
+    if (minute.includes('*/') && hour.includes('-')) {
+      const [start, end] = hour.split('-');
+      const startHour = parseInt(start);
+      const endHour = parseInt(end);
+      description += ` from ${startHour % 12 || 12} ${startHour < 12 ? 'AM' : 'PM'} to ${endHour % 12 || 12} ${endHour < 12 ? 'AM' : 'PM'}`;
+    }
+    
+    // Weekday part
+    if (weekday === '1-5') {
+      description += ' on weekdays';
+    } else if (weekday === '0') {
+      description += ' on Sundays';
+    } else if (weekday === '6') {
+      description += ' on Saturdays';
+    } else if (weekday === '0,6') {
+      description += ' on weekends';
+    } else if (weekday !== '*') {
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const dayNums = weekday.split(',').map(d => parseInt(d));
+      const dayNames = dayNums.map(d => days[d]).filter(Boolean);
+      if (dayNames.length > 0) {
+        description += ` on ${dayNames.join(', ')}`;
+      }
+    }
+    
+    return description || 'Custom schedule';
+  };
+
   // Run all tests
   const runAllTests = async () => {
     setIsRunningTests(true);
@@ -353,7 +421,8 @@ export default function TestingMonitoringPage() {
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
                     <h4 className="font-mono text-sm text-[#EFEFEF] mb-1">{job.name}</h4>
-                    <p className="text-xs text-[#7A8999] font-mono mb-2">{job.schedule}</p>
+                    <p className="text-xs text-[#7A8999] font-mono mb-1">{job.schedule}</p>
+                    <p className="text-xs text-[#9FD3C7] mb-2">{getCronDescription(job.schedule)}</p>
                     {job.nextRun && (
                       <p className="text-xs text-[#7A8999]">
                         Next run: {formatDistanceToNow(new Date(job.nextRun), { addSuffix: true })}
