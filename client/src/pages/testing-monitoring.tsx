@@ -151,10 +151,13 @@ export default function TestingMonitoringPage() {
     
     setSavingSchedule(true);
     try {
+      // Convert human-readable description to cron expression
+      const cronSchedule = descriptionToCron(newSchedule);
+      
       const response = await fetch(`/api/scheduler/jobs/${editingJob.id}/schedule`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ schedule: newSchedule })
+        body: JSON.stringify({ schedule: cronSchedule })
       });
       
       if (!response.ok) {
@@ -239,6 +242,78 @@ export default function TestingMonitoringPage() {
     }
     
     return description || 'Custom schedule';
+  };
+
+  // Convert human-readable description to cron expression
+  const descriptionToCron = (description: string): string => {
+    const desc = description.toLowerCase().trim();
+    
+    // Common patterns
+    if (desc.includes('every 15 minutes') && desc.includes('9 am to 4 pm') && desc.includes('weekdays')) {
+      return '*/15 9-16 * * 1-5';
+    }
+    if (desc.includes('daily at 5 pm') && desc.includes('weekdays')) {
+      return '0 17 * * 1-5';
+    }
+    if (desc.includes('daily at 9:30 am') && desc.includes('weekdays')) {
+      return '30 9 * * 1-5';
+    }
+    if (desc.includes('weekly') && desc.includes('sundays') && desc.includes('6 pm')) {
+      return '0 18 * * 0';
+    }
+    if (desc.includes('daily at 4 pm')) {
+      return '0 16 * * *';
+    }
+    if (desc.includes('daily at 9 am') && desc.includes('weekdays')) {
+      return '0 9 * * 1-5';
+    }
+    
+    // Parse time patterns
+    const timeMatch = desc.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i);
+    const intervalMatch = desc.match(/every\s+(\d+)\s+minutes?/i);
+    const hourRangeMatch = desc.match(/from\s+(\d{1,2})\s*(am|pm)\s+to\s+(\d{1,2})\s*(am|pm)/i);
+    
+    let minute = '*';
+    let hour = '*';
+    let weekday = '*';
+    
+    // Handle interval
+    if (intervalMatch) {
+      minute = `*/${intervalMatch[1]}`;
+    } else if (timeMatch) {
+      const h = parseInt(timeMatch[1]);
+      const m = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
+      const isPM = timeMatch[3].toLowerCase() === 'pm';
+      hour = String(isPM && h !== 12 ? h + 12 : (!isPM && h === 12 ? 0 : h));
+      minute = String(m);
+    }
+    
+    // Handle hour range
+    if (hourRangeMatch) {
+      const startH = parseInt(hourRangeMatch[1]);
+      const startPM = hourRangeMatch[2].toLowerCase() === 'pm';
+      const endH = parseInt(hourRangeMatch[3]);
+      const endPM = hourRangeMatch[4].toLowerCase() === 'pm';
+      
+      const start = startPM && startH !== 12 ? startH + 12 : (!startPM && startH === 12 ? 0 : startH);
+      const end = endPM && endH !== 12 ? endH + 12 : (!endPM && endH === 12 ? 0 : endH);
+      hour = `${start}-${end}`;
+    }
+    
+    // Handle weekdays
+    if (desc.includes('weekday')) {
+      weekday = '1-5';
+    } else if (desc.includes('weekend')) {
+      weekday = '0,6';
+    } else if (desc.includes('sunday')) {
+      weekday = '0';
+    } else if (desc.includes('monday')) {
+      weekday = '1';
+    } else if (desc.includes('saturday')) {
+      weekday = '6';
+    }
+    
+    return `${minute} ${hour} * * ${weekday}`;
   };
 
   // Run all tests
@@ -420,8 +495,7 @@ export default function TestingMonitoringPage() {
               <div key={job.id} className="p-4 bg-[#0F1A2A] border border-[#1A304A] rounded-md">
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
-                    <h4 className="font-mono text-sm text-[#EFEFEF] mb-1">{job.name}</h4>
-                    <p className="text-xs text-[#7A8999] font-mono mb-1">{job.schedule}</p>
+                    <h4 className="font-mono text-sm text-[#EFEFEF] mb-2">{job.name}</h4>
                     <p className="text-xs text-[#9FD3C7] mb-2">{getCronDescription(job.schedule)}</p>
                     {job.nextRun && (
                       <p className="text-xs text-[#7A8999]">
@@ -435,7 +509,7 @@ export default function TestingMonitoringPage() {
                       variant="ghost"
                       onClick={() => {
                         setEditingJob(job);
-                        setNewSchedule(job.schedule);
+                        setNewSchedule(getCronDescription(job.schedule));
                       }}
                       className="p-1"
                       title="Edit Schedule"
@@ -952,32 +1026,40 @@ export default function TestingMonitoringPage() {
               Edit Schedule - {editingJob?.name}
             </DialogTitle>
             <DialogDescription className="text-[#7A8999]">
-              Update the cron expression for this job. Times are in Eastern Time (ET).
+              Enter when you want this job to run. Use natural language. Times are in Eastern Time (ET).
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <label className="text-sm text-[#EFEFEF]">Cron Expression</label>
+              <label className="text-sm text-[#EFEFEF]">Schedule Description</label>
               <Input
                 value={newSchedule}
                 onChange={(e) => setNewSchedule(e.target.value)}
-                placeholder="*/15 9-16 * * 1-5"
-                className="bg-[#061220] border-[#1A304A] text-[#EFEFEF] font-mono"
+                placeholder="Every 15 minutes from 9 AM to 4 PM on weekdays"
+                className="bg-[#061220] border-[#1A304A] text-[#EFEFEF]"
               />
             </div>
             <div className="space-y-2">
-              <p className="text-xs text-[#7A8999]">Common patterns:</p>
-              <div className="space-y-1 text-xs font-mono">
-                <p className="text-[#EFEFEF]">*/15 9-16 * * 1-5 - Every 15 min, 9AM-4PM weekdays</p>
-                <p className="text-[#EFEFEF]">0 17 * * 1-5 - Daily at 5PM weekdays</p>
-                <p className="text-[#EFEFEF]">0 9 * * 1-5 - Daily at 9AM weekdays</p>
-                <p className="text-[#EFEFEF]">0 18 * * 0 - Weekly on Sundays at 6PM</p>
+              <p className="text-xs text-[#7A8999]">Examples:</p>
+              <div className="space-y-1 text-xs">
+                <p className="text-[#EFEFEF]">Every 15 minutes from 9 AM to 4 PM on weekdays</p>
+                <p className="text-[#EFEFEF]">Daily at 5 PM on weekdays</p>
+                <p className="text-[#EFEFEF]">Daily at 9:30 AM on weekdays</p>
+                <p className="text-[#EFEFEF]">Weekly on Sundays at 6 PM</p>
+                <p className="text-[#EFEFEF]">Daily at 4 PM</p>
+                <p className="text-[#EFEFEF]">Every 30 minutes on weekends</p>
               </div>
             </div>
             <div className="bg-[#061220] p-3 rounded-md">
-              <p className="text-xs text-[#7A8999]">Format: minute hour day month weekday</p>
+              <p className="text-xs text-[#7A8999]">Tips:</p>
               <p className="text-xs text-[#7A8999] mt-1">
-                Use * for any, */n for intervals, n-m for ranges, n,m for lists
+                • Use AM/PM for times (e.g., "3 PM" not "15:00")
+              </p>
+              <p className="text-xs text-[#7A8999]">
+                • Say "weekdays" for Monday-Friday
+              </p>
+              <p className="text-xs text-[#7A8999]">
+                • Say "weekends" for Saturday-Sunday
               </p>
             </div>
           </div>
