@@ -269,6 +269,73 @@ class AutoSchedulerService {
   }
 
   /**
+   * Update schedule for a specific job
+   */
+  async updateSchedule(jobId: string, newSchedule: string): Promise<boolean> {
+    const job = this.jobs.get(jobId);
+    if (!job) {
+      throw new Error(`Job ${jobId} not found`);
+    }
+
+    // Validate cron expression
+    const isValid = cron.validate(newSchedule);
+    if (!isValid) {
+      throw new Error(`Invalid cron expression: ${newSchedule}`);
+    }
+
+    try {
+      // Log the schedule change
+      await dataUpdateLogger.log('scheduler', 'Info', {
+        message: `Updating schedule for ${job.name}`,
+        jobId,
+        oldSchedule: job.schedule,
+        newSchedule
+      });
+
+      // Stop existing cron job if running
+      if (job.cronJob) {
+        job.cronJob.stop();
+      }
+
+      // Update schedule
+      job.schedule = newSchedule;
+
+      // If job is enabled, restart with new schedule
+      if (job.enabled) {
+        const cronJob = cron.schedule(newSchedule, async () => {
+          job.running = true;
+          job.lastRun = new Date();
+          try {
+            await job.task();
+          } finally {
+            job.running = false;
+          }
+        }, {
+          scheduled: true,
+          timezone: 'America/New_York'
+        });
+
+        job.cronJob = cronJob;
+      }
+
+      await dataUpdateLogger.log('scheduler', 'Success', {
+        message: `Schedule updated for ${job.name}`,
+        jobId,
+        newSchedule
+      });
+
+      return true;
+    } catch (error) {
+      await dataUpdateLogger.log('scheduler', 'Error', {
+        message: `Failed to update schedule for ${job.name}`,
+        jobId,
+        error: error instanceof Error ? error.message : String(error)
+      });
+      throw error;
+    }
+  }
+
+  /**
    * Calculate next run time for a cron schedule
    */
   private getNextRunTime(schedule: string): Date | null {
@@ -308,11 +375,31 @@ class AutoSchedulerService {
     }
 
     console.log(`Manually triggering job: ${job.name}`);
+    
+    // Log manual run
+    await dataUpdateLogger.log('scheduler', 'Info', {
+      message: `Manually triggering ${job.name}`,
+      jobId,
+      schedule: job.schedule
+    });
+    
     job.running = true;
     
     try {
       await job.task();
       job.lastRun = new Date();
+      
+      await dataUpdateLogger.log('scheduler', 'Success', {
+        message: `Manual run completed for ${job.name}`,
+        jobId
+      });
+    } catch (error) {
+      await dataUpdateLogger.log('scheduler', 'Error', {
+        message: `Manual run failed for ${job.name}`,
+        jobId,
+        error: error instanceof Error ? error.message : String(error)
+      });
+      throw error;
     } finally {
       job.running = false;
     }

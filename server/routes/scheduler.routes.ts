@@ -129,6 +129,63 @@ router.post('/initialize', async (req, res) => {
 });
 
 /**
+ * Update schedule for a specific job
+ */
+router.put('/jobs/:jobId/schedule', async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const { schedule } = req.body;
+    
+    if (!schedule) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Schedule is required'
+      });
+    }
+    
+    await autoSchedulerService.updateSchedule(jobId, schedule);
+    
+    return res.json({
+      status: 'success',
+      message: `Schedule updated for job ${jobId}`
+    });
+  } catch (error) {
+    console.error('Error updating schedule:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Failed to update schedule'
+    });
+  }
+});
+
+/**
+ * Get scheduler audit logs
+ */
+router.get('/audit-logs', async (req, res) => {
+  try {
+    const { limit = 100 } = req.query;
+    
+    // Fetch scheduler-specific logs from data update logs
+    const logs = await dataUpdateLogger.getLogs({
+      type: 'scheduler',
+      limit: Number(limit)
+    });
+    
+    return res.json({
+      status: 'success',
+      logs,
+      message: 'Scheduler audit logs retrieved'
+    });
+  } catch (error) {
+    console.error('Error fetching audit logs:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch audit logs'
+    });
+  }
+});
+
+/**
  * Shutdown the scheduler (stop all jobs)
  */
 router.post('/shutdown', async (req, res) => {

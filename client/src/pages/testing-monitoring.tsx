@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { 
   CheckCircle2, 
   XCircle, 
@@ -25,7 +27,9 @@ import {
   Calendar,
   ToggleLeft,
   ToggleRight,
-  PlayCircle
+  PlayCircle,
+  Edit,
+  History
 } from 'lucide-react';
 import { queryClient } from '@/lib/queryClient';
 import { formatDistanceToNow } from 'date-fns';
@@ -62,6 +66,9 @@ export default function TestingMonitoringPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [togglingJob, setTogglingJob] = useState<string | null>(null);
   const [runningJob, setRunningJob] = useState<string | null>(null);
+  const [editingJob, setEditingJob] = useState<SchedulerJob | null>(null);
+  const [newSchedule, setNewSchedule] = useState('');
+  const [savingSchedule, setSavingSchedule] = useState(false);
 
   // Fetch diagnostics data
   const { data: diagnosticsHealth } = useQuery({
@@ -91,6 +98,12 @@ export default function TestingMonitoringPage() {
   const { data: schedulerStatus, refetch: refetchScheduler } = useQuery({
     queryKey: ['/api/scheduler/status'],
     refetchInterval: 5000
+  });
+
+  // Fetch scheduler audit logs
+  const { data: auditLogs, refetch: refetchAuditLogs } = useQuery({
+    queryKey: ['/api/scheduler/audit-logs'],
+    refetchInterval: 10000
   });
 
   // Toggle scheduler job
@@ -129,6 +142,34 @@ export default function TestingMonitoringPage() {
       console.error('Error running job:', error);
     } finally {
       setRunningJob(null);
+    }
+  };
+
+  // Update scheduler job schedule
+  const updateSchedule = async () => {
+    if (!editingJob || !newSchedule) return;
+    
+    setSavingSchedule(true);
+    try {
+      const response = await fetch(`/api/scheduler/jobs/${editingJob.id}/schedule`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ schedule: newSchedule })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update schedule');
+      }
+      
+      await refetchScheduler();
+      setEditingJob(null);
+      setNewSchedule('');
+    } catch (error) {
+      console.error('Error updating schedule:', error);
+      alert(error instanceof Error ? error.message : 'Failed to update schedule');
+    } finally {
+      setSavingSchedule(false);
     }
   };
 
@@ -323,6 +364,18 @@ export default function TestingMonitoringPage() {
                     <Button
                       size="sm"
                       variant="ghost"
+                      onClick={() => {
+                        setEditingJob(job);
+                        setNewSchedule(job.schedule);
+                      }}
+                      className="p-1"
+                      title="Edit Schedule"
+                    >
+                      <Edit className="h-4 w-4 text-[#F5A623]" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
                       onClick={() => toggleSchedulerJob(job.id, !job.enabled)}
                       disabled={togglingJob === job.id}
                       className="p-1"
@@ -507,6 +560,10 @@ export default function TestingMonitoringPage() {
           <TabsTrigger value="data" className="data-[state=active]:bg-[#1A304A]">
             <Database className="h-4 w-4 mr-2" />
             Data Analysis
+          </TabsTrigger>
+          <TabsTrigger value="scheduler-logs" className="data-[state=active]:bg-[#1A304A]">
+            <History className="h-4 w-4 mr-2" />
+            Scheduler Logs
           </TabsTrigger>
         </TabsList>
 
@@ -765,7 +822,121 @@ export default function TestingMonitoringPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Scheduler Logs Tab */}
+        <TabsContent value="scheduler-logs" className="mt-4">
+          <Card className="bg-[#0B1728] border-[#1A304A]">
+            <CardHeader>
+              <CardTitle className="text-[#EFEFEF] font-mono flex items-center">
+                <History className="h-4 w-4 mr-2" />
+                Scheduler Audit Logs
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-96">
+                {auditLogs?.logs && auditLogs.logs.length > 0 ? (
+                  <div className="space-y-2">
+                    {auditLogs.logs.map((log: any, index: number) => (
+                      <div
+                        key={index}
+                        className="p-3 bg-[#0F1A2A] border border-[#1A304A] rounded-md"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3">
+                            {getStatusIcon(log.status.toLowerCase())}
+                            <div className="flex-1">
+                              <p className="text-sm text-[#EFEFEF] font-mono">{log.details.message}</p>
+                              {log.details.jobId && (
+                                <p className="text-xs text-[#7A8999] mt-1">Job: {log.details.jobId}</p>
+                              )}
+                              {log.details.schedule && (
+                                <p className="text-xs text-[#7A8999]">Schedule: {log.details.schedule}</p>
+                              )}
+                              {log.details.error && (
+                                <p className="text-xs text-[#F44336] mt-1">Error: {log.details.error}</p>
+                              )}
+                            </div>
+                          </div>
+                          <span className="text-xs text-[#7A8999]">
+                            {formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-[#7A8999]">No scheduler logs available</p>
+                  </div>
+                )}
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+
+      {/* Schedule Edit Dialog */}
+      <Dialog open={!!editingJob} onOpenChange={(open) => !open && setEditingJob(null)}>
+        <DialogContent className="bg-[#0B1728] border-[#1A304A]">
+          <DialogHeader>
+            <DialogTitle className="text-[#EFEFEF] font-mono">
+              Edit Schedule - {editingJob?.name}
+            </DialogTitle>
+            <DialogDescription className="text-[#7A8999]">
+              Update the cron expression for this job. Times are in Eastern Time (ET).
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm text-[#EFEFEF]">Cron Expression</label>
+              <Input
+                value={newSchedule}
+                onChange={(e) => setNewSchedule(e.target.value)}
+                placeholder="*/15 9-16 * * 1-5"
+                className="bg-[#061220] border-[#1A304A] text-[#EFEFEF] font-mono"
+              />
+            </div>
+            <div className="space-y-2">
+              <p className="text-xs text-[#7A8999]">Common patterns:</p>
+              <div className="space-y-1 text-xs font-mono">
+                <p className="text-[#EFEFEF]">*/15 9-16 * * 1-5 - Every 15 min, 9AM-4PM weekdays</p>
+                <p className="text-[#EFEFEF]">0 17 * * 1-5 - Daily at 5PM weekdays</p>
+                <p className="text-[#EFEFEF]">0 9 * * 1-5 - Daily at 9AM weekdays</p>
+                <p className="text-[#EFEFEF]">0 18 * * 0 - Weekly on Sundays at 6PM</p>
+              </div>
+            </div>
+            <div className="bg-[#061220] p-3 rounded-md">
+              <p className="text-xs text-[#7A8999]">Format: minute hour day month weekday</p>
+              <p className="text-xs text-[#7A8999] mt-1">
+                Use * for any, */n for intervals, n-m for ranges, n,m for lists
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditingJob(null)}
+              className="bg-transparent border-[#1A304A] text-[#7A8999]"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={updateSchedule}
+              disabled={savingSchedule || !newSchedule}
+              className="bg-[#2196F3] hover:bg-[#1976D2] text-white"
+            >
+              {savingSchedule ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Schedule'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
