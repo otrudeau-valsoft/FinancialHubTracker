@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { setupSwagger } from "./swagger";
 // import { initSchedulerService } from "./services/scheduler-service";
 
 const app = express();
@@ -50,6 +51,9 @@ app.use((req, res, next) => {
       console.error('Failed to initialize auto-scheduler:', error);
       // Continue without scheduler - it's not critical for server startup
     }
+    
+    // Setup Swagger documentation
+    setupSwagger(app);
     
     // Register API routes and create HTTP server with WebSocket support
     const server = await registerRoutes(app);

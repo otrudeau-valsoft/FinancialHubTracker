@@ -18,6 +18,7 @@ import NewsPage from "@/pages/news";
 import EconomicCalendarPage from "@/pages/economic-calendar";
 import TransactionsPage from "@/pages/transactions";
 import TestingMonitoringPage from "@/pages/testing-monitoring";
+import SwaggerPage from "@/pages/swagger";
 import { Header } from "@/components/layout/header";
 
 function Router() {
@@ -42,6 +43,7 @@ function Router() {
             <Route path="/system" component={TestingMonitoringPage} />
             <Route path="/diagnostics" component={TestingMonitoringPage} />
             <Route path="/monitoring" component={TestingMonitoringPage} />
+            <Route path="/api-documentation" component={SwaggerPage} />
             <Route path="/stock-details/:symbol/:region" component={StockDetails} />
             <Route path="/stock/:symbol" component={StockDetails} />
             <Route component={NotFound} />
