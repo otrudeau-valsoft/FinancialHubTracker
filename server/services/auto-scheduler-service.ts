@@ -432,15 +432,101 @@ class AutoSchedulerService {
 
   /**
    * Calculate next run time for a cron schedule
+   * Simple implementation for our common cron patterns
    */
   private getNextRunTime(schedule: string): Date | null {
     try {
-      const interval = cron.parseExpression(schedule, {
-        tz: 'America/New_York'
-      });
-      return interval.next().toDate();
+      const now = new Date();
+      const nyTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
+      const currentHour = nyTime.getHours();
+      const currentMinute = nyTime.getMinutes();
+      const currentDay = nyTime.getDay(); // 0 = Sunday
+      
+      // Parse the schedule pattern
+      if (schedule === '*/15 9-16 * * 1-5') {
+        // Every 15 minutes during market hours (9-4pm) on weekdays
+        const nextRun = new Date(nyTime);
+        
+        // If weekend, jump to Monday 9:00
+        if (currentDay === 0 || currentDay === 6) {
+          const daysUntilMonday = currentDay === 0 ? 1 : 2;
+          nextRun.setDate(nextRun.getDate() + daysUntilMonday);
+          nextRun.setHours(9, 0, 0, 0);
+        } else if (currentHour < 9) {
+          // Before market open
+          nextRun.setHours(9, 0, 0, 0);
+        } else if (currentHour >= 16) {
+          // After market close, next day 9:00
+          nextRun.setDate(nextRun.getDate() + (currentDay === 5 ? 3 : 1));
+          nextRun.setHours(9, 0, 0, 0);
+        } else {
+          // During market hours, calculate next 15-minute interval
+          const minutesUntilNext = 15 - (currentMinute % 15);
+          nextRun.setMinutes(currentMinute + minutesUntilNext, 0, 0);
+          
+          // Check if we've gone past market hours
+          if (nextRun.getHours() >= 16) {
+            nextRun.setDate(nextRun.getDate() + (currentDay === 5 ? 3 : 1));
+            nextRun.setHours(9, 0, 0, 0);
+          }
+        }
+        return nextRun;
+      } else if (schedule === '0 17 * * 1-5') {
+        // Daily at 5 PM on weekdays
+        const nextRun = new Date(nyTime);
+        
+        if (currentDay === 0 || currentDay === 6) {
+          // Weekend - next Monday 5pm
+          const daysUntilMonday = currentDay === 0 ? 1 : 2;
+          nextRun.setDate(nextRun.getDate() + daysUntilMonday);
+          nextRun.setHours(17, 0, 0, 0);
+        } else if (currentHour < 17) {
+          // Today at 5pm
+          nextRun.setHours(17, 0, 0, 0);
+        } else {
+          // Tomorrow (or Monday if Friday)
+          nextRun.setDate(nextRun.getDate() + (currentDay === 5 ? 3 : 1));
+          nextRun.setHours(17, 0, 0, 0);
+        }
+        return nextRun;
+      } else if (schedule === '0 18 * * 0') {
+        // Weekly on Sunday at 6 PM
+        const nextRun = new Date(nyTime);
+        const daysUntilSunday = (7 - currentDay) % 7;
+        
+        if (daysUntilSunday === 0 && currentHour < 18) {
+          // Today at 6pm
+          nextRun.setHours(18, 0, 0, 0);
+        } else {
+          // Next Sunday
+          nextRun.setDate(nextRun.getDate() + (daysUntilSunday || 7));
+          nextRun.setHours(18, 0, 0, 0);
+        }
+        return nextRun;
+      } else if (schedule === '30 9 * * 1-5') {
+        // Daily at 9:30 AM on weekdays
+        const nextRun = new Date(nyTime);
+        
+        if (currentDay === 0 || currentDay === 6) {
+          // Weekend - next Monday 9:30am
+          const daysUntilMonday = currentDay === 0 ? 1 : 2;
+          nextRun.setDate(nextRun.getDate() + daysUntilMonday);
+          nextRun.setHours(9, 30, 0, 0);
+        } else if (currentHour < 9 || (currentHour === 9 && currentMinute < 30)) {
+          // Today at 9:30am
+          nextRun.setHours(9, 30, 0, 0);
+        } else {
+          // Tomorrow (or Monday if Friday)
+          nextRun.setDate(nextRun.getDate() + (currentDay === 5 ? 3 : 1));
+          nextRun.setHours(9, 30, 0, 0);
+        }
+        return nextRun;
+      }
+      
+      // For unknown patterns, return null
+      return null;
     } catch (error) {
-      console.error('Error parsing cron expression:', error);
+      console.error('Error calculating next run time:', error);
       return null;
     }
   }
