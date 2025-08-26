@@ -13,7 +13,7 @@ const swaggerOptions = {
     info: {
       title: 'AlphaGen Portfolio Management API',
       version: '1.0.0',
-      description: 'Comprehensive API for managing multi-regional investment portfolios with real-time market data, performance tracking, and automated scheduling.',
+      description: 'Production API for AlphaGen Portfolio Management System. Comprehensive API for managing multi-regional investment portfolios with real-time market data, performance tracking, and automated scheduling. Now live at https://alphagen.app',
       contact: {
         name: 'AlphaGen Team',
         email: 'support@alphagen.com'
@@ -21,10 +21,18 @@ const swaggerOptions = {
     },
     servers: [
       {
+        url: 'https://alphagen-egc.replit.app',
+        description: 'AlphaGen Production Server'
+      },
+      {
+        url: 'https://alphagen.app',
+        description: 'AlphaGen Production Server (Custom Domain)'
+      },
+      {
         url: process.env.REPLIT_DEV_DOMAIN 
           ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
           : 'http://localhost:5000',
-        description: process.env.NODE_ENV === 'production' ? 'Production Server' : 'Development Server'
+        description: 'Development Server'
       }
     ],
     components: {
