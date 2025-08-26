@@ -21,8 +21,8 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: process.env.NODE_ENV === 'production' 
-          ? 'https://your-replit-app.replit.app' 
+        url: process.env.REPLIT_DEV_DOMAIN 
+          ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
           : 'http://localhost:5000',
         description: process.env.NODE_ENV === 'production' ? 'Production Server' : 'Development Server'
       }

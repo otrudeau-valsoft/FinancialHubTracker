@@ -203,6 +203,12 @@ export function Header() {
               >
                 TESTING & MONITORING
               </DropdownMenuItem>
+              <DropdownMenuItem 
+                className={`text-gray-300 hover:text-white hover:bg-blue-900/30 focus:bg-blue-900/30 font-mono text-xs ${location === '/api-documentation' ? 'bg-blue-900/30' : ''}`}
+                onClick={() => navigateTo("/api-documentation")}
+              >
+                API DOCUMENTATION
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -382,6 +388,13 @@ export function Header() {
                 className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/system' || location === '/diagnostics' || location === '/monitoring' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
               >
                 TESTING & MONITORING
+              </button>
+              
+              <button 
+                onClick={() => navigateTo("/api-documentation")} 
+                className={`w-full text-left text-gray-300 hover:text-white px-3 py-2 rounded-sm text-xs font-mono transition-colors duration-200 ease-in-out ${location === '/api-documentation' ? 'bg-[#1A304A]' : 'hover:bg-[#162639]'}`}
+              >
+                API DOCUMENTATION
               </button>
             </div>
           </div>
