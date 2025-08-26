@@ -14,6 +14,9 @@ import { historicalPriceService } from './historical-price-service';
 // @ts-ignore - JavaScript module
 import { portfolioPerformanceService } from './portfolio-performance-service.js';
 import { dataUpdateLogger } from './data-update-logger';
+import { db } from '../db';
+import { schedulerConfigs, schedulerLogs } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 interface ScheduledJob {
   name: string;
@@ -32,6 +35,92 @@ class AutoSchedulerService {
 
   constructor() {
     this.defineJobs();
+    // Load configurations from database on startup
+    this.loadConfigurationsFromDatabase().catch(console.error);
+  }
+
+  private async loadConfigurationsFromDatabase() {
+    try {
+      console.log('📄 Loading scheduler configurations from database...');
+      
+      // First ensure all jobs have database records
+      await this.ensureJobsInDatabase();
+      
+      // Then load configurations from database
+      const configs = await db.select().from(schedulerConfigs);
+      
+      for (const config of configs) {
+        const job = this.jobs.get(config.id);
+        if (job) {
+          // Update job schedule from database if it was modified
+          if (config.schedule && config.schedule !== job.schedule) {
+            job.schedule = config.schedule;
+          }
+          
+          // Enable/disable based on database config
+          if (config.enabled && !job.enabled) {
+            await this.enableJob(config.id, false); // false to skip DB update since we're loading from DB
+          } else if (!config.enabled && job.enabled) {
+            await this.disableJob(config.id, false);
+          }
+        }
+      }
+      console.log('✅ Scheduler configurations loaded from database');
+    } catch (error) {
+      console.error('❌ Error loading scheduler configurations from database:', error);
+    }
+  }
+
+  private async ensureJobsInDatabase() {
+    try {
+      // Get all job IDs from memory
+      const jobIds = Array.from(this.jobs.keys());
+      
+      // Get existing configs from database
+      const existingConfigs = await db.select().from(schedulerConfigs);
+      const existingIds = existingConfigs.map(c => c.id);
+      
+      // Insert any missing jobs into database
+      for (const [jobId, job] of this.jobs) {
+        if (!existingIds.includes(jobId)) {
+          await db.insert(schedulerConfigs).values({
+            id: jobId,
+            name: job.name,
+            schedule: job.schedule,
+            enabled: false, // Default to disabled
+            lastRun: null,
+            lastStatus: null
+          });
+          console.log(`📝 Added job ${jobId} to database`);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error ensuring jobs in database:', error);
+    }
+  }
+
+  private async updateDatabaseConfig(jobId: string, updates: Partial<{ enabled: boolean; schedule: string; lastRun: Date; lastStatus: string }>) {
+    try {
+      await db.update(schedulerConfigs).set({
+        ...updates,
+        updatedAt: new Date()
+      }).where(eq(schedulerConfigs.id, jobId));
+    } catch (error) {
+      console.error(`❌ Error updating database config for job ${jobId}:`, error);
+    }
+  }
+
+  private async logToDatabase(jobId: string, action: string, status: string, details?: any) {
+    try {
+      await db.insert(schedulerLogs).values({
+        jobId,
+        action,
+        status,
+        details
+      });
+    } catch (error) {
+      console.error('❌ Error logging to database:', error);
+    }
   }
 
   private defineJobs() {
@@ -285,9 +374,7 @@ class AutoSchedulerService {
 
     try {
       // Log the schedule change
-      await dataUpdateLogger.log('scheduler', 'Info', {
-        message: `Updating schedule for ${job.name}`,
-        jobId,
+      await this.logToDatabase(jobId, 'schedule_change', 'info', {
         oldSchedule: job.schedule,
         newSchedule
       });
@@ -307,6 +394,16 @@ class AutoSchedulerService {
           job.lastRun = new Date();
           try {
             await job.task();
+            await this.updateDatabaseConfig(jobId, { 
+              lastRun: job.lastRun, 
+              lastStatus: 'success' 
+            });
+          } catch (error) {
+            await this.updateDatabaseConfig(jobId, { 
+              lastRun: job.lastRun, 
+              lastStatus: 'error' 
+            });
+            throw error;
           } finally {
             job.running = false;
           }
@@ -318,11 +415,9 @@ class AutoSchedulerService {
         job.cronJob = cronJob;
       }
 
-      await dataUpdateLogger.log('scheduler', 'Success', {
-        message: `Schedule updated for ${job.name}`,
-        jobId,
-        newSchedule
-      });
+      // Update database with new schedule
+      await this.updateDatabaseConfig(jobId, { schedule: newSchedule });
+      await this.logToDatabase(jobId, 'schedule_change', 'success', { newSchedule });
 
       return true;
     } catch (error) {
@@ -353,11 +448,37 @@ class AutoSchedulerService {
   /**
    * Enable/disable a job
    */
-  setJobEnabled(jobId: string, enabled: boolean) {
+  async setJobEnabled(jobId: string, enabled: boolean) {
     if (enabled) {
       this.startJob(jobId);
+      await this.updateDatabaseConfig(jobId, { enabled: true });
+      await this.logToDatabase(jobId, 'toggle', 'success', { enabled: true });
     } else {
       this.stopJob(jobId);
+      await this.updateDatabaseConfig(jobId, { enabled: false });
+      await this.logToDatabase(jobId, 'toggle', 'success', { enabled: false });
+    }
+  }
+
+  /**
+   * Enable a specific job (with database persistence control)
+   */
+  async enableJob(jobId: string, updateDb: boolean = true) {
+    this.startJob(jobId);
+    if (updateDb) {
+      await this.updateDatabaseConfig(jobId, { enabled: true });
+      await this.logToDatabase(jobId, 'toggle', 'success', { enabled: true });
+    }
+  }
+
+  /**
+   * Disable a specific job (with database persistence control)
+   */
+  async disableJob(jobId: string, updateDb: boolean = true) {
+    this.stopJob(jobId);
+    if (updateDb) {
+      await this.updateDatabaseConfig(jobId, { enabled: false });
+      await this.logToDatabase(jobId, 'toggle', 'success', { enabled: false });
     }
   }
 
@@ -376,10 +497,8 @@ class AutoSchedulerService {
 
     console.log(`Manually triggering job: ${job.name}`);
     
-    // Log manual run
-    await dataUpdateLogger.log('scheduler', 'Info', {
-      message: `Manually triggering ${job.name}`,
-      jobId,
+    // Log manual run to database
+    await this.logToDatabase(jobId, 'manual_trigger', 'info', {
       schedule: job.schedule
     });
     
@@ -389,14 +508,22 @@ class AutoSchedulerService {
       await job.task();
       job.lastRun = new Date();
       
-      await dataUpdateLogger.log('scheduler', 'Success', {
-        message: `Manual run completed for ${job.name}`,
-        jobId
+      // Update database with successful run
+      await this.updateDatabaseConfig(jobId, { 
+        lastRun: job.lastRun, 
+        lastStatus: 'success' 
       });
+      await this.logToDatabase(jobId, 'manual_trigger', 'success', {
+        completedAt: job.lastRun
+      });
+      
+      console.log(`✅ Manual run completed for ${job.name}`);
     } catch (error) {
-      await dataUpdateLogger.log('scheduler', 'Error', {
-        message: `Manual run failed for ${job.name}`,
-        jobId,
+      await this.updateDatabaseConfig(jobId, { 
+        lastRun: new Date(), 
+        lastStatus: 'error' 
+      });
+      await this.logToDatabase(jobId, 'manual_trigger', 'error', {
         error: error instanceof Error ? error.message : String(error)
       });
       throw error;

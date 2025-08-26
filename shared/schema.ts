@@ -17,6 +17,42 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
+// Scheduler Configuration Schema
+export const schedulerConfigs = pgTable("scheduler_configs", {
+  id: text("id").primaryKey(), // job id like 'current-prices'
+  name: text("name").notNull(),
+  schedule: text("schedule").notNull(), // cron expression
+  enabled: boolean("enabled").default(false),
+  lastRun: timestamp("last_run"),
+  lastStatus: text("last_status"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertSchedulerConfigSchema = createInsertSchema(schedulerConfigs).omit({
+  updatedAt: true,
+});
+
+export type InsertSchedulerConfig = z.infer<typeof insertSchedulerConfigSchema>;
+export type SchedulerConfig = typeof schedulerConfigs.$inferSelect;
+
+// Scheduler Audit Logs Schema
+export const schedulerLogs = pgTable("scheduler_logs", {
+  id: serial("id").primaryKey(),
+  jobId: text("job_id").notNull(),
+  action: text("action").notNull(), // 'run', 'toggle', 'schedule_change', 'manual_trigger'
+  status: text("status").notNull(), // 'success', 'error', 'info'
+  details: json("details"),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+export const insertSchedulerLogSchema = createInsertSchema(schedulerLogs).omit({
+  id: true,
+  timestamp: true,
+});
+
+export type InsertSchedulerLog = z.infer<typeof insertSchedulerLogSchema>;
+export type SchedulerLog = typeof schedulerLogs.$inferSelect;
+
 // Stock Type Enum
 export const StockTypeEnum = z.enum(["Comp", "Cat", "Cycl", "Cash", "ETF"]);
 export type StockType = z.infer<typeof StockTypeEnum>;

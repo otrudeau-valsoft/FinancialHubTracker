@@ -60,6 +60,48 @@ interface SchedulerJob {
   nextRun: string | null;
 }
 
+interface DataQualityResponse {
+  summary?: {
+    totalChecks: number;
+    passedChecks: number;
+  };
+  checks?: any[];
+}
+
+interface SystemMetricsResponse {
+  metrics?: {
+    cpu: number;
+    memory: number | {
+      heapUsed: number;
+      heapTotal: number;
+    };
+  };
+  count?: number;
+}
+
+interface DiagnosticsHealthResponse {
+  database?: {
+    connection: string;
+    rowCounts?: {
+      portfolios_usd: number;
+      current_prices: number;
+      historical_prices: number;
+    };
+  };
+}
+
+interface AlertsResponse {
+  alerts?: any[];
+}
+
+interface SchedulerStatusResponse {
+  jobs?: SchedulerJob[];
+}
+
+interface AuditLogsResponse {
+  logs?: any[];
+}
+
 export default function TestingMonitoringPage() {
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [isRunningTests, setIsRunningTests] = useState(false);
@@ -71,37 +113,37 @@ export default function TestingMonitoringPage() {
   const [savingSchedule, setSavingSchedule] = useState(false);
 
   // Fetch diagnostics data
-  const { data: diagnosticsHealth } = useQuery({
+  const { data: diagnosticsHealth } = useQuery<DiagnosticsHealthResponse>({
     queryKey: ['/api/diagnostics/health'],
     refetchInterval: 30000
   });
 
   // Fetch data quality metrics
-  const { data: dataQuality } = useQuery({
+  const { data: dataQuality } = useQuery<DataQualityResponse>({
     queryKey: ['/api/monitoring/data-quality'],
     refetchInterval: 60000
   });
 
   // Fetch system metrics
-  const { data: systemMetrics } = useQuery({
+  const { data: systemMetrics } = useQuery<SystemMetricsResponse>({
     queryKey: ['/api/monitoring/system-metrics'],
     refetchInterval: 5000
   });
 
   // Fetch alerts
-  const { data: alerts } = useQuery({
+  const { data: alerts } = useQuery<AlertsResponse>({
     queryKey: ['/api/monitoring/alerts'],
     refetchInterval: 10000
   });
 
   // Fetch scheduler status
-  const { data: schedulerStatus, refetch: refetchScheduler } = useQuery({
+  const { data: schedulerStatus, refetch: refetchScheduler } = useQuery<SchedulerStatusResponse>({
     queryKey: ['/api/scheduler/status'],
     refetchInterval: 5000
   });
 
   // Fetch scheduler audit logs
-  const { data: auditLogs, refetch: refetchAuditLogs } = useQuery({
+  const { data: auditLogs, refetch: refetchAuditLogs } = useQuery<AuditLogsResponse>({
     queryKey: ['/api/scheduler/audit-logs'],
     refetchInterval: 10000
   });

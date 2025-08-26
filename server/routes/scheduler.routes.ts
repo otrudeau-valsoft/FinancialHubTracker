@@ -46,7 +46,7 @@ router.post('/jobs/:jobId/toggle', async (req, res) => {
       });
     }
 
-    autoSchedulerService.setJobEnabled(jobId, enabled);
+    await autoSchedulerService.setJobEnabled(jobId, enabled);
     
     await dataUpdateLogger.log('scheduler', 'Success', {
       message: `Job ${jobId} ${enabled ? 'enabled' : 'disabled'} | Job: ${jobId} | Enabled: ${enabled}`
@@ -165,11 +165,17 @@ router.get('/audit-logs', async (req, res) => {
   try {
     const { limit = 100 } = req.query;
     
-    // Fetch scheduler-specific logs from data update logs
-    const logs = await dataUpdateLogger.getLogs({
-      type: 'scheduler',
-      limit: Number(limit)
-    });
+    // Import necessary database modules
+    const { db } = await import('../db');
+    const { schedulerLogs } = await import('@shared/schema');
+    const { desc } = await import('drizzle-orm');
+    
+    // Fetch logs from scheduler_logs table
+    const logs = await db
+      .select()
+      .from(schedulerLogs)
+      .orderBy(desc(schedulerLogs.timestamp))
+      .limit(Number(limit));
     
     return res.json({
       status: 'success',
